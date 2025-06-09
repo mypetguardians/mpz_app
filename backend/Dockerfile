@@ -46,6 +46,8 @@ RUN pip install gunicorn
 # Run initial commands
 RUN python manage.py collectstatic --noinput
 
+RUN chmod +x paracord_runner.sh
+
 # Clean up
 RUN apt-get remove --purge -y \
     && apt-get autoremove -y \

@@ -1,6 +1,8 @@
 #!/bin/bash
 RUN_PORT="8000"
 
+python manage.py collectstatic --noinput
+
 python manage.py migrate --no-input
 
-gunicorn cfehome.wsgi:application --bind "0.0.0.0:$RUN_PORT"
+python manage.py runserver 0.0.0.0:$RUN_PORT

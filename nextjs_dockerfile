@@ -1,33 +1,20 @@
-# Set the Node.js version as a build-time argument
+# 베이스 이미지: Node.js LTS (예: 20.x)
 FROM node:20-alpine
 
-# Set Node-related environment variables
-ENV NODE_ENV=production
+# package.json과 package-lock.json 복사
+COPY .frontend/package*.json ./
 
-# Copy package.json and package-lock.json
-COPY frontend/package*.json ./
+# 의존성 설치
+RUN npm install
 
-# Install dependencies (including devDependencies)
-RUN npm ci
+# 나머지 소스 코드 복사
+COPY .frontend/ /app
 
-# Copy the frontend code into the container
-COPY ./frontend /app
-
+# 작업 디렉토리 설정
 WORKDIR /app
 
-# Build the Next.js application
+# 빌드
 RUN npm run build
 
-# Clean up dev dependencies to reduce image size
-RUN npm prune --production
-
-# Expose the port that Next.js runs on
-ENV PORT=3000
-EXPOSE ${PORT}
-
-# Set runtime configuration
-ARG NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-
-# Run the Next.js application
+# Next.js 앱 실행
 CMD ["npm", "start"]

@@ -8,7 +8,7 @@ ENV NODE_ENV=production
 COPY frontend/package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm ci
 
 # Copy the frontend code into the container
 COPY ./frontend /app
@@ -17,6 +17,9 @@ WORKDIR /app
 
 # Build the Next.js application
 RUN npm run build
+
+# Clean up dev dependencies to reduce image size
+RUN npm prune --production
 
 # Expose the port that Next.js runs on
 ENV PORT=3000

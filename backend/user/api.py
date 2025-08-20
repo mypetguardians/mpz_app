@@ -10,17 +10,9 @@ from django.conf import settings
 from api.exceptions import CustomAuthorizationError
 from django.http import JsonResponse
 from api.security import jwt_auth
-from user.kakao_api import router as kakao_router
-from user.admin_api import router as admin_router
 
 User = get_user_model()
 router = Router(tags=["Users"])
-
-# 카카오 로그인 라우터 추가
-router.add_router("/kakao", kakao_router)
-
-# Admin API 라우터 추가
-router.add_router("/admin", admin_router)
 
 
 @router.post(

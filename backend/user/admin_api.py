@@ -1,4 +1,4 @@
-from ninja import Router
+from ninja import Router, Schema
 from ninja.errors import HttpError
 from asgiref.sync import sync_to_async
 from django.contrib.auth import get_user_model
@@ -8,6 +8,9 @@ from user.models import User
 from centers.models import Center
 from api.security import jwt_auth
 from typing import List
+
+class UserRoleChangeIn(Schema):
+    user_type: str
 
 User = get_user_model()
 router = Router(tags=["Admin_API"])
@@ -35,15 +38,31 @@ async def get_center_admins(request):
             raise HttpError(400, "등록된 센터가 없습니다.")
 
         # 같은 센터의 모든 멤버 조회 (센터 최고관리자 제외)
-        center_admins = await User.objects.filter(
-            center=center,
-            user_type__in=[User.UserTypeChoice.center_admin, User.UserTypeChoice.trainer]
-        ).values(
-            'id', 'username', 'email', 'nickname', 'user_type', 'status', 
-            'created_at', 'updated_at'
+        center_admins_data = await sync_to_async(list)(
+            User.objects.filter(
+                center=center,
+                user_type__in=[User.UserTypeChoice.center_admin, User.UserTypeChoice.trainer, User.UserTypeChoice.normal]
+            ).values(
+                'id', 'username', 'email', 'nickname', 'user_type', 'status', 
+                'created_at', 'updated_at'
+            )
         )
 
-        return list(center_admins)
+        # 데이터 변환 (UUID, datetime을 문자열로, None을 빈 문자열로)
+        result = []
+        for admin in center_admins_data:
+            result.append({
+                'id': str(admin['id']),
+                'username': admin['username'],
+                'email': admin['email'] or '',
+                'nickname': admin['nickname'] or '',
+                'user_type': admin['user_type'],
+                'status': admin['status'],
+                'created_at': admin['created_at'].isoformat() if admin['created_at'] else '',
+                'updated_at': admin['updated_at'].isoformat() if admin['updated_at'] else '',
+            })
+
+        return result
         
     except HttpError:
         raise
@@ -210,7 +229,7 @@ async def delete_center_admin(request, admin_id: str):
     response={200: UserMeOut},
     auth=jwt_auth,
 )
-async def change_center_admin_role(request, admin_id: str, user_type: str):
+async def change_center_admin_role(request, admin_id: str, data: UserRoleChangeIn):
     try:
         current_user = request.auth
         
@@ -224,7 +243,7 @@ async def change_center_admin_role(request, admin_id: str, user_type: str):
 
         # 유효한 사용자 타입인지 확인
         valid_types = [User.UserTypeChoice.center_admin, User.UserTypeChoice.trainer, User.UserTypeChoice.normal]
-        if user_type not in valid_types:
+        if data.user_type not in valid_types:
             raise HttpError(400, "유효하지 않은 사용자 타입입니다.")
 
         # 현재 사용자의 센터 조회 (소유한 센터)
@@ -240,7 +259,7 @@ async def change_center_admin_role(request, admin_id: str, user_type: str):
             raise HttpError(404, "권한을 변경할 사용자를 찾을 수 없습니다.")
 
         # 권한 변경
-        target_user.user_type = user_type
+        target_user.user_type = data.user_type
         await target_user.asave()
         
         # 변경된 사용자 정보 반환

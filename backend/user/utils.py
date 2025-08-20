@@ -16,11 +16,20 @@ def get_random(length):
 
 def get_access_token(payload):
     exp = timezone.now() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRATION_TIME)
+    
+    # UUID를 문자열로 변환
+    processed_payload = {}
+    for key, value in payload.items():
+        if hasattr(value, 'hex'):  # UUID 객체인 경우
+            processed_payload[key] = str(value)
+        else:
+            processed_payload[key] = value
+    
     return (
         jwt.encode(
             {
                 "exp": exp,
-                **payload,
+                **processed_payload,
             },
             settings.SECRET_KEY,
             algorithm="HS256",

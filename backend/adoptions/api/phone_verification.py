@@ -17,7 +17,7 @@ def generate_verification_token() -> str:
 
 
 @router.post(
-    "/adoption/phone/send-verification",
+    "/phone/send-verification",
     summary="[C] 전화번호 인증코드 발송",
     description="입양 신청을 위한 전화번호 인증코드를 발송합니다",
     response={200: PhoneVerificationOut, 401: dict, 403: dict, 429: dict, 500: dict},
@@ -70,7 +70,7 @@ async def send_phone_verification(request, data: SendPhoneVerificationIn):
 
 
 @router.post(
-    "/adoption/phone/verify",
+    "/phone/verify",
     summary="[C] 전화번호 인증코드 확인",
     description="입양 신청을 위한 전화번호 인증코드를 확인합니다",
     response={200: PhoneVerificationOut, 400: dict, 401: dict, 500: dict},

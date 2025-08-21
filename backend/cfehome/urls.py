@@ -22,9 +22,7 @@ from api.docs import MixedDocs
 from user.api import router as user_router
 from user.admin_api import router as admin_router
 from user.kakao_api import router as kakao_router
-from adoptions.phone_verification_api import router as phone_verification_router
-from adoptions.contract_api import router as contract_router
-from adoptions.adoption_api import router as adoption_router
+from adoptions.api.main_api import router as adoption_router
 from django.contrib.admin.views.decorators import staff_member_required
 
 base_api = NinjaAPI(
@@ -44,8 +42,6 @@ def health_check_handler(request):
 base_api.add_router("v1/auth", user_router)
 base_api.add_router("v1/admin", admin_router)
 base_api.add_router("v1/kakao", kakao_router)
-base_api.add_router("v1/adoptions", phone_verification_router)
-base_api.add_router("v1/adoptions", contract_router)
 base_api.add_router("v1/adoptions", adoption_router)
 
 urlpatterns = [

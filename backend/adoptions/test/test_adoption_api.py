@@ -1,5 +1,5 @@
 from django.test import TestCase
-from adoptions.adoption_api import router
+from adoptions.api.adoption import router
 from user.api import router as user_router
 from ninja.testing import TestAsyncClient
 from user.models import User

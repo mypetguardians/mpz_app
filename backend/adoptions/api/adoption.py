@@ -1,9 +1,8 @@
 from ninja import Router
 from ninja.errors import HttpError
 from asgiref.sync import sync_to_async
-from django.utils import timezone
 from adoptions.schemas.inbound import (
-    AdoptionApplicationIn, UserSettingsIn, AdoptionQuestionResponseIn
+    AdoptionApplicationIn
 )
 from adoptions.schemas.outbound import (
     AdoptionPreCheckOut, AdoptionApplicationOut, 
@@ -22,7 +21,7 @@ router = Router(tags=["Adoption"])
 
 
 @router.get(
-    "/adoption/pre-check/{animal_id}",
+    "/pre-check/{animal_id}",
     summary="[C] 입양 신청 사전 확인",
     description="입양 신청 가능 여부 및 필요한 정보들을 확인합니다",
     response={200: AdoptionPreCheckOut, 401: dict, 404: dict, 500: dict},
@@ -144,7 +143,7 @@ async def get_adoption_pre_check(request, animal_id: str):
 
 
 @router.post(
-    "/adoption/apply",
+    "/apply",
     summary="[C] 입양 신청 제출",
     description="동물에 대한 입양 신청을 제출합니다",
     response={201: AdoptionApplicationOut, 400: dict, 401: dict, 403: dict, 404: dict, 500: dict},

@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     "notices",
     "feedback",
     "banners",
+    "cloudflare",
 ]
 
 MIDDLEWARE = [

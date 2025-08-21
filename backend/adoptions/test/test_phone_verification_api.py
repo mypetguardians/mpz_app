@@ -1,5 +1,5 @@
 from django.test import TestCase
-from adoptions.phone_verification_api import router
+from adoptions.api.phone_verification import router
 from user.api import router as user_router
 from ninja.testing import TestAsyncClient
 from user.models import User, PhoneVerificationToken
@@ -55,7 +55,7 @@ class TestPhoneVerificationAPI(TestCase):
         
         data = {"phone_number": "010-1234-5678"}
         response = await self.client.post(
-            "/adoption/phone/send-verification", 
+            "/phone/send-verification", 
             json=data, 
             headers=headers
         )
@@ -82,7 +82,7 @@ class TestPhoneVerificationAPI(TestCase):
         
         # 첫 번째 요청
         response1 = await self.client.post(
-            "/adoption/phone/send-verification", 
+            "/phone/send-verification", 
             json=data, 
             headers=headers
         )
@@ -90,7 +90,7 @@ class TestPhoneVerificationAPI(TestCase):
         
         # 1분 내 두 번째 요청 (스팸 방지)
         response2 = await self.client.post(
-            "/adoption/phone/send-verification", 
+            "/phone/send-verification", 
             json=data, 
             headers=headers
         )
@@ -126,7 +126,7 @@ class TestPhoneVerificationAPI(TestCase):
         
         data = {"phone_number": "010-1234-5678"}
         response = await self.client.post(
-            "/adoption/phone/send-verification", 
+            "/phone/send-verification", 
             json=data, 
             headers=headers
         )
@@ -145,7 +145,7 @@ class TestPhoneVerificationAPI(TestCase):
         # 인증코드 발송
         send_data = {"phone_number": "010-1234-5678"}
         await self.client.post(
-            "/adoption/phone/send-verification", 
+            "/phone/send-verification", 
             json=send_data, 
             headers=headers
         )

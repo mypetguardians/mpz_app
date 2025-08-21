@@ -1,5 +1,5 @@
 from django.test import TestCase
-from adoptions.contract_api import router
+from adoptions.api.contract import router
 from user.api import router as user_router
 from ninja.testing import TestAsyncClient
 from user.models import User
@@ -98,7 +98,7 @@ class TestContractAPI(TestCase):
         }
         
         response = await self.client.post(
-            "/adoption/contract/sign", 
+            "/contract/sign", 
             json=data, 
             headers=headers
         )
@@ -145,7 +145,7 @@ class TestContractAPI(TestCase):
         }
         
         response = await self.client.post(
-            "/adoption/contract/sign", 
+            "/contract/sign", 
             json=data, 
             headers=headers
         )
@@ -167,7 +167,7 @@ class TestContractAPI(TestCase):
         }
         
         response = await self.client.post(
-            "/adoption/contract/sign", 
+            "/contract/sign", 
             json=data, 
             headers=headers
         )
@@ -194,7 +194,7 @@ class TestContractAPI(TestCase):
         }
         
         response = await self.client.post(
-            "/adoption/contract/sign", 
+            "/contract/sign", 
             json=data, 
             headers=headers
         )
@@ -229,7 +229,7 @@ class TestContractAPI(TestCase):
         }
         
         response = await self.client.post(
-            "/adoption/contract/sign", 
+            "/contract/sign", 
             json=data, 
             headers=headers
         )

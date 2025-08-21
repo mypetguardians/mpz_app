@@ -12,7 +12,7 @@ router = Router(tags=["Contract"])
 
 
 @router.post(
-    "/adoption/contract/sign",
+    "/contract/sign",
     summary="[C] 계약서 서명 (사용자용)",
     description="계약서에 사용자 서명을 추가합니다",
     response={200: ContractSignOut, 401: dict, 404: dict, 500: dict},

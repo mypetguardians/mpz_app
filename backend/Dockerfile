@@ -42,6 +42,7 @@ ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 # Install requirements
 RUN pip install -r /tmp/requirements.txt
 RUN pip install gunicorn
+RUN pip install boto3
 
 # Run initial commands
 RUN python manage.py collectstatic --noinput

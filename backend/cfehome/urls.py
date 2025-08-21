@@ -26,7 +26,7 @@ from adoptions.api.main_api import router as adoption_router
 from django.contrib.admin.views.decorators import staff_member_required
 
 base_api = NinjaAPI(
-    title="Mansung API",
+    title="MPZ API",
     version="0.1.0",
     docs_url="/<engine>/",
     docs_decorator=staff_member_required,

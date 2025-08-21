@@ -23,6 +23,7 @@ from user.api import router as user_router
 from user.admin_api import router as admin_router
 from user.kakao_api import router as kakao_router
 from adoptions.api.main_api import router as adoption_router
+from cloudflare.api import router as cloudflare_router
 from django.contrib.admin.views.decorators import staff_member_required
 
 base_api = NinjaAPI(
@@ -43,6 +44,7 @@ base_api.add_router("v1/auth", user_router)
 base_api.add_router("v1/admin", admin_router)
 base_api.add_router("v1/kakao", kakao_router)
 base_api.add_router("v1/adoptions", adoption_router)
+base_api.add_router("v1/cloudflare", cloudflare_router)
 
 urlpatterns = [
     path("admin/", admin.site.urls),

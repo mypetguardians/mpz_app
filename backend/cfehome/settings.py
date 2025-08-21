@@ -217,6 +217,14 @@ KAKAO_SOCIAL_LOGIN_CLIENT_ID = config("KAKAO_SOCIAL_LOGIN_CLIENT_ID", default=""
 KAKAO_SOCIAL_LOGIN_CLIENT_SECRET = config("KAKAO_SOCIAL_LOGIN_CLIENT_SECRET", default="")
 KAKAO_SOCIAL_LOGIN_REDIRECT_URI = config("KAKAO_SOCIAL_LOGIN_REDIRECT_URI", default="")
 
+# Cloudflare R2 Settings
+R2_ACCOUNT_ID = config("R2_ACCOUNT_ID", default="")
+R2_ACCESS_KEY = config("R2_ACCESS_KEY", default="")
+R2_SECRET_KEY = config("R2_SECRET_KEY", default="")
+R2_BUCKET = config("R2_BUCKET", default="")
+R2_ENDPOINT = config("R2_ENDPOINT", default="")
+R2_PUBLIC_BASE_URL = config("R2_PUBLIC_BASE_URL", default="")
+
 if DEBUG:
     FRONTEND_URL = "http://127.0.0.1:3000"
 else:

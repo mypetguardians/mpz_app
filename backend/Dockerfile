@@ -24,13 +24,13 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Create and set the working directory
-RUN mkdir -p /app
+RUN mkdir -p /backend
 
 # Copy requirements and install dependencies
 COPY requirements.txt /tmp/requirements.txt
-COPY ./ /app
+COPY ./ /backend
 
-WORKDIR /app
+WORKDIR /backend
 
 # Set environment variables
 ARG DJANGO_SECRET_KEY
@@ -53,5 +53,13 @@ RUN apt-get remove --purge -y \
     && apt-get autoremove -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# 사용자 설정
+RUN adduser \
+    --disabled-password \
+    --no-create-home \
+    django-user
+
+USER django-user
 
 CMD ["bash", "./paracord_runner.sh"]

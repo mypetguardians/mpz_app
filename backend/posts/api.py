@@ -145,59 +145,83 @@ def get_post_list(request: HttpRequest, query: Query[PostListQueryIn]):
         if query.user_id:
             posts_query = posts_query.filter(user_id=query.user_id)
         
-        # 시스템 태그 필터링 적용
+        # 시스템 태그 필터링 적용 (쿼리 효율 최적화)
         if query.system_tags:
             try:
                 from posts.models import SystemTag
                 
-                system_tag_names = [tag.strip() for tag in query.system_tags if tag.strip()]
+                system_tag_names = [tag.strip().lower() for tag in query.system_tags if tag.strip()]
                 
                 if system_tag_names:
-                    # 대소문자 구분 없이 매칭되는 시스템 태그 찾기
-                    # 대소문자 구분 없이 매칭하기 위해 여러 조건으로 분리
-                    from django.db.models import Q
-                    
-                    tag_conditions = Q()
-                    for tag_name in system_tag_names:
-                        tag_conditions |= Q(name__iexact=tag_name)
-                    
+                    # 1. 시스템 태그와 매칭되는 활성 태그들을 한 번에 조회 (대소문자 무시)
                     matching_system_tags = SystemTag.objects.filter(
-                        is_active=True
-                    ).filter(tag_conditions)
+                        is_active=True,
+                        name__iregex=r'^(' + '|'.join([tag.replace('(', r'\(').replace(')', r'\)') for tag in system_tag_names]) + ')$'
+                    ).values_list('name', flat=True)
                     
-                    if matching_system_tags.exists():
-                        # 매칭되는 시스템 태그가 있는 포스트만 필터링
-                        # 대소문자 구분 없이 매칭하기 위해 여러 조건으로 분리
-                        from django.db.models import Q
-                        
-                        # 각 시스템 태그에 대해 대소문자 구분 없이 매칭
-                        tag_conditions = Q()
-                        for system_tag in matching_system_tags:
-                            # exact lookup 사용 (대소문자 구분)
-                            tag_conditions |= Q(posttag__tag_name=system_tag.name)
-                        
-                        posts_query = posts_query.filter(tag_conditions).distinct()
+                    if matching_system_tags:
+                        # 2. 매칭되는 시스템 태그가 있는 포스트를 효율적으로 필터링
+                        # 대소문자 구분 없이 매칭
+                        posts_query = posts_query.filter(
+                            posttag__tag_name__iregex=r'^(' + '|'.join([tag.replace('(', r'\(').replace(')', r'\)') for tag in matching_system_tags]) + ')$'
+                        ).distinct()
                     else:
                         # 매칭되는 시스템 태그가 없으면 빈 결과 반환
                         return []
                         
             except Exception as e:
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.error(f"시스템 태그 필터링 중 오류 발생: {str(e)}")
-                # 오류 발생 시 필터링 없이 진행
-                pass
+                # iregex가 지원되지 않는 경우 fallback to exact matching
+                try:
+                    matching_system_tags = SystemTag.objects.filter(
+                        is_active=True,
+                        name__in=system_tag_names
+                    ).values_list('name', flat=True)
+                    
+                    if matching_system_tags:
+                        posts_query = posts_query.filter(
+                            posttag__tag_name__in=matching_system_tags
+                        ).distinct()
+                    else:
+                        return []
+                        
+                except Exception as fallback_e:
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"시스템 태그 필터링 중 오류 발생: {str(fallback_e)}")
+                    # 오류 발생 시 필터링 없이 진행
+                    pass
         
         posts = posts_query.order_by('-created_at')
         
+        # 대량 조회로 N+1 쿼리 문제 해결
+        post_ids = [post.id for post in posts]
+        
+        # 모든 태그를 한 번에 조회 후 그룹핑
+        all_tags = PostTag.objects.filter(post_id__in=post_ids).select_related('post')
+        tags_by_post = {}
+        for tag in all_tags:
+            if tag.post_id not in tags_by_post:
+                tags_by_post[tag.post_id] = []
+            tags_by_post[tag.post_id].append(tag)
+        
+        # 모든 이미지를 한 번에 조회 후 그룹핑
+        all_images = PostImage.objects.filter(post_id__in=post_ids).order_by('post_id', 'order_index')
+        images_by_post = {}
+        for image in all_images:
+            if image.post_id not in images_by_post:
+                images_by_post[image.post_id] = []
+            images_by_post[image.post_id].append(image)
+        
+        # 댓글 수를 한 번에 조회
+        from django.db.models import Count
+        comment_counts = Comment.objects.filter(post_id__in=post_ids).values('post_id').annotate(count=Count('id'))
+        comment_count_by_post = {item['post_id']: item['count'] for item in comment_counts}
+        
         posts_with_data = []
         for post in posts:
-            # 태그와 이미지 조회
-            tags = PostTag.objects.filter(post=post)
-            images = PostImage.objects.filter(post=post).order_by('order_index')
-            
-            # 댓글 수 계산
-            comment_count = Comment.objects.filter(post=post).count()
+            tags = tags_by_post.get(post.id, [])
+            images = images_by_post.get(post.id, [])
+            comment_count = comment_count_by_post.get(post.id, 0)
             
             post_data = _build_post_response(
                 post,

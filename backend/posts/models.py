@@ -78,13 +78,17 @@ class PostTag(BaseModel):
     """포스트 태그 모델 (사용자가 작성한 태그)"""
     
     post = models.ForeignKey(Post, on_delete=models.CASCADE, help_text="관련 포스트")
-    tag_name = models.CharField(max_length=50, help_text="태그명")
+    tag_name = models.CharField(max_length=50, help_text="태그명", db_index=True)  # 검색 성능 향상
     
     class Meta:
         db_table = 'post_tags'
         verbose_name = '포스트 태그'
         verbose_name_plural = '포스트 태그들'
         unique_together = ['post', 'tag_name']
+        indexes = [
+            models.Index(fields=['tag_name']),  # 태그명 검색 최적화
+            models.Index(fields=['post', 'tag_name']),  # 복합 인덱스
+        ]
     
     def __str__(self):
         return f"{self.post.title} - #{self.tag_name}"
@@ -93,9 +97,9 @@ class PostTag(BaseModel):
 class SystemTag(BaseModel):
     """시스템 태그 모델 (최고관리자가 등록하는 공식 태그)"""
     
-    name = models.CharField(max_length=50, unique=True, help_text="태그명")
+    name = models.CharField(max_length=50, unique=True, help_text="태그명", db_index=True)
     description = models.TextField(blank=True, null=True, help_text="태그 설명")
-    is_active = models.BooleanField(default=True, help_text="활성화 여부")
+    is_active = models.BooleanField(default=True, help_text="활성화 여부", db_index=True)
     usage_count = models.IntegerField(default=0, help_text="사용된 횟수")
     
     class Meta:
@@ -103,6 +107,11 @@ class SystemTag(BaseModel):
         verbose_name = '시스템 태그'
         verbose_name_plural = '시스템 태그들'
         ordering = ['name']
+        indexes = [
+            models.Index(fields=['name']),  # 태그명 검색 최적화
+            models.Index(fields=['is_active', 'name']),  # 활성 태그 검색 최적화
+            models.Index(fields=['usage_count']),  # 사용 횟수 정렬 최적화
+        ]
     
     def __str__(self):
         return self.name

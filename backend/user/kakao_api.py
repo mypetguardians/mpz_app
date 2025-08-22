@@ -51,16 +51,7 @@ async def kakao_login(request):
     param_string = "&".join([f"{k}={v}" for k, v in params.items()])
     kakao_auth_url = f"{KAKAO_CONFIG['authorization_endpoint']}?{param_string}"
     
-    # CORS 헤더를 포함한 응답
-    from django.http import JsonResponse
-    response = JsonResponse({
-        "auth_url": kakao_auth_url,
-        "state": state
-    })
-    response["Access-Control-Allow-Origin"] = "*"
-    response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
-    response["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
-    return response
+    return redirect(kakao_auth_url)
 
 
 @router.get(

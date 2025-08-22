@@ -6,23 +6,18 @@ from common.models import BaseModel
 class Post(BaseModel):
     """포스트 모델"""
     
-    POST_TYPE_CHOICES = [
-        ('adoption_story', '입양 후기'),
-        ('foster_story', '임시보호 후기'),
-        ('volunteer_story', '봉사 후기'),
-        ('animal_info', '동물 정보'),
-        ('center_info', '센터 정보'),
-        ('general', '일반'),
-    ]
-    
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, help_text="작성자")
     title = models.CharField(max_length=200, help_text="제목")
     content = models.TextField(help_text="내용")
-    post_type = models.CharField(max_length=20, choices=POST_TYPE_CHOICES, default='general', help_text="포스트 타입")
-    is_published = models.BooleanField(default=True, help_text="공개 여부")
-    view_count = models.IntegerField(default=0, help_text="조회수")
-    like_count = models.IntegerField(default=0, help_text="좋아요 수")
-    comment_count = models.IntegerField(default=0, help_text="댓글 수")
+    animal = models.ForeignKey('animals.Animal', on_delete=models.SET_NULL, null=True, blank=True, help_text="관련 동물")
+    adoption = models.ForeignKey('adoptions.Adoption', on_delete=models.SET_NULL, null=True, blank=True, help_text="관련 입양")
+    content_tags = models.JSONField(null=True, blank=True, help_text="콘텐츠 태그")
+    
+    class Meta:
+        db_table = 'posts'
+        verbose_name = '포스트'
+        verbose_name_plural = '포스트들'
+        ordering = ['-created_at']
     
     class Meta:
         db_table = 'posts'
@@ -39,17 +34,16 @@ class PostImage(BaseModel):
     
     post = models.ForeignKey(Post, on_delete=models.CASCADE, help_text="관련 포스트")
     image_url = models.CharField(max_length=500, help_text="이미지 URL")
-    sequence = models.IntegerField(default=0, help_text="이미지 순서")
-    caption = models.CharField(max_length=200, blank=True, null=True, help_text="이미지 설명")
+    order_index = models.IntegerField(default=0, help_text="이미지 순서")
     
     class Meta:
         db_table = 'post_images'
         verbose_name = '포스트 이미지'
         verbose_name_plural = '포스트 이미지들'
-        ordering = ['post', 'sequence']
+        ordering = ['post', 'order_index']
     
     def __str__(self):
-        return f"{self.post.title} - 이미지 {self.sequence}"
+        return f"{self.post.title} - 이미지 {self.order_index}"
 
 
 class PostTag(BaseModel):

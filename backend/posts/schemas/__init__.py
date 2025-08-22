@@ -1,0 +1,1 @@
+# posts schemas package

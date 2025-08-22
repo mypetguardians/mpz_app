@@ -6,9 +6,9 @@ from common.models import BaseModel
 class Comment(BaseModel):
     """댓글 모델"""
     
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, help_text="댓글 작성자")
+    post = models.ForeignKey('posts.Post', null=True, blank=True, on_delete=models.CASCADE, help_text="관련 포스트")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.CASCADE, help_text="댓글 작성자")
     content = models.TextField(help_text="댓글 내용")
-    is_edited = models.BooleanField(default=False, help_text="수정 여부")
     
     class Meta:
         db_table = 'comments'
@@ -22,10 +22,9 @@ class Comment(BaseModel):
 class Reply(BaseModel):
     """답글 모델"""
     
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, help_text="답글 작성자")
-    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, help_text="상위 댓글")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.CASCADE, help_text="답글 작성자")
+    comment = models.ForeignKey(Comment, null=True, blank=True, on_delete=models.CASCADE, help_text="상위 댓글")
     content = models.TextField(help_text="답글 내용")
-    is_edited = models.BooleanField(default=False, help_text="수정 여부")
     
     class Meta:
         db_table = 'replies'

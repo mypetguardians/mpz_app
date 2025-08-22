@@ -4,7 +4,7 @@ from langchain_core.output_parsers import PydanticOutputParser
 from ai.llms import get_openai_model
 from ai.tools import animal_matching_tools
 from ai.schemas import AIAnimalMatchingResponse
-from ai.prompts import ANIMAL_MATCHING_SYSTEM_PROMPT, SIMPLE_RECOMMENDATION_PROMPT, TOOL_TEST_PROMPT
+from ai.prompts import ANIMAL_MATCHING_SYSTEM_PROMPT
 
 
 def get_animal_matching_agent(model=None, checkpointer=None):
@@ -29,7 +29,3 @@ def get_animal_matching_agent(model=None, checkpointer=None):
         name="animal-matching-assistant"
     )
     return agent
-
-
-# 구조화된 에이전트는 get_animal_matching_agent 하나로 통합됨
-# 에이전트가 도구를 사용하여 직접 데이터를 수집하고 분석하는 것이 더 효율적

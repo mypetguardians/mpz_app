@@ -17,23 +17,9 @@ from animals.schemas.outbound import (
     ErrorOut, MegaphoneToggleOut
 )
 from api.security import jwt_auth
-from user.models import User
 from centers.models import Center
 
 router = Router(tags=["Animals"])
-
-
-async def get_user_type(user: User) -> str:
-    """사용자 타입을 반환합니다."""
-    if hasattr(user, 'user_type'):
-        return user.user_type
-    return "일반사용자"
-
-
-async def is_center_owner(user: User, center_id: str) -> bool:
-    """사용자가 해당 센터의 소유자인지 확인합니다."""
-    return await Center.objects.filter(id=center_id, user=user).aexists()
-
 
 @router.post(
     "/",
@@ -51,17 +37,16 @@ async def create_animal(request: HttpRequest, data: AnimalCreateIn):
     """새로운 동물을 등록합니다."""
     try:
         # 권한 체크
-        user = request.user
-        user_type = await get_user_type(user)
-        
-        if user_type == "일반사용자":
+        user = request.auth
+
+        if user.user_type == "일반사용자":
             raise HttpError(403, "센터 관리자 이상의 권한이 필요합니다")
         
         # 센터 ID 결정
         center_id = None
-        if user_type == "센터관리자":
+        if user.user_type == "센터관리자":
             # 센터 관리자는 자신의 센터에만 등록 가능
-            user_center = await Center.objects.filter(user=user).afirst()
+            user_center = await sync_to_async(Center.objects.filter(user=user).first)()
             if not user_center:
                 raise HttpError(400, "등록된 센터가 없습니다")
             center_id = user_center.id
@@ -90,7 +75,7 @@ async def create_animal(request: HttpRequest, data: AnimalCreateIn):
         }
         
         # DB에 동물 정보 삽입
-        animal = await Animal.objects.acreate(**animal_data)
+        animal = await sync_to_async(Animal.objects.create)(**animal_data)
         
         # 응답 데이터 변환
         response_data = AnimalOut(
@@ -384,19 +369,17 @@ async def update_animal(request: HttpRequest, animal_id: str, data: AnimalUpdate
     """동물 정보를 수정합니다."""
     try:
         # 권한 체크
-        user = request.user
-        user_type = get_user_type(user)
-        
-        if user_type == "일반사용자":
+        user = request.auth
+
+        if user.user_type == "일반사용자":
             raise HttpError(403, "센터 관리자 이상의 권한이 필요합니다")
         
         # 동물 존재 확인
-        animal = await Animal.objects.select_related('center').aget(id=animal_id)
+        animal = await sync_to_async(Animal.objects.select_related('center').get)(id=animal_id)
         
         # 센터 관리자인 경우 자신의 센터 동물인지 확인
-        if user_type == "센터관리자":
-            if not is_center_owner(user, str(animal.center_id)):
-                raise HttpError(403, "해당 동물에 대한 권한이 없습니다")
+        if user.user_type == "센터관리자":
+            raise HttpError(403, "해당 동물에 대한 권한이 없습니다")
         
         # 업데이트할 데이터 준비
         update_data = {}
@@ -444,7 +427,7 @@ async def update_animal(request: HttpRequest, animal_id: str, data: AnimalUpdate
         # DB 업데이트
         for field, value in update_data.items():
             setattr(animal, field, value)
-        await animal.asave()
+        await sync_to_async(animal.save)()
         
         # 응답 데이터 변환
         response_data = AnimalOut(
@@ -571,22 +554,20 @@ async def delete_animal(request: HttpRequest, animal_id: str):
     """동물 정보를 삭제합니다."""
     try:
         # 권한 체크
-        user = request.user
-        user_type = get_user_type(user)
-        
-        if user_type == "일반사용자":
+        user = request.auth
+
+        if user.user_type == "일반사용자":
             raise HttpError(403, "센터 관리자 이상의 권한이 필요합니다")
         
         # 동물 존재 확인
-        animal = await Animal.objects.select_related('center').aget(id=animal_id)
+        animal = await sync_to_async(Animal.objects.select_related('center').get)(id=animal_id)
         
         # 센터 관리자인 경우 자신의 센터 동물인지 확인
-        if user_type == "센터관리자":
-            if not is_center_owner(user, str(animal.center_id)):
-                raise HttpError(403, "해당 동물에 대한 권한이 없습니다")
+        if user.user_type == "센터관리자":
+            raise HttpError(403, "해당 동물에 대한 권한이 없습니다")
         
         # 동물 정보 삭제
-        await animal.adelete()
+        await sync_to_async(animal.delete)()
         
         return SuccessOut(message="동물 정보가 성공적으로 삭제되었습니다")
         
@@ -616,19 +597,17 @@ async def update_animal_status(request: HttpRequest, animal_id: str, data: Anima
     """동물의 상태를 변경합니다."""
     try:
         # 권한 체크
-        user = request.user
-        user_type = get_user_type(user)
-        
-        if user_type == "일반사용자":
+        user = request.auth
+
+        if user.user_type == "일반사용자":
             raise HttpError(403, "센터 관리자 이상의 권한이 필요합니다")
         
         # 동물 존재 확인
-        animal = await Animal.objects.select_related('center').aget(id=animal_id)
+        animal = await sync_to_async(Animal.objects.select_related('center').get)(id=animal_id)
         
         # 센터 관리자인 경우 자신의 센터 동물인지 확인
-        if user_type == "센터관리자":
-            if not is_center_owner(user, str(animal.center_id)):
-                raise HttpError(403, "해당 동물에 대한 권한이 없습니다")
+        if user.user_type == "센터관리자":
+            raise HttpError(403, "해당 동물에 대한 권한이 없습니다")
         
         # 상태 변경 로직
         previous_status = animal.status
@@ -640,7 +619,7 @@ async def update_animal_status(request: HttpRequest, animal_id: str, data: Anima
         
         # 상태 업데이트
         animal.status = new_status
-        await animal.asave()
+        await sync_to_async(animal.save)()
         
         # 상태 변경 로그
         status_change_message = f"{animal.name}의 상태가 '{previous_status}'에서 '{new_status}'로 변경되었습니다"

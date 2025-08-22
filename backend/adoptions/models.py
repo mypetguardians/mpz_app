@@ -33,6 +33,9 @@ class Adoption(BaseModel):
     monitoring_agreement = models.BooleanField(help_text="모니터링 동의")
     guidelines_agreement = models.BooleanField(help_text="가이드라인 동의")
     
+    # 임시보호 여부
+    is_temporary_protection = models.BooleanField(default=False, help_text="임시보호 여부")
+    
     # 단계별 처리 시간 추적
     meeting_scheduled_at = models.DateTimeField(blank=True, null=True, help_text="미팅 일정")
     contract_sent_at = models.DateTimeField(blank=True, null=True, help_text="계약서 전송 시간")

@@ -68,7 +68,7 @@ class TestCenterAPI(TestCase):
             status="보호중",
             center=self.center,
             breed="믹스",
-            age="2살",
+            age=24,  # 2살 = 24개월
             is_female=False,
             weight=15.0,
             neutering=True,

@@ -16,7 +16,7 @@ from api.security import jwt_auth
 from user.models import User
 
 
-router = Router()
+router = Router(tags=["Replies"])
 
 
 # === 대댓글 API ===

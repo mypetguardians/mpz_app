@@ -36,6 +36,7 @@ class AdoptionApplicationIn(Schema):
     question_responses: List[AdoptionQuestionResponseIn] = Field(default=[], description="질문 응답 목록")
     monitoring_agreement: bool = Field(..., description="모니터링 동의 (필수)")
     guidelines_agreement: bool = Field(..., description="입양 유의사항 동의 (필수)")
+    is_temporary_protection: bool = Field(False, description="임시보호 여부 (기본값: False)")
     notes: Optional[str] = Field(None, description="추가 메모 (선택적)")
 
 

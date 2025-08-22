@@ -18,7 +18,7 @@ from api.security import jwt_auth
 from user.models import User
 
 
-router = Router()
+router = Router(tags=["Posts"])
 
 
 def _build_post_response(post, tags=None, images=None, user_nickname=None, user_image=None):

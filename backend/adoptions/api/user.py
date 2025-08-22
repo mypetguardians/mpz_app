@@ -73,9 +73,13 @@ async def get_my_adoptions(request, filters: UserAdoptionFilterIn = Query(UserAd
                 user=current_user
             )
             
-            # 상태 필터 적용
+            # 입양 상태 필터 적용
             if filters.status and filters.status.strip():
                 queryset = queryset.filter(status=filters.status.strip())
+            
+            # 임시보호 여부 필터 적용
+            if filters.is_temporary_protection is not None:
+                queryset = queryset.filter(is_temporary_protection=filters.is_temporary_protection)
             
             return list(queryset.order_by('-created_at'))
         
@@ -279,9 +283,13 @@ async def get_user_adoptions(request, user_id: str, filters: UserAdoptionFilterI
                 user_id=user_id
             )
             
-            # 상태 필터 적용
+            # 입양 상태 필터 적용
             if filters.status and filters.status.strip():
                 queryset = queryset.filter(status=filters.status.strip())
+            
+            # 임시보호 여부 필터 적용
+            if filters.is_temporary_protection is not None:
+                queryset = queryset.filter(is_temporary_protection=filters.is_temporary_protection)
             
             return list(queryset.order_by('-created_at'))
         

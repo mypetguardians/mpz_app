@@ -276,12 +276,12 @@ class TestAnimalsAPI(TestCase):
     async def test_toggle_animal_megaphone_remove(self):
         """동물 확성기 해제 테스트"""
         # 먼저 확성기 추가
-        megaphone = AnimalMegaphone.objects.create(
+        megaphone = await sync_to_async(AnimalMegaphone.objects.create)(
             user=self.regular_user,
             animal=self.animal
         )
         self.animal.megaphone_count += 1
-        self.animal.save()
+        await sync_to_async(self.animal.save)()
         
         headers = await self.authenticate(self.regular_user)
         
@@ -369,7 +369,7 @@ class TestAnimalsAPI(TestCase):
     async def test_animal_model_fields(self):
         """동물 모델의 새로 추가된 필드들 테스트"""
         # 새로 추가된 필드들이 제대로 저장되었는지 확인
-        animal = Animal.objects.get(id=self.animal.id)
+        animal = await sync_to_async(Animal.objects.get)(id=self.animal.id)
         
         self.assertEqual(animal.found_location, "서울시 강남구")
         self.assertEqual(animal.admission_date, date(2024, 1, 15))
@@ -384,14 +384,14 @@ class TestAnimalsAPI(TestCase):
     async def test_animal_megaphone_model(self):
         """동물 확성기 모델 테스트"""
         # 확성기 생성
-        megaphone = AnimalMegaphone.objects.create(
+        megaphone = await sync_to_async(AnimalMegaphone.objects.create)(
             user=self.regular_user,
             animal=self.animal
         )
         
         # 확성기 수 증가
         self.animal.megaphone_count += 1
-        self.animal.save()
+        await sync_to_async(self.animal.save)()
         
         # 확인
         self.assertEqual(self.animal.megaphone_count, 6)
@@ -400,7 +400,7 @@ class TestAnimalsAPI(TestCase):
         
         # 중복 생성 방지 테스트
         with self.assertRaises(Exception):  # unique_together 제약조건 위반
-            AnimalMegaphone.objects.create(
+            await sync_to_async(AnimalMegaphone.objects.create)(
                 user=self.regular_user,
                 animal=self.animal
             )

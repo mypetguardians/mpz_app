@@ -50,13 +50,17 @@ async def get_center_adoptions(request, filters: CenterAdoptionFilterIn = Query(
                 animal__center=center
             )
             
-            # 상태 필터 적용
+            # 입양 상태 필터 적용
             if filters.status and filters.status.strip():
                 queryset = queryset.filter(status=filters.status.strip())
             
             # 동물 ID 필터 적용
             if filters.animal_id and filters.animal_id.strip():
                 queryset = queryset.filter(animal_id=filters.animal_id.strip())
+            
+            # 임시보호 여부 필터 적용
+            if filters.is_temporary_protection is not None:
+                queryset = queryset.filter(is_temporary_protection=filters.is_temporary_protection)
             
             return list(queryset.order_by('-created_at'))
         

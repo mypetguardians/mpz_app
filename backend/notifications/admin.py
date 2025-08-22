@@ -26,18 +26,18 @@ class NotificationAdmin(admin.ModelAdmin):
 
 @admin.register(PushToken)
 class PushTokenAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'device_type', 'token', 'is_active', 'last_used_at']
-    list_filter = ['device_type', 'is_active']
+    list_display = ['id', 'user', 'platform', 'token', 'is_active', 'last_used']
+    list_filter = ['platform', 'is_active']
     search_fields = ['user__username', 'device_id', 'token']
     list_editable = ['is_active']
     readonly_fields = ['created_at', 'updated_at']
     
     fieldsets = (
         ('기본 정보', {
-            'fields': ('user', 'device_type', 'token', 'device_id')
+            'fields': ('user', 'platform', 'token', 'device_id')
         }),
         ('상태 정보', {
-            'fields': ('is_active', 'last_used_at')
+            'fields': ('is_active', 'last_used')
         }),
         ('시간 정보', {
             'fields': ('created_at', 'updated_at'),

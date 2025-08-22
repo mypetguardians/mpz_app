@@ -27,6 +27,7 @@ from animals.api import router as animals_router
 from centers.api import router as centers_router
 from cloudflare.api import router as cloudflare_router
 from favorites.api import router as favorites_router
+from notifications.api import router as notifications_router
 from django.contrib.admin.views.decorators import staff_member_required
 
 base_api = NinjaAPI(
@@ -51,6 +52,7 @@ base_api.add_router("v1/animals", animals_router)
 base_api.add_router("v1/centers", centers_router)
 base_api.add_router("v1/cloudflare", cloudflare_router)
 base_api.add_router("v1/favorites", favorites_router)
+base_api.add_router("v1/notifications", notifications_router)
 
 urlpatterns = [
     path("admin/", admin.site.urls),

@@ -45,24 +45,24 @@ class Notification(BaseModel):
 class PushToken(BaseModel):
     """푸시 알림 토큰 모델"""
     
-    DEVICE_TYPE_CHOICES = [
+    PLATFORM_CHOICES = [
         ('ios', 'iOS'),
         ('android', 'Android'),
         ('web', 'Web'),
     ]
     
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, help_text="사용자")
-    device_type = models.CharField(max_length=10, choices=DEVICE_TYPE_CHOICES, help_text="디바이스 타입")
+    platform = models.CharField(max_length=10, choices=PLATFORM_CHOICES, null=True, blank=True, help_text="플랫폼")
     token = models.CharField(max_length=500, help_text="푸시 토큰")
     device_id = models.CharField(max_length=200, blank=True, null=True, help_text="디바이스 ID")
     is_active = models.BooleanField(default=True, help_text="활성화 여부")
-    last_used_at = models.DateTimeField(blank=True, null=True, help_text="마지막 사용 시간")
+    last_used = models.DateTimeField(blank=True, null=True, help_text="마지막 사용 시간")
     
     class Meta:
         db_table = 'push_tokens'
         verbose_name = '푸시 토큰'
         verbose_name_plural = '푸시 토큰들'
-        unique_together = ['user', 'device_type', 'token']
+        unique_together = ['user', 'platform', 'token']
     
     def __str__(self):
-        return f"{self.user.username} - {self.device_type} ({self.token[:20]}...)"
+        return f"{self.user.username} - {self.platform} ({self.token[:20]}...)"

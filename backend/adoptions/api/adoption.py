@@ -223,6 +223,40 @@ async def submit_adoption_application(request, data: AdoptionApplicationIn):
             
             await AdoptionQuestionResponse.objects.abulk_create(question_response_values)
         
+        # 입양 신청 완료 알림 전송 (사용자에게)
+        try:
+            from notifications.utils import send_adoption_update_notification
+            await send_adoption_update_notification(
+                user_id=str(current_user.id),
+                adoption_status="신청완료",
+                animal_name=animal.name
+            )
+        except Exception as e:
+            # 알림 전송 실패는 로그만 남기고 API 응답에는 영향 주지 않음
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"입양 신청 알림 전송 실패: {str(e)}")
+        
+        # 센터 관리자에게도 새 입양 신청 알림 전송
+        try:
+            from notifications.utils import create_and_send_notification
+            await create_and_send_notification(
+                user_id=str(animal.center.owner.id),
+                notification_type="adoption_update",
+                title=f"새로운 입양 신청: {animal.name}",
+                message=f"{current_user.username}님이 {animal.name}에 대한 입양 신청을 하였습니다.",
+                priority="high",
+                metadata={
+                    "adoption_id": str(adoption.id),
+                    "animal_name": animal.name,
+                    "applicant_name": current_user.username
+                }
+            )
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"센터 관리자 알림 전송 실패: {str(e)}")
+        
         # 응답 데이터 생성
         response_data = AdoptionApplicationOut(
             id=str(adoption.id),

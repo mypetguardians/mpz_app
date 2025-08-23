@@ -85,12 +85,12 @@ def get_available_animals(
             animal_data = {
                 "id": str(animal.id),
                 "name": animal.name,
-                "animal_type": animal.animal_type,
+                "announce_number": animal.announce_number,
                 "breed": animal.breed,
                 "age": animal.age,
                 "weight": animal.weight,
-                "is_male": animal.is_male,
-                "is_neutered": animal.is_neutered,
+                "is_female": animal.is_female,
+                "neutering": animal.neutering,
                 "personality": animal.personality,
                 "description": animal.description,
                 "special_needs": animal.special_needs,
@@ -103,6 +103,8 @@ def get_available_animals(
                 "trainer_comment": animal.trainer_comment,
                 "center_name": animal.center.name if animal.center else None,
                 "adoption_fee": animal.adoption_fee,
+                "found_location": animal.found_location,
+                "admission_date": animal.admission_date.isoformat() if animal.admission_date else None,
             }
             animal_list.append(animal_data)
         
@@ -179,7 +181,6 @@ def filter_animals_by_characteristics(
             animal_data = {
                 "id": str(animal.id),
                 "name": animal.name,
-                "animal_type": animal.animal_type,
                 "breed": animal.breed,
                 "age": animal.age,
                 "personality": animal.personality,
@@ -221,12 +222,12 @@ def get_animal_by_id(animal_id: str) -> Dict[str, Any]:
         return {
             "id": str(animal.id),
             "name": animal.name,
-            "animal_type": animal.animal_type,
+            "announce_number": animal.announce_number,
             "breed": animal.breed,
             "age": animal.age,
             "weight": animal.weight,
-            "is_male": animal.is_male,
-            "is_neutered": animal.is_neutered,
+            "is_female": animal.is_female,
+            "neutering": animal.neutering,
             "vaccination": animal.vaccination,
             "heartworm": animal.heartworm,
             "personality": animal.personality,

@@ -1,0 +1,168 @@
+import React from "react";
+import { X, Link } from "@phosphor-icons/react";
+import Image from "next/image";
+import { cn } from "@/lib/utils";
+import { BigButton } from "./BigButton";
+import { IconButton } from "./IconButton";
+import { MiniButton } from "./MiniButton";
+
+interface CustomModalProps {
+  open: boolean;
+  onClose: () => void;
+  title?: string;
+  description?: string;
+  variant?: "variant1" | "variant2" | "variant3" | "variant4";
+  // variant1: 양쪽 버튼
+  leftButtonText?: string;
+  rightButtonText?: string;
+  onLeftClick?: () => void;
+  onRightClick?: () => void;
+  // variant2/3: 큰 CTA 버튼 + (옵션) 서브 링크
+  ctaText?: string;
+  ctaLeft?: React.ReactNode;
+  onCtaClick?: () => void;
+  subLinkText?: React.ReactNode;
+  onSubLinkClick?: () => void;
+  // variant4: 공유 모달 (카카오 공유 + 링크 복사)
+  onKakaoShare?: () => void;
+  onCopyLink?: () => void;
+  children?: React.ReactNode;
+  className?: string;
+}
+
+export function CustomModal({
+  open,
+  onClose,
+  title,
+  description,
+  variant = "variant1",
+  leftButtonText,
+  rightButtonText,
+  onLeftClick,
+  onRightClick,
+  onCtaClick,
+  onSubLinkClick,
+  onKakaoShare,
+  onCopyLink,
+  children,
+  className,
+}: CustomModalProps) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 transition-all">
+      <div className="absolute inset-0" onClick={onClose} aria-label="닫기" />
+      <div
+        className={cn(
+          "relative w-full max-w-[298px] bg-white rounded-2xl shadow-xl animate-in fade-in-0 zoom-in-95 duration-200",
+          className
+        )}
+      >
+        <div className="py-4 px-5">
+          {title && (
+            <div className="flex items-center justify-between mb-2.5">
+              <h2 className="text-bk font-medium">{title}</h2>
+              <IconButton
+                icon={({ size }) => <X size={size} weight="bold" />}
+                size="iconS"
+                onClick={onClose}
+                className="text-gray-400 hover:text-gray-600"
+              />
+            </div>
+          )}
+          {description && <p className="body text-dg mb-4">{description}</p>}
+          {children && <div className="mb-4">{children}</div>}
+
+          {variant === "variant1" && (leftButtonText || rightButtonText) && (
+            <div className="flex gap-3">
+              {leftButtonText && (
+                <BigButton
+                  variant="primary"
+                  onClick={onLeftClick}
+                  className="bg-bg text-dg flex-1 hover:bg-bg"
+                >
+                  {leftButtonText}
+                </BigButton>
+              )}
+              {rightButtonText && (
+                <BigButton
+                  variant="primary"
+                  onClick={onRightClick}
+                  className="bg-brand flex-1 hover:bg-brand"
+                >
+                  {rightButtonText}
+                </BigButton>
+              )}
+            </div>
+          )}
+
+          {variant !== "variant1" && variant !== "variant4" && (
+            <div className="flex flex-col items-stretch">
+              <button
+                type="button"
+                onClick={onCtaClick}
+                className="relative w-full bg-[#FEE404] text-black py-3 px-4 rounded-lg flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span className="absolute left-0 top-0 bottom-0 w-12 rounded-l-lg flex items-center justify-center">
+                  <Image
+                    src="/img/kakaoLogo.svg"
+                    alt="Kakao"
+                    width={20}
+                    height={20}
+                  />
+                </span>
+                <span className="pl-6">카카오톡 공유하기</span>
+              </button>
+
+              {variant === "variant2" && (
+                <MiniButton
+                  text={
+                    <span className="flex items-center gap-1">
+                      <Link size={16} />
+                      링크 복사하기
+                    </span>
+                  }
+                  variant="primary"
+                  onClick={onSubLinkClick}
+                  className="mt-3 text-gray-600 text-sm hover:text-gray-800 transition-colors text-left"
+                />
+              )}
+            </div>
+          )}
+
+          {variant === "variant4" && (
+            <div className="flex flex-col items-stretch">
+              <button
+                type="button"
+                onClick={onKakaoShare}
+                className="relative w-full bg-[#FEE404] text-black py-3 px-4 rounded-lg flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span className="absolute left-0 top-0 bottom-0 w-12 rounded-l-lg flex items-center justify-center">
+                  <Image
+                    src="/img/kakaoLogo.svg"
+                    alt="Kakao"
+                    width={20}
+                    height={20}
+                  />
+                </span>
+                <span className="pl-6">카카오톡 공유하기</span>
+              </button>
+
+              <MiniButton
+                text={
+                  <span className="flex items-center gap-1">
+                    <Link size={16} />
+                    링크 복사하기
+                  </span>
+                }
+                variant="primary"
+                onClick={onCopyLink}
+                className="mt-3 text-gray-600 text-sm hover:text-gray-800 transition-colors text-left"
+              />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

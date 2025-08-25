@@ -27,6 +27,8 @@ function CenterCard({
 }: CenterCardProps) {
   const router = useRouter();
 
+  console.log(`CenterCard ${name}: isLiked =`, isLiked);
+
   const handleCardClick = () => {
     if (centerId) {
       router.push(`/list/center/${centerId}`);
@@ -64,21 +66,21 @@ function CenterCard({
       {onLikeToggle && (
         <div onClick={(e) => e.stopPropagation()}>
           <IconButton
-            icon={({ size, className }) =>
-              isLiked ? (
-                <Heart
-                  size={size}
-                  className={cn(className, "text-brand")}
-                  weight="fill"
-                />
+            icon={({ size, className }) => {
+              const heartClassName = isLiked
+                ? cn(className, "text-brand")
+                : cn(className, "text-lg");
+
+              return isLiked ? (
+                <Heart size={size} className={heartClassName} weight="fill" />
               ) : (
                 <Heart
                   size={size}
-                  className={cn(className, "text-lg")}
+                  className={heartClassName}
                   weight="regular"
                 />
-              )
-            }
+              );
+            }}
             size="iconM"
             label="좋아요"
             onClick={() => {

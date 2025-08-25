@@ -23,6 +23,7 @@ export const CenterResponseSchema = z
     adoptionPrice: z.number(),
     imageUrl: z.string().nullable(),
     isSubscriber: z.boolean(),
+    isFavorited: z.boolean().optional(),
     createdAt: z.string(),
     updatedAt: z.string(),
   })

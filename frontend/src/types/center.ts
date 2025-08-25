@@ -1,0 +1,113 @@
+// 센터 관련 타입들 (새로운 스키마 기반)
+export interface Center {
+  id: string;
+  userId: string;
+  name: string;
+  centerNumber: string;
+  description: string;
+  location: string;
+  region: string;
+  phoneNumber: string;
+  adoptionProcedure: string;
+  adoptionGuidelines: string;
+  hasMonitoring: boolean;
+  monitoringPeriodMonths: number;
+  monitoringIntervalDays: number;
+  monitoringDescription: string;
+  verified: boolean;
+  isPublic: boolean;
+  adoptionPrice: number;
+  imageUrl: string;
+  createdAt: string;
+  updatedAt: string;
+  isFavorited?: boolean; // 찜하기 상태 추가
+}
+
+// API 응답의 실제 snake_case 구조 (새로운 스키마 기반)
+export interface RawCenterResponse {
+  id: string;
+  user_id: string;
+  name: string;
+  center_number: string;
+  description: string;
+  location: string;
+  region: string;
+  phone_number: string;
+  adoption_procedure: string;
+  adoption_guidelines: string;
+  has_monitoring: boolean;
+  monitoring_period_months: number;
+  monitoring_interval_days: number;
+  monitoring_description: string;
+  verified: boolean;
+  is_public: boolean;
+  adoption_price: number;
+  image_url: string;
+  created_at: string;
+  updated_at: string;
+  is_fav?: boolean; // 찜하기 상태 추가
+}
+
+// 센터 목록 API 응답 구조 (새로운 스키마 기반)
+export interface GetCentersResponse {
+  count: number;
+  totalCnt: number;
+  pageCnt: number;
+  curPage: number;
+  nextPage: number;
+  previousPage: number;
+  data: RawCenterResponse[];
+}
+
+// RawCenterResponse를 Center로 변환하는 함수 (새로운 스키마 기반)
+export function transformRawCenterToCenter(raw: RawCenterResponse): Center {
+  return {
+    id: raw.id,
+    userId: raw.user_id,
+    name: raw.name,
+    centerNumber: raw.center_number,
+    description: raw.description,
+    location: raw.location,
+    region: raw.region,
+    phoneNumber: raw.phone_number,
+    adoptionProcedure: raw.adoption_procedure,
+    adoptionGuidelines: raw.adoption_guidelines,
+    hasMonitoring: raw.has_monitoring,
+    monitoringPeriodMonths: raw.monitoring_period_months,
+    monitoringIntervalDays: raw.monitoring_interval_days,
+    monitoringDescription: raw.monitoring_description,
+    verified: raw.verified,
+    isPublic: raw.is_public,
+    adoptionPrice: raw.adoption_price,
+    imageUrl: raw.image_url,
+    createdAt: raw.created_at,
+    updatedAt: raw.updated_at,
+    isFavorited: raw.is_fav || false, // is_fav를 isFavorited로 변환
+  };
+}
+
+// 좋아요 관련 타입들
+export interface ToggleCenterFavoriteParams {
+  centerId: string;
+}
+
+export interface ToggleCenterFavoriteResponse {
+  isFavorited: boolean;
+  message: string;
+  totalFavorites: number;
+  // 서버 응답 구조에 맞는 필드 추가
+  is_favorited?: boolean;
+  total_favorites?: number;
+}
+
+export interface CheckCenterFavoriteParams {
+  centerId: string;
+}
+
+export interface CheckCenterFavoriteResponse {
+  isFavorited: boolean;
+  totalFavorites: number;
+  // 서버 응답 구조에 맞는 필드 추가
+  is_favorited?: boolean;
+  total_favorites?: number;
+}

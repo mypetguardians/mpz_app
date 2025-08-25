@@ -9,6 +9,7 @@ class PostCreateIn(Schema):
     tags: Optional[List[str]] = Field(None, description="태그 목록")
     images: Optional[List[str]] = Field(None, description="이미지 URL 목록")
     adoption_id: Optional[str] = Field(None, description="관련 입양 ID")
+    is_all_access: Optional[bool] = Field(True, description="전체 공개 여부")
 
 
 class PostUpdateIn(Schema):
@@ -18,12 +19,14 @@ class PostUpdateIn(Schema):
     tags: Optional[List[str]] = Field(None, description="태그 목록")
     images: Optional[List[str]] = Field(None, description="이미지 URL 목록")
     adoption_id: Optional[str] = Field(None, description="관련 입양 ID")
+    is_all_access: Optional[bool] = Field(True, description="전체 공개 여부")
 
 
 class PostListQueryIn(Schema):
     """게시글 목록 조회 쿼리 스키마"""
     user_id: Optional[str] = Field(None, description="특정 사용자의 게시글만 조회")
     system_tags: Optional[List[str]] = Field(None, description="시스템 태그로 필터링 (하나라도 매칭되는 글만 표시)")
+    is_all_access: Optional[bool] = Field(None, description="전체 공개 여부로 필터링 (True: 전체 공개, False: 제한적 공개)")
 
 
 

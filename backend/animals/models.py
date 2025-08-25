@@ -69,7 +69,10 @@ class Animal(BaseModel):
         verbose_name_plural = '동물들'
     
     def __str__(self):
-        return f"{self.center.name} - {self.name} ({self.get_status_display()})"
+        center_name = self.center.name if self.center else "Unknown Center"
+        animal_name = self.name if self.name else "Unknown Animal"
+        status = self.get_status_display() if self.status else "Unknown Status"
+        return f"{center_name} - {animal_name} ({status})"
     
 
 
@@ -89,7 +92,8 @@ class AnimalImage(BaseModel):
         ordering = ['animal', 'sequence']
     
     def __str__(self):
-        return f"{self.animal.name} - 이미지 {self.sequence}"
+        animal_name = self.animal.name if self.animal else "Unknown Animal"
+        return f"{animal_name} - 이미지 {self.sequence}"
 
 
 class AnimalMegaphone(BaseModel):
@@ -105,4 +109,6 @@ class AnimalMegaphone(BaseModel):
         unique_together = ['user', 'animal']  # 사용자당 동물마다 한 번만 가능
     
     def __str__(self):
-        return f"{self.user.username} -> {self.animal.name}"
+        user_name = self.user.username if self.user else "Unknown User"
+        animal_name = self.animal.name if self.animal else "Unknown Animal"
+        return f"{user_name} -> {animal_name}"

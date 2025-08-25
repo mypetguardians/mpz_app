@@ -151,7 +151,7 @@ def get_comments(request: HttpRequest, post_id: str):
 
 
 @router.put(
-    "/comments/{comment_id}",
+    "/{comment_id}",
     summary="[U] 댓글 수정",
     description="댓글을 수정합니다.",
     response={
@@ -196,7 +196,7 @@ async def update_comment(request: HttpRequest, comment_id: str, data: CommentUpd
 
 
 @router.delete(
-    "/comments/{comment_id}",
+    "/{comment_id}",
     summary="[D] 댓글 삭제",
     description="댓글을 삭제합니다.",
     response={

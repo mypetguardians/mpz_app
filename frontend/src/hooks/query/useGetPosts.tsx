@@ -43,9 +43,45 @@ const getPosts = async (params?: GetPostsParams): Promise<ApiPostsResponse> => {
   return response.data;
 };
 
+// 게시글 상세 조회 API 응답 타입
+interface ApiPostDetailResponse {
+  post: ApiPostResponse & {
+    tags: Array<{
+      id: string;
+      postId: string;
+      tagName: string;
+      createdAt: string;
+    }>;
+    images: Array<{
+      id: string;
+      postId: string;
+      imageUrl: string;
+      orderIndex: number;
+      createdAt: string;
+    }>;
+    postLikes: Array<{
+      id: string;
+      postId: string;
+      userId: string;
+      createdAt: string;
+    }>;
+  };
+}
+
 const getPostDetail = async (postId: string): Promise<PostDetailResponse> => {
-  const response = await instance.get<PostDetailResponse>(`/posts/${postId}`);
-  return response.data;
+  const response = await instance.get<ApiPostDetailResponse>(`/posts/${postId}`);
+  
+  // API 응답을 Post 타입으로 변환
+  const transformedPost = transformRawPostToPost(response.data.post);
+  
+  return {
+    post: {
+      ...transformedPost,
+      tags: response.data.post.tags,
+      images: response.data.post.images,
+      postLikes: response.data.post.postLikes,
+    },
+  };
 };
 
 // 시스템 태그 목록 조회

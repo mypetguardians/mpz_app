@@ -1,5 +1,5 @@
 import { useCreateCenterAdmin } from "./mutation/useCreateCenterAdmin";
-import { useGetCenterAdmins } from "./query/useGetCenterAdmin";
+import { useGetCenterAdmins } from "./query/useGetCenterAdmins";
 
 export { useGetAnimals } from "./query/useGetAnimals";
 export { useGetCenterById } from "./query/useGetCenters";
@@ -40,7 +40,7 @@ export {
   useDeleteImage,
   useUpdateImageOrder,
 } from "./mutation/usePostImages";
-export { useGetCenterAdmins } from "./query/useGetCenterAdmin";
+export { useGetCenterAdmins } from "./query/useGetCenterAdmins";
 export { useCreateCenterAdmin } from "./mutation/useCreateCenterAdmin";
 export { useGetQuestionForms } from "./query/useGetQuestionForms";
 export { useCreateQuestionForm } from "./mutation/useCreateQuestionForm";

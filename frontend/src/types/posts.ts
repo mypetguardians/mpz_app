@@ -107,6 +107,7 @@ export interface CreatePostRequest {
   adoption_id?: string;
   animal_id?: string;
   visibility?: "public" | "center";
+  contentTags?: string; // 하위 호환성을 위해 유지
 }
 
 // 게시글 생성 응답

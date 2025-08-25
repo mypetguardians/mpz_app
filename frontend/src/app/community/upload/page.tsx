@@ -22,10 +22,16 @@ import {
 } from "@phosphor-icons/react";
 import { IconButton } from "@/components/ui/IconButton";
 import { MiniButton } from "@/components/ui/MiniButton";
-import { useCreatePost, useGetAnimals, useUploadMultipleImages } from "@/hooks";
 import {
-  transformRawAnimalToPetCard,
+  useCreatePost,
+  useGetAnimals,
+  useUploadMultipleImages,
+  useGetAnimalFavorites,
+} from "@/hooks";
+import {
   type PetCardAnimal,
+  transformRawAnimalToPetCard,
+  type RawAnimalResponse,
 } from "@/types/animal";
 
 type PublicType = "center" | "public";
@@ -78,11 +84,27 @@ export default function CommunityUploadPage() {
 
   const animals = useMemo(() => {
     return (
-      animalsPages?.pages.flatMap((p) =>
-        p.data.map(transformRawAnimalToPetCard)
-      ) ?? []
+      (animalsPages?.pages
+        .flatMap((p) =>
+          p.animals.map((rawAnimal: RawAnimalResponse) =>
+            transformRawAnimalToPetCard(rawAnimal)
+          )
+        )
+        .filter(Boolean) as PetCardAnimal[]) ?? []
     );
   }, [animalsPages]);
+
+  // 찜한 동물 목록
+  const { data: favoriteAnimalsData } = useGetAnimalFavorites(1, 100);
+
+  const favoriteAnimals = useMemo(() => {
+    return favoriteAnimalsData?.animals ?? [];
+  }, [favoriteAnimalsData]);
+
+  // 현재 탭에 따른 동물 목록
+  const currentAnimals = useMemo(() => {
+    return activeTab === "adoption" ? animals : favoriteAnimals;
+  }, [activeTab, animals, favoriteAnimals]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -176,7 +198,7 @@ export default function CommunityUploadPage() {
         title,
         content,
         animal_id: selectedPet?.id,
-        tags: tags,
+        contentTags: tags.join(","), // 태그를 쉼표로 구분하여 contentTags에 저장
         visibility: publicType,
       },
       {
@@ -193,7 +215,7 @@ export default function CommunityUploadPage() {
                   setShowSaveModal(false);
                   router.back();
                 },
-                onError: (error) => {
+                onError: (error: Error) => {
                   console.error("이미지 업로드 실패:", error);
                   // 이미지 업로드 실패해도 포스트는 생성되었으므로 뒤로가기
                   setShowSaveModal(false);
@@ -239,9 +261,7 @@ export default function CommunityUploadPage() {
             label="제목"
             placeholder="제목을 입력하세요."
             value={title}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setTitle(e.target.value)
-            }
+            onChange={(e) => setTitle(e.target.value)}
             variant="primary"
           />
         </div>
@@ -356,14 +376,14 @@ export default function CommunityUploadPage() {
         title="어떤 공고를 선택할까요?"
         tabs={[
           { label: "입양 진행중인 공고", value: "adoption" },
-          { label: "접한 공고", value: "recent" },
+          { label: "찜한 공고", value: "favorite" },
         ]}
         activeTab={activeTab}
         onTabChange={setActiveTab}
       >
         <div className="h-[480px] overflow-y-auto">
           <div className="flex flex-wrap justify-start gap-2 px-4">
-            {animals.map((pet) => (
+            {currentAnimals.map((pet) => (
               <div
                 key={pet.id}
                 onClick={() => handlePetSelect(pet)}
@@ -378,7 +398,7 @@ export default function CommunityUploadPage() {
               </div>
             ))}
           </div>
-          {hasNextPage && (
+          {activeTab === "adoption" && hasNextPage && (
             <div className="px-4 py-3">
               <MiniButton
                 text={isFetchingNextPage ? "불러오는 중..." : "더 보기"}

@@ -101,13 +101,13 @@ export interface RawAnimalResponse {
 
 // 실제 API 응답 구조
 export interface ActualGetAnimalsResponse {
-  count: number;
-  totalCnt: number;
-  pageCnt: number;
-  curPage: number;
-  nextPage: number | null;
-  previousPage: number | null;
-  data: RawAnimalResponse[];
+  animals: RawAnimalResponse[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
 }
 
 // PetCard에서 사용하는 타입
@@ -189,8 +189,12 @@ export function transformRawAnimalToAnimal(raw: RawAnimalResponse): Animal {
 
 // RawAnimalResponse를 PetCardAnimal으로 변환하는 함수
 export function transformRawAnimalToPetCard(
-  raw: RawAnimalResponse
-): PetCardAnimal {
+  raw: RawAnimalResponse | null | undefined
+): PetCardAnimal | null {
+  if (!raw) {
+    return null;
+  }
+
   return {
     id: raw.id,
     name: raw.name,

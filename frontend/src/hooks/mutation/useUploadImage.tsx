@@ -2,15 +2,7 @@
 
 import { useMutation } from "@tanstack/react-query";
 import instance from "@/lib/axios-instance";
-
-interface UploadImageData {
-  file: File;
-}
-
-interface UploadImageResponse {
-  message: string;
-  imageUrl: string;
-}
+import { UploadImageData, UploadImageResponse } from "@/types/Images";
 
 const uploadImage = async (
   data: UploadImageData
@@ -19,7 +11,7 @@ const uploadImage = async (
   formData.append("image", data.file);
 
   const response = await instance.post<UploadImageResponse>(
-    "/upload/image",
+    `/cloudflare/upload`,
     formData
   );
   return response.data;

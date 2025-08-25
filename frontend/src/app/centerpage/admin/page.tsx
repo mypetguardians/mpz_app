@@ -5,7 +5,7 @@ import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
 import { MiniButton } from "@/components/ui/MiniButton";
 import { Container } from "@/components/common/Container";
-import { useGetCenterAdmins } from "@/hooks/query/useGetCenterAdmin";
+import { useGetCenterAdmins } from "@/hooks/query/useGetCenterAdmins";
 
 export default function AdminPage() {
   const { data: centerAdminsData, isLoading, error } = useGetCenterAdmins();

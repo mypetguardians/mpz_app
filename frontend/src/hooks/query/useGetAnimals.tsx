@@ -23,41 +23,7 @@ const getAnimals = async (
   const endpoint = `/animals/?${searchParams.toString()}`;
   const response = await instance.get<ActualGetAnimalsResponse>(endpoint);
 
-  // API 응답의 snake_case를 camelCase로 변환
-  const transformedResponse: ActualGetAnimalsResponse = {
-    ...response.data,
-    data: response.data.data.map((animal) => ({
-      id: animal.id,
-      name: animal.name,
-      is_female: animal.is_female,
-      age: animal.age,
-      weight: animal.weight,
-      color: animal.color,
-      breed: animal.breed,
-      description: animal.description,
-      status: animal.status,
-      waiting_days: animal.waiting_days,
-      activity_level: animal.activity_level,
-      sensitivity: animal.sensitivity,
-      sociability: animal.sociability,
-      separation_anxiety: animal.separation_anxiety,
-      special_notes: animal.special_notes,
-      health_notes: animal.health_notes,
-      basic_training: animal.basic_training,
-      trainer_comment: animal.trainer_comment,
-      announce_number: animal.announce_number,
-      announcement_date: animal.announcement_date,
-      admission_date: animal.admission_date,
-      found_location: animal.found_location,
-      personality: animal.personality,
-      center_id: animal.center_id,
-      animal_images: animal.animal_images || [],
-      created_at: animal.created_at,
-      updated_at: animal.updated_at,
-    })),
-  };
-
-  return transformedResponse;
+  return response.data;
 };
 
 export const useGetAnimals = (params?: GetAnimalsParams) => {
@@ -65,8 +31,8 @@ export const useGetAnimals = (params?: GetAnimalsParams) => {
     queryKey: ["animals", params],
     queryFn: ({ pageParam = 1 }) => getAnimals({ ...params, page: pageParam }),
     getNextPageParam: (lastPage) => {
-      if (lastPage.nextPage !== null) {
-        return lastPage.nextPage;
+      if (lastPage.hasNext) {
+        return lastPage.page + 1;
       }
       return undefined;
     },

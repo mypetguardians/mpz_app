@@ -38,12 +38,9 @@ export function CommunityDetail({
   onUserClick,
   onLoginRequired,
 }: CommunityDetailProps) {
-  const { images, title, content, postLikes, createdAt, userId, contentTags } =
-    post;
+  const { images, title, content, createdAt, userId, contentTags } = post;
   const { isAuthenticated } = useAuth();
-  const [currentLikeCount, setCurrentLikeCount] = useState(
-    postLikes?.length || 0
-  );
+  const [currentLikeCount, setCurrentLikeCount] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
 
   const toggleLikeMutation = useToggleLike();

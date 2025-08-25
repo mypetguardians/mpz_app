@@ -5,9 +5,7 @@ import Image from "next/image";
 import { Avatar } from "@/components/ui/avatar";
 import { ArrowBendDownLeft, ArrowBendDownRight } from "@phosphor-icons/react";
 import { CommentInput } from "@/components/ui/CommentInput";
-import type { CommentWithReplies, Reply } from "@/types/posts";
-
-type Comment = CommentWithReplies;
+import type { Comment, Reply } from "@/types/posts";
 
 interface CommentItemProps {
   comment: Comment | Reply;
@@ -16,12 +14,6 @@ interface CommentItemProps {
   onAddReply?: () => void;
   onSubmitReply?: (text: string) => void;
   showReplies?: boolean;
-  users?: Array<{
-    id: string;
-    nickname: string;
-    name?: string;
-    profileImg: string;
-  }>;
   onLoginRequired?: () => void;
 }
 
@@ -31,12 +23,11 @@ export function CommentItem({
   onToggleReplies,
   onAddReply,
   onSubmitReply,
-  users,
 }: CommentItemProps) {
   // 사용자 정보 가져오기
-  const user = users?.find((u) => u.id === comment.userId);
-  const nickname = user?.nickname || user?.name || "사용자";
-  const profileImg = user?.profileImg || "/img/dummyImg.jpeg";
+  const nickname = comment.user?.nickname || "사용자";
+  const profileImg = comment.user?.image || "/img/dummyImg.jpeg";
+  
   const renderContent = () => {
     switch (variant) {
       case "primary":

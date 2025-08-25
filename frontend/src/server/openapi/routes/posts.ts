@@ -47,25 +47,38 @@ export const PostImageSchema = z
   })
   .openapi("PostImage");
 
+export const CommentUserSchema = z
+  .object({
+    id: z.string(),
+    nickname: z.string(),
+    image: z.string(),
+  })
+  .openapi("CommentUser");
+
 export const CommentSchema = z
   .object({
     id: z.string(),
-    postId: z.string(),
-    userId: z.string(),
+    post_id: z.string(),
+    user_id: z.string(),
     content: z.string(),
-    createdAt: z.string(),
-    updatedAt: z.string(),
+    like_count: z.number(),
+    replies: z.array(z.lazy(() => ReplySchema)),
+    created_at: z.string(),
+    updated_at: z.string(),
+    user: CommentUserSchema,
   })
   .openapi("Comment");
 
 export const ReplySchema = z
   .object({
     id: z.string(),
-    commentId: z.string(),
-    userId: z.string(),
+    comment_id: z.string(),
+    user_id: z.string(),
     content: z.string(),
-    createdAt: z.string(),
-    updatedAt: z.string(),
+    like_count: z.number(),
+    created_at: z.string(),
+    updated_at: z.string(),
+    user: CommentUserSchema,
   })
   .openapi("Reply");
 
@@ -85,20 +98,14 @@ export const MessageSchema = z
 export const CommentWithRepliesSchema = z
   .object({
     id: z.string(),
-    postId: z.string(),
-    userId: z.string(),
+    post_id: z.string(),
+    user_id: z.string(),
     content: z.string(),
-    likeCount: z.number(),
-    createdAt: z.string(),
-    updatedAt: z.string(),
+    like_count: z.number(),
+    created_at: z.string(),
+    updated_at: z.string(),
     replies: z.array(ReplySchema),
-    user: z
-      .object({
-        id: z.string(),
-        nickname: z.string().nullable(),
-        image: z.string().nullable(),
-      })
-      .optional(),
+    user: CommentUserSchema,
   })
   .openapi("CommentWithReplies");
 
@@ -489,7 +496,13 @@ export const getCommentsRoute = createRoute({
       content: {
         "application/json": {
           schema: z.object({
-            comments: z.array(CommentWithRepliesSchema),
+            count: z.number(),
+            totalCnt: z.number(),
+            pageCnt: z.number(),
+            curPage: z.number(),
+            nextPage: z.number(),
+            previousPage: z.number(),
+            data: z.array(CommentSchema),
           }),
         },
       },

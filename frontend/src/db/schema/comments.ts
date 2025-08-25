@@ -42,3 +42,35 @@ export const replies = sqliteTable("replies", {
     .notNull()
     .default(sql`(unixepoch())`),
 });
+
+// 댓글 좋아요 테이블
+export const commentLikes = sqliteTable("comment_likes", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  commentId: text("comment_id")
+    .notNull()
+    .references(() => comments.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// 대댓글 좋아요 테이블
+export const replyLikes = sqliteTable("reply_likes", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  replyId: text("reply_id")
+    .notNull()
+    .references(() => replies.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});

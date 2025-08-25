@@ -220,7 +220,7 @@ export default function MeetingPage({ params }: { params: { id: string } }) {
                         </td>
                         <td className="text-sm py-1">
                           <div className="py-1 px-3">
-                            {user?.name || "사용자"}
+                            {user?.nickname || "사용자"}
                           </div>
                         </td>
                       </tr>
@@ -308,7 +308,7 @@ export default function MeetingPage({ params }: { params: { id: string } }) {
           variant="primary"
           title="정말 철회하시겠습니까?"
           description={`${
-            user?.nickname || user?.name || "사용자"
+            user?.nickname || "사용자"
           }님의 신중하고 현명한 결정을 존중해요.`}
           leftButtonText="아니요"
           rightButtonText="네, 철회할래요"

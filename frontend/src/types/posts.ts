@@ -148,16 +148,45 @@ export interface PostLikeResponse {
   message: string;
 }
 
-// 댓글 관련 타입
+// 댓글 관련 타입 - API 스펙에 맞춰 업데이트
+export interface CommentUser {
+  id: string;
+  nickname: string;
+  image: string;
+}
+
 export interface Comment {
   id: string;
-  postId: string;
-  userId: string;
+  post_id: string;
+  user_id: string;
   content: string;
-  createdAt: string;
-  updatedAt: string;
-  userNickname?: string;
-  userImage?: string;
+  like_count: number;
+  replies: Reply[];
+  created_at: string;
+  updated_at: string;
+  user: CommentUser;
+}
+
+export interface Reply {
+  id: string;
+  comment_id: string;
+  user_id: string;
+  content: string;
+  like_count: number;
+  created_at: string;
+  updated_at: string;
+  user: CommentUser;
+}
+
+// 댓글 목록 조회 응답
+export interface GetCommentsResponse {
+  count: number;
+  totalCnt: number;
+  pageCnt: number;
+  curPage: number;
+  nextPage: number;
+  previousPage: number;
+  data: Comment[];
 }
 
 // 댓글 생성 요청
@@ -165,12 +194,66 @@ export interface CreateCommentRequest {
   content: string;
 }
 
+// 댓글 생성 응답
+export interface CreateCommentResponse {
+  message: string;
+  comment: Comment;
+}
+
 // 댓글 수정 요청
 export interface UpdateCommentRequest {
   content: string;
 }
 
+// 댓글 수정 응답
+export interface UpdateCommentResponse {
+  message: string;
+}
+
 // 댓글 삭제 응답
 export interface DeleteCommentResponse {
   message: string;
+}
+
+// 대댓글 생성 요청
+export interface CreateReplyRequest {
+  content: string;
+}
+
+// 대댓글 생성 응답
+export interface CreateReplyResponse {
+  message: string;
+  reply: Reply;
+}
+
+// 대댓글 수정 요청
+export interface UpdateReplyRequest {
+  content: string;
+}
+
+// 대댓글 수정 응답
+export interface UpdateReplyResponse {
+  message: string;
+}
+
+// 대댓글 삭제 응답
+export interface DeleteReplyResponse {
+  message: string;
+}
+
+// 기존 타입들 (하위 호환성을 위해 유지)
+export interface CommentWithReplies {
+  id: string;
+  postId: string;
+  userId: string;
+  content: string;
+  likeCount: number;
+  createdAt: string;
+  updatedAt: string;
+  replies: Reply[];
+  user?: {
+    id: string;
+    nickname: string;
+    image: string;
+  };
 }

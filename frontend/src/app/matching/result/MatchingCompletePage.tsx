@@ -101,7 +101,7 @@ function MatchedPetsList() {
       <div className="flex flex-col gap-4 w-full">
         <div className="text-start mb-4">
           <h2 className="text-bk text-xl font-bold mb-2">
-            {user?.name || "사용자"} 님과
+            {user?.nickname || "사용자"} 님과
             <br />꼭 맞는 아이들이에요!
           </h2>
           <p className="text-dg text-sm">결과는 매일 업데이트 돼요.</p>
@@ -122,7 +122,7 @@ function MatchedPetsList() {
       <div className="flex flex-col gap-4 w-full">
         <div className="text-start mb-4">
           <h2 className="text-bk text-xl font-bold mb-2">
-            {user?.name || "사용자"} 님과
+            {user?.nickname || "사용자"} 님과
             <br />꼭 맞는 아이들이에요!
           </h2>
           <p className="text-dg text-sm">결과는 매일 업데이트 돼요.</p>
@@ -138,7 +138,7 @@ function MatchedPetsList() {
     <div className="flex flex-col gap-4 w-full">
       <div className="text-start mb-4">
         <h2 className="text-bk text-xl font-bold mb-2">
-          {user?.name || "사용자"} 님과
+          {user?.nickname || "사용자"} 님과
           <br />꼭 맞는 아이들이에요!
         </h2>
         <p className="text-dg text-sm">결과는 매일 업데이트 돼요.</p>

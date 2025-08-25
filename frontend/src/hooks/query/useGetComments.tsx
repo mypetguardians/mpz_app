@@ -1,14 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import type { CommentWithReplies } from "@/types/posts";
+import type { GetCommentsResponse } from "@/types/posts";
 import instance from "@/lib/axios-instance";
-
-interface GetCommentsResponse {
-  comments: CommentWithReplies[];
-}
 
 const getComments = async (postId: string): Promise<GetCommentsResponse> => {
   const response = await instance.get<GetCommentsResponse>(
-    `/community/${postId}/comments`
+    `/comments/${postId}/comments`
   );
   return response.data;
 };

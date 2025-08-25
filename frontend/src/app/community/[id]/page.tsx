@@ -12,7 +12,7 @@ import { BottomSheet } from "@/components/ui/BottomSheet";
 import { CustomModal } from "@/components/ui/CustomModal";
 import { Toast } from "@/components/ui/Toast";
 import { IconButton } from "@/components/ui/IconButton";
-import { useGetPostDetail } from "@/hooks/query/useGetPosts";
+import { useGetPublicPostDetail } from "@/hooks/query/useGetPublicPosts";
 import { useGetComments } from "@/hooks/query/useGetComments";
 import { useDeletePost } from "@/hooks/mutation/useDeletePost";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -36,7 +36,7 @@ export default function CommunityDetailPage() {
     data: postDetailData,
     isLoading: isPostLoading,
     error: postError,
-  } = useGetPostDetail(params.id as string);
+  } = useGetPublicPostDetail(params.id as string);
 
   const { data: commentsData, isLoading: isCommentsLoading } = useGetComments(
     params.id as string

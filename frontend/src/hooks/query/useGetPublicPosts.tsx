@@ -27,7 +27,9 @@ const transformRawPostToPost = (raw: ApiPostResponse): Post => ({
   images: raw.images,
 });
 
-const getPosts = async (params?: GetPostsParams): Promise<ApiPostsResponse> => {
+const getPublicPosts = async (
+  params?: GetPostsParams
+): Promise<ApiPostsResponse> => {
   const searchParams = new URLSearchParams();
 
   if (params) {
@@ -38,7 +40,7 @@ const getPosts = async (params?: GetPostsParams): Promise<ApiPostsResponse> => {
     });
   }
 
-  const url = `/posts?${searchParams.toString()}`;
+  const url = `/posts/all/?${searchParams.toString()}`;
   const response = await instance.get<ApiPostsResponse>(url);
   return response.data;
 };
@@ -68,12 +70,16 @@ interface ApiPostDetailResponse {
   };
 }
 
-const getPostDetail = async (postId: string): Promise<PostDetailResponse> => {
-  const response = await instance.get<ApiPostDetailResponse>(`/posts/${postId}`);
-  
+const getPublicPostDetail = async (
+  postId: string
+): Promise<PostDetailResponse> => {
+  const response = await instance.get<ApiPostDetailResponse>(
+    `/posts/all/${postId}`
+  );
+
   // API 응답을 Post 타입으로 변환
   const transformedPost = transformRawPostToPost(response.data.post);
-  
+
   return {
     post: {
       ...transformedPost,
@@ -90,10 +96,10 @@ const getSystemTags = async (): Promise<string[]> => {
   return response.data;
 };
 
-export const useGetPosts = (params?: GetPostsParams) => {
+export const useGetPublicPosts = (params?: GetPostsParams) => {
   return useQuery({
     queryKey: ["posts", params],
-    queryFn: () => getPosts(params),
+    queryFn: () => getPublicPosts(params),
     select: (data: ApiPostsResponse) => {
       const transformedPosts = data.data.map(transformRawPostToPost);
 
@@ -116,10 +122,10 @@ export const useGetPosts = (params?: GetPostsParams) => {
   });
 };
 
-export const useGetPostDetail = (postId: string) => {
+export const useGetPublicPostDetail = (postId: string) => {
   return useQuery({
     queryKey: ["posts", postId],
-    queryFn: () => getPostDetail(postId),
+    queryFn: () => getPublicPostDetail(postId),
     enabled: !!postId,
     staleTime: 3 * 60 * 1000, // 3분
     gcTime: 10 * 60 * 1000, // 10분

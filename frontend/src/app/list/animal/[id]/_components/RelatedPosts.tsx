@@ -1,6 +1,6 @@
 import React from "react";
 import { CommunityCard } from "@/components/ui/CommunityCard";
-import { useGetPosts } from "@/hooks/query/useGetPosts";
+import { useGetPosts } from "@/hooks/query/useGetPublicPosts";
 import type { AnimalResponseSchema } from "@/server/openapi/routes/animal";
 import { z } from "zod";
 

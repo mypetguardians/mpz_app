@@ -1,6 +1,3 @@
-import { useCreateCenterAdmin } from "./mutation/useCreateCenterAdmin";
-import { useGetCenterAdmins } from "./query/useGetCenterAdmins";
-
 export { useGetAnimals } from "./query/useGetAnimals";
 export { useGetCenterById } from "./query/useGetCenters";
 export { useGetAdoptions } from "./query/useGetAdoptions";
@@ -10,7 +7,7 @@ export { useGetAnimalAdoptions } from "./query/useGetAdoptions";
 
 export { useGetComments } from "./query/useGetComments";
 export { useGetNotifications } from "./query/useGetNotifications";
-export { useGetPosts } from "./query/useGetPosts";
+export { useGetPublicPosts } from "./query/useGetPublicPosts";
 export { useGetUserProfile } from "./query/useGetUserProfile";
 export { useGetMyProfile } from "./query/useGetMyProfile";
 export { useGetMyCenter, invalidateMyCenter } from "./query/useGetMyCenter";

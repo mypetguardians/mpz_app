@@ -3,7 +3,7 @@ import { CaretDown } from "@phosphor-icons/react";
 import { MiniButton } from "@/components/ui/MiniButton";
 import { CommunityCard } from "@/components/ui/CommunityCard";
 import { MainSection } from "@/components/common/MainSection";
-import { useGetPosts } from "@/hooks/query/useGetPosts";
+import { useGetPosts } from "@/hooks/query/useGetPublicPosts";
 import type { Post } from "@/types/posts";
 import type { user } from "@/db/schema/auth";
 

@@ -11,7 +11,7 @@ import { BigButton } from "@/components/ui/BigButton";
 import { IconButton } from "@/components/ui/IconButton";
 import { CustomModal } from "@/components/ui/CustomModal";
 import { Toast } from "@/components/ui/Toast";
-import { useGetPostDetail } from "@/hooks/query/useGetPosts";
+import { useGetPostDetail } from "@/hooks/query/useGetPublicPosts";
 import { useUpdatePost } from "@/hooks/mutation/useUpdatePost";
 import { useDeletePost } from "@/hooks/mutation/useDeletePost";
 import { useAuth } from "@/components/providers/AuthProvider";

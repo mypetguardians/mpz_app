@@ -11,8 +11,8 @@ import { CommunityCard } from "@/components/ui/CommunityCard";
 import { TabButton } from "@/components/ui/TabButton";
 import { BigButton } from "@/components/ui/BigButton";
 import { IconButton } from "@/components/ui/IconButton";
-import { useGetPosts } from "@/hooks/query/useGetPosts";
-import { useGetSystemTags } from "@/hooks/query/useGetPosts";
+import { useGetPublicPosts } from "@/hooks/query/useGetPublicPosts";
+import { useGetSystemTags } from "@/hooks/query/useGetPublicPosts";
 import { useDeletePost } from "@/hooks/mutation/useDeletePost";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { CustomModal } from "@/components/ui/CustomModal";
@@ -44,7 +44,7 @@ export default function CommunityPage() {
     data: postsData,
     isLoading,
     error,
-  } = useGetPosts({
+  } = useGetPublicPosts({
     tags: activeTab !== "latest" ? [activeTab] : undefined,
     // 센터공개, 전체공개 옵션
   });

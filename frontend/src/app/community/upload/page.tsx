@@ -25,7 +25,7 @@ import { MiniButton } from "@/components/ui/MiniButton";
 import {
   useCreatePost,
   useGetAnimals,
-  useUploadMultipleImages,
+  useUploadImages,
   useGetAnimalFavorites,
 } from "@/hooks";
 import {
@@ -63,7 +63,7 @@ export default function CommunityUploadPage() {
 
   const { mutate: createPost, isPending: creating } = useCreatePost();
   const { mutate: uploadImages, isPending: uploadingImages } =
-    useUploadMultipleImages();
+    useUploadImages();
 
   const { user } = useAuth();
   const isAdmin = user?.userType !== "일반사용자";

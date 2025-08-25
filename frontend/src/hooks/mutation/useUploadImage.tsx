@@ -2,7 +2,7 @@
 
 import { useMutation } from "@tanstack/react-query";
 import instance from "@/lib/axios-instance";
-import { UploadImageData, UploadImageResponse } from "@/types/Images";
+import { UploadImageData, UploadImageResponse } from "@/types/images";
 
 const uploadImage = async (
   data: UploadImageData

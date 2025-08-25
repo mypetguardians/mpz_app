@@ -1,17 +1,18 @@
 from django.contrib import admin
-from .models import Post, PostImage, PostTag, SystemTag
+from .models import Post, PostImage, PostTag, SystemTag, PostLike
 
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'title', 'created_at']
-    list_filter = ['created_at']
+    list_display = ['id', 'user', 'title', 'is_all_access', 'created_at']
+    list_filter = ['is_all_access', 'created_at']
     search_fields = ['user__username', 'title', 'content']
+    list_editable = ['is_all_access']
     readonly_fields = ['created_at', 'updated_at']
     
     fieldsets = (
         ('기본 정보', {
-            'fields': ('user', 'title', 'content', 'animal', 'adoption', 'content_tags')
+            'fields': ('user', 'title', 'content', 'animal', 'adoption', 'content_tags', 'is_all_access')
         }),
         ('시간 정보', {
             'fields': ('created_at', 'updated_at'),
@@ -103,3 +104,21 @@ class SystemTagAdmin(admin.ModelAdmin):
         updated = queryset.update(is_active=False)
         self.message_user(request, f"{updated}개의 태그가 비활성화되었습니다.")
     deactivate_tags.short_description = "태그 비활성화"
+
+
+@admin.register(PostLike)
+class PostLikeAdmin(admin.ModelAdmin):
+    list_display = ['id', 'user', 'post', 'created_at']
+    list_filter = ['created_at']
+    search_fields = ['user__username', 'post__title']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('기본 정보', {
+            'fields': ('user', 'post')
+        }),
+        ('시간 정보', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )

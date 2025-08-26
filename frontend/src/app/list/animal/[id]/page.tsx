@@ -24,11 +24,13 @@ import {
   useGetAnimalById,
   useGetRelatedAnimalsByDistance,
 } from "@/hooks/query/useGetAnimals";
+import { RawAnimalResponse } from "@/types/animal";
 import { useGetCenterById } from "@/hooks/query/useGetCenters";
 import {
   useCheckAnimalFavorite,
   useGetMyCenter,
   useToggleAnimalFavorite,
+  useToggleAnimalRecommend,
 } from "@/hooks";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { Toast } from "@/components/ui/Toast";
@@ -79,18 +81,36 @@ interface AnimalDetailPageProps {
 export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
   const { id } = use(params);
   const { isAuthenticated } = useAuth();
-  const { data: animal, isLoading, error } = useGetAnimalById(id);
+  const {
+    data: animal,
+    isLoading,
+    error,
+  } = useGetAnimalById(id) as {
+    data: RawAnimalResponse | undefined;
+    isLoading: boolean;
+    error: Error | null;
+  };
   const { data: myCenter } = useGetMyCenter();
   const subscriber = myCenter?.isSubscriber === true;
 
   // 동물의 보호소 정보 가져오기
   const { data: center, isLoading: centerLoading } = useGetCenterById(
-    animal?.centerId
+    animal?.center_id
   );
 
-  // 찜하기 관련 훅들
-  const { data: favoriteData } = useCheckAnimalFavorite(id, isAuthenticated);
+  // 찜하기 관련
+  const { data: favoriteData, isLoading: favoriteLoading } =
+    useCheckAnimalFavorite(id, isAuthenticated);
   const toggleFavorite = useToggleAnimalFavorite();
+
+  // 추천하기 관련
+  const toggleRecommend = useToggleAnimalRecommend();
+
+  // 로컬 상태
+  const [isMegaphoned, setIsMegaphoned] = useState(false);
+  const [localIsFavorited, setLocalIsFavorited] = useState<boolean | null>(
+    null
+  );
 
   // 토스트 상태
   const [showToast, setShowToast] = useState(false);
@@ -114,28 +134,69 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
   const isSubscriber = subscriber;
 
   // 찜하기 토글 핸들러
-  const handleFavoriteToggle = async () => {
+  const handleFavoriteToggle = () => {
     if (!isAuthenticated) {
       setShowLoginModal(true);
       return;
     }
 
-    try {
-      await toggleFavorite.mutateAsync({ animalId: id });
+    const currentState = localIsFavorited;
 
-      // 찜 상태에 따른 메시지 설정
-      if (isFavorited) {
-        setToastMessage("찜이 취소되었습니다");
-      } else {
-        setToastMessage("찜이 추가되었습니다");
+    // UI optimistic update
+    setLocalIsFavorited(!currentState);
+
+    toggleFavorite.mutate(
+      { animalId: id },
+      {
+        onSuccess: (response) => {
+          const isFavorited = response.is_favorited ?? false;
+          setLocalIsFavorited(isFavorited);
+          setToastMessage(
+            isFavorited ? "찜이 추가되었습니다" : "찜이 취소되었습니다"
+          );
+          setShowToast(true);
+        },
+        onError: (error) => {
+          setLocalIsFavorited(currentState);
+          setToastMessage("찜하기 처리 중 오류가 발생했습니다");
+          setShowToast(true);
+          console.error(error);
+        },
       }
+    );
+  };
 
-      setShowToast(true);
-    } catch (error) {
-      setToastMessage("찜하기 처리 중 오류가 발생했습니다");
-      setShowToast(true);
-      console.error("찜하기 토글 오류:", error);
+  // 추천하기 핸들러
+  const handleMegaphoneClick = () => {
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      return;
     }
+
+    const currentState = isMegaphoned;
+
+    // UI optimistic update
+    setIsMegaphoned(!currentState);
+
+    toggleRecommend.mutate(
+      { animalId: id },
+      {
+        onSuccess: (response) => {
+          const isMegaphonedFromApi = response.is_megaphoned ?? false;
+          setIsMegaphoned(isMegaphonedFromApi);
+          setToastMessage(
+            isMegaphonedFromApi ? "추천되었습니다" : "추천이 취소되었습니다"
+          );
+          setShowToast(true);
+        },
+        onError: (error) => {
+          setIsMegaphoned(currentState);
+          setToastMessage("추천하기 처리 중 오류가 발생했습니다");
+          setShowToast(true);
+          console.error(error);
+        },
+      }
+    );
   };
 
   // 입양신청 버튼 핸들러
@@ -144,8 +205,6 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
       setShowLoginModal(true);
       return;
     }
-
-    // 로그인 상태인 경우 입양 신청 바텀시트 표시
     setShowAdoptionBottomSheet(true);
   };
 
@@ -175,14 +234,10 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
     }
   };
 
-  // 카카오 공유하기 핸들러
   const handleKakaoShare = () => {
     if (typeof window !== "undefined" && window.Kakao) {
       const animalUrl = `${window.location.origin}/list/animal/${id}`;
-
-      window.Kakao.Share.sendScrap({
-        requestUrl: animalUrl,
-      });
+      window.Kakao.Share.sendScrap({ requestUrl: animalUrl });
 
       setShareToastType("success");
       setShowShareToast(true);
@@ -194,7 +249,6 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
     }
   };
 
-  // Fallback 링크 복사 함수
   const fallbackCopyTextToClipboard = (text: string) => {
     const textArea = document.createElement("textarea");
     textArea.value = text;
@@ -208,13 +262,12 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
       setShareToastType("success");
       setShowShareToast(true);
       setShowShareBottomSheet(false);
-    } catch (err) {
-      console.error("Fallback: Oops, unable to copy", err);
+    } catch (error) {
       setShareToastMessage("링크 복사에 실패했습니다.");
       setShareToastType("error");
       setShowShareToast(true);
+      console.error(error);
     }
-
     document.body.removeChild(textArea);
   };
 
@@ -228,11 +281,32 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
     }
   }, [showToast]);
 
+  // 초기 찜하기 상태 동기화
+  useEffect(() => {
+    if (favoriteData?.isFavorited !== undefined) {
+      setLocalIsFavorited(favoriteData.isFavorited);
+    }
+  }, [favoriteData?.isFavorited]);
+
+  // 로딩 중이 아닐 때만 초기 상태 설정
+  useEffect(() => {
+    if (!favoriteLoading && favoriteData?.isFavorited !== undefined) {
+      setLocalIsFavorited(favoriteData.isFavorited);
+    }
+  }, [favoriteLoading, favoriteData?.isFavorited]);
+
+  // 초기 추천하기 상태 동기화
+  useEffect(() => {
+    if (animal?.is_megaphoned !== undefined) {
+      setIsMegaphoned(animal.is_megaphoned);
+    }
+  }, [animal?.is_megaphoned]);
+
   // 거리 기반 관련 동물 데이터 가져오기
   const { data: relatedAnimalsData, isLoading: relatedAnimalsLoading } =
     useGetRelatedAnimalsByDistance(animal?.id);
 
-  if (isLoading || centerLoading || relatedAnimalsLoading) {
+  if (isLoading || centerLoading || relatedAnimalsLoading || favoriteLoading) {
     return (
       <Container>
         <div className="text-center py-8">로딩 중...</div>
@@ -247,11 +321,9 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
       </Container>
     );
   }
-  // 관련 동물들 (이미 현재 동물이 제외되어 있음)
+
   const relatedAnimals = relatedAnimalsData?.data?.animals || [];
 
-  // 찜 상태 (기본값은 false)
-  const isFavorited = favoriteData?.isFavorited || false;
   return (
     <>
       <Container className="min-h-screen bg-gray-50 pb-20">
@@ -277,39 +349,83 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
         <AnimalBasicInfo
           tag={animal.status}
           name={animal.name}
-          isFemale={animal.isFemale}
+          isFemale={animal.is_female}
           age={animal.age}
           weight={animal.weight || 0}
           color={animal.color || ""}
-          imageUrls={animal.animalImages || []}
+          breed={animal.breed || ""}
+          imageUrls={
+            animal.animal_images
+              ? animal.animal_images.map((img) => img.image_url)
+              : []
+          }
         />
 
-        <WaitingStatus waitingDays={animal.waitingDays || 0} />
+        <WaitingStatus admissionDate={animal.admission_date || ""} />
 
         <AnimalDetails
-          announceNumber={animal.announceNumber || ""}
-          announcementDate={animal.announcementDate || ""}
+          announceNumber={animal.announce_number || ""}
+          announcementDate={animal.announcement_date || ""}
           description={animal.description || ""}
-          foundLocation={animal.foundLocation || ""}
-          center={animal.centerId}
+          foundLocation={animal.found_location || ""}
+          center={center?.name}
           isSubscriber={isSubscriber}
-          specialNotes={animal.specialNotes || undefined}
+          specialNotes={animal.special_notes || undefined}
         />
         <div className="py-3" />
 
-        {/* 구독자용 상세 정보 */}
         {isSubscriber && (
           <SubscriberDetails
-            activityLevel={animal.activityLevel || 3}
-            sensitivity={animal.sensitivity || 3}
-            sociability={animal.sociability || 3}
-            separationAnxiety={animal.separationAnxiety || undefined}
-            healthNotes={animal.healthNotes ? [animal.healthNotes] : []}
-            basicTraining={animal.basicTraining || undefined}
-            trainerComment={animal.trainerComment || undefined}
+            activityLevel={
+              animal.activity_level ? parseInt(animal.activity_level) || 3 : 3
+            }
+            sensitivity={
+              animal.sensitivity ? parseInt(animal.sensitivity) || 3 : 3
+            }
+            sociability={
+              animal.sociability ? parseInt(animal.sociability) || 3 : 3
+            }
+            separationAnxiety={
+              animal.separation_anxiety
+                ? parseInt(animal.separation_anxiety) || undefined
+                : undefined
+            }
+            healthNotes={animal.health_notes ? [animal.health_notes] : []}
+            basicTraining={animal.basic_training || undefined}
+            trainerComment={animal.trainer_comment || undefined}
           />
         )}
-        <RelatedPosts currentPet={animal} />
+
+        <RelatedPosts
+          currentPet={{
+            ...animal,
+            isFemale: animal.is_female,
+            animalImages:
+              animal.animal_images?.map((img) => ({
+                id: img.id,
+                imageUrl: img.image_url,
+                orderIndex: img.order_index,
+              })) || [],
+            foundLocation: animal.found_location,
+            admissionDate: animal.admission_date,
+            announceNumber: animal.announce_number,
+            announcementDate: animal.announcement_date,
+            activityLevel: animal.activity_level,
+            sensitivity: animal.sensitivity,
+            sociability: animal.sociability,
+            separationAnxiety: animal.separation_anxiety,
+            specialNotes: animal.special_notes,
+            healthNotes: animal.health_notes,
+            basicTraining: animal.basic_training,
+            trainerComment: animal.trainer_comment,
+            centerId: animal.center_id,
+            waitingDays: animal.waiting_days,
+            megaphoneCount: animal.megaphone_count,
+            isMegaphoned: animal.is_megaphoned,
+            createdAt: animal.created_at,
+            updatedAt: animal.updated_at,
+          }}
+        />
 
         <CenterInfo
           variant={isSubscriber ? "subscriber" : "primary"}
@@ -326,41 +442,40 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
           className="border-t border-bg mt-6 mb-8"
         />
 
-        {/* 거리 기반 가까운 공고 */}
-        {relatedAnimals.length > 0 && (
-          <RelatedAnimals
-            pets={relatedAnimals}
-            location={animal.foundLocation || ""}
-          />
-        )}
+        <RelatedAnimals
+          pets={relatedAnimals}
+          location={animal.found_location || ""}
+        />
       </Container>
 
-      {/* FixedBottomBar */}
       <FixedBottomBar
         variant="variant3"
         leftButtonText="임시 보호"
-        onLeftButtonClick={() => {
-          handleAdoptionClick();
-        }}
+        onLeftButtonClick={handleAdoptionClick}
         primaryButtonText="입양 신청"
         onPrimaryButtonClick={handleAdoptionClick}
         showDivider
-        rightIcon1={<Megaphone size={20} weight="bold" />} //@TODO 추천하기 기능 추가 필요
+        rightIcon1={
+          <Megaphone
+            size={20}
+            weight={isMegaphoned ? "fill" : "bold"}
+            className={isMegaphoned ? "text-brand" : "text-gr"}
+          />
+        }
         rightIcon2={
           <Heart
             size={20}
-            weight={isFavorited ? "fill" : "bold"}
-            className={isFavorited ? "text-brand" : "text-gr"}
+            weight={localIsFavorited ? "fill" : "bold"}
+            className={localIsFavorited ? "text-brand" : "text-gr"}
+            style={{ opacity: favoriteLoading ? 0.5 : 1 }}
           />
         }
-        onRightIcon1Click={handleShareClick}
+        onRightIcon1Click={handleMegaphoneClick}
         onRightIcon2Click={handleFavoriteToggle}
       />
 
-      {/* 토스트 메시지 */}
       {showToast && <Toast>{toastMessage}</Toast>}
 
-      {/* 공유 모달 */}
       {showShareBottomSheet && animal && (
         <CustomModal
           open={showShareBottomSheet}
@@ -375,10 +490,15 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
               pet={{
                 id: animal.id,
                 name: animal.name || "",
-                isFemale: animal.isFemale,
+                isFemale: animal.is_female,
                 status: animal.status,
-                animalImages: animal.animalImages || [],
-                foundLocation: animal.foundLocation || "",
+                animalImages:
+                  animal.animal_images?.map((img) => ({
+                    id: img.id,
+                    imageUrl: img.image_url,
+                    orderIndex: img.order_index,
+                  })) || [],
+                foundLocation: animal.found_location || "",
               }}
               variant="variant4"
               imageSize="full"
@@ -388,7 +508,6 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
         </CustomModal>
       )}
 
-      {/* 로그인 유도 모달 */}
       <CustomModal
         open={showLoginModal}
         onClose={() => setShowLoginModal(false)}
@@ -404,7 +523,6 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
         onSubLinkClick={() => setShowLoginModal(false)}
       />
 
-      {/* 입양 신청 바텀시트 */}
       <BottomSheet
         open={showAdoptionBottomSheet}
         onClose={() => setShowAdoptionBottomSheet(false)}
@@ -422,7 +540,6 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
         }}
       />
 
-      {/* 공유 토스트 알림 */}
       {showShareToast && (
         <NotificationToast
           message={shareToastMessage}

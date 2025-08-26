@@ -1,4 +1,7 @@
-import type { CenterResponseSchema, AnimalResponseSchema } from "@/server/openapi/routes";
+import type {
+  CenterResponseSchema,
+  AnimalResponseSchema,
+} from "@/server/openapi/routes";
 import { z } from "zod";
 
 export type Center = z.infer<typeof CenterResponseSchema>;

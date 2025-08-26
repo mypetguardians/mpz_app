@@ -3,7 +3,12 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { Chip } from "@/components/ui/Chip";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  GenderFemaleIcon,
+  GenderMaleIcon,
+} from "@phosphor-icons/react";
 
 interface AnimalBasicInfoProps {
   tag: string;
@@ -12,6 +17,7 @@ interface AnimalBasicInfoProps {
   age: number;
   weight: number;
   color: string;
+  breed: string;
   imageUrls: string[];
 }
 
@@ -22,6 +28,7 @@ export default function AnimalBasicInfo({
   age,
   weight,
   color,
+  breed,
   imageUrls,
 }: AnimalBasicInfoProps) {
   // 유효한 이미지 URL만 필터링
@@ -71,13 +78,13 @@ export default function AnimalBasicInfo({
               onClick={prevImage}
               className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full transition-colors"
             >
-              <ChevronLeft size={20} />
+              <ArrowLeft size={20} />
             </button>
             <button
               onClick={nextImage}
               className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full transition-colors"
             >
-              <ChevronRight size={20} />
+              <ArrowRight size={20} />
             </button>
           </>
         )}
@@ -87,11 +94,15 @@ export default function AnimalBasicInfo({
       <div className="mx-4 py-4 border-b border-lg">
         <div className="flex items-center gap-2 mb-3">
           <Chip className="bg-green/10 text-green">{tag}</Chip>
-          <h3 className="text-bk">{name}</h3>
+          <h3 className="text-bk">{breed}</h3>
           {isFemale ? (
-            <span className="text-red">♀</span>
+            <span className="text-red">
+              <GenderFemaleIcon size={16} weight="bold" />
+            </span>
           ) : (
-            <span className="text-brand">♂</span>
+            <span className="text-brand">
+              <GenderMaleIcon size={16} weight="bold" />
+            </span>
           )}
         </div>
         <div className="flex items-center body2 text-dg gap-2">

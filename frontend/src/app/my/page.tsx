@@ -210,9 +210,8 @@ export default function MyPage() {
                   입양 현황을 불러오는데 실패했습니다.
                 </div>
               </div>
-            ) : adoptionsData?.adoptions &&
-              adoptionsData.adoptions.length > 0 ? (
-              adoptionsData.adoptions.map((adoption) => (
+            ) : adoptionsData?.data && adoptionsData.data.length > 0 ? (
+              adoptionsData.data.map((adoption) => (
                 <div
                   key={adoption.id}
                   className="p-4 bg-white border border-gray-200 rounded-lg cursor-pointer"
@@ -240,8 +239,8 @@ export default function MyPage() {
                     {/* 동물 이미지 */}
                     <div className="relative overflow-hidden w-18 h-18">
                       <Image
-                        src={adoption.animalImage || "/img/dummyImg.jpeg"}
-                        alt={adoption.animalName}
+                        src={adoption.animal_image || "/img/dummyImg.jpeg"}
+                        alt={adoption.animal_name}
                         fill
                         className="object-cover"
                       />
@@ -249,7 +248,9 @@ export default function MyPage() {
                     {/* 텍스트와 화살표 */}
                     <div className="flex items-center gap-8">
                       <p className="text-sm text-black">
-                        {adoption.userNickname || adoption.userName || "사용자"}
+                        {adoption.user_nickname ||
+                          adoption.user_name ||
+                          "사용자"}
                         님과의 만남을 기다리고 있어요!
                       </p>
                       <CaretRight className="w-5 h-5 text-gray-400" />

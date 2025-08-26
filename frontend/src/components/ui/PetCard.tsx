@@ -171,15 +171,24 @@ export function PetCard({
           <div className="flex flex-col gap-1 text-gray-700 text-sm">
             <div className="flex items-center">
               <span className="font-medium mr-2 w-12">활동량</span>
-              <DotsIndicator count={activityLevel || 0} color="bg-brand" />
+              <DotsIndicator
+                count={parseInt(activityLevel?.toString() || "0")}
+                color="bg-brand"
+              />
             </div>
             <div className="flex items-center">
               <span className="font-medium mr-2 w-12">민감도</span>
-              <DotsIndicator count={sensitivity || 0} color="bg-yellow" />
+              <DotsIndicator
+                count={parseInt(sensitivity?.toString() || "0")}
+                color="bg-yellow"
+              />
             </div>
             <div className="flex items-center">
               <span className="font-medium mr-2 w-12">사교성</span>
-              <DotsIndicator count={sociability || 0} color="bg-green" />
+              <DotsIndicator
+                count={parseInt(sociability?.toString() || "0")}
+                color="bg-green"
+              />
             </div>
           </div>
         </div>
@@ -234,11 +243,7 @@ export function PetCard({
                 ? status
                 : "🌈"}
             </Chip>
-            <h4 className="text-bk">
-              {(breed || "종 미등록").length > 4
-                ? (breed || "종 미등록").slice(0, 4) + "..."
-                : breed || "종 미등록"}
-            </h4>
+            <h4 className="text-bk">{breed || "종 미등록"}</h4>
             {isFemale ? (
               <GenderFemale
                 className="text-red text-xl w-3 h-3"

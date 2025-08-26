@@ -7,11 +7,23 @@ class Notification(BaseModel):
     """알림 모델"""
     
     NOTIFICATION_TYPE_CHOICES = [
+        # 기존 알림 타입들
         ('adoption_update', '입양 상태 업데이트'),
         ('monitoring_reminder', '모니터링 알림'),
         ('center_update', '센터 정보 업데이트'),
         ('animal_update', '동물 정보 업데이트'),
         ('system', '시스템 알림'),
+        
+        # 센터 측 알림 타입들
+        ('new_adoption_application', '새로운 입양 신청'),
+        ('new_temporary_protection', '새로운 임시보호 등록'),
+        ('monitoring_delayed', '모니터링 지연'),
+        
+        # 유저 측 알림 타입들
+        ('monitoring_delayed_user', '모니터링 지연 (사용자)'),
+        ('new_comment', '새로운 댓글'),
+        ('new_reply', '새로운 대댓글'),
+        
         ('other', '기타'),
     ]
     
@@ -23,7 +35,7 @@ class Notification(BaseModel):
     ]
     
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, help_text="수신자")
-    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPE_CHOICES, help_text="알림 타입")
+    notification_type = models.CharField(max_length=30, choices=NOTIFICATION_TYPE_CHOICES, help_text="알림 타입")
     title = models.CharField(max_length=200, help_text="알림 제목")
     message = models.TextField(help_text="알림 내용")
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='normal', help_text="우선순위")

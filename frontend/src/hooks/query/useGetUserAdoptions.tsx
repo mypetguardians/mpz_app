@@ -1,47 +1,43 @@
 import { useQuery } from "@tanstack/react-query";
-import { UserAdoptionsResponse } from "@/types/adoption";
+import { UserAdoptionOut, UserAdoptionFilterIn } from "@/types/adoption";
 import instance from "@/lib/axios-instance";
 
 interface GetUserAdoptionsParams {
-  userId: string;
-  page?: number;
-  limit?: number;
+  filters?: UserAdoptionFilterIn;
 }
 
 const getUserAdoptions = async (
-  params: GetUserAdoptionsParams
-): Promise<UserAdoptionsResponse> => {
-  const { userId, page, limit } = params;
-
-  // userId가 유효하지 않으면 에러 발생
-  if (!userId || userId.trim() === "") {
-    throw new Error("유효하지 않은 사용자 ID입니다.");
-  }
+  params: GetUserAdoptionsParams = {}
+): Promise<UserAdoptionOut[]> => {
+  const { filters } = params;
 
   const searchParams = new URLSearchParams();
 
-  if (page !== undefined) {
-    searchParams.append("page", page.toString());
+  // 필터 적용
+  if (filters?.status && filters.status.trim()) {
+    searchParams.append("status", filters.status.trim());
   }
-  if (limit !== undefined) {
-    searchParams.append("limit", limit.toString());
+  if (filters?.is_temporary_protection !== undefined) {
+    searchParams.append(
+      "is_temporary_protection",
+      filters.is_temporary_protection.toString()
+    );
   }
 
   const url = `/adoptions/my${
     searchParams.toString() ? `?${searchParams.toString()}` : ""
   }`;
 
-  const response = await instance.get<UserAdoptionsResponse>(url);
+  const response = await instance.get<UserAdoptionOut[]>(url);
   return response.data;
 };
 
-export function useGetUserAdoptions(params: GetUserAdoptionsParams) {
-  const { userId, page, limit } = params;
+export function useGetUserAdoptions(params: GetUserAdoptionsParams = {}) {
+  const { filters } = params;
 
-  return useQuery<UserAdoptionsResponse>({
-    queryKey: ["user-adoptions", userId, page, limit],
+  return useQuery<UserAdoptionOut[]>({
+    queryKey: ["user-adoptions", filters],
     queryFn: () => getUserAdoptions(params),
-    enabled: !!userId && userId.trim() !== "", // userId가 유효한 값일 때만 활성화
     staleTime: 5 * 60 * 1000, // 5분
     gcTime: 10 * 60 * 1000, // 10분
     retry: 1,

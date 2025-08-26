@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "@phosphor-icons/react";
 import { useGetUserAdoptionDetail } from "@/hooks/query/useGetUserAdoptionDetail";
@@ -22,7 +22,6 @@ export default function AdoptionRefusePage({
 }) {
   const router = useRouter();
   const { user } = useAuth();
-  const [isFavorite, setIsFavorite] = useState(true);
 
   const { id } = React.use(params);
 
@@ -32,15 +31,10 @@ export default function AdoptionRefusePage({
     error,
   } = useGetUserAdoptionDetail({
     adoptionId: id,
-    userId: user?.id || "",
   });
 
   const handleBack = () => {
     router.push("/my/adoption");
-  };
-
-  const handleFavoriteToggle = () => {
-    setIsFavorite(!isFavorite);
   };
 
   const handleViewConsent = () => {
@@ -96,6 +90,8 @@ export default function AdoptionRefusePage({
     );
   }
 
+  const { adoption } = adoptionDetail;
+
   return (
     <div className="min-h-screen bg-bg">
       <Container className="min-h-screen">
@@ -130,10 +126,10 @@ export default function AdoptionRefusePage({
             <SectionLine>
               <CenterInfo
                 variant="primary"
-                centerId={adoptionDetail.center_id}
-                name={adoptionDetail.center_name || "센터명 없음"}
-                location={adoptionDetail.center_location}
-                phoneNumber={adoptionDetail.center_phoneNumber}
+                centerId={adoption.center_id}
+                name={adoption.center_name}
+                location={adoption.center_location || "위치 정보 없음"}
+                phoneNumber="000-000-0000"
                 className="mb-6"
               />
             </SectionLine>
@@ -143,16 +139,16 @@ export default function AdoptionRefusePage({
               <h3 className="text-bk mb-3">입양 신청 동물</h3>
               <PetCard
                 pet={{
-                  id: adoptionDetail.animal_id,
-                  name: adoptionDetail.animal_name || "이름 없음",
-                  isFemale: adoptionDetail.animal_is_female,
-                  breed: adoptionDetail.animal_breed,
+                  id: adoption.animal_id,
+                  name: adoption.animal_name,
+                  isFemale: adoption.animal_gender === "암컷",
+                  breed: adoption.animal_breed || "종 미등록",
                   status: "보호중" as const,
-                  animalImages: adoptionDetail.animal_image
+                  animalImages: adoption.animal_image
                     ? [
                         {
                           id: "1",
-                          imageUrl: adoptionDetail.animal_image,
+                          imageUrl: adoption.animal_image,
                           orderIndex: 0,
                         },
                       ]
@@ -212,28 +208,28 @@ export default function AdoptionRefusePage({
               </div>
             </SectionLine>
 
-            {/* My Responses */}
-            <SectionLine>
-              <h3 className="text-bk mb-3">내 응답</h3>
-              <div className="flex flex-col ">
-                {adoptionDetail.questionResponses &&
-                adoptionDetail.questionResponses.length > 0 ? (
-                  adoptionDetail.questionResponses.map((response, index) => (
-                    <div
-                      key={index}
-                      className="flex flex-col py-3 border-b border-bg"
-                    >
-                      <h5 className="text-gr">{response.questionContent}</h5>
-                      <p className="text-bk body">{response.answer}</p>
+            {/* Question Responses */}
+            {adoptionDetail.question_responses &&
+              adoptionDetail.question_responses.length > 0 && (
+                <SectionLine>
+                  <div className="mb-6">
+                    <h3 className="text-bk mb-3">질문 응답</h3>
+                    <div className="space-y-3">
+                      {adoptionDetail.question_responses.map((response) => (
+                        <div
+                          key={response.id}
+                          className="bg-gray-50 p-3 rounded-lg"
+                        >
+                          <div className="font-medium text-gray-700 mb-1">
+                            {response.question_content}
+                          </div>
+                          <div className="text-gray-600">{response.answer}</div>
+                        </div>
+                      ))}
                     </div>
-                  ))
-                ) : (
-                  <div className="text-gray-500 text-sm py-3">
-                    질문 응답이 없습니다.
                   </div>
-                )}
-              </div>
-            </SectionLine>
+                </SectionLine>
+              )}
 
             {/* Action Buttons */}
             <div className="space-y-3 pb-6">

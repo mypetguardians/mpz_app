@@ -16,7 +16,7 @@ import { TextMenu } from "@/components/ui/TextMenu";
 import { CustomModal } from "@/components/ui/CustomModal";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Toast } from "@/components/ui/Toast";
-import { useSignOut } from "@/hooks/mutation/useSignOut";
+
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useGetUserAdoptions } from "@/hooks/query/useGetUserAdoptions";
 
@@ -32,8 +32,7 @@ export default function MyPage() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isLogoutSheetOpen, setIsLogoutSheetOpen] = useState(false);
   const [showLogoutToast, setShowLogoutToast] = useState(false);
-  const { isAuthenticated, user } = useAuth();
-  const signOutMutation = useSignOut();
+  const { isAuthenticated, user, logout } = useAuth();
   const router = useRouter();
 
   // 실제 사용자의 입양 목록 가져오기
@@ -42,9 +41,9 @@ export default function MyPage() {
     isLoading: adoptionsLoading,
     error: adoptionsError,
   } = useGetUserAdoptions({
-    userId: user?.id || "",
-    page: 1,
-    limit: 10,
+    filters: {
+      status: undefined,
+    },
   });
 
   // 입양 상태를 단계별로 변환하는 함수
@@ -66,18 +65,17 @@ export default function MyPage() {
   };
 
   // 로그아웃 처리 함수
-  const handleLogout = () => {
-    if (!signOutMutation.isPending) {
-      signOutMutation.mutate(undefined, {
-        onSuccess: () => {
-          setIsLogoutSheetOpen(false);
-          setShowLogoutToast(true);
-          // 3초 후 토스트 숨기기
-          setTimeout(() => {
-            setShowLogoutToast(false);
-          }, 3000);
-        },
-      });
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setIsLogoutSheetOpen(false);
+      setShowLogoutToast(true);
+      // 3초 후 토스트 숨기기
+      setTimeout(() => {
+        setShowLogoutToast(false);
+      }, 3000);
+    } catch (error) {
+      console.error("로그아웃 중 오류:", error);
     }
   };
 
@@ -133,11 +131,11 @@ export default function MyPage() {
     },
     {
       id: "5",
-      label: signOutMutation.isPending ? "로그아웃 중..." : "로그아웃",
+      label: "로그아웃",
       onClick: () => {
         if (!isAuthenticated) {
           setIsLoginModalOpen(true);
-        } else if (!signOutMutation.isPending) {
+        } else {
           // 로그아웃 확인 바텀시트 열기
           setIsLogoutSheetOpen(true);
         }
@@ -210,8 +208,8 @@ export default function MyPage() {
                   입양 현황을 불러오는데 실패했습니다.
                 </div>
               </div>
-            ) : adoptionsData?.data && adoptionsData.data.length > 0 ? (
-              adoptionsData.data.map((adoption) => (
+            ) : adoptionsData && adoptionsData.length > 0 ? (
+              adoptionsData.map((adoption) => (
                 <div
                   key={adoption.id}
                   className="p-4 bg-white border border-gray-200 rounded-lg cursor-pointer"

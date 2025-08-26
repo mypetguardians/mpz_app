@@ -37,12 +37,7 @@ export default function AdoptionRequestPage({
     error,
   } = useGetUserAdoptionDetail({
     adoptionId: id,
-    userId: user?.id || "",
   });
-
-  // 디버깅을 위한 콘솔 로그
-  console.log("Adoption Detail:", adoptionDetail);
-  console.log("User:", user);
 
   const handleBack = () => {
     router.push("/my/adoption");
@@ -114,6 +109,8 @@ export default function AdoptionRequestPage({
     );
   }
 
+  const { adoption } = adoptionDetail;
+
   return (
     <div className="min-h-screen bg-bg">
       <Container className="min-h-screen">
@@ -143,7 +140,7 @@ export default function AdoptionRequestPage({
             {/* Progress Bar */}
             <DotProgressBar currentStep={1} className="mb-6" />
 
-            {/* Info Card */}
+            {/* 입양 신청 정보 */}
             <InfoCard className="mb-6">
               센터가 입양 신청을 수락하면, 다음 단계로 넘어가 센터 입양 절차에
               따라 진행해요.
@@ -153,10 +150,10 @@ export default function AdoptionRequestPage({
             <SectionLine>
               <CenterInfo
                 variant="primary"
-                centerId={adoptionDetail.center_id}
-                name={adoptionDetail.center_name || "센터명 없음"}
-                location={adoptionDetail.center_location}
-                phoneNumber={adoptionDetail.center_phoneNumber}
+                centerId={adoption.center_id}
+                name={adoption.center_name}
+                location={adoption.center_location || "위치 정보 없음"}
+                phoneNumber="000-000-0000"
                 className="mb-6"
               />
             </SectionLine>
@@ -166,16 +163,16 @@ export default function AdoptionRequestPage({
               <h3 className="text-bk mb-3">입양 신청 동물</h3>
               <PetCard
                 pet={{
-                  id: adoptionDetail.animal_id,
-                  name: adoptionDetail.animal_name || "이름 없음",
-                  isFemale: adoptionDetail.animal_is_female,
-                  breed: adoptionDetail.animal_breed,
+                  id: adoption.animal_id,
+                  name: adoption.animal_name,
+                  isFemale: adoption.animal_gender === "암컷",
+                  breed: adoption.animal_breed || "종 미등록",
                   status: "보호중" as const,
-                  animalImages: adoptionDetail.animal_image
+                  animalImages: adoption.animal_image
                     ? [
                         {
                           id: "1",
-                          imageUrl: adoptionDetail.animal_image,
+                          imageUrl: adoption.animal_image,
                           orderIndex: 0,
                         },
                       ]
@@ -250,7 +247,7 @@ export default function AdoptionRequestPage({
                 variant="variant5"
                 onClick={() => {
                   const guidelinesContent =
-                    adoptionDetail.guidelines_content ||
+                    adoptionDetail.contract?.guidelines_content ||
                     "동의서 내용이 준비되지 않았습니다.";
                   const encodedContent = encodeURIComponent(guidelinesContent);
                   router.push(

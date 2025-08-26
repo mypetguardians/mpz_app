@@ -7,7 +7,7 @@ import Image from "next/image";
 
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useGetMyCenter } from "@/hooks/query/useGetMyCenter";
-import { useSignOut } from "@/hooks";
+
 import { Container } from "@/components/common/Container";
 import { MiniButton } from "@/components/ui/MiniButton";
 import { TopBar } from "@/components/common/TopBar";
@@ -27,24 +27,22 @@ interface MenuItem {
 export default function MyPage() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showLogoutToast, setShowLogoutToast] = useState(false);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
   const { data: myCenter } = useGetMyCenter();
-  const signOutMutation = useSignOut();
   const isSubscriber = myCenter?.isSubscriber === true;
 
   // 로그아웃 처리 함수
-  const handleLogout = () => {
-    if (!signOutMutation.isPending) {
-      signOutMutation.mutate(undefined, {
-        onSuccess: () => {
-          setShowLogoutModal(false);
-          setShowLogoutToast(true);
-          // 3초 후 토스트 숨기기
-          setTimeout(() => {
-            setShowLogoutToast(false);
-          }, 3000);
-        },
-      });
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setShowLogoutModal(false);
+      setShowLogoutToast(true);
+      // 3초 후 토스트 숨기기
+      setTimeout(() => {
+        setShowLogoutToast(false);
+      }, 3000);
+    } catch (error) {
+      console.error("로그아웃 중 오류:", error);
     }
   };
 

@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "@phosphor-icons/react";
-import { useToggleCenterFavorite } from "@/hooks";
 import { useGetUserAdoptionDetail } from "@/hooks/query/useGetUserAdoptionDetail";
 import { useAuth } from "@/components/providers/AuthProvider";
 
@@ -11,45 +10,30 @@ import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
 import { DotProgressBar } from "@/components/ui/DotProgressBar";
-import { InfoCard } from "@/components/ui/InfoCard";
 import { CenterInfo } from "@/components/ui/CenterInfo";
 import { PetCard } from "@/components/ui/PetCard";
 import { BigButton } from "@/components/ui/BigButton";
 import { SectionLine } from "../../_components/SectionLine";
 
-export default function WritingPage({ params }: { params: { id: string } }) {
+export default function WritingPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = React.use(params);
   const router = useRouter();
   const { user } = useAuth();
-  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(true);
-  const toggleCenterFavorite = useToggleCenterFavorite();
 
   const {
     data: adoptionDetail,
     isLoading,
     error,
   } = useGetUserAdoptionDetail({
-    adoptionId: params.id,
-    userId: user?.id || "",
+    adoptionId: id,
   });
 
   const handleBack = () => {
     router.push("/my/adoption");
-  };
-
-  const handleFavoriteToggle = () => {
-    // 실제 API 호출
-    if (adoptionDetail?.adoption.centerId) {
-      toggleCenterFavorite.mutate({
-        centerId: adoptionDetail.adoption.centerId,
-      });
-      setIsFavorite(!isFavorite);
-    }
-  };
-
-  const handleViewConsent = () => {
-    // 동의서 보기 로직
-    console.log("동의서 보기");
   };
 
   if (isLoading) {
@@ -100,6 +84,8 @@ export default function WritingPage({ params }: { params: { id: string } }) {
     );
   }
 
+  const { adoption } = adoptionDetail;
+
   return (
     <div className="min-h-screen bg-bg">
       <Container className="min-h-screen">
@@ -130,33 +116,34 @@ export default function WritingPage({ params }: { params: { id: string } }) {
             <DotProgressBar currentStep={3} />
             <BigButton
               variant="primary"
-              onClick={handleViewConsent}
+              onClick={() => {
+                const contractData = {
+                  adoptionId: id,
+                  animalName: adoption.animal_name,
+                  centerName: adoption.center_name,
+                  contractContent:
+                    adoptionDetail.contract?.contract_content ||
+                    "계약서 내용이 준비되지 않았습니다.",
+                  guidelinesContent:
+                    adoptionDetail.contract?.guidelines_content ||
+                    "동의서 내용이 준비되지 않았습니다.",
+                };
+                const encodedData = encodeURIComponent(
+                  JSON.stringify(contractData)
+                );
+                router.push(`/adoption/contract?data=${encodedData}`);
+              }}
               className="w-full py-4 my-3"
             >
               계약서 보기
             </BigButton>
-            {/* Info Card */}
-            <InfoCard className="mb-6">
-              입양 완료 후에는 센터에서 주기적으로 모니터링을 진행해요. 성실히
-              임해주시길 바래요.
-            </InfoCard>
-            <div className="mb-6">
-              <h3 className="text-bk mb-1">모니터링 현황</h3>
-              <div className="flex items-center gap-2">
-                <h6 className="text-gr">남은횟수 {`10`}회</h6>
-                <h6 className="text-gr">|</h6>
-                <h6 className="text-gr">남은 기간 {`3개월 1주`} 남았어요</h6>
-              </div>
-            </div>
             {/* Center Info */}
             <SectionLine>
               <CenterInfo
                 variant="primary"
-                centerId={adoptionDetail.adoption.centerId}
-                name={adoptionDetail.adoption.centerName}
-                location={
-                  adoptionDetail.adoption.centerLocation || "위치 정보 없음"
-                }
+                centerId={adoption.center_id}
+                name={adoption.center_name}
+                location={adoption.center_location || "위치 정보 없음"}
                 phoneNumber="000-000-0000"
                 className="mb-6"
               />
@@ -167,12 +154,20 @@ export default function WritingPage({ params }: { params: { id: string } }) {
               <h3 className="text-bk mb-3">입양 신청 동물</h3>
               <PetCard
                 pet={{
-                  id: adoptionDetail.adoption.animalId,
-                  name: adoptionDetail.adoption.animalName,
-                  isFemale: adoptionDetail.adoption.animalGender === "female",
-                  breed: adoptionDetail.adoption.animalBreed || undefined,
+                  id: adoption.animal_id,
+                  name: adoption.animal_name,
+                  isFemale: adoption.animal_gender === "암컷",
+                  breed: adoption.animal_breed || "종 미등록",
                   status: "보호중" as const,
-                  animalImages: [adoptionDetail.adoption.animalImage || ""],
+                  animalImages: adoption.animal_image
+                    ? [
+                        {
+                          id: "1",
+                          imageUrl: adoption.animal_image,
+                          orderIndex: 0,
+                        },
+                      ]
+                    : [],
                 }}
                 variant="variant4"
               />
@@ -228,34 +223,51 @@ export default function WritingPage({ params }: { params: { id: string } }) {
               </div>
             </SectionLine>
 
-            {/* My Responses */}
-            <SectionLine>
-              <h3 className="text-bk mb-3">내 응답</h3>
-              <div className="flex flex-col ">
-                {adoptionDetail.questionResponses &&
-                adoptionDetail.questionResponses.length > 0 ? (
-                  adoptionDetail.questionResponses.map((response, index) => (
-                    <div
-                      key={index}
-                      className="flex flex-col py-3 border-b border-bg"
-                    >
-                      <h5 className="text-gr">{response.questionContent}</h5>
-                      <p className="text-bk body">{response.answer}</p>
+            {/* Question Responses */}
+            {adoptionDetail.question_responses &&
+              adoptionDetail.question_responses.length > 0 && (
+                <SectionLine>
+                  <div className="mb-6">
+                    <h3 className="text-bk mb-3">질문 응답</h3>
+                    <div className="space-y-3">
+                      {adoptionDetail.question_responses.map((response) => (
+                        <div
+                          key={response.id}
+                          className="bg-gray-50 p-3 rounded-lg"
+                        >
+                          <div className="font-medium text-gray-700 mb-1">
+                            {response.question_content}
+                          </div>
+                          <div className="text-gray-600">{response.answer}</div>
+                        </div>
+                      ))}
                     </div>
-                  ))
-                ) : (
-                  <div className="text-gray-500 text-sm py-3">
-                    질문 응답이 없습니다.
                   </div>
-                )}
-              </div>
-            </SectionLine>
+                </SectionLine>
+              )}
 
             {/* Action Buttons */}
             <div className="space-y-3 pb-6">
               <BigButton
                 variant="variant5"
-                onClick={handleViewConsent}
+                onClick={() => {
+                  router.push(`/my/adoption/${id}/applicationForm`);
+                }}
+                className="w-full py-4"
+              >
+                신청서 보기
+              </BigButton>
+              <BigButton
+                variant="variant5"
+                onClick={() => {
+                  const guidelinesContent =
+                    adoptionDetail.contract?.guidelines_content ||
+                    "동의서 내용이 준비되지 않았습니다.";
+                  const encodedContent = encodeURIComponent(guidelinesContent);
+                  router.push(
+                    `/my/adoption/${id}/consentForm?guidelines=${encodedContent}`
+                  );
+                }}
                 className="w-full py-4"
               >
                 동의서 보기

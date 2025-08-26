@@ -161,10 +161,6 @@ export default function AdoptionPage() {
     );
   }
 
-  // 디버깅을 위한 콘솔 로그
-  console.log("Adoptions data:", adoptionsData);
-  console.log("User ID:", user.id);
-
   return (
     <Container className="min-h-screen">
       <TopBar
@@ -183,7 +179,6 @@ export default function AdoptionPage() {
       <div className="flex flex-col gap-3 px-4 py-4">
         {adoptionsData?.data && adoptionsData.data.length > 0 ? (
           adoptionsData.data.map((adoption: AdoptionData) => {
-            console.log("Adoption data:", adoption);
             return (
               <div
                 key={adoption.id}

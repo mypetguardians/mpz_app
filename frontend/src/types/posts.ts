@@ -67,6 +67,12 @@ export interface Post {
     orderIndex: number;
     createdAt: string;
   }>;
+  postLikes?: Array<{
+    id: string;
+    postId: string;
+    userId: string;
+    createdAt: string;
+  }>;
 }
 
 // 변환된 응답 타입
@@ -102,12 +108,10 @@ export interface GetPostsParams {
 export interface CreatePostRequest {
   title: string;
   content: string;
-  tags?: string[];
-  images?: string[];
+  tags: string[];
+  images: string[];
   adoption_id?: string;
-  animal_id?: string;
-  visibility?: "public" | "center";
-  contentTags?: string; // 하위 호환성을 위해 유지
+  is_all_access: boolean;
 }
 
 // 게시글 생성 응답

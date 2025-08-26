@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Bell, Plus } from "@phosphor-icons/react";
 
@@ -29,15 +29,31 @@ export default function CommunityPage() {
   const { data: systemTags, isLoading: tagsLoading } = useGetSystemTags();
 
   // 기본 탭과 시스템 태그를 조합하여 탭 옵션 생성
-  const tabs = [
-    { label: "최신글", value: "latest" },
-    ...(systemTags?.map((tag) => ({
-      label: `#${tag}`,
-      value: tag,
-    })) || []),
-  ];
+  const tabs = useMemo(() => {
+    const baseTabs = [{ label: "최신글", value: "latest" }];
 
-  const [activeTab, setActiveTab] = useState(tabs[0].value);
+    if (systemTags && Array.isArray(systemTags)) {
+      const tagTabs = systemTags.map((tag) => {
+        return {
+          label: `#${tag.name}`,
+          value: tag.name,
+        };
+      });
+      const finalTabs = [...baseTabs, ...tagTabs];
+      return finalTabs;
+    }
+
+    return baseTabs;
+  }, [systemTags]);
+
+  const [activeTab, setActiveTab] = useState("latest");
+
+  // systemTags가 로드된 후 activeTab 업데이트
+  useEffect(() => {
+    if (systemTags && systemTags.length > 0 && activeTab === "latest") {
+      // 기본값은 "latest"로 유지
+    }
+  }, [systemTags, activeTab]);
 
   // 실제 posts 데이터 가져오기
   const {
@@ -162,6 +178,11 @@ export default function CommunityPage() {
           tabs={tabs}
           variant="primary"
         />
+        {/* 디버깅용: tabs 배열 확인 */}
+        {(() => {
+          console.log("TabButton에 전달되는 tabs:", tabs);
+          return null;
+        })()}
       </div>
       <div className="mx-4 flex-1 overflow-y-auto">
         {posts.length === 0 ? (

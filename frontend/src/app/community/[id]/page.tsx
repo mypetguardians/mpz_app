@@ -61,11 +61,6 @@ export default function CommunityDetailPage() {
   // 현재 사용자가 게시글 작성자인지 확인 (실제 로그인된 유저 기준)
   const isMyPost = user?.id && post?.userId && user.id === post.userId;
 
-  // 디버깅을 위한 로그
-  console.log("Debug - User ID:", user?.id);
-  console.log("Debug - Post User ID:", post?.userId);
-  console.log("Debug - Is My Post:", isMyPost);
-
   // 토스트 자동 숨김
   useEffect(() => {
     if (showToast) {

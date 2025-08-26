@@ -129,7 +129,7 @@ export default function AdoptionMonitoringPage({
                 ? `${calculateDaysUntilNextMonitoring(
                     adoption.monitoring_next_check_at
                   )}일 후`
-                : "정보 없음"}{" "}
+                : "곧"}{" "}
               모니터링 기간이 돌아와요, 앞으로{" "}
               {calculateRemainingMonitoringChecks(
                 adoption.monitoring_total_checks || 0,

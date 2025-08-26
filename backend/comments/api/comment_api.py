@@ -96,6 +96,16 @@ async def create_comment(request: HttpRequest, post_id: str, data: CommentCreate
 
         comment = await create_comment_sync()
         
+        # 새로운 댓글 알림 전송
+        try:
+            from notifications.utils import notify_new_comment
+            await notify_new_comment(str(comment.id))
+        except Exception as e:
+            # 알림 전송 실패는 로그만 남기고 API 응답에는 영향 주지 않음
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"댓글 알림 전송 실패: {e}")
+        
         return {
             "message": "댓글이 작성되었습니다",
             "comment_id": str(comment.id)

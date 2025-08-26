@@ -155,8 +155,8 @@ export default function AdoptionRequestPage({
                 variant="primary"
                 centerId={adoptionDetail.center_id}
                 name={adoptionDetail.center_name || "센터명 없음"}
-                location={""}
-                phoneNumber={""}
+                location={adoptionDetail.center_location}
+                phoneNumber={adoptionDetail.center_phoneNumber}
                 className="mb-6"
               />
             </SectionLine>
@@ -169,7 +169,7 @@ export default function AdoptionRequestPage({
                   id: adoptionDetail.animal_id,
                   name: adoptionDetail.animal_name || "이름 없음",
                   isFemale: adoptionDetail.animal_is_female,
-                  breed: null, // todo: animal_breed 추가 adoptionDetail.animal_breed ||
+                  breed: adoptionDetail.animal_breed,
                   status: "보호중" as const,
                   animalImages: adoptionDetail.animal_image
                     ? [

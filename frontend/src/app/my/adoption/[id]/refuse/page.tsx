@@ -3,25 +3,37 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "@phosphor-icons/react";
+import { useGetUserAdoptionDetail } from "@/hooks/query/useGetUserAdoptionDetail";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
 import { InfoCard } from "@/components/ui/InfoCard";
-import CenterInfo from "@/components/ui/CenterInfo";
+import { CenterInfo } from "@/components/ui/CenterInfo";
 import { PetCard } from "@/components/ui/PetCard";
 import { BigButton } from "@/components/ui/BigButton";
 import { SectionLine } from "../../_components/SectionLine";
-import {
-  mainPetInfo,
-  CenterInfo as CenterInfoData,
-  user,
-  adoptionResponses,
-} from "@/app/mock";
 
-export default function AdoptionRefusePage() {
+export default function AdoptionRefusePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const router = useRouter();
+  const { user } = useAuth();
   const [isFavorite, setIsFavorite] = useState(true);
+
+  const { id } = React.use(params);
+
+  const {
+    data: adoptionDetail,
+    isLoading,
+    error,
+  } = useGetUserAdoptionDetail({
+    adoptionId: id,
+    userId: user?.id || "",
+  });
 
   const handleBack = () => {
     router.push("/my/adoption");
@@ -35,6 +47,54 @@ export default function AdoptionRefusePage() {
     // 동의서 보기 로직
     console.log("동의서 보기");
   };
+
+  if (isLoading) {
+    return (
+      <Container className="min-h-screen">
+        <TopBar
+          variant="variant4"
+          left={
+            <div className="flex items-center gap-2">
+              <IconButton
+                icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
+                size="iconM"
+                onClick={handleBack}
+              />
+              <h4>자세히 보기</h4>
+            </div>
+          }
+        />
+        <div className="flex flex-col gap-3 px-4 py-4">
+          <div className="text-center py-8">로딩 중...</div>
+        </div>
+      </Container>
+    );
+  }
+
+  if (error || !adoptionDetail) {
+    return (
+      <Container className="min-h-screen">
+        <TopBar
+          variant="variant4"
+          left={
+            <div className="flex items-center gap-2">
+              <IconButton
+                icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
+                size="iconM"
+                onClick={handleBack}
+              />
+              <h4>자세히 보기</h4>
+            </div>
+          }
+        />
+        <div className="flex flex-col gap-3 px-4 py-4">
+          <div className="text-center py-8 text-red-500">
+            오류가 발생했습니다.
+          </div>
+        </div>
+      </Container>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-bg">
@@ -70,11 +130,10 @@ export default function AdoptionRefusePage() {
             <SectionLine>
               <CenterInfo
                 variant="primary"
-                name={CenterInfoData[0].name}
-                location={CenterInfoData[0].location}
-                phoneNumber={CenterInfoData[0].phoneNumber || "000-000-0000"}
-                isFavorite={isFavorite}
-                onFavoriteToggle={handleFavoriteToggle}
+                centerId={adoptionDetail.center_id}
+                name={adoptionDetail.center_name || "센터명 없음"}
+                location={adoptionDetail.center_location}
+                phoneNumber={adoptionDetail.center_phoneNumber}
                 className="mb-6"
               />
             </SectionLine>
@@ -82,7 +141,25 @@ export default function AdoptionRefusePage() {
             {/* Pet Info */}
             <SectionLine>
               <h3 className="text-bk mb-3">입양 신청 동물</h3>
-              <PetCard pet={mainPetInfo[0]} variant="variant4" />
+              <PetCard
+                pet={{
+                  id: adoptionDetail.animal_id,
+                  name: adoptionDetail.animal_name || "이름 없음",
+                  isFemale: adoptionDetail.animal_is_female,
+                  breed: adoptionDetail.animal_breed,
+                  status: "보호중" as const,
+                  animalImages: adoptionDetail.animal_image
+                    ? [
+                        {
+                          id: "1",
+                          imageUrl: adoptionDetail.animal_image,
+                          orderIndex: 0,
+                        },
+                      ]
+                    : [],
+                }}
+                variant="variant4"
+              />
             </SectionLine>
             <SectionLine>
               {/* My Information */}
@@ -96,31 +173,29 @@ export default function AdoptionRefusePage() {
                           이름
                         </td>
                         <td className="text-sm py-1">
-                          <div className="py-1 px-3">{user[0].nickname}</div>
+                          <div className="py-1 px-3">
+                            {user?.nickname || "사용자"}
+                          </div>
                         </td>
                       </tr>
                       <tr>
                         <td className="text-gr h5 py-1 pr-3 align-top w-20">
-                          생년월일
+                          닉네임
                         </td>
                         <td className="text-sm py-1">
-                          <div className="py-1 px-3">{user[0].birthDate}</div>
+                          <div className="py-1 px-3">
+                            {user?.nickname || "닉네임 없음"}
+                          </div>
                         </td>
                       </tr>
                       <tr>
                         <td className="text-gr h5 py-1 pr-3 align-top w-20">
-                          성별
+                          이메일
                         </td>
                         <td className="text-sm py-1">
-                          <div className="py-1 px-3">{user[0].gender}</div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="text-gr h5 py-1 pr-3 align-top w-20">
-                          주소
-                        </td>
-                        <td className="text-sm py-1">
-                          <div className="py-1 px-3">{user[0].address}</div>
+                          <div className="py-1 px-3">
+                            {user?.email || "이메일 없음"}
+                          </div>
                         </td>
                       </tr>
                       <tr>
@@ -128,7 +203,7 @@ export default function AdoptionRefusePage() {
                           전화번호
                         </td>
                         <td className="text-sm py-1">
-                          <div className="py-1 px-3">{user[0].phoneNumber}</div>
+                          <div className="py-1 px-3">전화번호 정보 없음</div>
                         </td>
                       </tr>
                     </tbody>
@@ -141,15 +216,22 @@ export default function AdoptionRefusePage() {
             <SectionLine>
               <h3 className="text-bk mb-3">내 응답</h3>
               <div className="flex flex-col ">
-                {adoptionResponses.map((response, index) => (
-                  <div
-                    key={index}
-                    className="flex flex-col py-3 border-b border-bg"
-                  >
-                    <h5 className="text-gr">{response.question}</h5>
-                    <p className="text-bk body">{response.answer}</p>
+                {adoptionDetail.questionResponses &&
+                adoptionDetail.questionResponses.length > 0 ? (
+                  adoptionDetail.questionResponses.map((response, index) => (
+                    <div
+                      key={index}
+                      className="flex flex-col py-3 border-b border-bg"
+                    >
+                      <h5 className="text-gr">{response.questionContent}</h5>
+                      <p className="text-bk body">{response.answer}</p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-gray-500 text-sm py-3">
+                    질문 응답이 없습니다.
                   </div>
-                ))}
+                )}
               </div>
             </SectionLine>
 

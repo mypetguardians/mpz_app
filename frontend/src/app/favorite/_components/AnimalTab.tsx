@@ -79,11 +79,13 @@ function AnimalTab() {
             <PetCard
               pet={{
                 id: pet.id,
-                name: pet.name,
+                breed: pet.breed,
                 isFemale: pet.isFemale,
                 status: pet.status,
                 //TODO foundLocation: pet.foundLocation,
-                animalImages: ["/img/dummyImg.jpeg"],
+                animalImages: [
+                  { id: "1", imageUrl: "/img/dummyImg.jpeg", orderIndex: 0 },
+                ],
               }}
               variant="primary"
               imageSize="full"

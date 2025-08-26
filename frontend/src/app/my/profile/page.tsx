@@ -46,14 +46,8 @@ export default function ProfileEditPage() {
       setName(authUser.name || "");
       setPhoneNumber(authUser.phoneNumber || "");
       setProfileImage(authUser.image || null);
-      console.log("AuthProvider 사용자 정보:", authUser);
     }
   }, [authUser]);
-
-  // 디버깅을 위한 로그
-  useEffect(() => {
-    console.log("인증 상태:", { isAuthenticated, authLoading, authUser });
-  }, [isAuthenticated, authLoading, authUser]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

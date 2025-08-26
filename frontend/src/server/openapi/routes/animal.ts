@@ -52,21 +52,32 @@ export const AnimalResponseSchema = z
       "방사",
     ]),
     waitingDays: z.number().nullable(),
-    activityLevel: z.number().nullable(),
-    sensitivity: z.number().nullable(),
-    sociability: z.number().nullable(),
-    separationAnxiety: z.number().nullable(),
+    activityLevel: z.string().nullable(),
+    sensitivity: z.string().nullable(),
+    sociability: z.string().nullable(),
+    separationAnxiety: z.string().nullable(),
     specialNotes: z.string().nullable(),
     healthNotes: z.string().nullable(),
     basicTraining: z.string().nullable(),
     trainerComment: z.string().nullable(),
     announceNumber: z.string().nullable(),
     announcementDate: z.string().nullable(),
-    admissionDate: z.string().nullable(),
     foundLocation: z.string().nullable(),
+    admissionDate: z.string().nullable(),
     personality: z.string().nullable(),
+    megaphoneCount: z.number().default(0),
+    isMegaphoned: z.boolean().default(false),
     centerId: z.string(),
-    animalImages: z.array(z.string()).optional().default([]),
+    animalImages: z
+      .array(
+        z.object({
+          id: z.string(),
+          imageUrl: z.string(),
+          orderIndex: z.number(),
+        })
+      )
+      .optional()
+      .default([]),
     createdAt: z.string(),
     updatedAt: z.string(),
   })

@@ -10,10 +10,10 @@ export interface Animal {
   description: string | null;
   status: "보호중" | "입양완료" | "무지개다리" | "임시보호중" | "반환" | "방사";
   waitingDays: number | null;
-  activityLevel: number | null;
-  sensitivity: number | null;
-  sociability: number | null;
-  separationAnxiety: number | null;
+  activityLevel: string | null;
+  sensitivity: string | null;
+  sociability: string | null;
+  separationAnxiety: string | null;
   specialNotes: string | null;
   healthNotes: string | null;
   basicTraining: string | null;
@@ -23,8 +23,14 @@ export interface Animal {
   admissionDate: string | null;
   foundLocation: string | null;
   personality: string | null;
+  megaphoneCount: number;
+  isMegaphoned: boolean;
   centerId: string;
-  animalImages: string[] | null;
+  animalImages: Array<{
+    id: string;
+    imageUrl: string;
+    orderIndex: number;
+  }> | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -80,10 +86,10 @@ export interface RawAnimalResponse {
   description: string | null;
   status: "보호중" | "입양완료" | "무지개다리" | "임시보호중" | "반환" | "방사";
   waiting_days: number | null;
-  activity_level: number | null;
-  sensitivity: number | null;
-  sociability: number | null;
-  separation_anxiety: number | null;
+  activity_level: string | null;
+  sensitivity: string | null;
+  sociability: string | null;
+  separation_anxiety: string | null;
   special_notes: string | null;
   health_notes: string | null;
   basic_training: string | null;
@@ -93,8 +99,14 @@ export interface RawAnimalResponse {
   admission_date: string | null;
   found_location: string | null;
   personality: string | null;
+  megaphone_count: number;
+  is_megaphoned: boolean;
   center_id: string;
-  animal_images: string[] | null;
+  animal_images: Array<{
+    id: string;
+    image_url: string;
+    order_index: number;
+  }> | null;
   created_at: string;
   updated_at: string;
 }
@@ -129,22 +141,20 @@ export type PetCardAnimal = {
   centerId?: string;
   createdAt?: string;
   updatedAt?: string;
-  animalImages?:
-    | Array<{
-        id: string;
-        imageUrl: string;
-        orderIndex: number;
-      }>
-    | string[];
+  animalImages?: Array<{
+    id: string;
+    imageUrl: string;
+    orderIndex: number;
+  }>;
   waitingDays?: number | null;
   foundLocation?: string | null;
   description?: string | null;
-  activityLevel?: number | null;
-  sensitivity?: number | null;
-  sociability?: number | null;
+  activityLevel?: string | null;
+  sensitivity?: string | null;
+  sociability?: string | null;
   weight?: number | null;
   color?: string | null;
-  separationAnxiety?: number | null;
+  separationAnxiety?: string | null;
   specialNotes?: string | null;
   healthNotes?: string | null;
   basicTraining?: string | null;
@@ -180,8 +190,16 @@ export function transformRawAnimalToAnimal(raw: RawAnimalResponse): Animal {
     admissionDate: raw.admission_date,
     foundLocation: raw.found_location,
     personality: raw.personality,
+    megaphoneCount: raw.megaphone_count,
+    isMegaphoned: raw.is_megaphoned,
     centerId: raw.center_id,
-    animalImages: raw.animal_images || [],
+    animalImages: raw.animal_images
+      ? raw.animal_images.map((img) => ({
+          id: img.id,
+          imageUrl: img.image_url,
+          orderIndex: img.order_index,
+        }))
+      : null,
     createdAt: raw.created_at,
     updatedAt: raw.updated_at,
   };
@@ -220,7 +238,13 @@ export function transformRawAnimalToPetCard(
     foundLocation: raw.found_location,
     personality: raw.personality,
     centerId: raw.center_id,
-    animalImages: raw.animal_images || [],
+    animalImages: raw.animal_images
+      ? raw.animal_images.map((img) => ({
+          id: img.id,
+          imageUrl: img.image_url,
+          orderIndex: img.order_index,
+        }))
+      : [],
     createdAt: raw.created_at,
     updatedAt: raw.updated_at,
   };

@@ -5,27 +5,32 @@ import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
 import { MiniButton } from "@/components/ui/MiniButton";
 import { cn } from "@/lib/utils";
+import { useCheckCenterFavorite, useToggleCenterFavorite } from "@/hooks";
 
 interface CenterDetailHeaderProps {
   centerName: string;
-  isFavorite: boolean;
-  onFavoriteToggle: () => void;
-  isToggleLoading?: boolean;
+  centerId: string;
 }
 
 export function CenterDetailHeader({
   centerName,
-  isFavorite,
-  onFavoriteToggle,
-  isToggleLoading = false,
+  centerId,
 }: CenterDetailHeaderProps) {
+  // 찜하기 상태 확인
+  const { data: favoriteData, isLoading: isCheckingFavorite } =
+    useCheckCenterFavorite(centerId);
+  const isFavorite = favoriteData?.isFavorited || false;
+
+  // 찜하기 토글 뮤테이션
+  const toggleCenterFavorite = useToggleCenterFavorite();
+
   const handleBackClick = () => {
     window.history.back();
   };
 
   const handleFavoriteClick = () => {
-    if (isToggleLoading) return;
-    onFavoriteToggle();
+    if (isCheckingFavorite || toggleCenterFavorite.isPending) return;
+    toggleCenterFavorite.mutate({ centerId });
   };
 
   const renderTopBar = () => (

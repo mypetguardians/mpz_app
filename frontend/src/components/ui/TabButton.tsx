@@ -41,10 +41,6 @@ export function TabButton({
   variant = "primary",
   useLinks = false,
 }: TabBtnProps) {
-  // 디버깅용: 받은 tabs 배열 확인
-  console.log("TabButton 컴포넌트에서 받은 tabs:", tabs);
-  console.log("TabButton 컴포넌트에서 받은 value:", value);
-
   const v = variantStyles[variant];
 
   if (useLinks) {
@@ -91,16 +87,6 @@ export function TabButton({
     <Tabs value={value} onValueChange={onValueChange} className="w-full">
       <TabsList className="bg-transparent border-b border-lg flex w-full overflow-x-auto scrollbar-hide whitespace-nowrap pb-2 min-w-max">
         {tabs.map((tab, index) => {
-          // 디버깅용: 각 tab 객체 확인
-          console.log(
-            `TabButton map ${index}:`,
-            tab,
-            "tab.value:",
-            tab.value,
-            "tab.label:",
-            tab.label
-          );
-
           const isActive = value === tab.value;
           // tab.value가 유효하지 않은 경우 index를 fallback으로 사용
           const tabKey =

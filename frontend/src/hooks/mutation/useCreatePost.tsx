@@ -9,7 +9,7 @@ export const useCreatePost = () => {
 
   return useMutation<CreatePostResponse, Error, CreatePostRequest>({
     mutationFn: async (data: CreatePostRequest) => {
-      const response = await instance.post<CreatePostResponse>("/posts", data);
+      const response = await instance.post<CreatePostResponse>("/posts/", data);
       return response.data;
     },
     onSuccess: () => {

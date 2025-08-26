@@ -11,7 +11,7 @@ export { useToggleCenterFavorite } from "./useToggleCenterFavorite";
 export { useSignOut } from "./useSignOut";
 export { useCreateFeedback } from "./useCreateFeedback";
 export { useCreateAnimal } from "./useCreateAnimal";
-export { useUploadImage } from "./useUploadImage";
+export { useUploadImage } from "./useUploadImages";
 export { useCreateQuestionForm } from "./useCreateQuestionForm";
 export { useUpdateQuestionForm } from "./useUpdateQuestionForm";
 export { useUpdateQuestionSequence } from "./useUpdateQuestionSequence";

@@ -18,7 +18,6 @@ export {
 export { useCreatePost } from "./mutation/useCreatePost";
 export { useUpdatePost } from "./mutation/useUpdatePost";
 export { useDeletePost } from "./mutation/useDeletePost";
-export { useUploadImage } from "./mutation/useUploadImage";
 export {
   useGetAnimalFavorites,
   useGetCenterFavorites,
@@ -31,12 +30,7 @@ export { useToggleCenterFavorite } from "./mutation/useToggleCenterFavorite";
 export { useUpdateProfile } from "./mutation/useUpdateProfile";
 export { useToggleLike } from "./mutation/useToggleLike";
 export { useCheckPostLike } from "./query/useCheckPostLike";
-export {
-  useUploadSingleImage,
-  useUploadMultipleImages,
-  useDeleteImage,
-  useUpdateImageOrder,
-} from "./mutation/usePostImages";
+export { useUploadImages } from "./mutation/useUploadImages";
 export { useGetCenterAdmins } from "./query/useGetCenterAdmins";
 export { useCreateCenterAdmin } from "./mutation/useCreateCenterAdmin";
 export { useGetQuestionForms } from "./query/useGetQuestionForms";

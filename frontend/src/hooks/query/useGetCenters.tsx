@@ -6,7 +6,7 @@ export const useGetCenters = () => {
   return useQuery({
     queryKey: ["centers"],
     queryFn: async () => {
-      const response = await instance.get("/centers/centers");
+      const response = await instance.get("/centers");
       return response.data;
     },
     staleTime: 3 * 60 * 1000, // 3분
@@ -35,7 +35,7 @@ export const useGetCenterByLocation = (params?: {
         });
       }
 
-      const url = `/centers/centers?${searchParams.toString()}`;
+      const url = `/centers?${searchParams.toString()}`;
       const response = await instance.get(url);
       return response.data;
     },

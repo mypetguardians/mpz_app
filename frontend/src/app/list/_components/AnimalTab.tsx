@@ -202,9 +202,13 @@ function AnimalTab() {
   // 데이터가 로드되면 상태 업데이트
   useEffect(() => {
     if (data) {
+      console.log("AnimalTab - Full data structure:", data);
+      console.log("AnimalTab - First page structure:", data.pages[0]);
+
       const allAnimalsData = data.pages
         .flatMap((page) => page.data || [])
         .filter((animal) => animal && typeof animal === "object");
+      console.log("AnimalTab - Raw animals from API:", allAnimalsData);
       setAllAnimals(allAnimalsData);
     }
   }, [data]);

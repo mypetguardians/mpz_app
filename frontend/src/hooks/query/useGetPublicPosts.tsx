@@ -91,8 +91,15 @@ const getPublicPostDetail = async (
 };
 
 // 시스템 태그 목록 조회
-const getSystemTags = async (): Promise<string[]> => {
-  const response = await instance.get<string[]>("/posts/tags/system");
+interface SystemTag {
+  id: string;
+  name: string;
+  description: string;
+  usage_count: number;
+}
+
+const getSystemTags = async (): Promise<SystemTag[]> => {
+  const response = await instance.get<SystemTag[]>("/posts/tags/system");
   return response.data;
 };
 

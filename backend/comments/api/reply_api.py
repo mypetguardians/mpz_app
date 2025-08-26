@@ -22,7 +22,7 @@ router = Router(tags=["Replies"])
 # === 대댓글 API ===
 
 @router.post(
-    "/comments/{comment_id}/replies",
+    "/{comment_id}/replies",
     summary="[C] 대댓글 생성",
     description="댓글에 대댓글을 작성합니다.",
     response={
@@ -69,7 +69,7 @@ async def create_reply(request: HttpRequest, comment_id: str, data: ReplyCreateI
 
 
 @router.put(
-    "/replies/{reply_id}",
+    "/{reply_id}",
     summary="[U] 대댓글 수정",
     description="대댓글을 수정합니다.",
     response={
@@ -114,7 +114,7 @@ async def update_reply(request: HttpRequest, reply_id: str, data: ReplyUpdateIn)
 
 
 @router.delete(
-    "/replies/{reply_id}",
+    "/{reply_id}",
     summary="[D] 대댓글 삭제",
     description="대댓글을 삭제합니다.",
     response={

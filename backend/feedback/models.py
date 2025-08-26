@@ -6,37 +6,77 @@ from common.models import BaseModel
 class Feedback(BaseModel):
     """피드백 모델"""
     
-    FEEDBACK_TYPE_CHOICES = [
-        ('bug', '버그 신고'),
-        ('feature', '기능 제안'),
-        ('complaint', '불만 사항'),
-        ('praise', '칭찬'),
-        ('other', '기타'),
+    TYPE_CHOICES = [
+        ('버그신고', '버그신고'),
+        ('기능요청', '기능요청'),
+        ('불편사항', '불편사항'),
+        ('문의사항', '문의사항'),
+        ('기타', '기타'),
     ]
     
     STATUS_CHOICES = [
-        ('pending', '대기중'),
-        ('in_progress', '처리중'),
-        ('resolved', '해결됨'),
-        ('rejected', '거부됨'),
+        ('접수', '접수'),
+        ('검토중', '검토중'),
+        ('처리중', '처리중'),
+        ('보류', '보류'),
+        ('완료', '완료'),
     ]
     
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, help_text="피드백 작성자")
-    admin = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, blank=True, null=True, related_name='admin_feedbacks', help_text="처리 담당자")
-    feedback_type = models.CharField(max_length=20, choices=FEEDBACK_TYPE_CHOICES, help_text="피드백 타입")
-    title = models.CharField(max_length=200, help_text="제목")
-    content = models.TextField(help_text="내용")
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', help_text="처리 상태")
-    admin_response = models.TextField(blank=True, null=True, help_text="관리자 답변")
-    priority = models.IntegerField(default=1, help_text="우선순위 (1-5)")
+    PRIORITY_CHOICES = [
+        ('낮음', '낮음'),
+        ('보통', '보통'),
+        ('높음', '높음'),
+        ('긴급', '긴급'),
+    ]
+    
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        help_text="사용자 (로그인한 경우)"
+    )
+    content = models.TextField(help_text="피드백 내용")
+    status = models.CharField(
+        max_length=20, 
+        choices=STATUS_CHOICES, 
+        default='접수', 
+        help_text="피드백 상태"
+    )
+    priority = models.CharField(
+        max_length=10, 
+        choices=PRIORITY_CHOICES, 
+        default='보통', 
+        help_text="피드백 우선순위"
+    )
+    admin_response = models.TextField(
+        blank=True, 
+        null=True, 
+        help_text="관리자 답변"
+    )
+    admin = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='responded_feedbacks',
+        help_text="답변한 관리자"
+    )
+    responded_at = models.DateTimeField(
+        blank=True, 
+        null=True, 
+        help_text="답변 시간"
+    )
     
     class Meta:
-        db_table = 'feedback'
+        db_table = 'feedbacks'
         verbose_name = '피드백'
         verbose_name_plural = '피드백들'
+        ordering = ['-created_at']
     
     def __str__(self):
-        return f"{self.user.username} - {self.title} ({self.get_status_display()})"
+        user_info = self.user.username if self.user else "Anonymous"
+        return f"{user_info} - {self.content[:30]}... ({self.status})"
 
 
 class FeedbackStat(BaseModel):

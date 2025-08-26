@@ -3,11 +3,18 @@ import { createRoute, z } from "@hono/zod-openapi";
 // Favorite Response Schemas
 export const FavoriteToggleResponseSchema = z
   .object({
-    isFavorited: z.boolean(),
+    is_favorited: z.boolean(),
     message: z.string(),
-    totalFavorites: z.number(),
+    total_favorites: z.number(),
   })
   .openapi("FavoriteToggleResponse");
+
+export const FavoriteStatusResponseSchema = z
+  .object({
+    is_favorited: z.boolean(),
+    total_favorites: z.number(),
+  })
+  .openapi("FavoriteStatusResponse");
 
 export const FavoriteListResponseSchema = z
   .object({
@@ -222,10 +229,7 @@ export const checkCenterFavoriteRoute = createRoute({
       description: "센터 찜 상태 확인 성공",
       content: {
         "application/json": {
-          schema: z.object({
-            isFavorited: z.boolean(),
-            totalFavorites: z.number(),
-          }),
+          schema: FavoriteStatusResponseSchema,
         },
       },
     },
@@ -260,10 +264,7 @@ export const checkAnimalFavoriteRoute = createRoute({
       description: "동물 찜 상태 확인 성공",
       content: {
         "application/json": {
-          schema: z.object({
-            isFavorited: z.boolean(),
-            totalFavorites: z.number(),
-          }),
+          schema: FavoriteStatusResponseSchema,
         },
       },
     },

@@ -38,7 +38,7 @@ export function IconButton({
       onClick={onClick}
       disabled={disabled}
     >
-      <Icon size={sizeMap[size]} className="text-gr" />
+      <Icon size={sizeMap[size]} className="" />
     </button>
   );
 }

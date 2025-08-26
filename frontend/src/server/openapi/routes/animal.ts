@@ -23,6 +23,7 @@ export const CreateAnimalRequestSchema = z
     trainer_comment: z.string().optional(),
     announce_number: z.string().optional(),
     announcement_date: z.string().optional(),
+    admission_date: z.string().optional(),
     found_location: z.string().optional(),
     personality: z
       .string()
@@ -51,10 +52,10 @@ export const AnimalResponseSchema = z
       "방사",
     ]),
     waitingDays: z.number().nullable(),
-    activityLevel: z.number().nullable(),
-    sensitivity: z.number().nullable(),
-    sociability: z.number().nullable(),
-    separationAnxiety: z.number().nullable(),
+    activityLevel: z.string().nullable(),
+    sensitivity: z.string().nullable(),
+    sociability: z.string().nullable(),
+    separationAnxiety: z.string().nullable(),
     specialNotes: z.string().nullable(),
     healthNotes: z.string().nullable(),
     basicTraining: z.string().nullable(),
@@ -62,9 +63,21 @@ export const AnimalResponseSchema = z
     announceNumber: z.string().nullable(),
     announcementDate: z.string().nullable(),
     foundLocation: z.string().nullable(),
+    admissionDate: z.string().nullable(),
     personality: z.string().nullable(),
+    megaphoneCount: z.number().default(0),
+    isMegaphoned: z.boolean().default(false),
     centerId: z.string(),
-    animalImages: z.array(z.string()).optional().default([]),
+    animalImages: z
+      .array(
+        z.object({
+          id: z.string(),
+          imageUrl: z.string(),
+          orderIndex: z.number(),
+        })
+      )
+      .optional()
+      .default([]),
     createdAt: z.string(),
     updatedAt: z.string(),
   })
@@ -122,11 +135,10 @@ export const getAnimalsRoute = createRoute({
   method: "get",
   path: "/animals",
   summary: "동물 목록 조회",
-  description: "등록된 동물 목록을 조회합니다",
+  description: "필터링 및 페이지네이션을 지원하는 동물 목록을 조회합니다",
   tags: ["Animals"],
   request: {
     query: z.object({
-      // 기본 필터
       status: z
         .enum([
           "보호중",
@@ -136,10 +148,9 @@ export const getAnimalsRoute = createRoute({
           "반환",
           "방사",
         ])
-        .optional(),
-      centerId: z.string().optional(),
-
-      // 새로운 필터들
+        .optional()
+        .describe("동물 상태로 필터링"),
+      centerId: z.string().optional().describe("센터 ID로 필터링"),
       region: z
         .enum([
           "서울",
@@ -161,16 +172,44 @@ export const getAnimalsRoute = createRoute({
           "제주",
         ])
         .optional()
-        .describe("센터 지역으로 검색"),
-      weight: z.enum(["10kg_under", "25kg_under", "over_25kg"]).optional(),
-      age: z.enum(["2_under", "7_under", "over_7"]).optional(),
-      gender: z.enum(["male", "female"]).optional(),
-      hasTrainerComment: z.enum(["true", "false"]).optional(),
-      breed: z.string().optional().describe("품종명으로 검색"),
-
-      // 페이지네이션
-      page: z.string().transform(Number).optional(),
-      limit: z.string().transform(Number).optional(),
+        .describe("지역으로 필터링"),
+      weight: z
+        .enum(["10kg_under", "25kg_under", "over_25kg"])
+        .optional()
+        .describe("몸무게 범위로 필터링"),
+      age: z
+        .enum(["2_under", "7_under", "over_7"])
+        .optional()
+        .describe("나이 범위로 필터링"),
+      gender: z.enum(["male", "female"]).optional().describe("성별로 필터링"),
+      hasTrainerComment: z
+        .enum(["true", "false"])
+        .optional()
+        .describe("훈련사 코멘트 유무로 필터링"),
+      breed: z.string().optional().describe("품종으로 필터링"),
+      page: z.coerce
+        .number()
+        .min(1)
+        .optional()
+        .default(1)
+        .describe("페이지 번호"),
+      limit: z.coerce
+        .number()
+        .min(1)
+        .max(100)
+        .optional()
+        .default(20)
+        .describe("페이지당 항목 수"),
+      sortBy: z
+        .enum(["admission_date", "waiting_days", "created_at"])
+        .optional()
+        .default("created_at")
+        .describe("정렬 기준"),
+      sortOrder: z
+        .enum(["asc", "desc"])
+        .optional()
+        .default("desc")
+        .describe("정렬 순서"),
     }),
   },
   responses: {

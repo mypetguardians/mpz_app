@@ -1,4 +1,5 @@
 export { PetCard } from "./PetCard";
+export { PetCardSkeleton } from "./PetCardSkeleton";
 export { ProfileInfo } from "./ProfileInfo";
 export { TabButton } from "./TabButton";
 export { CenterInfo } from "./CenterInfo";

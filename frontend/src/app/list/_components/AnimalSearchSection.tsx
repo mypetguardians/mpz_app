@@ -112,7 +112,7 @@ export function AnimalSearchSection({
     });
 
   // 검색 결과가 있는지 확인
-  const hasSearchResults = (searchData?.pages?.[0]?.animals?.length ?? 0) > 0;
+  const hasSearchResults = (searchData?.pages?.[0]?.data?.length ?? 0) > 0;
   const showSearchResults = isSearching && searchValue.trim().length > 0;
 
   // 검색 상태가 변경될 때마다 부모 컴포넌트에 알림
@@ -121,12 +121,12 @@ export function AnimalSearchSection({
   }, [showSearchResults, onSearchStateChange]);
 
   // 검색 결과 데이터 추출
-  const searchAnimals = searchData?.pages.flatMap((page) => page.animals) || [];
-  const searchTotal = searchData?.pages[0]?.total || 0;
+  const searchAnimals = searchData?.pages.flatMap((page) => page.data) || [];
+  const searchTotal = searchData?.pages[0]?.totalCnt || 0;
 
   // 품종 검색 결과 추출
   const breedSearchResults =
-    breedSearchData?.pages.flatMap((page) => page.animals) || [];
+    breedSearchData?.pages.flatMap((page) => page.data) || [];
   const uniqueBreeds = Array.from(
     new Set(
       breedSearchResults

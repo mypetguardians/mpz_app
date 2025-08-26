@@ -12,7 +12,7 @@ import { BottomSheet } from "@/components/ui/BottomSheet";
 import { CustomModal } from "@/components/ui/CustomModal";
 import { Toast } from "@/components/ui/Toast";
 import { IconButton } from "@/components/ui/IconButton";
-import { useGetPostDetail } from "@/hooks/query/useGetPosts";
+import { useGetPublicPostDetail } from "@/hooks/query/useGetPublicPosts";
 import { useGetComments } from "@/hooks/query/useGetComments";
 import { useDeletePost } from "@/hooks/mutation/useDeletePost";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -36,7 +36,7 @@ export default function CommunityDetailPage() {
     data: postDetailData,
     isLoading: isPostLoading,
     error: postError,
-  } = useGetPostDetail(params.id as string);
+  } = useGetPublicPostDetail(params.id as string);
 
   const { data: commentsData, isLoading: isCommentsLoading } = useGetComments(
     params.id as string
@@ -46,7 +46,17 @@ export default function CommunityDetailPage() {
 
   // 게시글 데이터
   const post = postDetailData?.post;
-  const comments = commentsData?.comments || [];
+  const comments = commentsData?.data || [];
+  const pagination = commentsData
+    ? {
+        count: commentsData.count,
+        totalCnt: commentsData.totalCnt,
+        pageCnt: commentsData.pageCnt,
+        curPage: commentsData.curPage,
+        nextPage: commentsData.nextPage,
+        previousPage: commentsData.previousPage,
+      }
+    : undefined;
 
   // 현재 사용자가 게시글 작성자인지 확인 (실제 로그인된 유저 기준)
   const isMyPost = user?.id && post?.userId && user.id === post.userId;
@@ -245,6 +255,7 @@ export default function CommunityDetailPage() {
           comments={comments}
           postId={post.id}
           isLoading={isCommentsLoading}
+          pagination={pagination}
           isAuthenticated={isAuthenticated}
           onLoginRequired={() => setShowLoginModal(true)}
         />

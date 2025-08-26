@@ -13,7 +13,7 @@ export const useCheckPostLike = (postId: string) => {
     queryKey: ["post-like", postId],
     queryFn: async () => {
       const response = await instance.get<CheckPostLikeResponse>(
-        `/posts/${postId}/like`
+        `/posts/${postId}/like/status`
       );
       return response.data;
     },

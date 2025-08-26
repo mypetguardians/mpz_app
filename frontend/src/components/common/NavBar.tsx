@@ -33,8 +33,8 @@ export function NavbarBtn({
       {iconWithColor}
       <h6
         className={cn(
-          "text-xs font-medium cursor-pointer",
-          active ? "text-dg" : "text-lg"
+          "text-sm font-medium cursor-pointer",
+          active && "text-dg"
         )}
       >
         {label}
@@ -54,7 +54,10 @@ function NavBar() {
     if (pathname === "/") return "home";
     if (pathname.startsWith("/list/animal")) return "list";
     if (pathname.startsWith("/community")) return "commmunity";
-    if (pathname.startsWith("/favorite") || pathname.startsWith("/like"))
+    if (
+      pathname.startsWith("/favorite/animal") ||
+      pathname.startsWith("/favorite/center")
+    )
       return "like";
     if (pathname.startsWith(isCenter ? "/centerpage" : "/my")) return "my";
     return "home";
@@ -75,7 +78,7 @@ function NavBar() {
         url = "/community";
         break;
       case "like":
-        url = "/favorite";
+        url = "/favorite/animal";
         break;
       case "my":
         url = isAuthenticated ? (isCenter ? "/centerpage" : "/my") : "/login";

@@ -9,7 +9,7 @@ const BASE_URL = "https://mpzfullstack-production.up.railway.app/v1/";
 
 const instance: AxiosInstance = axios.create({
   baseURL: BASE_URL,
-  withCredentials: false, // CORS 에러 해결을 위해 false로 변경
+  withCredentials: true, // 쿠키 자동 전송을 위해 true로 변경
 });
 
 // // header

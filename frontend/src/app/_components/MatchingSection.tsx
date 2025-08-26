@@ -6,37 +6,10 @@ import { PetCard } from "@/components/ui/PetCard";
 import { MainSection } from "@/components/common/MainSection";
 import { PetSectionError } from "@/components/ui/PetSectionError";
 import { useAuth } from "@/components/providers/AuthProvider";
-
-interface Animal {
-  id: string;
-  name: string;
-  isFemale: boolean;
-  age: number;
-  weight: number | null;
-  color: string | null;
-  breed: string | null;
-  description: string | null;
-  status: "보호중" | "입양완료" | "무지개다리" | "임시보호중" | "반환" | "방사";
-  waitingDays: number | null;
-  activityLevel: number | null;
-  sensitivity: number | null;
-  sociability: number | null;
-  separationAnxiety: number | null;
-  specialNotes: string | null;
-  healthNotes: string | null;
-  basicTraining: string | null;
-  trainerComment: string | null;
-  announceNumber: string | null;
-  announcementDate: string | null;
-  foundLocation: string | null;
-  personality: string | null;
-  centerId: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import { RawAnimalResponse, transformRawAnimalToPetCard } from "@/types/animal";
 
 interface HomePetSectionProps {
-  animals: Animal[];
+  animals: RawAnimalResponse[];
   variant: "primary" | "detail" | "variant3";
   showLocationFilter?: boolean;
   locations?: string[];
@@ -146,31 +119,7 @@ export function HomePetSection({
               );
             }
 
-            const transformedAnimals = animals.map((animal) => ({
-              id: animal.id,
-              imageUrls: [""], // 목데이터 이미지 사용
-              waitingDays: animal.waitingDays || 0,
-              tag: animal.status,
-              name: animal.name,
-              isFemale: animal.isFemale,
-              location: animal.foundLocation || "위치 정보 없음",
-              description: animal.description || "",
-              activityLevel: animal.activityLevel || 3,
-              sensitivity: animal.sensitivity || 3,
-              sociability: animal.sociability || 3,
-              center: animal.centerId,
-              weight: animal.weight || 0,
-              age: animal.age,
-              color: animal.color || "",
-              announceNumber: animal.announceNumber || "",
-              announcementDate: animal.announcementDate || "",
-              foundLocation: animal.foundLocation || "",
-              specialNotes: animal.specialNotes || "",
-              separationAnxiety: animal.separationAnxiety || 3,
-              healthNotes: animal.healthNotes || "",
-              basicTraining: animal.basicTraining || "",
-              trainerComment: animal.trainerComment || "",
-            }));
+            const transformedAnimals = animals.map(transformRawAnimalToPetCard);
 
             // ExpertAnalysis 모드일 때
             if (isExpertAnalysis) {

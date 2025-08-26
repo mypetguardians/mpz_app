@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, use, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useSearchParams, useParams } from "next/navigation";
 
 import { useGetCenterById } from "@/hooks/query/useGetCenters";
 import { useGetAnimals } from "@/hooks/query/useGetAnimals";
@@ -10,12 +10,9 @@ import { Container } from "@/components/common/Container";
 import { CenterDetailHeader, CenterDetailTabs } from "./_components";
 import type { TabType } from "./_components/types";
 
-export default function CenterDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = use(params);
+export default function CenterDetailPage() {
+  const params = useParams();
+  const id = params.id as string;
   const searchParams = useSearchParams();
 
   // API 호출
@@ -71,12 +68,7 @@ export default function CenterDetailPage({
 
   return (
     <Container className="min-h-screen">
-      <CenterDetailHeader
-        centerName={center.name}
-        isFavorite={isFavorite}
-        onFavoriteToggle={handleFavoriteToggle}
-        isToggleLoading={toggleCenterFavorite.isPending}
-      />
+      <CenterDetailHeader centerName={center.name} centerId={id} />
 
       <CenterDetailTabs
         activeTab={activeTab}

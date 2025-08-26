@@ -6,50 +6,9 @@ import { DotsIndicator } from "@/components/ui/DotsIndicator";
 import { MiniButton } from "./MiniButton";
 import { Chip } from "./Chip";
 import { cn, getRelativeTime } from "@/lib/utils";
+import { PetCardAnimal } from "@/types/animal";
 
 // PetCard에서 실제로 사용하는 필드들만 포함하는 타입
-type PetCardAnimal = {
-  id: string;
-  name?: string;
-  isFemale?: boolean;
-  age?: number;
-  breed?: string | null;
-  status?:
-    | "보호중"
-    | "입양완료"
-    | "자연사"
-    | "무지개다리"
-    | "임시보호중"
-    | "반환"
-    | "방사";
-  personality?: string | null;
-  centerId?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  animalImages?:
-    | Array<{
-        id: string;
-        imageUrl: string;
-        orderIndex: number;
-      }>
-    | string[];
-  waitingDays?: number | null;
-  foundLocation?: string | null;
-  description?: string | null;
-  activityLevel?: number | null;
-  sensitivity?: number | null;
-  sociability?: number | null;
-  weight?: number | null;
-  color?: string | null;
-  separationAnxiety?: number | null;
-  specialNotes?: string | null;
-  healthNotes?: string | null;
-  basicTraining?: string | null;
-  trainerComment?: string | null;
-  announceNumber?: string | null;
-  announcementDate?: string | null;
-};
-
 type PetCardVariant = "primary" | "detail" | "variant3" | "variant4" | "edit";
 
 interface PetCardProps {
@@ -77,7 +36,6 @@ export function PetCard({
     animalImages,
     waitingDays,
     status,
-    name,
     isFemale,
     foundLocation,
     description,
@@ -85,7 +43,30 @@ export function PetCard({
     sensitivity,
     sociability,
     breed,
+    admissionDate,
   } = pet;
+
+  // admissionDate 기준으로 waitingDays 계산
+  const calculateWaitingDays = () => {
+    if (!admissionDate) return waitingDays || 0;
+
+    const admission = new Date(admissionDate);
+    const today = new Date();
+
+    // 시간을 00:00:00으로 설정하여 날짜만 비교
+    admission.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+
+    // 시간 차이를 밀리초로 계산
+    const timeDiff = today.getTime() - admission.getTime();
+
+    // 밀리초를 일 단위로 변환
+    const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+
+    return Math.max(0, daysDiff);
+  };
+
+  const currentWaitingDays = calculateWaitingDays();
 
   // 이미지 URL 추출 헬퍼 함수
   const getImageUrl = () => {
@@ -167,7 +148,11 @@ export function PetCard({
                 ? status
                 : "🌈"}
             </Chip>
-            <h4 className="text-bk">{breed || "이름 없음"}</h4>
+            <h4 className="text-bk">
+              {(breed || "종 미등록").length > 4
+                ? (breed || "종 미등록").slice(0, 4) + "..."
+                : breed || "종 미등록"}
+            </h4>
             {isFemale ? (
               <GenderFemale
                 className="text-red text-xl w-3 h-3"
@@ -186,15 +171,24 @@ export function PetCard({
           <div className="flex flex-col gap-1 text-gray-700 text-sm">
             <div className="flex items-center">
               <span className="font-medium mr-2 w-12">활동량</span>
-              <DotsIndicator count={activityLevel || 0} color="bg-brand" />
+              <DotsIndicator
+                count={parseInt(activityLevel?.toString() || "0")}
+                color="bg-brand"
+              />
             </div>
             <div className="flex items-center">
               <span className="font-medium mr-2 w-12">민감도</span>
-              <DotsIndicator count={sensitivity || 0} color="bg-yellow" />
+              <DotsIndicator
+                count={parseInt(sensitivity?.toString() || "0")}
+                color="bg-yellow"
+              />
             </div>
             <div className="flex items-center">
               <span className="font-medium mr-2 w-12">사교성</span>
-              <DotsIndicator count={sociability || 0} color="bg-green" />
+              <DotsIndicator
+                count={parseInt(sociability?.toString() || "0")}
+                color="bg-green"
+              />
             </div>
           </div>
         </div>
@@ -220,7 +214,7 @@ export function PetCard({
               ? status
               : "🌈"}
           </Chip>
-          <h6 className="text-dg">{waitingDays || 0}일 째</h6>
+          <h6 className="text-dg">{currentWaitingDays || 0}일 째</h6>
         </div>
         <h6 className="text-dg">{foundLocation || "위치 정보 없음"}</h6>
       </div>
@@ -249,7 +243,7 @@ export function PetCard({
                 ? status
                 : "🌈"}
             </Chip>
-            <h4 className="text-2xl font-extrabold">{name || "이름 없음"}</h4>
+            <h4 className="text-bk">{breed || "종 미등록"}</h4>
             {isFemale ? (
               <GenderFemale
                 className="text-red text-xl w-3 h-3"
@@ -287,9 +281,9 @@ export function PetCard({
             fill
             className="object-cover rounded-[10px]"
           />
-          {(waitingDays || 0) > 21 && (
+          {(currentWaitingDays || 0) > 21 && (
             <div className="absolute bottom-0 left-0 w-full bg-bk/50 text-white text-2xl px-2 py-1 rounded-b-[10px]">
-              <h6>{waitingDays || 0}일 째 기다리는 중</h6>
+              <h6>{currentWaitingDays || 0}일 째 기다리는 중</h6>
             </div>
           )}
         </div>
@@ -299,7 +293,11 @@ export function PetCard({
               ? status
               : "🌈"}
           </Chip>
-          <h4 className="text-2xl font-extrabold">{name || "이름 없음"}</h4>
+          <h4 className="text-bk">
+            {(breed || "종 미등록").length > 4
+              ? (breed || "종 미등록").slice(0, 4) + "..."
+              : breed || "종 미등록"}
+          </h4>
           {isFemale ? (
             <GenderFemale className="text-red text-xl w-3 h-3" weight="bold" />
           ) : (
@@ -333,9 +331,9 @@ export function PetCard({
           fill
           className="object-cover rounded-[10px]"
         />
-        {(waitingDays || 0) > 21 && (
+        {(currentWaitingDays || 0) > 21 && (
           <div className="absolute bottom-0 left-0 w-full bg-bk/50 text-white text-2xl px-2 py-1 rounded-b-[10px]">
-            <h6>{waitingDays || 0}일 째 기다리는 중</h6>
+            <h6>{currentWaitingDays || 0}일 째 기다리는 중</h6>
           </div>
         )}
       </div>
@@ -345,7 +343,11 @@ export function PetCard({
             ? status
             : "🌈"}
         </Chip>
-        <h4 className="text-2xl font-extrabold">{name || "이름 없음"}</h4>
+        <h4 className="text-bk">
+          {(breed || "종 미등록").length > 4
+            ? (breed || "종 미등록").slice(0, 4) + "..."
+            : breed || "종 미등록"}
+        </h4>
         {isFemale ? (
           <GenderFemale className="text-red text-xl w-3 h-3" weight="bold" />
         ) : (

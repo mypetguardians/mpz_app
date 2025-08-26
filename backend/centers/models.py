@@ -58,7 +58,8 @@ class Center(BaseModel):
         verbose_name_plural = '센터들'
     
     def __str__(self):
-        return f"{self.owner.username} - {self.name}"
+        owner_name = self.owner.username if self.owner else "Unknown Owner"
+        return f"{owner_name} - {self.name}"
 
 
 class AdoptionContractTemplate(BaseModel):

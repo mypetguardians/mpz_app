@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { Bell, Plus } from "@phosphor-icons/react";
 
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
@@ -9,9 +10,9 @@ import { NavBar } from "@/components/common/NavBar";
 import { CommunityCard } from "@/components/ui/CommunityCard";
 import { TabButton } from "@/components/ui/TabButton";
 import { BigButton } from "@/components/ui/BigButton";
-import { Bell, Plus } from "@phosphor-icons/react";
 import { IconButton } from "@/components/ui/IconButton";
-import { useGetPosts } from "@/hooks/query/useGetPosts";
+import { useGetPublicPosts } from "@/hooks/query/useGetPublicPosts";
+import { useGetSystemTags } from "@/hooks/query/useGetPublicPosts";
 import { useDeletePost } from "@/hooks/mutation/useDeletePost";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { CustomModal } from "@/components/ui/CustomModal";
@@ -24,28 +25,44 @@ export default function CommunityPage() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
-  const tabs = [
-    { label: "최신글", value: "latest" },
-    { label: "인기글", value: "popular" },
-    { label: "#입양후기", value: "adoption" },
-    { label: "#임시보호", value: "temporary" },
-    { label: "#봉사", value: "volunteer" },
-    { label: "#첫만남", value: "first-meeting" },
-    { label: "#후기", value: "review" },
-  ];
+  // 시스템 태그 가져오기
+  const { data: systemTags, isLoading: tagsLoading } = useGetSystemTags();
 
-  const [activeTab, setActiveTab] = useState(tabs[0].value);
+  // 기본 탭과 시스템 태그를 조합하여 탭 옵션 생성
+  const tabs = useMemo(() => {
+    const baseTabs = [{ label: "최신글", value: "latest" }];
+
+    if (systemTags && Array.isArray(systemTags)) {
+      const tagTabs = systemTags.map((tag) => {
+        return {
+          label: `#${tag.name}`,
+          value: tag.name,
+        };
+      });
+      const finalTabs = [...baseTabs, ...tagTabs];
+      return finalTabs;
+    }
+
+    return baseTabs;
+  }, [systemTags]);
+
+  const [activeTab, setActiveTab] = useState("latest");
+
+  // systemTags가 로드된 후 activeTab 업데이트
+  useEffect(() => {
+    if (systemTags && systemTags.length > 0 && activeTab === "latest") {
+      // 기본값은 "latest"로 유지
+    }
+  }, [systemTags, activeTab]);
 
   // 실제 posts 데이터 가져오기
   const {
     data: postsData,
     isLoading,
     error,
-  } = useGetPosts({
-    sort: activeTab === "latest" ? "latest" : "likes",
-    tag:
-      activeTab !== "latest" && activeTab !== "popular" ? activeTab : undefined,
-    visibility: user?.userType !== "일반사용자" ? "center" : "public",
+  } = useGetPublicPosts({
+    tags: activeTab !== "latest" ? [activeTab] : undefined,
+    // 센터공개, 전체공개 옵션
   });
 
   // 게시글 삭제 훅
@@ -89,7 +106,7 @@ export default function CommunityPage() {
   };
 
   // 로딩 상태
-  if (isLoading) {
+  if (isLoading || tagsLoading) {
     return (
       <Container className="h-screen bg-white relative flex flex-col">
         <TopBar
@@ -161,6 +178,11 @@ export default function CommunityPage() {
           tabs={tabs}
           variant="primary"
         />
+        {/* 디버깅용: tabs 배열 확인 */}
+        {(() => {
+          console.log("TabButton에 전달되는 tabs:", tabs);
+          return null;
+        })()}
       </div>
       <div className="mx-4 flex-1 overflow-y-auto">
         {posts.length === 0 ? (

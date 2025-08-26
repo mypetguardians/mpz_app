@@ -3,11 +3,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import instance from "@/lib/axios-instance";
 
-interface ToggleLikeRequest {
+interface PostLikeRequest {
   postId: string;
 }
 
-interface ToggleLikeResponse {
+interface PostLikeResponse {
   message: string;
   isLiked: boolean;
   likeCount: number;
@@ -16,17 +16,17 @@ interface ToggleLikeResponse {
 export const useToggleLike = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<ToggleLikeResponse, Error, ToggleLikeRequest>({
-    mutationFn: async (data: ToggleLikeRequest) => {
-      const response = await instance.post<ToggleLikeResponse>(
-        `/posts/${data.postId}/like`
+  return useMutation<PostLikeResponse, Error, PostLikeRequest>({
+    mutationFn: async (data: PostLikeRequest) => {
+      const response = await instance.post<PostLikeResponse>(
+        `/posts/${data.postId}/like/toggle`
       );
       return response.data;
     },
     onSuccess: (data, variables) => {
       // 게시글 상세 정보 쿼리 무효화
       queryClient.invalidateQueries({
-        queryKey: ["post", variables.postId],
+        queryKey: ["posts", variables.postId],
       });
       // 게시글 목록 쿼리 무효화
       queryClient.invalidateQueries({

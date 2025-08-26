@@ -18,6 +18,7 @@ export const animals = sqliteTable("animals", {
   description: text("description"),
   announceNumber: text("announce_number"),
   announcementDate: text("announcement_date"),
+  admissionDate: text("admission_date"), // 입소일
   foundLocation: text("found_location"), // 발견 장소
   personality: text("personality"), // 성격 (예: 활발함, 온순함, 내성적, 장난꾸러기 등)
   status: text("status", {

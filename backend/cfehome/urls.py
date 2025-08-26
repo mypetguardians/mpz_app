@@ -31,6 +31,7 @@ from notifications.api import router as notifications_router
 from posts.api import router as posts_router
 from comments.api.main_api import router as comments_router
 from ai.api import router as ai_router
+from feedback.api import router as feedback_router
 from banners.api import router as banners_router
 from django.contrib.admin.views.decorators import staff_member_required
 
@@ -60,6 +61,7 @@ base_api.add_router("v1/notifications", notifications_router)
 base_api.add_router("v1/posts", posts_router)
 base_api.add_router("v1/comments", comments_router)
 base_api.add_router("v1/ai", ai_router)
+base_api.add_router("v1/feedback", feedback_router)
 base_api.add_router("v1/banners", banners_router)
 
 urlpatterns = [

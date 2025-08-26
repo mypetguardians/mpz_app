@@ -6,7 +6,6 @@ from datetime import datetime
 class PostTagOut(Schema):
     """포스트 태그 출력 스키마"""
     id: str = Field(..., description="태그 ID")
-    post_id: str = Field(..., description="포스트 ID")
     tag_name: str = Field(..., description="태그명")
     created_at: datetime = Field(..., description="생성 시간")
 
@@ -14,7 +13,6 @@ class PostTagOut(Schema):
 class PostImageOut(Schema):
     """포스트 이미지 출력 스키마"""
     id: str = Field(..., description="이미지 ID")
-    post_id: str = Field(..., description="포스트 ID")
     image_url: str = Field(..., description="이미지 URL")
     order_index: int = Field(..., description="이미지 순서")
     created_at: datetime = Field(..., description="생성 시간")
@@ -31,6 +29,8 @@ class PostOut(Schema):
     content_tags: Optional[dict] = Field(None, description="콘텐츠 태그")
     like_count: int = Field(0, description="좋아요 수")
     comment_count: int = Field(0, description="댓글 수")
+    is_liked: bool = Field(False, description="현재 사용자의 좋아요 여부")
+    is_all_access: bool = Field(True, description="전체 공개 여부")
     created_at: datetime = Field(..., description="생성 시간")
     updated_at: datetime = Field(..., description="수정 시간")
     user_nickname: str = Field(..., description="작성자 닉네임")

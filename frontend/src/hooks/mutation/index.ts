@@ -5,20 +5,14 @@ export { useToggleLike } from "./useToggleLike";
 export { useCreateComment } from "./useCreateComment";
 export { useCreateReply } from "./useCreateReply";
 export { useUpdateProfile } from "./useUpdateProfile";
-export { useUploadImage } from "./useUploadImage";
 export { useDeleteKakaoAccount } from "./useDeleteKakaoAccount";
 export { useToggleAnimalFavorite } from "./useToggleAnimalFavorite";
+export { useToggleAnimalRecommend } from "./useToggleAnimalRecommend";
 export { useToggleCenterFavorite } from "./useToggleCenterFavorite";
 export { useSignOut } from "./useSignOut";
 export { useCreateFeedback } from "./useCreateFeedback";
 export { useCreateAnimal } from "./useCreateAnimal";
-export { useUploadAnimalImages } from "./useUploadAnimalImages";
-export {
-  useUploadSingleImage,
-  useUploadMultipleImages,
-  useDeleteImage,
-  useUpdateImageOrder,
-} from "./usePostImages";
+export { useUploadImage } from "./useUploadImages";
 export { useCreateQuestionForm } from "./useCreateQuestionForm";
 export { useUpdateQuestionForm } from "./useUpdateQuestionForm";
 export { useUpdateQuestionSequence } from "./useUpdateQuestionSequence";

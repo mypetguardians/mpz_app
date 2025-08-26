@@ -1,8 +1,4 @@
-import {
-  useQuery,
-  useQueryClient,
-  type QueryClient,
-} from "@tanstack/react-query";
+import { useQuery, type QueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/components/providers/AuthProvider";
 import instance from "@/lib/axios-instance";
 
@@ -32,7 +28,6 @@ interface Center {
 
 export const useGetMyCenter = () => {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
 
   return useQuery<Center>({
     queryKey: ["myCenter"],

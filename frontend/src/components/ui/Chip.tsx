@@ -56,7 +56,7 @@ export function Chip({ children, variant = "default", className }: ChipProps) {
   return (
     <h6
       className={clsx(
-        "px-[8px] py-[3px] rounded-lg text-[14px] font-semibold inline-block leading-[22px]",
+        "px-[8px] py-[3px] rounded-lg text-3 font-semibold inline-block leading-[18px]",
         theme[variant],
         className
       )}

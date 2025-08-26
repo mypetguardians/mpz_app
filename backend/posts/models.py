@@ -12,6 +12,8 @@ class Post(BaseModel):
     animal = models.ForeignKey('animals.Animal', on_delete=models.SET_NULL, null=True, blank=True, help_text="관련 동물")
     adoption = models.ForeignKey('adoptions.Adoption', on_delete=models.SET_NULL, null=True, blank=True, help_text="관련 입양")
     content_tags = models.JSONField(null=True, blank=True, help_text="콘텐츠 태그")
+    like_count = models.IntegerField(default=0, help_text="좋아요 수")
+    is_all_access = models.BooleanField(default=True, help_text="전체 공개 여부 (False인 경우 센터 권한자만 접근 가능)")
     
     class Meta:
         db_table = 'posts'
@@ -122,3 +124,19 @@ class SystemTag(BaseModel):
         count = PostTag.objects.filter(tag_name__iexact=self.name).count()
         self.usage_count = count
         self.save(update_fields=['usage_count'])
+
+
+class PostLike(BaseModel):
+    """포스트 좋아요 모델"""
+    
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, help_text="좋아요한 사용자")
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, help_text="좋아요한 포스트")
+    
+    class Meta:
+        db_table = 'post_likes'
+        verbose_name = '포스트 좋아요'
+        verbose_name_plural = '포스트 좋아요들'
+        unique_together = ['user', 'post']  # 한 사용자는 한 포스트에 한 번만 좋아요 가능
+    
+    def __str__(self):
+        return f"{self.user.username} -> {self.post.title}"

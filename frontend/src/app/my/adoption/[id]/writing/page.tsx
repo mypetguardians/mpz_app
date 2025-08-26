@@ -190,7 +190,7 @@ export default function WritingPage({ params }: { params: { id: string } }) {
                         </td>
                         <td className="text-sm py-1">
                           <div className="py-1 px-3">
-                            {user?.name || "사용자"}
+                            {user?.nickname || "사용자"}
                           </div>
                         </td>
                       </tr>

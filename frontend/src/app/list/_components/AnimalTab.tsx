@@ -2,20 +2,18 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { z } from "zod";
 
 import { PetCard } from "@/components/ui/PetCard";
+import { PetCardSkeleton } from "@/components/ui/PetCardSkeleton";
 import { useGetAnimals } from "@/hooks/query/useGetAnimals";
-import type { AnimalResponseSchema } from "@/server/openapi/routes/animal";
-
-type Animal = z.infer<typeof AnimalResponseSchema>;
+import { transformRawAnimalToPetCard, RawAnimalResponse } from "@/types/animal";
 
 const ITEMS_PER_PAGE = 20;
 
 function AnimalTab() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [allAnimals, setAllAnimals] = useState<Animal[]>([]);
+  const [allAnimals, setAllAnimals] = useState<RawAnimalResponse[]>([]);
 
   // URL 파라미터에서 필터 상태 읽기
   const filters = useMemo(() => {
@@ -204,9 +202,13 @@ function AnimalTab() {
   // 데이터가 로드되면 상태 업데이트
   useEffect(() => {
     if (data) {
+      console.log("AnimalTab - Full data structure:", data);
+      console.log("AnimalTab - First page structure:", data.pages[0]);
+
       const allAnimalsData = data.pages
-        .flatMap((page) => page.animals || [])
+        .flatMap((page) => page.data || [])
         .filter((animal) => animal && typeof animal === "object");
+      console.log("AnimalTab - Raw animals from API:", allAnimalsData);
       setAllAnimals(allAnimalsData);
     }
   }, [data]);
@@ -232,11 +234,21 @@ function AnimalTab() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isFetchingNextPage, hasNextPage]);
 
-  // 로딩 상태 처리
+  // 로딩 상태 처리 - 스켈레톤 표시
   if (isLoading && allAnimals.length === 0) {
     return (
-      <div className="text-center py-8">
-        <div className="text-gray-500">로딩 중...</div>
+      <div className="mx-4">
+        <div className="flex flex-wrap justify-start gap-2">
+          {[...Array(10)].map((_, index) => (
+            <div key={index} className="w-[calc(50%-4px)]">
+              <PetCardSkeleton
+                variant="primary"
+                imageSize="full"
+                className="w-full"
+              />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -271,7 +283,7 @@ function AnimalTab() {
               onClick={() => router.push(`/list/animal/${animal.id}`)}
             >
               <PetCard
-                pet={animal}
+                pet={transformRawAnimalToPetCard(animal)}
                 variant="primary"
                 imageSize="full"
                 className="w-full"
@@ -279,9 +291,21 @@ function AnimalTab() {
             </div>
           ))}
       </div>
+
+      {/* 추가 로딩 스켈레톤 */}
       {isFetchingNextPage && (
-        <div className="text-center py-4">
-          <div className="text-gray-500">더 많은 동물을 불러오는 중...</div>
+        <div className="mx-4 mt-4">
+          <div className="flex flex-wrap justify-start gap-2">
+            {[...Array(4)].map((_, index) => (
+              <div key={`loading-${index}`} className="w-[calc(50%-4px)]">
+                <PetCardSkeleton
+                  variant="primary"
+                  imageSize="full"
+                  className="w-full"
+                />
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

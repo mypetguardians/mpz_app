@@ -1,18 +1,17 @@
 "use client";
 
 import Image from "next/image";
-import { z } from "zod";
 
 import { ThumbsUp, DotsThree, Bell } from "@phosphor-icons/react";
 import { IconButton } from "@/components/ui/IconButton";
 import { MiniButton } from "@/components/ui/MiniButton";
-import type { PostWithExtrasSchema } from "@/server/openapi/routes/posts";
+import type { Post } from "@/types/posts";
 import { getRelativeTime } from "@/lib/utils";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useState, useEffect } from "react";
 import { useToggleLike, useCheckPostLike } from "@/hooks";
 
-type PostDetail = z.infer<typeof PostWithExtrasSchema>;
+type PostDetail = Post;
 
 type User = {
   id: string;
@@ -39,16 +38,16 @@ export function CommunityDetail({
   onUserClick,
   onLoginRequired,
 }: CommunityDetailProps) {
-  const { images, title, content, postLikes, createdAt, userId, contentTags } =
+  const { images, title, content, createdAt, userId, contentTags, likeCount } =
     post;
   const { isAuthenticated } = useAuth();
-  const [currentLikeCount, setCurrentLikeCount] = useState(
-    postLikes?.length || 0
-  );
+  const [currentLikeCount, setCurrentLikeCount] = useState(likeCount || 0);
   const [isLiked, setIsLiked] = useState(false);
 
   const toggleLikeMutation = useToggleLike();
-  const { data: likeData } = useCheckPostLike(post.id);
+  const { data: likeData, isLoading: isLikeLoading } = useCheckPostLike(
+    post.id
+  );
 
   const user = users.find((u) => u.id === userId);
   const author = user?.nickname || "사용자";
@@ -62,6 +61,13 @@ export function CommunityDetail({
     }
   }, [likeData]);
 
+  // 게시글의 기본 좋아요 개수로 초기화
+  useEffect(() => {
+    if (likeCount !== undefined) {
+      setCurrentLikeCount(likeCount);
+    }
+  }, [likeCount]);
+
   const handleLikeToggle = async () => {
     if (!isAuthenticated) {
       onLoginRequired?.();
@@ -69,11 +75,27 @@ export function CommunityDetail({
     }
 
     try {
+      // 낙관적 업데이트 (즉시 UI 반영)
+      const newIsLiked = !isLiked;
+      const newLikeCount = newIsLiked
+        ? currentLikeCount + 1
+        : currentLikeCount - 1;
+
+      setIsLiked(newIsLiked);
+      setCurrentLikeCount(newLikeCount);
+
       const result = await toggleLikeMutation.mutateAsync({ postId: post.id });
+
+      // 서버 응답으로 최종 상태 동기화
       setIsLiked(result.isLiked);
       setCurrentLikeCount(result.likeCount);
     } catch (error) {
       console.error("좋아요 처리 실패:", error);
+      // 에러 발생 시 원래 상태로 되돌리기
+      setIsLiked(!isLiked);
+      setCurrentLikeCount(
+        isLiked ? currentLikeCount - 1 : currentLikeCount + 1
+      );
     }
   };
 
@@ -198,18 +220,16 @@ export function CommunityDetail({
           leftIcon={<ThumbsUp />}
           variant={isLiked ? "filterOn" : "filterOff"}
           onClick={handleLikeToggle}
-          disabled={toggleLikeMutation.isPending}
+          disabled={toggleLikeMutation.isPending || isLikeLoading}
+          className={
+            toggleLikeMutation.isPending ? "opacity-50 cursor-not-allowed" : ""
+          }
         />
         {contentTags &&
-          contentTags
-            .split(",")
-            .map((tag, index) => (
-              <MiniButton
-                key={index}
-                text={`#${tag.trim()}`}
-                variant="outline"
-              />
-            ))}
+          Array.isArray(contentTags) &&
+          contentTags.map((tag: string, index: number) => (
+            <MiniButton key={index} text={`#${tag}`} variant="outline" />
+          ))}
       </div>
     </div>
   );

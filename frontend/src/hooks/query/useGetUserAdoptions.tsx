@@ -1,28 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { z } from "zod";
-import {
-  UserAdoptionSchema,
-  UserAdoptionListResponseSchema,
-} from "@/server/openapi/routes/user-adoption";
+import { UserAdoptionsResponse } from "@/types/adoption";
 import instance from "@/lib/axios-instance";
-
-type Adoption = z.infer<typeof UserAdoptionSchema>;
 
 interface GetUserAdoptionsParams {
   userId: string;
   page?: number;
   limit?: number;
-}
-
-// 프론트엔드에서 기대하는 응답 구조로 변경
-interface UserAdoptionsResponse {
-  adoptions: Adoption[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-  hasNext: boolean;
-  hasPrev: boolean;
 }
 
 const getUserAdoptions = async (
@@ -49,18 +32,7 @@ const getUserAdoptions = async (
   }`;
 
   const response = await instance.get<UserAdoptionsResponse>(url);
-  const parsedData = UserAdoptionListResponseSchema.parse(response.data);
-
-  // API 응답 구조를 프론트엔드에서 기대하는 구조로 변환
-  return {
-    adoptions: parsedData.adoptions,
-    total: parsedData.pagination.total,
-    page: parsedData.pagination.page,
-    limit: parsedData.pagination.limit,
-    totalPages: parsedData.pagination.totalPages,
-    hasNext: parsedData.pagination.page < parsedData.pagination.totalPages,
-    hasPrev: parsedData.pagination.page > 1,
-  };
+  return response.data;
 };
 
 export function useGetUserAdoptions(params: GetUserAdoptionsParams) {

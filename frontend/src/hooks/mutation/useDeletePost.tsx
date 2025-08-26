@@ -14,7 +14,7 @@ export const useDeletePost = () => {
   return useMutation({
     mutationFn: async (postId: string): Promise<DeletePostResponse> => {
       const response = await instance.delete<DeletePostResponse>(
-        `/community/posts/${postId}`
+        `/posts/${postId}`
       );
       return response.data;
     },

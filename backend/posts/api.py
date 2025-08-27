@@ -225,13 +225,17 @@ async def get_all_public_post_detail(request: HttpRequest, post_id: str):
         post, tags, images = result
         
         # 응답 데이터 구성
-        post_data = _build_post_response(
-            post,
-            tags=[_build_tag_response(tag) for tag in tags],
-            images=[_build_image_response(img) for img in images],
-            user_nickname=getattr(post.user, 'nickname', post.user.username),
-            user_image=getattr(post.user, 'image', None)
-        )
+        @sync_to_async
+        def build_post_response():
+            return _build_post_response(
+                post,
+                tags=[_build_tag_response(tag) for tag in tags],
+                images=[_build_image_response(img) for img in images],
+                user_nickname=getattr(post.user, 'nickname', post.user.username),
+                user_image=getattr(post.user, 'image', None)
+            )
+        
+        post_data = await build_post_response()
         post_data['is_liked'] = False  # 전체 공개는 좋아요 상태 미제공
         post_data['is_all_access'] = post.is_all_access
         
@@ -456,13 +460,17 @@ async def get_center_post_detail(request: HttpRequest, post_id: str):
             is_liked = await check_like()
         
         # 응답 데이터 구성
-        post_data = _build_post_response(
-            post,
-            tags=[_build_tag_response(tag) for tag in tags],
-            images=[_build_image_response(img) for img in images],
-            user_nickname=getattr(post.user, 'nickname', post.user.username),
-            user_image=getattr(post.user, 'image', None)
-        )
+        @sync_to_async
+        def build_post_response():
+            return _build_post_response(
+                post,
+                tags=[_build_tag_response(tag) for tag in tags],
+                images=[_build_image_response(img) for img in images],
+                user_nickname=getattr(post.user, 'nickname', post.user.username),
+                user_image=getattr(post.user, 'image', None)
+            )
+        
+        post_data = await build_post_response()
         post_data['is_liked'] = is_liked
         post_data['is_all_access'] = post.is_all_access
         
@@ -535,9 +543,13 @@ async def create_post(request: HttpRequest, data: PostCreateIn):
         post = await create_post_sync()
 
         # 응답 데이터 구성
+        @sync_to_async
+        def build_response():
+            return _build_post_response(post)
+        
         response_data = {
             "message": "게시글이 생성되었습니다.",
-            "community": _build_post_response(post)
+            "community": await build_response()
         }
 
         return 201, response_data

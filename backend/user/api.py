@@ -55,7 +55,7 @@ async def signup(request, data: UserSignupIn):
 
         # 생성된 사용자 정보 반환
         created_user = await User.objects.aget(id=user.id)
-        return created_user
+        return UserMeOut.from_user(created_user)
         
     except Exception as e:
         raise HttpError(
@@ -200,7 +200,7 @@ async def get_me(request):
         user = await User.objects.aget(id=request.auth.id)
         
         # 스키마에 맞는 응답 반환
-        return user
+        return UserMeOut.from_user(user)
         
     except User.DoesNotExist:
         raise HttpError(404, "사용자를 찾을 수 없습니다.")
@@ -222,7 +222,7 @@ async def update_me(request, data: UserUpdateIn):
         
         # 업데이트된 사용자 정보 반환
         updated_user = await User.objects.aget(id=user.id)
-        return updated_user
+        return UserMeOut.from_user(updated_user)
         
     except User.DoesNotExist:
         raise HttpError(404, "사용자를 찾을 수 없습니다.")

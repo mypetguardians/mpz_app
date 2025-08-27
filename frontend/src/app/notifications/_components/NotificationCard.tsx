@@ -7,6 +7,7 @@ interface NotificationCardProps {
   message?: string;
   date: string;
   type?: string;
+  isRead?: boolean;
 }
 
 // 시간 계산 유틸 함수
@@ -32,6 +33,7 @@ function NotificationCard({
   title,
   date,
   type,
+  isRead = true,
 }: NotificationCardProps) {
   const isPressed = variant === "pressed";
 
@@ -74,17 +76,23 @@ function NotificationCard({
   return (
     <div
       className={cn(
-        "flex gap-2 m-2 items-start",
-        isPressed ? "bg-white rounded-2xl shadow-md" : "bg-transparent p-0"
+        "flex gap-2 items-start w-full",
+        isPressed ? "bg-white shadow-md" : "bg-transparent"
       )}
-      style={{ width: isPressed ? 480 : "auto" }}
+      style={{
+        width: isPressed ? 480 : "auto",
+        backgroundColor:
+          isRead === false ? "rgba(0, 44, 222, 0.04)" : "transparent",
+      }}
     >
-      <Bell className={cn("mt-1", getBellColor())} size={16} />
-      <div className="flex flex-col gap-1">
-        <div className="flex flex-col">
-          <h6 className="text-dg">{getNotificationTypeText(type || "")}</h6>
-          <h6 className="text-bk">{title}</h6>
-          <h6 className="text-gr mt-1">{getTimeAgo(date)}</h6>
+      <div className="flex flex-col gap-1 p-4">
+        <div className="flex gap-2">
+          <Bell className={cn("mt-1", getBellColor())} size={16} />
+          <div className="flex flex-col">
+            <h6 className="text-dg">{getNotificationTypeText(type || "")}</h6>
+            <h6 className="text-bk">{title}</h6>
+            <h6 className="text-gr mt-1">{getTimeAgo(date)}</h6>
+          </div>
         </div>
       </div>
     </div>

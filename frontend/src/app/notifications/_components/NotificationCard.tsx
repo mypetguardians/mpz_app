@@ -35,6 +35,28 @@ function NotificationCard({
 }: NotificationCardProps) {
   const isPressed = variant === "pressed";
 
+  // 알림 타입을 한글로 변환하는 함수
+  // TODO 알림 타입 재정리 필요 - 백엔드
+  const getNotificationTypeText = (type: string): string => {
+    if (type?.includes("monitoring")) {
+      return "모니터링";
+    }
+    if (type?.includes("adoption")) {
+      return "입양 상태 업데이트";
+    }
+    if (
+      type?.includes("comment") ||
+      type?.includes("reply") ||
+      type?.includes("community")
+    ) {
+      return "커뮤니티";
+    }
+    if (type?.includes("protection")) {
+      return "임시보호";
+    }
+    return type || "알림";
+  };
+
   // type에 따른 벨 색상 결정
   const getBellColor = () => {
     console.log("NotificationCard type:", type); // 디버깅용
@@ -60,7 +82,7 @@ function NotificationCard({
       <Bell className={cn("mt-1", getBellColor())} size={16} />
       <div className="flex flex-col gap-1">
         <div className="flex flex-col">
-          <h6 className="text-dg">{type}</h6>
+          <h6 className="text-dg">{getNotificationTypeText(type || "")}</h6>
           <h6 className="text-bk">{title}</h6>
           <h6 className="text-gr mt-1">{getTimeAgo(date)}</h6>
         </div>

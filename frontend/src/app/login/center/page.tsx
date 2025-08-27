@@ -11,17 +11,18 @@ import { BigButton } from "@/components/ui/BigButton";
 import { CustomInput } from "@/components/ui/CustomInput";
 import { Toast } from "@/components/ui/Toast";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { LoginResult } from "@/types/auth";
 
 interface LoginFormData {
-  email: string;
+  username: string;
   password: string;
 }
 
 export default function CenterLogIn() {
   const router = useRouter();
-  const { setUserFromToken, setLoggingIn } = useAuth();
+  const { centerLogin, setLoggingIn } = useAuth();
   const [formData, setFormData] = useState<LoginFormData>({
-    email: "",
+    username: "",
     password: "",
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -33,10 +34,8 @@ export default function CenterLogIn() {
   const validateForm = (): boolean => {
     const newErrors: Partial<LoginFormData> = {};
 
-    if (!formData.email.trim()) {
-      newErrors.email = "이메일을 입력해주세요";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "올바른 이메일 형식을 입력해주세요";
+    if (!formData.username.trim()) {
+      newErrors.username = "아이디를 입력해주세요";
     }
 
     if (!formData.password.trim()) {
@@ -67,45 +66,23 @@ export default function CenterLogIn() {
     setIsLoading(true);
     setLoggingIn(true); // 로그인 시작 상태 설정
     setErrors({});
+
     try {
-      const response = await fetch("/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
+      const result: LoginResult = await centerLogin(
+        formData.username,
+        formData.password
+      );
 
-      const data = await response.json();
+      if (result.success) {
+        setToastMessage(result.message);
+        setShowToast(true);
 
-      if (response.ok) {
-        // 센터 관리자만 로그인 가능
-        if (data.user.userType === "센터관리자") {
-          setToastMessage("로그인에 성공했습니다!");
-          setShowToast(true);
-
-          // 서버에서 토큰으로 사용자 정보를 다시 가져온 후 홈으로 이동
-          try {
-            await setUserFromToken();
-            setTimeout(() => {
-              router.push("/");
-            }, 1000);
-          } catch (error) {
-            setToastMessage("사용자 정보를 가져오는데 실패했습니다.");
-            setLoggingIn(false);
-            console.error("Login error:", error);
-          }
-        } else {
-          setToastMessage("센터 계정으로만 로그인할 수 있습니다.");
-          setShowToast(true);
-          setLoggingIn(false);
-          setTimeout(() => setShowToast(false), 3000);
-        }
+        // 로그인 성공 시 바로 홈으로 이동
+        setTimeout(() => {
+          router.push("/");
+        }, 500); // 0.5초 후 이동
       } else {
-        setToastMessage(data.error || "로그인에 실패했습니다.");
+        setToastMessage(result.message);
         setShowToast(true);
         setLoggingIn(false); // 로그인 실패 시 상태 리셋
         // 3초 후 자동으로 토스트 숨김
@@ -144,21 +121,21 @@ export default function CenterLogIn() {
           onSubmit={handleSubmit}
           className="flex flex-col gap-3 w-full mx-auto"
         >
-          {/* 이메일 입력 */}
+          {/* 아이디 입력 */}
           <CustomInput
-            label="이메일"
-            placeholder="이메일을 입력하세요"
+            label="아이디"
+            placeholder="아이디를 입력하세요"
             variant="primary"
-            name="email"
-            type="email"
-            autoComplete="email"
-            value={formData.email}
-            onChange={(e) => handleInputChange("email", e.target.value)}
-            error={!!errors.email}
+            name="username"
+            type="text"
+            autoComplete="username"
+            value={formData.username}
+            onChange={(e) => handleInputChange("username", e.target.value)}
+            error={!!errors.username}
             required
           />
-          {errors.email && (
-            <p className="text-error text-sm -mt-2">{errors.email}</p>
+          {errors.username && (
+            <p className="text-error text-sm -mt-2">{errors.username}</p>
           )}
 
           {/* 비밀번호 입력 */}

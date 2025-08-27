@@ -3,7 +3,6 @@ import axios, {
   AxiosError,
   InternalAxiosRequestConfig,
 } from "axios";
-import Cookies from "js-cookie";
 
 const BASE_URL = "https://mpzfullstack-production.up.railway.app/v1/";
 
@@ -15,7 +14,8 @@ const instance: AxiosInstance = axios.create({
 // header
 instance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const accessToken = Cookies.get("accessToken");
+    // 로컬 스토리지에서 access_token 가져오기
+    const accessToken = localStorage.getItem("access_token");
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
@@ -45,7 +45,7 @@ instance.interceptors.request.use(
 //       originalRequest._retry = true;
 
 //       try {
-//         const refreshToken = Cookies.get("refreshToken");
+//         const refreshToken = localStorage.getItem("refresh_token");
 //         if (!refreshToken) throw new Error("Refresh token not found");
 
 //         const res = await axios.post(
@@ -63,14 +63,14 @@ instance.interceptors.request.use(
 //         const newAccessToken = res.data.accessToken;
 
 //         if (newAccessToken) {
-//           Cookies.set("accessToken", newAccessToken);
+//           localStorage.setItem("access_token", newAccessToken);
 //           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
 //           return instance(originalRequest);
 //         }
 //       } catch (refreshError) {
 //         console.error("Error refreshing token:", refreshError);
-//         Cookies.remove("accessToken");
-//         Cookies.remove("refreshToken");
+//         localStorage.removeItem("access_token");
+//         localStorage.removeItem("refresh_token");
 //         window.location.href = "/login";
 //         return Promise.reject(refreshError);
 //       }

@@ -8,3 +8,5 @@ export * from "./center";
 export * from "./ai-matching";
 // Notifications types
 export * from "./notifications";
+// Auth types
+export * from "./auth";

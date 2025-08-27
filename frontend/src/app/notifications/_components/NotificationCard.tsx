@@ -6,26 +6,47 @@ interface NotificationCardProps {
   title: string;
   message?: string;
   date: string;
-  type?: "입양" | "임시보호" | "모니터링" | "커뮤니티";
+  type?: string;
 }
+
+// 시간 계산 유틸 함수
+const getTimeAgo = (dateString: string): string => {
+  const createdAt = new Date(dateString);
+  const now = new Date();
+  const diffInHours = Math.floor(
+    (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60)
+  );
+
+  if (diffInHours < 1) {
+    return "방금 전";
+  } else if (diffInHours < 24) {
+    return `${diffInHours}시간 전`;
+  } else {
+    const diffInDays = Math.floor(diffInHours / 24);
+    return `${diffInDays}일 전`;
+  }
+};
 
 function NotificationCard({
   variant = "primary",
   title,
-  message,
   date,
   type,
 }: NotificationCardProps) {
   const isPressed = variant === "pressed";
-  const isTemporary = title === "임시보호";
 
   // type에 따른 벨 색상 결정
   const getBellColor = () => {
-    if (type === "입양" && "임시보호") return "text-green";
-    if (type === "모니터링") return "text-red";
-    if (type === "커뮤니티") return "text-yellow";
+    console.log("NotificationCard type:", type); // 디버깅용
+    if (type?.includes("monitoring")) return "text-red";
+    if (
+      type?.includes("comment") ||
+      type?.includes("reply") ||
+      type?.includes("community")
+    )
+      return "text-yellow";
     // 기본값 (type이 없거나 기존 로직)
-    return isTemporary ? "text-red" : "text-green";
+    return "text-green";
   };
 
   return (
@@ -39,9 +60,9 @@ function NotificationCard({
       <Bell className={cn("mt-1", getBellColor())} size={16} />
       <div className="flex flex-col gap-1">
         <div className="flex flex-col">
-          <h6 className="text-dg">{title}</h6>
-          <h6 className="text-bk">{message}</h6>
-          <h6 className="text-gr mt-1">{date}</h6>
+          <h6 className="text-dg">{type}</h6>
+          <h6 className="text-bk">{title}</h6>
+          <h6 className="text-gr mt-1">{getTimeAgo(date)}</h6>
         </div>
       </div>
     </div>

@@ -66,7 +66,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // 세션 토큰으로 사용자 정보 가져오기
   const fetchCurrentUser = async () => {
     try {
-      console.log("fetchCurrentUser 시작");
       const response = await instance.get("/auth/me");
 
       if (response.status === 200) {
@@ -78,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (userData && (userData.username || userData.email || userData.id)) {
           // User 인터페이스에 맞게 데이터 변환
           const user: User = {
-            id: userData.id || userData.username, // userData.id가 우선, 없으면 username
+            id: userData.id || userData.username,
             email: userData.email || `${userData.username}@kakao.com`,
             name: userData.name || userData.username,
             nickname: userData.nickname || userData.username,
@@ -94,7 +93,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(user);
           setIsAuthenticated(true);
         } else {
-          console.log("사용자 데이터가 유효하지 않음");
           setUser(null);
           setIsAuthenticated(false);
         }

@@ -103,7 +103,7 @@ export default function CommunityDetailPage() {
       }
     } else {
       setShowToast(true);
-      setToastMessage("카카오톡 앱이 설치되어 있지 않습니다.");
+      setToastMessage("카카오톡과 연결되어 있지 않습니다.");
     }
   };
 

@@ -1,0 +1,207 @@
+"use client";
+
+import { useState } from "react";
+import { ArrowLeft } from "@phosphor-icons/react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+
+import { Container } from "@/components/common/Container";
+import { TopBar } from "@/components/common/TopBar";
+import { IconButton } from "@/components/ui/IconButton";
+import { SearchInput } from "@/components/ui/SearchInput";
+import { AddButton } from "@/components/ui/AddButton";
+import { PetCard } from "@/components/ui/PetCard";
+import { useGetMyCenterAnimals } from "@/hooks/query";
+import { useGetMyCenter } from "@/hooks/query";
+import type { AnimalResponseSchema } from "@/server/openapi/routes/animal";
+import { z } from "zod";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { NotificationToast } from "@/components/ui/NotificationToast";
+
+type Animal = z.infer<typeof AnimalResponseSchema>;
+
+export default function CenterAnimal() {
+  const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState<"success" | "error">("success");
+  const { isAuthenticated } = useAuth();
+  const {
+    data: centerData,
+    isLoading: centerLoading,
+    error: centerError,
+  } = useGetMyCenter();
+
+  const shouldFetchAnimals = !centerLoading && !!centerData?.id;
+
+  const { data, isLoading, error } = useGetMyCenterAnimals(
+    {
+      page: currentPage,
+      limit: 10,
+      breed: searchTerm || undefined,
+    },
+    {
+      enabled: shouldFetchAnimals,
+    }
+  );
+
+  const handleBack = () => {
+    router.back();
+  };
+
+  const handleAdoptionClick = (pet: Animal) => {
+    const animalUrl = `${window.location.origin}/list/animal/${pet.id}`;
+
+    if (navigator.clipboard) {
+      navigator.clipboard
+        .writeText(animalUrl)
+        .then(() => {
+          setToastMessage("해당 동물의 상세페이지 링크가 복사되었습니다!");
+          setToastType("success");
+          setShowToast(true);
+        })
+        .catch(() => {
+          // 클립보드 복사 실패 시 fallback
+          fallbackCopyTextToClipboard(animalUrl);
+        });
+    } else {
+      // 구형 브라우저 지원
+      fallbackCopyTextToClipboard(animalUrl);
+    }
+  };
+
+  const fallbackCopyTextToClipboard = (text: string) => {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+
+    try {
+      document.execCommand("copy");
+      setToastMessage("해당 동물의 상세페이지 링크가 복사되었습니다!");
+      setToastType("success");
+      setShowToast(true);
+    } catch (err) {
+      console.error("Fallback: Oops, unable to copy", err);
+      setToastMessage("링크 복사에 실패했습니다.");
+      setToastType("error");
+      setShowToast(true);
+    }
+
+    document.body.removeChild(textArea);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleLoadMore = () => {
+    if (data?.hasNext) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  };
+
+  return (
+    <Container className="min-h-screen">
+      <TopBar
+        variant="variant4"
+        left={
+          <div className="flex items-center gap-2">
+            <IconButton
+              icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
+              size="iconM"
+              onClick={handleBack}
+            />
+            <h4>동물 관리</h4>
+          </div>
+        }
+      />
+      <div className="flex flex-col gap-4 px-4">
+        <SearchInput
+          placeholder="품종명으로 검색해보세요"
+          value={searchTerm}
+          onChange={handleSearchChange}
+        />
+        <Link href="/centerpage/animal/add">
+          <AddButton>새로운 아이 등록하기</AddButton>
+        </Link>
+
+        {centerError && (
+          <div className="text-center py-4 w-full">
+            <div className="text-red-500">
+              센터 정보를 불러오는데 실패했습니다
+            </div>
+          </div>
+        )}
+
+        {centerData && !centerData.id && (
+          <div className="text-center py-4 w-full">
+            <div className="text-orange-500">
+              등록된 센터가 없습니다. 센터를 먼저 등록해주세요.
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <div className="text-center py-4 w-full">
+            <div className="text-red-500">
+              동물 목록을 불러오는데 실패했습니다
+            </div>
+            <div className="text-sm text-gray-500 mt-2">{error.message}</div>
+          </div>
+        )}
+
+        {centerData?.id && (
+          <div className="flex flex-col items-start gap-1">
+            <p className="text-dg font-body2">총 {data?.total || 0}마리</p>
+            <div className="flex flex-wrap justify-start gap-2">
+              {data?.animals?.map((animal: Animal) => (
+                <div key={animal.id} className="w-[calc(50%-4px)]">
+                  <PetCard
+                    pet={{
+                      id: animal.id,
+                      name: animal.name || "",
+                      isFemale: animal.isFemale,
+                      status: animal.status,
+                      animalImages: animal.animalImages,
+                    }}
+                    variant="edit"
+                    imageSize="full"
+                    className="w-full"
+                    onAdoptionClick={() => handleAdoptionClick(animal)}
+                  />
+                </div>
+              ))}
+            </div>
+            {isLoading && (
+              <div className="text-center py-4 w-full">
+                <div className="text-gray-500">로딩 중...</div>
+              </div>
+            )}
+            {data?.hasNext && (
+              <button
+                onClick={handleLoadMore}
+                className="w-full py-3 text-center text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                더 보기
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* 토스트 알림 */}
+      {showToast && (
+        <NotificationToast
+          message={toastMessage}
+          type={toastType}
+          onClose={() => setShowToast(false)}
+        />
+      )}
+    </Container>
+  );
+}

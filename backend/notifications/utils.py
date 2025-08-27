@@ -14,6 +14,8 @@ from centers.models import Center
 from adoptions.models import Adoption, AdoptionMonitoring
 from comments.models import Comment
 from posts.models import Post
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 
 logger = logging.getLogger(__name__)
@@ -291,6 +293,30 @@ async def send_bulk_push_notification(
 
 # 편의 함수들
 
+async def send_real_time_notification(user_id: str, notification_data: dict):
+    """실시간 알림 전송 (WebSocket)"""
+    channel_layer = get_channel_layer()
+    await channel_layer.group_send(
+        f"user_{user_id}",
+        {
+            "type": "notification_message",
+            "data": notification_data
+        }
+    )
+
+
+async def send_broadcast_notification(notification_data: dict):
+    """관리자들에게 브로드캐스트 알림 전송"""
+    channel_layer = get_channel_layer()
+    await channel_layer.group_send(
+        "admin_notifications",
+        {
+            "type": "admin_notification_message",
+            "data": notification_data
+        }
+    )
+
+
 async def send_adoption_update_notification(user_id: str, adoption_status: str, animal_name: str, adoption_id: str = None):
     """입양 상태 업데이트 알림"""
     title = f"입양 상태 업데이트: {animal_name}"
@@ -367,7 +393,7 @@ async def send_system_notification(user_id: str, title: str, message: str):
 
 async def create_notification_for_center_users(center_id: str, notification_type: str, title: str, message: str, 
                                              action_url: str = None, metadata: dict = None, priority: str = 'normal'):
-    """센터의 모든 관리자에게 알림을 생성합니다."""
+    """센터의 모든 관리자에게 알림을 생성하고 FCM 푸시 알림을 전송합니다."""
     
     @sync_to_async
     def create_center_notifications():
@@ -378,6 +404,7 @@ async def create_notification_for_center_users(center_id: str, notification_type
         ).distinct()
         
         notifications = []
+        push_tokens = []
         for user in center_users:
             notification = Notification(
                 user=user,
@@ -389,19 +416,59 @@ async def create_notification_for_center_users(center_id: str, notification_type
                 metadata=metadata
             )
             notifications.append(notification)
+            
+            # 사용자의 활성 푸시 토큰들 수집
+            user_tokens = PushToken.objects.filter(user=user, is_active=True).values_list('token', flat=True)
+            push_tokens.extend(user_tokens)
         
         # 대량 생성
         if notifications:
             Notification.objects.bulk_create(notifications)
         
-        return len(notifications)
+        return len(notifications), push_tokens, [str(user.id) for user in center_users]
     
-    return await create_center_notifications()
+    notification_count, push_tokens, user_ids = await create_center_notifications()
+    
+    # FCM 푸시 알림 전송
+    if push_tokens:
+        try:
+            fcm_service = FCMPushNotificationService()
+            await fcm_service.send_push_notification(
+                user_tokens=push_tokens,
+                title=title,
+                body=message,
+                data={
+                    'notification_type': notification_type,
+                    'action_url': action_url,
+                    'metadata': metadata
+                }
+            )
+        except Exception as e:
+            logger.error(f"FCM 푸시 알림 전송 실패: {e}")
+    
+    # 실시간 WebSocket 알림 전송
+    notification_data = {
+        "title": title,
+        "message": message,
+        "notification_type": notification_type,
+        "priority": priority,
+        "action_url": action_url,
+        "metadata": metadata,
+        "timestamp": timezone.now().isoformat()
+    }
+    
+    for user_id in user_ids:
+        try:
+            await send_real_time_notification(user_id, notification_data)
+        except Exception as e:
+            logger.error(f"실시간 알림 전송 실패 (사용자 {user_id}): {e}")
+    
+    return notification_count
 
 
 async def create_notification_for_user(user_id: str, notification_type: str, title: str, message: str,
                                      action_url: str = None, metadata: dict = None, priority: str = 'normal'):
-    """특정 사용자에게 알림을 생성합니다."""
+    """특정 사용자에게 알림을 생성하고 FCM 푸시 알림을 전송합니다."""
     
     @sync_to_async
     def create_user_notification():
@@ -414,9 +481,49 @@ async def create_notification_for_user(user_id: str, notification_type: str, tit
             action_url=action_url,
             metadata=metadata
         )
-        return notification
+        
+        # 사용자의 활성 푸시 토큰들 수집
+        push_tokens = PushToken.objects.filter(user_id=user_id, is_active=True).values_list('token', flat=True)
+        
+        return notification, list(push_tokens)
     
-    return await create_user_notification()
+    notification, push_tokens = await create_user_notification()
+    
+    # FCM 푸시 알림 전송
+    if push_tokens:
+        try:
+            fcm_service = FCMPushNotificationService()
+            await fcm_service.send_push_notification(
+                user_tokens=push_tokens,
+                title=title,
+                body=message,
+                data={
+                    'notification_type': notification_type,
+                    'action_url': action_url,
+                    'metadata': metadata
+                }
+            )
+        except Exception as e:
+            logger.error(f"FCM 푸시 알림 전송 실패: {e}")
+    
+    # 실시간 WebSocket 알림 전송
+    notification_data = {
+        "id": str(notification.id),
+        "title": title,
+        "message": message,
+        "notification_type": notification_type,
+        "priority": priority,
+        "action_url": action_url,
+        "metadata": metadata,
+        "created_at": notification.created_at.isoformat()
+    }
+    
+    try:
+        await send_real_time_notification(user_id, notification_data)
+    except Exception as e:
+        logger.error(f"실시간 알림 전송 실패 (사용자 {user_id}): {e}")
+    
+    return notification
 
 
 async def notify_new_adoption_application(adoption_id: str):

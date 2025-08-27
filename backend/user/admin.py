@@ -13,12 +13,22 @@ class UserAdmin(BaseUserAdmin):
     list_editable = ['status', 'user_type', 'is_phone_verified']
     readonly_fields = ['created_at', 'updated_at']
     
-    fieldsets = BaseUserAdmin.fieldsets + (
-        ('추가 정보', {
-            'fields': ('nickname', 'phone_number', 'user_type', 'is_phone_verified', 'phone_verified_at', 'kakao_id', 'image')
+    # BaseUserAdmin의 기본 fieldsets를 오버라이드하여 first_name, last_name 제거
+    fieldsets = (
+        (None, {
+            'fields': ('username', 'password')
         }),
         ('개인 정보', {
+            'fields': ('email', 'nickname', 'phone_number', 'user_type', 'is_phone_verified', 'phone_verified_at', 'kakao_id', 'image')
+        }),
+        ('추가 정보', {
             'fields': ('birth', 'address', 'address_is_public')
+        }),
+        ('권한', {
+            'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')
+        }),
+        ('중요한 날짜', {
+            'fields': ('last_login', 'date_joined')
         }),
         ('시간 정보', {
             'fields': ('created_at', 'updated_at'),
@@ -26,11 +36,15 @@ class UserAdmin(BaseUserAdmin):
         }),
     )
     
-    add_fieldsets = BaseUserAdmin.add_fieldsets + (
-        ('추가 정보', {
-            'fields': ('nickname', 'phone_number', 'user_type', 'kakao_id', 'image')
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username', 'password1', 'password2'),
         }),
         ('개인 정보', {
+            'fields': ('email', 'nickname', 'phone_number', 'user_type', 'kakao_id', 'image')
+        }),
+        ('추가 정보', {
             'fields': ('birth', 'address', 'address_is_public')
         }),
     )

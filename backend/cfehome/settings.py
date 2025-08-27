@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # third party
     "corsheaders",
+    "channels",  # Django Channels 추가
     # local apps
     "common",
     "user",
@@ -252,3 +253,15 @@ if LANGCHAIN_TRACING_V2:
     if LANGCHAIN_API_KEY:
         os.environ["LANGCHAIN_API_KEY"] = LANGCHAIN_API_KEY
     os.environ["LANGCHAIN_ENDPOINT"] = LANGCHAIN_ENDPOINT
+
+# Django Channels Settings
+ASGI_APPLICATION = "cfehome.asgi.application"
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": config("REDIS_URL", default=None),
+        },
+    },
+}

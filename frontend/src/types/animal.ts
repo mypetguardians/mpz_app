@@ -123,35 +123,17 @@ export interface ActualGetAnimalsResponse {
 }
 
 // PetCard에서 사용하는 타입
-export type PetCardAnimal = {
-  id: string;
-  name?: string;
-  isFemale?: boolean;
-  age?: number;
-  breed?: string | null;
-  status?:
-    | "보호중"
-    | "입양완료"
-    | "자연사"
-    | "무지개다리"
-    | "임시보호중"
-    | "반환"
-    | "방사";
-  personality?: string | null;
-  centerId?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  animalImages?: Array<{
-    id: string;
-    imageUrl: string;
-    orderIndex: number;
-  }>;
-  waitingDays?: number | null;
-  foundLocation?: string | null;
-  description?: string | null;
-  activityLevel?: string | null;
-  sensitivity?: string | null;
-  sociability?: string | null;
+export type PetCardAnimal = Pick<
+  Animal,
+  | "id"
+  | "name"
+  | "breed"
+  | "isFemale"
+  | "status"
+  | "centerId"
+  | "animalImages"
+  | "foundLocation"
+> & {
   weight?: number | null;
   color?: string | null;
   separationAnxiety?: string | null;
@@ -217,26 +199,8 @@ export function transformRawAnimalToPetCard(
     id: raw.id,
     name: raw.name,
     isFemale: raw.is_female,
-    age: raw.age,
-    weight: raw.weight,
-    color: raw.color,
     breed: raw.breed,
-    description: raw.description,
     status: raw.status,
-    waitingDays: raw.waiting_days,
-    activityLevel: raw.activity_level,
-    sensitivity: raw.sensitivity,
-    sociability: raw.sociability,
-    separationAnxiety: raw.separation_anxiety,
-    specialNotes: raw.special_notes,
-    healthNotes: raw.health_notes,
-    basicTraining: raw.basic_training,
-    trainerComment: raw.trainer_comment,
-    announceNumber: raw.announce_number,
-    announcementDate: raw.announcement_date,
-    admissionDate: raw.admission_date,
-    foundLocation: raw.found_location,
-    personality: raw.personality,
     centerId: raw.center_id,
     animalImages: raw.animal_images
       ? raw.animal_images.map((img) => ({
@@ -245,7 +209,16 @@ export function transformRawAnimalToPetCard(
           orderIndex: img.order_index,
         }))
       : [],
-    createdAt: raw.created_at,
-    updatedAt: raw.updated_at,
+    foundLocation: raw.found_location,
+    weight: raw.weight,
+    color: raw.color,
+    separationAnxiety: raw.separation_anxiety,
+    specialNotes: raw.special_notes,
+    healthNotes: raw.health_notes,
+    basicTraining: raw.basic_training,
+    trainerComment: raw.trainer_comment,
+    announceNumber: raw.announce_number,
+    announcementDate: raw.announcement_date,
+    admissionDate: raw.admission_date,
   };
 }

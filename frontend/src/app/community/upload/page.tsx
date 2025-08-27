@@ -113,6 +113,7 @@ export default function CommunityUploadPage() {
 
     return transformedAnimals as PetCardAnimal[];
   }, [adoptionsData]);
+
   // 찜한 동물 목록
   const { data: favoriteAnimalsData } = useGetAnimalFavorites(1, 100);
 
@@ -234,58 +235,64 @@ export default function CommunityUploadPage() {
     }
   }, [title, content, selectedPet, uploadedImageUrls, tags]);
 
-  const handleConfirmSave = () => {
-    console.log("전송할 데이터:", {
-      title,
-      content,
-      tags,
-      images: [],
-      adoption_id: selectedAdoptionId || undefined,
-      is_all_access: publicType === "public",
-    });
+  const handleConfirmSave = async () => {
+    try {
+      let imageUrls: string[] = [];
 
-    // 먼저 포스트를 생성
-    createPost(
-      {
-        title,
-        content,
-        tags,
-        images: [],
-        adoption_id: selectedAdoptionId || undefined,
-        is_all_access: publicType === "public", // 전체공개 = true, 센터공개 = false
-      },
-      {
-        onSuccess: (postData) => {
-          console.log("포스트 생성 성공:", postData);
-          // 포스트 생성 성공 후 이미지가 있으면 업로드
-          if (uploadedFiles.length > 0) {
-            uploadImages(
-              {
-                postId: postData.community.id,
-                images: uploadedFiles,
+      // 이미지가 있으면 먼저 업로드
+      if (uploadedFiles.length > 0) {
+        // 임시 포스트 ID 생성 (실제로는 서버에서 생성됨)
+        const tempPostId = "temp_" + Date.now();
+
+        // 이미지 업로드 수행
+        const uploadResult = await new Promise<{
+          message: string;
+          images: string[];
+        }>((resolve, reject) => {
+          uploadImages(
+            {
+              postId: tempPostId,
+              images: uploadedFiles,
+            },
+            {
+              onSuccess: (data) => {
+                resolve(data);
               },
-              {
-                onSuccess: () => {
-                  setShowSaveModal(false);
-                  router.back();
-                },
-                onError: (error) => {
-                  console.error("이미지 업로드 실패:", error);
-                },
-              }
-            );
-          } else {
-            // 이미지가 없으면 바로 뒤로가기
+              onError: (error) => {
+                reject(error);
+              },
+            }
+          );
+        });
+
+        imageUrls = uploadResult.images;
+      }
+
+      // 포스트 생성 (이미지 URL 포함)
+      createPost(
+        {
+          title,
+          content,
+          tags,
+          images: imageUrls,
+          adoption_id: selectedAdoptionId || undefined,
+          is_all_access: publicType === "public", // 전체공개 = true, 센터공개 = false
+        },
+        {
+          onSuccess: (postData) => {
+            console.log("포스트 생성 성공:", postData);
             setShowSaveModal(false);
             router.back();
-          }
-        },
-        onError: (error) => {
-          console.error("포스트 생성 실패:", error);
-          console.error("에러 상세:", error.message);
-        },
-      }
-    );
+          },
+          onError: (error) => {
+            console.error("포스트 생성 실패:", error);
+            console.error("에러 상세:", error.message);
+          },
+        }
+      );
+    } catch (error) {
+      console.error("저장 중 오류 발생:", error);
+    }
   };
 
   const handleConfirmBack = () => {

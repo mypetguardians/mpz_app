@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, Trash } from "@phosphor-icons/react";
 import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
 import { MiniButton } from "@/components/ui/MiniButton";
@@ -33,7 +33,7 @@ export default function AdminPage() {
           left={
             <div className="flex items-center gap-2">
               <IconButton
-                icon={ChevronLeft}
+                icon={ArrowLeft}
                 onClick={handleBack}
                 label="뒤로가기"
               />
@@ -56,7 +56,7 @@ export default function AdminPage() {
           left={
             <div className="flex items-center gap-2">
               <IconButton
-                icon={ChevronLeft}
+                icon={ArrowLeft}
                 onClick={handleBack}
                 label="뒤로가기"
               />
@@ -81,7 +81,7 @@ export default function AdminPage() {
         left={
           <div className="flex items-center gap-2">
             <IconButton
-              icon={ChevronLeft}
+              icon={ArrowLeft}
               onClick={handleBack}
               label="뒤로가기"
             />
@@ -117,7 +117,7 @@ export default function AdminPage() {
                   </p>
                 </div>
                 <IconButton
-                  icon={Trash2}
+                  icon={Trash}
                   size="iconS"
                   onClick={() => handleDelete(admin.id)}
                   label="삭제"

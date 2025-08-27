@@ -1,48 +1,240 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Trash } from "@phosphor-icons/react";
+import { useState, useMemo, useEffect, use } from "react";
+import { useRouter } from "next/navigation";
 
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
-import { Input } from "@/components/ui/CustomInput";
-import { BigButton } from "@/components/ui/BigButton";
-import { IconButton } from "@/components/ui/IconButton";
+import { CustomInput } from "@/components/ui/CustomInput";
+import { BottomSheet } from "@/components/ui/BottomSheet";
 import { CustomModal } from "@/components/ui/CustomModal";
-import { Toast } from "@/components/ui/Toast";
-import { useGetPostDetail } from "@/hooks/query/useGetPublicPosts";
-import { useUpdatePost } from "@/hooks/mutation/useUpdatePost";
-import { useDeletePost } from "@/hooks/mutation/useDeletePost";
+import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
+import { PetCard } from "@/components/ui/PetCard";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { ImageCard } from "@/components/ui/ImageCard";
+import {
+  ArrowLeft,
+  X,
+  ArrowDownLeft,
+  Globe,
+  LockSimple,
+} from "@phosphor-icons/react";
+import { IconButton } from "@/components/ui/IconButton";
+import { MiniButton } from "@/components/ui/MiniButton";
+import {
+  useUpdatePost,
+  useGetUserAdoptions,
+  useGetAnimalFavorites,
+  useUploadImages,
+  useGetPublicPostDetail,
+} from "@/hooks";
+import type { PetCardAnimal } from "@/types/animal";
+import type { UserAdoptionOut } from "@/types/adoption";
 
-export default function EditPostPage() {
-  const params = useParams();
+// PetCardAnimal을 확장한 타입 (adoptionId 포함)
+type ExtendedPetCardAnimal = PetCardAnimal & { adoptionId?: string };
+
+type PublicType = "center" | "public";
+
+export default function CommunityEditPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuth();
+  const { id: postId } = use(params); // params를 unwrap
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [selectedPet, setSelectedPet] = useState<ExtendedPetCardAnimal | null>(
+    null
+  );
+  const [selectedAdoptionId, setSelectedAdoptionId] = useState<string | null>(
+    null
+  );
+
+  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [tags, setTags] = useState<string[]>([]);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
+  const [showPetSelection, setShowPetSelection] = useState(false);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [showBackConfirmSheet, setShowBackConfirmSheet] = useState(false);
+  const [activeTab, setActiveTab] = useState("adoption");
+  const [publicType, setPublicType] = useState<PublicType>("center");
 
-  // 게시글 데이터 가져오기
-  const {
-    data: postDetailData,
-    isLoading: isPostLoading,
-    error: postError,
-  } = useGetPostDetail(params.id as string);
+  const { data: postData } = useGetPublicPostDetail(postId);
 
-  const updatePostMutation = useUpdatePost();
-  const deletePostMutation = useDeletePost();
+  const { mutate: updatePost } = useUpdatePost();
+  const { mutate: uploadImages } = useUploadImages();
 
-  // 게시글 데이터
-  const post = postDetailData?.post;
+  const { user } = useAuth();
+  const isAdmin = user?.userType !== "일반사용자";
 
-  // 현재 사용자가 게시글 작성자인지 확인
-  const isMyPost = user?.id && post?.userId && user.id === post.userId;
+  // 기존 포스트 데이터를 초기값으로 설정
+  useEffect(() => {
+    if (postData?.post) {
+      setTitle(postData.post.title || "");
+      setContent(postData.post.content || "");
+      setTags(postData.post.tags?.map((tag) => tag.tagName) || []);
+      setPublicType(postData.post.adoptionId ? "center" : "public");
+
+      // 기존 이미지가 있다면 설정
+      if (postData.post.images && postData.post.images.length > 0) {
+        setUploadedImageUrls(postData.post.images.map((img) => img.imageUrl));
+      }
+
+      // 기존 adoption_id가 있다면 설정
+      if (postData.post.adoptionId) {
+        setSelectedAdoptionId(postData.post.adoptionId);
+        // adoptionAnimals에서 해당 동물 찾기
+        // 이 부분은 adoptionAnimals가 로드된 후에 처리해야 함
+      }
+    }
+  }, [postData]);
+
+  // 사용자 타입에 따라 초기 공개 범위를 지정
+  useEffect(() => {
+    if (!user) return;
+    if (!postData) {
+      // 기존 데이터가 없을 때만 설정
+      setPublicType(isAdmin ? "center" : "public");
+    }
+  }, [isAdmin, user, postData]);
+
+  const { data: adoptionsData } = useGetUserAdoptions({
+    filters: {
+      status: undefined,
+    },
+  });
+
+  const adoptionAnimals = useMemo(() => {
+    const adoptionsArray =
+      (adoptionsData as { data?: UserAdoptionOut[] })?.data || adoptionsData;
+    if (!adoptionsArray || !Array.isArray(adoptionsArray)) return [];
+
+    // PetCardAnimal 형태로 변환
+    const transformedAnimals = adoptionsArray.map((adoption) => ({
+      id: adoption.animal_id,
+      name: adoption.animal_name,
+      breed: adoption.animal_breed,
+      isFemale: adoption.animal_is_female,
+      status: adoption.animal_status as PetCardAnimal["status"],
+      centerId: adoption.center_id,
+      animalImages: adoption.animal_image
+        ? [
+            {
+              id: "1",
+              imageUrl: adoption.animal_image,
+              orderIndex: 1,
+            },
+          ]
+        : undefined,
+      foundLocation: adoption.center_location || "위치 정보 확인 불가",
+      adoptionId: adoption.id, // adoption ID 추가
+    }));
+
+    return transformedAnimals as PetCardAnimal[];
+  }, [adoptionsData]);
+
+  // 기존 adoption_id가 있을 때 해당 동물을 selectedPet으로 설정
+  useEffect(() => {
+    if (selectedAdoptionId && adoptionAnimals.length > 0 && !selectedPet) {
+      const matchingPet = adoptionAnimals.find(
+        (pet) =>
+          (pet as ExtendedPetCardAnimal).adoptionId === selectedAdoptionId
+      );
+      if (matchingPet) {
+        setSelectedPet(matchingPet as ExtendedPetCardAnimal);
+      }
+    }
+  }, [selectedAdoptionId, adoptionAnimals, selectedPet]);
+
+  // 찜한 동물 목록
+  const { data: favoriteAnimalsData } = useGetAnimalFavorites(1, 100);
+
+  const favoriteAnimals = useMemo(() => {
+    if (!favoriteAnimalsData?.animals) {
+      return [];
+    }
+
+    const transformed = favoriteAnimalsData.animals.map((favoriteAnimal) => {
+      return {
+        id: favoriteAnimal.id,
+        name: favoriteAnimal.name,
+        breed: favoriteAnimal.breed,
+        isFemale: favoriteAnimal.isFemale,
+        status: favoriteAnimal.status,
+        centerId: favoriteAnimal.centerId,
+        animalImages: [
+          { id: "1", imageUrl: "/img/dummyImg.jpeg", orderIndex: 1 },
+        ],
+        foundLocation: "위치 정보 확인 불가", // 기본 지역 설정
+      };
+    }) as PetCardAnimal[];
+
+    return transformed;
+  }, [favoriteAnimalsData]);
+
+  // 현재 활성 탭에 따른 동물 목록
+  const animals = useMemo(() => {
+    const result = activeTab === "adoption" ? adoptionAnimals : favoriteAnimals;
+    return result;
+  }, [activeTab, adoptionAnimals, favoriteAnimals]);
+
+  // 현재 활성 탭에 따른 페이지네이션 정보
+  const hasNextPage = false;
+  const isFetchingNextPage = false;
+  const fetchNextPage = () => {};
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      const newFiles = Array.from(files);
+      const newImageUrls = newFiles.map((file) => URL.createObjectURL(file));
+      setUploadedFiles((prev) => [...prev, ...newFiles]);
+      setUploadedImageUrls((prev) => [...prev, ...newImageUrls]);
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setUploadedImageUrls((prev) => prev.filter((_, i) => i !== index));
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const removePet = () => {
+    setSelectedPet(null);
+    setSelectedAdoptionId(null);
+  };
+
+  const handlePetSelect = (pet: PetCardAnimal, adoptionId: string) => {
+    setSelectedPet(pet);
+    setSelectedAdoptionId(adoptionId);
+    setShowPetSelection(false);
+  };
+
+  const handleBack = () => {
+    setShowBackConfirmSheet(true);
+  };
+
+  const handleSave = () => {
+    setShowSaveModal(true);
+  };
+
+  const handlePublicChange = () => {
+    setPublicType(publicType === "center" ? "public" : "center");
+  };
+
+  const getPublicIcon = () => {
+    return publicType === "center" ? (
+      <LockSimple size={16} />
+    ) : (
+      <Globe size={16} />
+    );
+  };
+
+  const getPublicText = () => {
+    return publicType === "center" ? "센터공개" : "전체공개";
+  };
 
   // 태그 추출 함수
   const extractTags = (text: string): string[] => {
@@ -50,210 +242,128 @@ export default function EditPostPage() {
     const matches = text.match(tagRegex);
     if (!matches) return [];
 
-    // # 제거하고 중복 제거
-    return [...new Set(matches.map((tag) => tag.slice(1)))];
+    // # 제거하고 중복 제거, 빈 문자열 필터링
+    return [
+      ...new Set(
+        matches.map((tag) => tag.slice(1)).filter((tag) => tag.length > 0)
+      ),
+    ];
   };
 
   // 내용이 변경될 때마다 태그 추출
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newContent = e.target.value;
     setContent(newContent);
-    setTags(extractTags(newContent));
+
+    // 기존 태그와 새로 추출된 태그를 합침
+    const extractedTags = extractTags(newContent);
+    const existingTags =
+      postData?.post?.tags?.map((tag) => tag.tagName).filter(Boolean) || [];
+
+    // 기존 태그와 새로 입력한 태그를 모두 포함, 유효한 문자열만 필터링
+    const allTags = [...new Set([...existingTags, ...extractedTags])].filter(
+      (tag) => typeof tag === "string" && tag.length > 0
+    );
+    setTags(allTags);
   };
 
-  // 게시글 데이터가 로드되면 폼에 설정
-  useEffect(() => {
-    if (post) {
-      setTitle(post.title || "");
-      setContent(post.content || "");
-      setTags(extractTags(post.content || ""));
-    }
-  }, [post]);
-
-  // 권한 확인
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push("/login");
-      return;
-    }
-
-    if (post && !isMyPost) {
-      router.push("/community");
-      return;
-    }
-  }, [isAuthenticated, post, isMyPost, router]);
-
-  // 토스트 자동 숨김
-  useEffect(() => {
-    if (showToast) {
-      const timer = setTimeout(() => {
-        setShowToast(false);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [showToast]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!title.trim() || !content.trim()) {
-      setToastMessage("제목과 내용을 모두 입력해주세요.");
-      setShowToast(true);
-      return;
-    }
-
-    try {
-      // 게시글 수정
-      await updatePostMutation.mutateAsync({
-        postId: params.id as string,
+  const handleConfirmSave = () => {
+    // 먼저 포스트를 수정
+    updatePost(
+      {
+        postId: postId,
         data: {
-          title: title.trim(),
-          content: content.trim(),
-          contentTags: tags.join(","), // 태그를 쉼표로 구분하여 contentTags에 저장
+          title,
+          content,
+          tags,
+          images: [],
         },
-      });
-
-      // 태그는 updatePost에서 처리됨 (서버에서 기존 태그 삭제 후 새로 생성)
-
-      // 수정 완료 후 상세 페이지로 이동
-      router.push(`/community/${params.id}`);
-    } catch (error) {
-      console.error("게시글 수정 실패:", error);
-    }
+      },
+      {
+        onSuccess: (response) => {
+          console.log("포스트 수정 성공:", response);
+          // 포스트 수정 성공 후 새로 업로드된 이미지가 있으면 업로드
+          if (uploadedFiles.length > 0) {
+            uploadImages(
+              {
+                postId: postId,
+                images: uploadedFiles,
+              },
+              {
+                onSuccess: () => {
+                  setShowSaveModal(false);
+                  router.back();
+                },
+                onError: (error) => {
+                  console.error("이미지 업로드 실패:", error);
+                },
+              }
+            );
+          } else {
+            // 새로 업로드된 이미지가 없으면 바로 뒤로가기
+            setShowSaveModal(false);
+            router.back();
+          }
+        },
+        onError: (error) => {
+          console.error("포스트 수정 실패:", error);
+          console.error("에러 상세:", error.message);
+        },
+      }
+    );
   };
 
-  const handleDelete = async () => {
-    try {
-      await deletePostMutation.mutateAsync(params.id as string);
-      setShowDeleteModal(false);
-      setToastMessage("게시글이 삭제되었습니다.");
-      setShowToast(true);
-
-      // 삭제 완료 후 목록으로 이동
-      setTimeout(() => {
-        router.push("/community");
-      }, 1000);
-    } catch (error) {
-      console.error("게시글 삭제 실패:", error);
-    }
+  const handleConfirmBack = () => {
+    setShowBackConfirmSheet(false);
+    router.back();
   };
-
-  // 로딩 상태
-  if (isPostLoading) {
-    return (
-      <Container className="min-h-screen bg-white">
-        <TopBar
-          variant="variant5"
-          left={
-            <div className="flex items-center gap-2">
-              <IconButton
-                icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
-                size="iconM"
-                onClick={() => router.back()}
-              />
-              <h2>게시글 수정</h2>
-            </div>
-          }
-        />
-        <div className="flex flex-col items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-        </div>
-      </Container>
-    );
-  }
-
-  // 에러 상태
-  if (postError || !post) {
-    return (
-      <Container className="min-h-screen bg-white">
-        <TopBar
-          variant="variant5"
-          left={
-            <div className="flex items-center gap-2">
-              <IconButton
-                icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
-                size="iconM"
-                onClick={() => router.back()}
-              />
-              <h2>게시글 수정</h2>
-            </div>
-          }
-        />
-        <div className="flex flex-col items-center justify-center min-h-screen">
-          <p className="text-gray-500">게시글을 찾을 수 없습니다.</p>
-        </div>
-      </Container>
-    );
-  }
 
   return (
     <Container className="min-h-screen bg-white">
       <TopBar
-        variant="variant5"
-        className="border-b border-lg"
+        variant="variant4"
         left={
           <div className="flex items-center gap-2">
             <IconButton
               icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
               size="iconM"
-              onClick={() => router.back()}
+              onClick={handleBack}
             />
+            <h3>글 수정하기</h3>
           </div>
-        }
-        center={<h4>게시글 수정</h4>}
-        right={
-          <IconButton
-            icon={({ size }) => <Trash size={size} weight="bold" />}
-            size="iconM"
-            onClick={() => setShowDeleteModal(true)}
-            className="text-red-500"
-          />
         }
       />
 
-      <form onSubmit={handleSubmit} className="flex-1 p-4 space-y-4">
+      <div className="px-4 pb-24">
         {/* 제목 입력 */}
-        <div className="space-y-2">
-          <label htmlFor="title" className="text-sm font-medium text-gray-700">
-            제목
-          </label>
-          <Input
-            id="title"
+        <div className="mb-6">
+          <CustomInput
+            label="제목"
+            placeholder="제목을 입력하세요."
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="제목을 입력하세요"
-            maxLength={100}
-            required
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setTitle(e.target.value)
+            }
+            variant="primary"
           />
         </div>
 
         {/* 내용 입력 */}
-        <div className="space-y-2">
-          <label
-            htmlFor="content"
-            className="text-sm font-medium text-gray-700"
-          >
-            내용
-          </label>
+        <div className="mb-6">
+          <h5 className="text-dg mb-2">내용</h5>
           <textarea
-            id="content"
+            placeholder="오늘은 어떤 이야기를 나눠볼까요? 사진과 태그를 이용해 자유롭게 작성해보세요! #태그를 사용해보세요"
             value={content}
             onChange={handleContentChange}
-            placeholder="내용을 입력하세요. #태그를 사용해보세요"
-            className="w-full h-48 p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            maxLength={2000}
-            required
+            className="w-full h-32 p-4 border border-lg rounded-md resize-none text-body placeholder:text-gr focus:outline-none focus:border-brand"
           />
-          <div className="text-right text-sm text-gray-500">
-            {content.length}/2000
-          </div>
           {/* 추출된 태그 표시 */}
           {tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
+            <div className="mt-2 flex flex-wrap gap-2">
               {tags.map((tag, index) => (
                 <span
                   key={index}
-                  className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                  className="px-2 py-1 bg-brand-op text-white text-xs rounded-full"
                 >
                   #{tag}
                 </span>
@@ -262,45 +372,166 @@ export default function EditPostPage() {
           )}
         </div>
 
-        {/* 버튼 영역 */}
-        <div className="space-y-3 pt-4">
-          <BigButton
-            type="submit"
-            variant="primary"
-            disabled={updatePostMutation.isPending}
-            className="w-full"
-          >
-            {updatePostMutation.isPending ? "수정 중..." : "수정 완료"}
-          </BigButton>
+        {/* 관련 공고 선택 */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <h5 className="text-dg">관련 공고</h5>
+            <MiniButton
+              leftIcon={<ArrowDownLeft />}
+              text="공고 선택"
+              onClick={() => setShowPetSelection(true)}
+            />
+          </div>
 
-          <BigButton
-            type="button"
-            variant="variant3"
-            onClick={() => router.back()}
-            className="w-full"
-          >
-            취소
-          </BigButton>
+          {selectedPet ? (
+            <div className="relative">
+              <PetCard
+                pet={selectedPet}
+                variant="variant4"
+                className="w-full"
+              />
+              <IconButton
+                icon={({ size }) => <X size={size} />}
+                size="iconS"
+                onClick={removePet}
+                className="absolute top-3 right-3 text-gray-400"
+              />
+            </div>
+          ) : (
+            <div className="p-7.5 h-20 flex items-center justify-center bg-bg text-gr rounded-lg">
+              <span className="text-center">아직 선택된 공고가 없어요.</span>
+            </div>
+          )}
         </div>
-      </form>
 
-      {/* 삭제 확인 모달 */}
-      <CustomModal
-        open={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
-        title="게시글을 삭제하시겠습니까?"
-        description="삭제된 게시글은 되돌릴 수 없습니다."
+        {/* 사진/영상 업로드 */}
+        <div className="mb-6">
+          <h5 className="text-dg mb-2">사진 / 영상 업로드</h5>
+          <div className="flex gap-3 flex-wrap">
+            {/* 업로드 버튼 */}
+            <label>
+              <ImageCard
+                variant="add"
+                onClick={() => {}}
+                className="w-20 h-20"
+              />
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+            </label>
+
+            {/* 기존 이미지들 */}
+            {uploadedImageUrls.map((imageUrl, index) => (
+              <ImageCard
+                key={index}
+                src={imageUrl}
+                alt={`이미지 ${index + 1}`}
+                variant="primary"
+                onRemove={() => removeImage(index)}
+                className="w-20 h-20"
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* 하단 고정 버튼 */}
+      <FixedBottomBar
         variant="variant2"
-        ctaText="삭제"
-        onCtaClick={handleDelete}
+        resetButtonText={getPublicText()}
+        resetButtonLeft={getPublicIcon()}
+        onResetButtonClick={handlePublicChange}
+        applyButtonText="수정하기"
+        onApplyButtonClick={handleSave}
+        applyButtonDisabled={false}
       />
 
-      {/* 토스트 */}
-      {showToast && (
-        <div className="fixed bottom-4 left-4 right-4 z-[10000]">
-          <Toast>{toastMessage}</Toast>
+      {/* 공고 선택 BottomSheet */}
+      <BottomSheet
+        open={showPetSelection}
+        onClose={() => setShowPetSelection(false)}
+        variant="variant7"
+        title="어떤 공고를 선택할까요?"
+        tabs={[
+          { label: "입양 진행중인 동물", value: "adoption" },
+          { label: "찜한 동물 리스트", value: "favorite" },
+        ]}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      >
+        <div className="h-[480px] overflow-y-auto">
+          {animals.length > 0 ? (
+            <>
+              <div className="flex flex-wrap justify-start gap-2 px-4">
+                {animals.map((pet: PetCardAnimal) => (
+                  <div
+                    key={pet.id}
+                    onClick={() =>
+                      handlePetSelect(
+                        pet,
+                        (pet as ExtendedPetCardAnimal).adoptionId || ""
+                      )
+                    }
+                    className="cursor-pointer w-[calc(50%-4px)]"
+                  >
+                    <PetCard
+                      pet={pet}
+                      variant="primary"
+                      imageSize="full"
+                      className="w-full"
+                    />
+                  </div>
+                ))}
+              </div>
+              {hasNextPage && (
+                <div className="px-4 py-3">
+                  <MiniButton
+                    text={isFetchingNextPage ? "불러오는 중..." : "더 보기"}
+                    onClick={() => fetchNextPage()}
+                  />
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center text-gray-500">
+                {activeTab === "adoption"
+                  ? "등록된 동물이 없습니다."
+                  : "찜한 동물이 없습니다."}
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </BottomSheet>
+
+      {/* 뒤로가기 확인 BottomSheet */}
+      <BottomSheet
+        open={showBackConfirmSheet}
+        onClose={() => setShowBackConfirmSheet(false)}
+        variant="primary"
+        title="잠을 닫으면 저장되지 않아요!"
+        description="작성한 내용은 저장 및 복구가 불가능해요."
+        leftButtonText="취소"
+        rightButtonText="괜찮아요"
+        onLeftClick={() => setShowBackConfirmSheet(false)}
+        onRightClick={handleConfirmBack}
+      />
+
+      {/* 저장 확인 모달 */}
+      <CustomModal
+        open={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        title="글을 수정할까요?"
+        variant="variant1"
+        leftButtonText="취소"
+        rightButtonText="수정하기"
+        onLeftClick={() => setShowSaveModal(false)}
+        onRightClick={handleConfirmSave}
+      />
     </Container>
   );
 }

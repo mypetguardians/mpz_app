@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { AdoptorNotificationCard } from "./AdoptorNotificationCard";
 import { useGetCenterAdoptions } from "@/hooks/query/useGetCenterAdoptions";
-import type { CenterAdoption } from "@/hooks/query/useGetCenterAdoptions";
+import type { CenterAdoptionData } from "@/types/center-adoption";
 
 type TabType = "application" | "foster" | "adopter";
 
@@ -40,9 +40,9 @@ const mapApiStatusToUIStatus = (apiStatus: string): AdoptorData["status"] => {
 
 // API 데이터를 UI 데이터로 변환하는 함수
 const transformApiDataToUI = (
-  adoption: CenterAdoption
+  adoption: CenterAdoptionData
 ): AdoptorData & { apiStatus: string } => {
-  const createdAt = new Date(adoption.createdAt);
+  const createdAt = new Date(adoption.created_at);
   const now = new Date();
   const diffInHours = Math.floor(
     (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60)
@@ -60,31 +60,29 @@ const transformApiDataToUI = (
 
   return {
     id: adoption.id,
-    userName: adoption.userInfo.name,
+    userName: adoption.user_info.name,
     profileImage: "/img/dummyImg.jpeg", // 기본 이미지 사용
     timeAgo,
     status: mapApiStatusToUIStatus(adoption.status),
     isGrayscale: adoption.status === "취소",
     region: "서울", // API에서 지역 정보가 없으므로 기본값
-    createdAt: adoption.createdAt,
+    createdAt: adoption.created_at,
     apiStatus: adoption.status, // API 상태값 추가
   };
 };
 
 // API 상태 필터링 함수
 const filterApiDataByTab = (
-  adoptions: CenterAdoption[],
+  adoptions: CenterAdoptionData[],
   tabType: TabType
-): CenterAdoption[] => {
+): CenterAdoptionData[] => {
   switch (tabType) {
     case "application":
       // 입양신청 탭: 신청, 미팅, 계약서작성, 입양완료, 모니터링, 취소 상태 모두 표시
       return adoptions;
     case "foster":
-      // 임시보호 탭: 입양완료, 모니터링 상태만 표시
-      return adoptions.filter((adoption) =>
-        ["입양완료", "모니터링"].includes(adoption.status)
-      );
+      // 임시보호 탭: API에서 이미 is_temporary_protection=true로 필터링된 데이터가 옴
+      return adoptions;
     case "adopter":
       // 입양자 탭: 입양완료, 모니터링 상태만 표시
       return adoptions.filter((adoption) =>
@@ -137,29 +135,31 @@ function AdoptorListTab() {
     page: 1,
     limit: 50,
     status: apiStatusFilter,
+    is_temporary_protection: tabType === "foster" ? true : undefined,
   });
 
   // API 데이터를 UI 데이터로 변환
   const adoptors = useMemo(() => {
-    if (!adoptionsData?.adoptions) return [];
+    if (!adoptionsData?.data) {
+      return [];
+    }
 
     // 탭별로 데이터 필터링
-    const filteredAdoptions = filterApiDataByTab(
-      adoptionsData.adoptions,
-      tabType
-    );
+    const filteredAdoptions = filterApiDataByTab(adoptionsData.data, tabType);
 
     // 검색어로 필터링
     const searchFiltered = searchQuery
       ? filteredAdoptions.filter((adoption) =>
-          adoption.userInfo.name
+          adoption.user_info.name
             .toLowerCase()
             .includes(searchQuery.toLowerCase())
         )
       : filteredAdoptions;
 
     // UI 데이터로 변환
-    return searchFiltered.map(transformApiDataToUI);
+    const result = searchFiltered.map(transformApiDataToUI);
+
+    return result;
   }, [adoptionsData, tabType, searchQuery]);
 
   if (isLoading) {

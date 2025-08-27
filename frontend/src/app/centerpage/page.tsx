@@ -29,6 +29,7 @@ export default function MyPage() {
   const [showLogoutToast, setShowLogoutToast] = useState(false);
   const { isAuthenticated, logout } = useAuth();
   const { data: myCenter } = useGetMyCenter();
+  console.log(myCenter);
   const isSubscriber = myCenter?.isSubscriber === true;
 
   // 로그아웃 처리 함수
@@ -138,7 +139,7 @@ export default function MyPage() {
                   </div>
                 ) : (
                   <span className="font-medium text-black">
-                    로그인을 해주세요.
+                    센터 이름 불러오기에 실패했습니다..
                   </span>
                 )}
                 {isSubscriber && (

@@ -3,6 +3,7 @@ import axios, {
   AxiosError,
   InternalAxiosRequestConfig,
 } from "axios";
+import Cookies from "js-cookie";
 
 const BASE_URL = "https://mpzfullstack-production.up.railway.app/v1/";
 
@@ -15,7 +16,7 @@ const instance: AxiosInstance = axios.create({
 instance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     // 로컬 스토리지에서 access_token 가져오기
-    const accessToken = localStorage.getItem("access_token");
+    const accessToken = Cookies.get("access");
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }

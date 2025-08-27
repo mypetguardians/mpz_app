@@ -180,7 +180,6 @@ export default function CommunityPage() {
         />
         {/* 디버깅용: tabs 배열 확인 */}
         {(() => {
-          console.log("TabButton에 전달되는 tabs:", tabs);
           return null;
         })()}
       </div>

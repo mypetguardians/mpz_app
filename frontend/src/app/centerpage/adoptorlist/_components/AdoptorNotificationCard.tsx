@@ -1,8 +1,8 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-
 import { cn } from "@/lib/utils";
 import { Chip } from "@/components/ui/Chip";
+import type { CenterAdoptionData } from "@/types/center-adoption";
 
 interface AdoptorNotificationCardProps {
   id: string;
@@ -13,6 +13,7 @@ interface AdoptorNotificationCardProps {
   isGrayscale?: boolean;
   tabType?: "application" | "foster" | "adopter";
   apiStatus?: string; // API 상태값 추가
+  adoption?: CenterAdoptionData; // 입양 데이터 추가
 }
 
 function AdoptorNotificationCard({
@@ -29,30 +30,30 @@ function AdoptorNotificationCard({
 
   const handleCardClick = () => {
     console.log("Card clicked:", { id, tabType, apiStatus });
-    
+
     // API 상태에 따른 단계별 이동
     if (apiStatus) {
       switch (apiStatus) {
         case "신청":
-          router.push(`/centerpage/adoptorlist/application/request/${id}`);
+          router.push(`/centerpage/adoptorlist/application/${id}/request`);
           break;
         case "미팅":
-          router.push(`/centerpage/adoptorlist/application/meeting/${id}`);
+          router.push(`/centerpage/adoptorlist/application/${id}/meeting`);
           break;
         case "계약서작성":
-          router.push(`/centerpage/adoptorlist/application/contractform/${id}`);
+          router.push(`/centerpage/adoptorlist/application/${id}/contractform`);
           break;
         case "입양완료":
-          router.push(`/centerpage/adoptorlist/application/complete/${id}`);
+          router.push(`/centerpage/adoptorlist/application/${id}/complete`);
           break;
         case "모니터링":
-          router.push(`/centerpage/adoptorlist/application/monitoring/${id}`);
+          router.push(`/centerpage/adoptorlist/application/${id}/monitoring`);
           break;
         case "취소":
-          router.push(`/centerpage/adoptorlist/application/refuse/${id}`);
+          router.push(`/centerpage/adoptorlist/application/${id}/refuse`);
           break;
         default:
-          router.push(`/centerpage/adoptorlist/application/request/${id}`);
+          router.push(`/centerpage/adoptorlist/application/${id}/request`);
       }
     } else {
       // 기존 로직 (fallback)
@@ -61,7 +62,7 @@ function AdoptorNotificationCard({
       } else if (tabType === "adopter") {
         router.push(`/centerpage/adoptorlist/adopter/${id}`);
       } else {
-        router.push(`/centerpage/adoptorlist/application/request/${id}`);
+        router.push(`/centerpage/adoptorlist/application/${id}/request`);
       }
     }
   };

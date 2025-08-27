@@ -49,7 +49,6 @@ ANIMAL_MATCHING_ANALYSIS_PROMPT = """
 
 요청 조건:
 - 추천할 동물 수: {limit}마리
-- 추가 선호사항: {preferences}
 
 위 정보를 바탕으로 다음 구조로 분석해주세요:
 
@@ -75,7 +74,6 @@ SIMPLE_RECOMMENDATION_PROMPT = """
 
 요청 조건:
 - 추천할 동물 수: {limit}개
-- 추가 선호사항: {preferences}
 
 다음 단계로 진행해주세요:
 1. get_user_personality_test_data 도구를 사용하여 사용자 ID {user_id}의 personality.answers를 조회해주세요

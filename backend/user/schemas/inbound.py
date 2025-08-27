@@ -14,9 +14,6 @@ class UserUpdateIn(Schema):
     nickname: str = Field(None, min_length=1, max_length=50, description="닉네임 (1-50자)")
     name: str = Field(None, max_length=100, description="실명")
     phone_number: str = Field(None, max_length=20, description="전화번호")
-    birth: str = Field(None, description="생년월일 (YYYY-MM-DD 형식)")
-    address: str = Field(None, max_length=500, description="주소")
-    address_is_public: bool = Field(None, description="주소 공개 여부")
     image: str = Field(None, max_length=500, description="프로필 이미지 URL")
 
 

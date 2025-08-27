@@ -107,7 +107,8 @@ export default function Notification() {
     );
   }
 
-  const notifications = notificationsData?.notifications || [];
+  const notifications = notificationsData?.data || [];
+  console.log(notifications);
 
   return (
     <Container className="min-h-screen">
@@ -137,9 +138,9 @@ export default function Notification() {
               key={item.id}
               variant="primary"
               title={item.title}
-              message={item.content}
-              date={item.createdAt}
-              type={item.type}
+              date={item.created_at}
+              type={item.notification_type}
+              // TODO 노티 타입
             />
           ))
         )}

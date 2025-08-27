@@ -12,14 +12,14 @@ export interface StepProps {
 }
 
 export function Step7({ onNext }: StepProps) {
-  const [selectedAttitude, setSelectedAttitude] = React.useState<number | null>(
+  const [selectedAttitude, setSelectedAttitude] = React.useState<string | null>(
     null
   );
   const { setStepAnswer } = useMatchingStepStore();
 
   const handleNext = () => {
     if (selectedAttitude !== null) {
-      setStepAnswer(7, { type: "custom", value: selectedAttitude.toString() });
+      setStepAnswer(7, { type: "custom", value: selectedAttitude });
       onNext();
     }
   };
@@ -52,8 +52,8 @@ export function Step7({ onNext }: StepProps) {
             <SelectButton
               key={option.id}
               variant="1"
-              selected={selectedAttitude === option.id}
-              onClick={() => setSelectedAttitude(option.id)}
+              selected={selectedAttitude === option.text}
+              onClick={() => setSelectedAttitude(option.text)}
               className="w-full text-left"
             >
               <span className="text-sm">{option.text}</span>

@@ -135,6 +135,7 @@ class User(AbstractUser, BaseModel):
     )
     
     # 추가 필드들
+    name = models.CharField(max_length=100, blank=True, null=True, help_text="실명")
     nickname = models.CharField(max_length=100, blank=True, null=True, help_text="닉네임")
     phone_number = models.CharField(max_length=20, blank=True, null=True, help_text="전화번호")
     user_type = models.CharField(

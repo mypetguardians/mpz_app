@@ -39,10 +39,6 @@ export default function MatchingQuestionPage() {
     }
   }, [currentStep, setCurrentStep, canGoToStep, router]);
 
-  useEffect(() => {
-    console.log(useMatchingStepStore.getState().answers);
-  }, [currentStep]);
-
   const handleNext = () => {
     markStepCompleted(currentStep);
     goToNextStep();
@@ -59,7 +55,7 @@ export default function MatchingQuestionPage() {
     7: <Step7 onNext={handleNext} />,
     8: <Step8 onNext={handleNext} />,
     9: <Step9 onNext={handleNext} />,
-    10: <Step10 onNext={() => router.push("/")} />,
+    10: <Step10 onNext={() => router.push("/matching/result")} />,
   };
 
   if (!stepsMap[currentStep]) {

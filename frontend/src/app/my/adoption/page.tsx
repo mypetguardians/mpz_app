@@ -9,7 +9,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { PetCard } from "@/components/ui/PetCard";
 import { useGetUserAdoptions } from "@/hooks/query/useGetUserAdoptions";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { AdoptionData } from "@/types/adoption";
+import { UserAdoptionOut } from "@/types/adoption";
 
 export default function AdoptionPage() {
   const router = useRouter();
@@ -19,11 +19,7 @@ export default function AdoptionPage() {
     data: adoptionsData,
     isLoading: adoptionsLoading,
     error,
-  } = useGetUserAdoptions({
-    userId: user?.id || "",
-    page: 1,
-    limit: 20,
-  });
+  } = useGetUserAdoptions();
 
   const handleBack = () => {
     router.back();
@@ -47,7 +43,7 @@ export default function AdoptionPage() {
           }
         />
         <div className="flex flex-col gap-3 px-4 py-4">
-          <div className="text-center text-base py-8 text-lg">
+          <div className="text-center text-sm py-8 text-lg">
             로그인 정보를 확인하는 중...
           </div>
         </div>
@@ -66,7 +62,7 @@ export default function AdoptionPage() {
               <IconButton
                 icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
                 size="iconM"
-                onClick={handleBack}
+                onClick={() => router.push("/my")}
               />
               <h4>내 입양 현황</h4>
             </div>
@@ -170,7 +166,7 @@ export default function AdoptionPage() {
             <IconButton
               icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
               size="iconM"
-              onClick={handleBack}
+              onClick={() => router.push("/my")}
             />
             <h4>내 입양 현황</h4>
           </div>
@@ -178,7 +174,7 @@ export default function AdoptionPage() {
       />
       <div className="flex flex-col gap-3 px-4 py-4">
         {adoptionsData?.data && adoptionsData.data.length > 0 ? (
-          adoptionsData.data.map((adoption: AdoptionData) => {
+          adoptionsData.data.map((adoption: UserAdoptionOut) => {
             return (
               <div
                 key={adoption.id}
@@ -210,7 +206,7 @@ export default function AdoptionPage() {
                     id: adoption.animal_id,
                     name: adoption.animal_name || "이름 없음",
                     isFemale: adoption.animal_is_female,
-                    breed: "미분류", // TODO: 동물 품종 추가
+                    breed: adoption.animal_breed || "종 미등록",
                     status: (adoption.animal_status || "보호중") as
                       | "보호중"
                       | "입양완료"
@@ -220,7 +216,13 @@ export default function AdoptionPage() {
                       | "방사"
                       | "자연사",
                     animalImages: adoption.animal_image
-                      ? [adoption.animal_image]
+                      ? [
+                          {
+                            id: "1",
+                            imageUrl: adoption.animal_image,
+                            orderIndex: 0,
+                          },
+                        ]
                       : [],
                     updatedAt: adoption.updated_at,
                   }}

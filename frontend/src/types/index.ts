@@ -4,3 +4,9 @@ export * from "./animal";
 export * from "./posts";
 // Center types
 export * from "./center";
+// AI Matching types
+export * from "./ai-matching";
+// Notifications types
+export * from "./notifications";
+// Auth types
+export * from "./auth";

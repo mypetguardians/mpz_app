@@ -39,3 +39,14 @@ langchain-openai
 langgraph
 openai
 uvicorn
+
+# FCM (Firebase Cloud Messaging) packages
+firebase-admin>=6.0.0
+
+# Django Channels for real-time notifications
+channels>=4.0.0
+daphne>=4.0.0
+
+# Redis for production channel layers
+redis>=4.0.0
+channels-redis>=4.0.0

@@ -6,9 +6,19 @@ interface GetUserAdoptionsParams {
   filters?: UserAdoptionFilterIn;
 }
 
+interface UserAdoptionsResponse {
+  count: number;
+  totalCnt: number;
+  pageCnt: number;
+  curPage: number;
+  nextPage: number | null;
+  previousPage: number | null;
+  data: UserAdoptionOut[];
+}
+
 const getUserAdoptions = async (
   params: GetUserAdoptionsParams = {}
-): Promise<UserAdoptionOut[]> => {
+): Promise<UserAdoptionsResponse> => {
   const { filters } = params;
 
   const searchParams = new URLSearchParams();
@@ -28,14 +38,14 @@ const getUserAdoptions = async (
     searchParams.toString() ? `?${searchParams.toString()}` : ""
   }`;
 
-  const response = await instance.get<UserAdoptionOut[]>(url);
+  const response = await instance.get<UserAdoptionsResponse>(url);
   return response.data;
 };
 
 export function useGetUserAdoptions(params: GetUserAdoptionsParams = {}) {
   const { filters } = params;
 
-  return useQuery<UserAdoptionOut[]>({
+  return useQuery<UserAdoptionsResponse>({
     queryKey: ["user-adoptions", filters],
     queryFn: () => getUserAdoptions(params),
     staleTime: 5 * 60 * 1000, // 5분

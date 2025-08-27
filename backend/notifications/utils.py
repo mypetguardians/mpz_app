@@ -6,6 +6,17 @@ from django.conf import settings
 from notifications.models import Notification, PushToken
 from asgiref.sync import sync_to_async
 import httpx
+from django.utils import timezone
+from datetime import timedelta
+from .models import Notification
+from user.models import User
+from centers.models import Center
+from adoptions.models import Adoption, AdoptionMonitoring
+from comments.models import Comment
+from posts.models import Post
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+
 
 logger = logging.getLogger(__name__)
 
@@ -282,6 +293,30 @@ async def send_bulk_push_notification(
 
 # 편의 함수들
 
+async def send_real_time_notification(user_id: str, notification_data: dict):
+    """실시간 알림 전송 (WebSocket)"""
+    channel_layer = get_channel_layer()
+    await channel_layer.group_send(
+        f"user_{user_id}",
+        {
+            "type": "notification_message",
+            "data": notification_data
+        }
+    )
+
+
+async def send_broadcast_notification(notification_data: dict):
+    """관리자들에게 브로드캐스트 알림 전송"""
+    channel_layer = get_channel_layer()
+    await channel_layer.group_send(
+        "admin_notifications",
+        {
+            "type": "admin_notification_message",
+            "data": notification_data
+        }
+    )
+
+
 async def send_adoption_update_notification(user_id: str, adoption_status: str, animal_name: str, adoption_id: str = None):
     """입양 상태 업데이트 알림"""
     title = f"입양 상태 업데이트: {animal_name}"
@@ -354,3 +389,362 @@ async def send_system_notification(user_id: str, title: str, message: str):
         message=message,
         priority="normal"
     )
+
+
+async def create_notification_for_center_users(center_id: str, notification_type: str, title: str, message: str, 
+                                             action_url: str = None, metadata: dict = None, priority: str = 'normal'):
+    """센터의 모든 관리자에게 알림을 생성하고 FCM 푸시 알림을 전송합니다."""
+    
+    @sync_to_async
+    def create_center_notifications():
+        # 센터의 소유자와 관리자들을 찾기
+        center_users = User.objects.filter(
+            models.Q(owned_center__id=center_id) |  # 센터 소유자
+            models.Q(user_type__in=['센터관리자', '센터최고관리자'])  # 센터 관리자
+        ).distinct()
+        
+        notifications = []
+        push_tokens = []
+        for user in center_users:
+            notification = Notification(
+                user=user,
+                notification_type=notification_type,
+                title=title,
+                message=message,
+                priority=priority,
+                action_url=action_url,
+                metadata=metadata
+            )
+            notifications.append(notification)
+            
+            # 사용자의 활성 푸시 토큰들 수집
+            user_tokens = PushToken.objects.filter(user=user, is_active=True).values_list('token', flat=True)
+            push_tokens.extend(user_tokens)
+        
+        # 대량 생성
+        if notifications:
+            Notification.objects.bulk_create(notifications)
+        
+        return len(notifications), push_tokens, [str(user.id) for user in center_users]
+    
+    notification_count, push_tokens, user_ids = await create_center_notifications()
+    
+    # FCM 푸시 알림 전송
+    if push_tokens:
+        try:
+            fcm_service = FCMPushNotificationService()
+            await fcm_service.send_push_notification(
+                user_tokens=push_tokens,
+                title=title,
+                body=message,
+                data={
+                    'notification_type': notification_type,
+                    'action_url': action_url,
+                    'metadata': metadata
+                }
+            )
+        except Exception as e:
+            logger.error(f"FCM 푸시 알림 전송 실패: {e}")
+    
+    # 실시간 WebSocket 알림 전송
+    notification_data = {
+        "title": title,
+        "message": message,
+        "notification_type": notification_type,
+        "priority": priority,
+        "action_url": action_url,
+        "metadata": metadata,
+        "timestamp": timezone.now().isoformat()
+    }
+    
+    for user_id in user_ids:
+        try:
+            await send_real_time_notification(user_id, notification_data)
+        except Exception as e:
+            logger.error(f"실시간 알림 전송 실패 (사용자 {user_id}): {e}")
+    
+    return notification_count
+
+
+async def create_notification_for_user(user_id: str, notification_type: str, title: str, message: str,
+                                     action_url: str = None, metadata: dict = None, priority: str = 'normal'):
+    """특정 사용자에게 알림을 생성하고 FCM 푸시 알림을 전송합니다."""
+    
+    @sync_to_async
+    def create_user_notification():
+        notification = Notification.objects.create(
+            user_id=user_id,
+            notification_type=notification_type,
+            title=title,
+            message=message,
+            priority=priority,
+            action_url=action_url,
+            metadata=metadata
+        )
+        
+        # 사용자의 활성 푸시 토큰들 수집
+        push_tokens = PushToken.objects.filter(user_id=user_id, is_active=True).values_list('token', flat=True)
+        
+        return notification, list(push_tokens)
+    
+    notification, push_tokens = await create_user_notification()
+    
+    # FCM 푸시 알림 전송
+    if push_tokens:
+        try:
+            fcm_service = FCMPushNotificationService()
+            await fcm_service.send_push_notification(
+                user_tokens=push_tokens,
+                title=title,
+                body=message,
+                data={
+                    'notification_type': notification_type,
+                    'action_url': action_url,
+                    'metadata': metadata
+                }
+            )
+        except Exception as e:
+            logger.error(f"FCM 푸시 알림 전송 실패: {e}")
+    
+    # 실시간 WebSocket 알림 전송
+    notification_data = {
+        "id": str(notification.id),
+        "title": title,
+        "message": message,
+        "notification_type": notification_type,
+        "priority": priority,
+        "action_url": action_url,
+        "metadata": metadata,
+        "created_at": notification.created_at.isoformat()
+    }
+    
+    try:
+        await send_real_time_notification(user_id, notification_data)
+    except Exception as e:
+        logger.error(f"실시간 알림 전송 실패 (사용자 {user_id}): {e}")
+    
+    return notification
+
+
+async def notify_new_adoption_application(adoption_id: str):
+    """새로운 입양 신청 알림을 센터 관리자들에게 전송합니다."""
+    
+    @sync_to_async
+    def get_adoption_info():
+        adoption = Adoption.objects.select_related('animal', 'animal__center', 'user').get(id=adoption_id)
+        return adoption
+    
+    adoption = await get_adoption_info()
+    
+    title = "새로운 입양 신청이 접수됐어요"
+    message = f"{adoption.user.nickname}님이 {adoption.animal.name}의 입양을 신청했습니다."
+    action_url = f"/adoptions/{adoption.id}"
+    metadata = {
+        'adoption_id': str(adoption.id),
+        'animal_id': str(adoption.animal.id),
+        'user_id': str(adoption.user.id),
+        'center_id': str(adoption.animal.center.id)
+    }
+    
+    await create_notification_for_center_users(
+        center_id=str(adoption.animal.center.id),
+        notification_type='new_adoption_application',
+        title=title,
+        message=message,
+        action_url=action_url,
+        metadata=metadata,
+        priority='high'
+    )
+
+
+async def notify_new_temporary_protection(animal_id: str):
+    """새로운 임시보호 등록 알림을 센터 관리자들에게 전송합니다."""
+    
+    @sync_to_async
+    def get_animal_info():
+        animal = Animal.objects.select_related('center').get(id=animal_id)
+        return animal
+    
+    animal = await get_animal_info()
+    
+    title = "새로운 아이가 임시보호 등록됐어요"
+    message = f"{animal.name}이(가) 임시보호로 등록되었습니다."
+    action_url = f"/animals/{animal.id}"
+    metadata = {
+        'animal_id': str(animal.id),
+        'center_id': str(animal.center.id)
+    }
+    
+    await create_notification_for_center_users(
+        center_id=str(animal.center.id),
+        notification_type='new_temporary_protection',
+        title=title,
+        message=message,
+        action_url=action_url,
+        metadata=metadata,
+        priority='normal'
+    )
+
+
+async def notify_monitoring_delayed_for_center(adoption_id: str, delay_days: int):
+    """모니터링 지연 알림을 센터 관리자들에게 전송합니다."""
+    
+    @sync_to_async
+    def get_adoption_info():
+        adoption = Adoption.objects.select_related('animal', 'animal__center', 'user').get(id=adoption_id)
+        return adoption
+    
+    adoption = await get_adoption_info()
+    
+    title = f"모니터링이 {delay_days}일 지연됐어요"
+    message = f"{adoption.user.nickname}님의 {adoption.animal.name} 모니터링이 {delay_days}일 지연되었습니다."
+    action_url = f"/adoptions/{adoption.id}/monitoring"
+    metadata = {
+        'adoption_id': str(adoption.id),
+        'delay_days': delay_days,
+        'center_id': str(adoption.animal.center.id)
+    }
+    
+    await create_notification_for_center_users(
+        center_id=str(adoption.animal.center.id),
+        notification_type='monitoring_delayed',
+        title=title,
+        message=message,
+        action_url=action_url,
+        metadata=metadata,
+        priority='high'
+    )
+
+
+async def notify_monitoring_delayed_for_user(adoption_id: str, delay_days: int):
+    """모니터링 지연 알림을 사용자에게 전송합니다."""
+    
+    @sync_to_async
+    def get_adoption_info():
+        adoption = Adoption.objects.select_related('animal', 'user').get(id=adoption_id)
+        return adoption
+    
+    adoption = await get_adoption_info()
+    
+    title = f"모니터링이 {delay_days}일 지연됐어요"
+    message = f"{adoption.animal.name}의 모니터링이 {delay_days}일 지연되었습니다. 지금 바로 확인해보세요."
+    action_url = f"/adoptions/my/{adoption.id}/monitoring"
+    metadata = {
+        'adoption_id': str(adoption.id),
+        'delay_days': delay_days
+    }
+    
+    await create_notification_for_user(
+        user_id=str(adoption.user.id),
+        notification_type='monitoring_delayed_user',
+        title=title,
+        message=message,
+        action_url=action_url,
+        metadata=metadata,
+        priority='high'
+    )
+
+
+async def notify_new_comment(comment_id: str):
+    """새로운 댓글 알림을 포스트 작성자에게 전송합니다."""
+    
+    @sync_to_async
+    def get_comment_info():
+        comment = Comment.objects.select_related('post', 'user').get(id=comment_id)
+        return comment
+    
+    comment = await get_comment_info()
+    
+    # 본인이 댓글을 단 경우는 알림을 보내지 않음
+    if comment.user.id == comment.post.user.id:
+        return
+    
+    title = "새로운 댓글이 달렸어요"
+    message = f"{comment.user.nickname}님이 '{comment.post.title}'에 댓글을 달았습니다. 지금 바로 확인해보세요."
+    action_url = f"/posts/{comment.post.id}"
+    metadata = {
+        'comment_id': str(comment.id),
+        'post_id': str(comment.post.id),
+        'commenter_id': str(comment.user.id)
+    }
+    
+    await create_notification_for_user(
+        user_id=str(comment.post.user.id),
+        notification_type='new_comment',
+        title=title,
+        message=message,
+        action_url=action_url,
+        metadata=metadata,
+        priority='normal'
+    )
+
+
+async def notify_new_reply(reply_id: str):
+    """새로운 대댓글 알림을 댓글 작성자에게 전송합니다."""
+    
+    @sync_to_async
+    def get_reply_info():
+        reply = Reply.objects.select_related('comment', 'comment__post', 'user').get(id=reply_id)
+        return reply
+    
+    reply = await get_reply_info()
+    
+    # 본인이 대댓글을 단 경우는 알림을 보내지 않음
+    if reply.user.id == reply.comment.user.id:
+        return
+    
+    title = "새로운 대댓글이 달렸어요"
+    message = f"{reply.user.nickname}님이 '{reply.comment.post.title}'의 댓글에 대댓글을 달았습니다. 지금 바로 확인해보세요."
+    action_url = f"/posts/{reply.comment.post.id}"
+    metadata = {
+        'reply_id': str(reply.id),
+        'comment_id': str(reply.comment.id),
+        'post_id': str(reply.comment.post.id),
+        'replier_id': str(reply.user.id)
+    }
+    
+    await create_notification_for_user(
+        user_id=str(reply.comment.user.id),
+        notification_type='new_reply',
+        title=title,
+        message=message,
+        action_url=action_url,
+        metadata=metadata,
+        priority='normal'
+    )
+
+
+async def check_and_notify_monitoring_delays():
+    """모니터링 지연을 확인하고 알림을 전송합니다."""
+    
+    @sync_to_async
+    def get_delayed_monitorings():
+        # 모니터링이 지연된 입양 신청들을 찾기
+        now = timezone.now()
+        delayed_adoptions = []
+        
+        adoptions = Adoption.objects.filter(
+            monitoring_status='진행중',
+            monitoring_next_check_at__lt=now
+        ).select_related('animal', 'animal__center', 'user')
+        
+        for adoption in adoptions:
+            delay_days = (now - adoption.monitoring_next_check_at).days
+            if delay_days > 0:
+                delayed_adoptions.append((adoption, delay_days))
+        
+        return delayed_adoptions
+    
+    delayed_adoptions = await get_delayed_monitorings()
+    
+    for adoption, delay_days in delayed_adoptions:
+        # 센터 관리자들에게 알림
+        await notify_monitoring_delayed_for_center(str(adoption.id), delay_days)
+        # 사용자에게 알림
+        await notify_monitoring_delayed_for_user(str(adoption.id), delay_days)
+
+
+# 필요한 import 추가
+from django.db import models
+from animals.models import Animal
+from comments.models import Reply

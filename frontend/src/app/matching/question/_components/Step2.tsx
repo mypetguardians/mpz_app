@@ -13,7 +13,7 @@ export interface StepProps {
 }
 
 export function Step2({ onNext }: StepProps) {
-  const [selectedSpace, setSelectedSpace] = React.useState<number | null>(null);
+  const [selectedSpace, setSelectedSpace] = React.useState<string | null>(null);
   const { setStepAnswer } = useMatchingStepStore();
 
   const handleNext = () => {
@@ -54,8 +54,8 @@ export function Step2({ onNext }: StepProps) {
             <SelectButton
               key={option.id}
               variant="1"
-              selected={selectedSpace === option.id}
-              onClick={() => setSelectedSpace(option.id)}
+              selected={selectedSpace === option.text}
+              onClick={() => setSelectedSpace(option.text)}
               className="w-full text-left"
               icon={
                 <Image

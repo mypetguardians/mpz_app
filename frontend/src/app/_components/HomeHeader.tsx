@@ -6,12 +6,20 @@ import Image from "next/image";
 import { Bell } from "@phosphor-icons/react";
 import { IconButton } from "@/components/ui/IconButton";
 import { TopBar } from "@/components/common/TopBar";
+import { useGetNotifications } from "@/hooks/query/useGetNotifications";
 
 interface HomeHeaderProps {
   isLoggedIn: boolean;
 }
 
 export function HomeHeader({ isLoggedIn }: HomeHeaderProps) {
+  const { data: notificationsData } = useGetNotifications();
+
+  // 읽지 않은 알림이 있는지 확인
+  const hasUnreadNotifications = notificationsData?.data?.some(
+    (notification) => notification.is_read === false
+  );
+
   return (
     <TopBar
       variant="primary"
@@ -23,10 +31,15 @@ export function HomeHeader({ isLoggedIn }: HomeHeaderProps) {
       right={
         isLoggedIn ? (
           <Link href="/notifications">
-            <IconButton
-              icon={({ size }) => <Bell size={size} weight="bold" />}
-              size="iconM"
-            />
+            <div className="relative">
+              <IconButton
+                icon={({ size }) => <Bell size={size} weight="bold" />}
+                size="iconM"
+              />
+              {hasUnreadNotifications && (
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
+              )}
+            </div>
           </Link>
         ) : (
           <Link href="/login">

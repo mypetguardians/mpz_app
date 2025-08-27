@@ -110,6 +110,16 @@ async def create_animal(request: HttpRequest, data: AnimalCreateIn):
             updated_at=animal.updated_at.isoformat(),
         )
         
+        # 임시보호 등록 알림 전송
+        try:
+            from notifications.utils import notify_new_temporary_protection
+            await notify_new_temporary_protection(str(animal.id))
+        except Exception as e:
+            # 알림 전송 실패는 로그만 남기고 API 응답에는 영향 주지 않음
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"임시보호 알림 전송 실패: {e}")
+        
         return response_data
         
     except HttpError:

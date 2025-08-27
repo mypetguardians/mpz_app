@@ -31,6 +31,28 @@ class CenterAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+    
+    def get_queryset(self, request):
+        """센터 목록 조회 시 안전한 쿼리셋 반환"""
+        return super().get_queryset(request).select_related('owner')
+    
+    def save_model(self, request, obj, form, change):
+        """센터 저장 시 안전한 저장 처리"""
+        try:
+            super().save_model(request, obj, form, change)
+        except Exception as e:
+            from django.contrib import messages
+            messages.error(request, f"센터 저장 중 오류가 발생했습니다: {str(e)}")
+            raise
+    
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """owner 필드에 대한 안전한 폼 필드 설정"""
+        if db_field.name == "owner":
+            from user.models import User
+            kwargs["queryset"] = User.objects.filter(
+                user_type__in=['센터관리자', '최고관리자']
+            ).exclude(owned_center__isnull=False)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 @admin.register(AdoptionContractTemplate)

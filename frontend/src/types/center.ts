@@ -1,26 +1,76 @@
-// 센터 관련 타입들 (새로운 스키마 기반)
-export interface Center {
+// 기존 center 타입들
+export interface CenterBasic {
   id: string;
-  userId: string;
   name: string;
-  centerNumber: string;
-  description: string;
-  location: string;
-  region: string;
-  phoneNumber: string;
-  adoptionProcedure: string;
-  adoptionGuidelines: string;
-  hasMonitoring: boolean;
-  monitoringPeriodMonths: number;
-  monitoringIntervalDays: number;
-  monitoringDescription: string;
+  centerNumber: string | null;
+  description: string | null;
+  location: string | null;
+  region: string | null;
+  phoneNumber: string | null;
   verified: boolean;
   isPublic: boolean;
   adoptionPrice: number;
-  imageUrl: string;
+  imageUrl: string | null;
+  isSubscriber: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+// 상세한 Center 타입 (useGetMyCenter에서 사용)
+export interface Center extends CenterBasic {
+  userId: string;
+  adoptionProcedure: string | null;
+  adoptionGuidelines: string | null;
+  hasMonitoring: boolean;
+  monitoringPeriodMonths: number | null;
+  monitoringIntervalDays: number | null;
+  monitoringDescription: string | null;
+  isSubscriber: boolean;
   isFavorited?: boolean; // 찜하기 상태 추가
+}
+
+// Center 생성/수정용 타입
+export interface CreateCenterRequest {
+  name: string;
+  centerNumber?: string;
+  description?: string;
+  location?: string;
+  region?: string;
+  phoneNumber?: string;
+  adoptionProcedure?: string;
+  adoptionGuidelines?: string;
+  hasMonitoring?: boolean;
+  monitoringPeriodMonths?: number;
+  monitoringIntervalDays?: number;
+  monitoringDescription?: string;
+  isPublic?: boolean;
+  adoptionPrice?: number;
+  imageUrl?: string;
+}
+
+export interface UpdateCenterRequest extends Partial<CreateCenterRequest> {
+  id: string;
+}
+
+// Center 목록 조회용 타입
+export interface CenterListResponse {
+  centers: CenterBasic[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+// Center 검색/필터링용 타입
+export interface CenterSearchParams {
+  region?: string;
+  verified?: boolean;
+  isPublic?: boolean;
+  hasMonitoring?: boolean;
+  minPrice?: number;
+  maxPrice?: number;
+  search?: string;
+  page?: number;
+  limit?: number;
 }
 
 // API 응답의 실제 snake_case 구조 (새로운 스키마 기반)
@@ -80,6 +130,7 @@ export function transformRawCenterToCenter(raw: RawCenterResponse): Center {
     isPublic: raw.is_public,
     adoptionPrice: raw.adoption_price,
     imageUrl: raw.image_url,
+    isSubscriber: false, // 기본값 설정
     createdAt: raw.created_at,
     updatedAt: raw.updated_at,
     isFavorited: raw.is_fav || false, // is_fav를 isFavorited로 변환

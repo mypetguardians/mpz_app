@@ -57,6 +57,16 @@ async def create_reply(request: HttpRequest, comment_id: str, data: ReplyCreateI
 
         reply = await create_reply_sync()
         
+        # 새로운 대댓글 알림 전송
+        try:
+            from notifications.utils import notify_new_reply
+            await notify_new_reply(str(reply.id))
+        except Exception as e:
+            # 알림 전송 실패는 로그만 남기고 API 응답에는 영향 주지 않음
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"대댓글 알림 전송 실패: {e}")
+        
         return {
             "message": "대댓글이 작성되었습니다",
             "reply_id": str(reply.id)

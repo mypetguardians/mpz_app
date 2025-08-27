@@ -21,7 +21,7 @@
   --color-brand-sub1: #5c8dff;
   --color-brand-sub2: #80a6ff;
   --color-brand-light: #002cde99;
-  --color-brand-op: #002cde0a;
+  --color-brand-op: rgba(0, 44, 222, 0.04);
   --color-error: #ff4f6f;
   --color-green: #00b506;
   --color-yellow: #ffc800;

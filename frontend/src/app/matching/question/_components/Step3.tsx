@@ -14,7 +14,7 @@ export interface StepProps {
 
 export function Step3({ onNext }: StepProps) {
   const [selectedSensitivity, setSelectedSensitivity] = React.useState<
-    number | null
+    string | null
   >(null);
   const { setStepAnswer } = useMatchingStepStore();
 
@@ -61,8 +61,8 @@ export function Step3({ onNext }: StepProps) {
             <SelectButton
               key={option.id}
               variant="1"
-              selected={selectedSensitivity === option.id}
-              onClick={() => setSelectedSensitivity(option.id)}
+              selected={selectedSensitivity === option.text}
+              onClick={() => setSelectedSensitivity(option.text)}
               className="w-full text-left"
               icon={
                 <Image

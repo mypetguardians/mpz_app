@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { X, ShareNetwork, ArrowClockwise } from "@phosphor-icons/react";
 import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import { IconButton } from "@/components/ui/IconButton";
 import { TopBar } from "@/components/common/TopBar";
@@ -177,6 +178,7 @@ function MatchingResultImage({ type }: { type: MatchingResultType }) {
 }
 
 export default function MatchingCompletePage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const matchingTypeParam = searchParams.get("type") as MatchingResultType;
 
@@ -194,6 +196,7 @@ export default function MatchingCompletePage() {
           <IconButton
             icon={({ size }) => <X size={size} weight="bold" />}
             size="iconM"
+            onClick={() => router.push("/")}
           />
         }
       />
@@ -215,6 +218,7 @@ export default function MatchingCompletePage() {
               text="다시 해보기"
               leftIcon={<ArrowClockwise size={16} />}
               variant="primary"
+              onClick={() => router.push("/matching")}
             />
           </div>
         </div>

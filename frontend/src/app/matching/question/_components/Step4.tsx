@@ -12,7 +12,7 @@ export interface StepProps {
 }
 
 export function Step4({ onNext }: StepProps) {
-  const [selectedGoOut, setSelectedGoOut] = React.useState<number | null>(null);
+  const [selectedGoOut, setSelectedGoOut] = React.useState<string | null>(null);
   const { setStepAnswer } = useMatchingStepStore();
 
   const handleNext = () => {
@@ -58,8 +58,8 @@ export function Step4({ onNext }: StepProps) {
             <SelectButton
               key={option.id}
               variant="1"
-              selected={selectedGoOut === option.id}
-              onClick={() => setSelectedGoOut(option.id)}
+              selected={selectedGoOut === option.text}
+              onClick={() => setSelectedGoOut(option.text)}
               className="w-full text-left"
             >
               <span className="text-sm">{option.text}</span>

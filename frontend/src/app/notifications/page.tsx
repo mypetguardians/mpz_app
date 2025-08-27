@@ -2,6 +2,7 @@
 
 import { ArrowLeft } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
@@ -13,7 +14,24 @@ import { useAuth } from "@/components/providers/AuthProvider";
 export default function Notification() {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
-  const { data: notificationsData, isLoading, error } = useGetNotifications();
+  const {
+    data: notificationsData,
+    isLoading,
+    error,
+    refetch,
+  } = useGetNotifications();
+
+  // 30초마다 알림 데이터 자동 새로고침
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (isAuthenticated) {
+        refetch();
+      }
+    }, 30000); // 30초 = 30000ms
+
+    // 컴포넌트 언마운트 시 인터벌 정리
+    return () => clearInterval(interval);
+  }, [refetch, isAuthenticated]);
 
   const handleBack = () => {
     router.back();
@@ -107,7 +125,8 @@ export default function Notification() {
     );
   }
 
-  const notifications = notificationsData?.notifications || [];
+  const notifications = notificationsData?.data || [];
+  console.log(notifications);
 
   return (
     <Container className="min-h-screen">
@@ -124,7 +143,7 @@ export default function Notification() {
           </div>
         }
       />
-      <div className="flex flex-col gap-2 p-4">
+      <div className="flex flex-col gap-2">
         {notifications.length === 0 ? (
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
@@ -137,9 +156,10 @@ export default function Notification() {
               key={item.id}
               variant="primary"
               title={item.title}
-              message={item.content}
-              date={item.createdAt}
-              type={item.type}
+              date={item.created_at}
+              type={item.notification_type}
+              isRead={item.is_read}
+              // TODO 노티 타입
             />
           ))
         )}

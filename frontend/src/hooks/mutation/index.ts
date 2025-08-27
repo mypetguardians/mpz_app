@@ -9,10 +9,11 @@ export { useDeleteKakaoAccount } from "./useDeleteKakaoAccount";
 export { useToggleAnimalFavorite } from "./useToggleAnimalFavorite";
 export { useToggleAnimalRecommend } from "./useToggleAnimalRecommend";
 export { useToggleCenterFavorite } from "./useToggleCenterFavorite";
+export { usePostAnimalMatching } from "./usePostAnimalMatching";
 
 export { useCreateFeedback } from "./useCreateFeedback";
 export { useCreateAnimal } from "./useCreateAnimal";
-export { useUploadImage } from "./useUploadImages";
+export { useUploadImages } from "./useUploadImages";
 export { useCreateQuestionForm } from "./useCreateQuestionForm";
 export { useUpdateQuestionForm } from "./useUpdateQuestionForm";
 export { useUpdateQuestionSequence } from "./useUpdateQuestionSequence";

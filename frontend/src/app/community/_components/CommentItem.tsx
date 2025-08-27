@@ -27,7 +27,7 @@ export function CommentItem({
   // 사용자 정보 가져오기
   const nickname = comment.user?.nickname || "사용자";
   const profileImg = comment.user?.image || "/img/dummyImg.jpeg";
-  
+
   const renderContent = () => {
     switch (variant) {
       case "primary":

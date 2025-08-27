@@ -10,7 +10,7 @@ import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
 import { BigButton } from "@/components/ui/BigButton";
 import { AddButton } from "@/components/ui/AddButton";
-import { Input } from "@/components/ui/CustomInput";
+import { CustomInput } from "@/components/ui/CustomInput";
 import { Add } from "@/components/ui/Add";
 import { NotificationToast } from "@/components/ui/NotificationToast";
 import { useSelectedQuestionsStore } from "@/lib/stores/selectedQuestionsStore";
@@ -426,7 +426,7 @@ export default function CenterProcessCustomForm() {
         <div className="w-full flex flex-col gap-3">
           {questionInputs.map((question, index) => (
             <div key={question.id || index} className="relative">
-              <Input
+              <CustomInput
                 variant="primary"
                 label={`질문${index + 1}`}
                 placeholder="자유롭게 질문을 입력해주세요."

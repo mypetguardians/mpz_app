@@ -13,7 +13,7 @@ export interface StepProps {
 }
 
 export function Step9({ onNext }: StepProps) {
-  const [selectedSize, setSelectedSize] = React.useState<number | null>(null);
+  const [selectedSize, setSelectedSize] = React.useState<string | null>(null);
   const { setStepAnswer } = useMatchingStepStore();
 
   const handleNext = () => {
@@ -58,8 +58,8 @@ export function Step9({ onNext }: StepProps) {
             <SelectButton
               key={option.id}
               variant="3"
-              selected={selectedSize === option.id}
-              onClick={() => setSelectedSize(option.id)}
+              selected={selectedSize === option.text}
+              onClick={() => setSelectedSize(option.text)}
               className="w-full text-left"
               icon={
                 <Image

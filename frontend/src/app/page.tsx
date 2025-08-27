@@ -29,7 +29,7 @@ export default function Home() {
   });
 
   const animals: RawAnimalResponse[] =
-    animalsData?.pages?.flatMap((page) => page.data) || [];
+    animalsData?.pages?.flatMap((page) => page.animals) || [];
   const totalPets = animals.length;
 
   const handleLocationSelect = (location: string) => {

@@ -12,14 +12,14 @@ export interface StepProps {
 }
 
 export function Step6({ onNext }: StepProps) {
-  const [selectedNurture, setSelectedNurture] = React.useState<number | null>(
+  const [selectedNurture, setSelectedNurture] = React.useState<string | null>(
     null
   );
   const { setStepAnswer } = useMatchingStepStore();
 
   const handleNext = () => {
     if (selectedNurture !== null) {
-      setStepAnswer(6, { type: "custom", value: selectedNurture === 1 ? "yes" : "no" });
+      setStepAnswer(6, { type: "custom", value: selectedNurture });
       onNext();
     }
   };
@@ -46,8 +46,8 @@ export function Step6({ onNext }: StepProps) {
             <SelectButton
               key={option.id}
               variant="1"
-              selected={selectedNurture === option.id}
-              onClick={() => setSelectedNurture(option.id)}
+              selected={selectedNurture === option.text}
+              onClick={() => setSelectedNurture(option.text)}
               className="w-full text-left"
             >
               <span className="text-sm">{option.text}</span>

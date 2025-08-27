@@ -237,50 +237,24 @@ async def submit_adoption_application(request, data: AdoptionApplicationIn):
             # 알림 전송 실패는 로그만 남기고 API 응답에는 영향 주지 않음
             import logging
             logger = logging.getLogger(__name__)
-            logger.error(f"입양 신청 알림 전송 실패: {str(e)}")
+            logger.error(f"사용자 알림 전송 실패: {e}")
         
-        # 센터 관리자에게도 새 입양 신청 알림 전송
+        # 센터 관리자들에게 새로운 입양 신청 알림 전송
         try:
-            from notifications.utils import create_and_send_notification
-            await create_and_send_notification(
-                user_id=str(animal.center.owner.id),
-                notification_type="adoption_update",
-                title=f"새로운 입양 신청: {animal.name}",
-                message=f"{current_user.username}님이 {animal.name}에 대한 입양 신청을 하였습니다.",
-                priority="high",
-                action_url=f"/admin/adoptions/{adoption.id}",  # 입양 신청 상세 페이지로 이동
-                metadata={
-                    "adoption_id": str(adoption.id),
-                    "animal_name": animal.name,
-                    "applicant_name": current_user.username,
-                    "animal_id": str(animal.id)
-                }
-            )
+            from notifications.utils import notify_new_adoption_application
+            await notify_new_adoption_application(str(adoption.id))
         except Exception as e:
+            # 알림 전송 실패는 로그만 남기고 API 응답에는 영향 주지 않음
             import logging
             logger = logging.getLogger(__name__)
-            logger.error(f"센터 관리자 알림 전송 실패: {str(e)}")
+            logger.error(f"센터 관리자 알림 전송 실패: {e}")
         
-        # 응답 데이터 생성
-        response_data = AdoptionApplicationOut(
-            id=str(adoption.id),
-            animal_id=str(adoption.animal.id),
-            animal_name=adoption.animal.name,
-            center_name=adoption.animal.center.name,
-            status=adoption.status,
-            notes=adoption.notes,
-            created_at=adoption.created_at.isoformat(),
-            updated_at=adoption.updated_at.isoformat(),
+        return 201, AdoptionApplicationOut(
+            message="입양 신청이 성공적으로 제출되었습니다",
+            adoption_id=str(adoption.id),
+            animal_name=animal.name,
+            center_name=animal.center.name
         )
-        
-        # 센터 관리자들에게 입양 신청 알림 전송 (TODO: 구현 필요)
-        try:
-            # NotificationService.sendAdoptionNotification 구현 필요
-            pass
-        except Exception as e:
-            print(f"알림 전송 실패: {e}")
-        
-        return 201, response_data
         
     except HttpError:
         raise

@@ -208,8 +208,8 @@ export default function MyPage() {
                   입양 현황을 불러오는데 실패했습니다.
                 </div>
               </div>
-            ) : adoptionsData && adoptionsData.length > 0 ? (
-              adoptionsData.map((adoption) => (
+            ) : adoptionsData?.data && adoptionsData.data.length > 0 ? (
+              adoptionsData.data.map((adoption) => (
                 <div
                   key={adoption.id}
                   className="p-4 bg-white border border-gray-200 rounded-lg cursor-pointer"

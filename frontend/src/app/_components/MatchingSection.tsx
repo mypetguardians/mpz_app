@@ -7,7 +7,11 @@ import { MainSection } from "@/components/common/MainSection";
 import { PetSectionError } from "@/components/ui/PetSectionError";
 import { CustomModal } from "@/components/ui/CustomModal";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { RawAnimalResponse, transformRawAnimalToPetCard } from "@/types/animal";
+import {
+  RawAnimalResponse,
+  transformRawAnimalToPetCard,
+  PetCardAnimal,
+} from "@/types/animal";
 import { PetCardVariant } from "@/types/petcard";
 import { AIRecommendResponse } from "@/types/ai-matching";
 
@@ -19,7 +23,7 @@ interface MatchingSectionProps {
   isLoading?: boolean;
   error?: Error | null;
   isExpertAnalysis?: boolean;
-  aiMatchingResult?: AIRecommendResponse | null; // AI 매칭 결과 추가
+  aiMatchingResult?: AIRecommendResponse | null;
 }
 
 export function MatchingSection({
@@ -187,7 +191,7 @@ export function MatchingSection({
                     {analysisAnimals.map((animal) => (
                       <PetCard
                         key={animal.id}
-                        pet={animal as unknown}
+                        pet={animal as PetCardAnimal}
                         variant="variant2"
                       />
                     ))}
@@ -224,7 +228,7 @@ export function MatchingSection({
                   {transformedAnimals.map((animal) => (
                     <PetCard
                       key={animal.id}
-                      pet={animal as unknown}
+                      pet={animal as PetCardAnimal}
                       variant={variant}
                     />
                   ))}

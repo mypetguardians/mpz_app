@@ -113,7 +113,6 @@ export function TopPetSection({
         rightSlot={rightSlot}
         showLocationFilter={showLocationFilter}
         locations={locations}
-        variant={variant}
         selectedLocation={selectedLocation}
         onLocationSelect={onLocationSelect}
       />

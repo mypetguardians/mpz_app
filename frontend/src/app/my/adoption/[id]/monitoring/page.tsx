@@ -182,6 +182,7 @@ export default function AdoptionMonitoringPage({
                   isFemale: adoption.animal_gender === "암컷",
                   breed: adoption.animal_breed || "종 미등록",
                   status: "보호중" as const,
+                  centerId: adoption.center_id,
                   animalImages: adoption.animal_image
                     ? [
                         {
@@ -191,6 +192,7 @@ export default function AdoptionMonitoringPage({
                         },
                       ]
                     : [],
+                  foundLocation: adoption.center_location || "",
                 }}
                 variant="variant4"
               />

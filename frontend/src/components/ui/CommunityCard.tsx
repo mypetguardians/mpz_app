@@ -44,7 +44,7 @@ export function CommunityCard({
     title,
     content,
     postLikes,
-    comments,
+    commentCount,
     createdAt,
     userId,
     userNickname,
@@ -59,7 +59,7 @@ export function CommunityCard({
 
   // like, comment, date를 Post 타입에 맞게 매핑
   const like = postLikes?.length || 0;
-  const comment = comments?.length || 0;
+  const comment = commentCount || 0;
   const date = createdAt;
 
   const user = users.find((u) => u.id === userId);

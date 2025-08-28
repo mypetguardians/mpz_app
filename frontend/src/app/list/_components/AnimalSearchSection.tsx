@@ -130,9 +130,14 @@ export function AnimalSearchSection({
   const uniqueBreeds = Array.from(
     new Set(
       breedSearchResults
-        .filter((animal) => animal && typeof animal === "object")
-        .map((animal) => animal.breed || "")
-        .filter((breed) => breed !== "")
+        ?.filter(
+          (animal): animal is NonNullable<typeof animal> =>
+            animal !== null &&
+            animal !== undefined &&
+            typeof animal === "object"
+        )
+        ?.map((animal) => animal.breed || "")
+        ?.filter((breed) => breed !== "") || []
     )
   );
 
@@ -262,20 +267,41 @@ export function AnimalSearchSection({
 
           {hasSearchResults && (
             <div className="flex flex-wrap justify-start gap-2 cursor-pointer">
-              {searchAnimals.map((animal, idx) => (
-                <div
-                  key={animal.id ?? idx}
-                  className="w-[calc(50%-4px)] cursor-pointer"
-                  onClick={() => router.push(`/list/animal/${animal.id}`)}
-                >
-                  <PetCard
-                    pet={animal}
-                    variant="primary"
-                    imageSize="full"
-                    className="w-full"
-                  />
-                </div>
-              ))}
+              {searchAnimals
+                .filter(
+                  (animal): animal is NonNullable<typeof animal> =>
+                    animal !== null &&
+                    animal !== undefined &&
+                    typeof animal === "object"
+                )
+                .map((animal, idx) => (
+                  <div
+                    key={animal.id ?? idx}
+                    className="w-[calc(50%-4px)] cursor-pointer"
+                    onClick={() => router.push(`/list/animal/${animal.id}`)}
+                  >
+                    <PetCard
+                      pet={{
+                        id: animal.id,
+                        name: animal.name,
+                        breed: animal.breed,
+                        isFemale: animal.is_female,
+                        status: animal.status,
+                        animalImages:
+                          animal.animal_images?.map((image) => ({
+                            id: image.id,
+                            imageUrl: image.image_url,
+                            orderIndex: image.order_index,
+                          })) || [],
+                        foundLocation: animal.found_location || "",
+                        centerId: animal.center_id,
+                      }}
+                      variant="primary"
+                      imageSize="full"
+                      className="w-full"
+                    />
+                  </div>
+                ))}
             </div>
           )}
         </div>

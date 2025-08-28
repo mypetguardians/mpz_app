@@ -5,12 +5,7 @@ import { CommunityCard } from "@/components/ui/CommunityCard";
 import { MainSection } from "@/components/common/MainSection";
 import { useGetPublicPosts } from "@/hooks/query/useGetPublicPosts";
 import type { Post } from "@/types/posts";
-import type { user } from "@/db/schema/auth";
-
-type User = Omit<typeof user.$inferSelect, "createdAt" | "updatedAt"> & {
-  createdAt: string;
-  updatedAt: string;
-};
+import type { User } from "@/types/auth";
 
 interface CommunitySectionProps {
   users?: User[]; // users는 선택적으로 변경

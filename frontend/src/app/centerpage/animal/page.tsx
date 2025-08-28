@@ -34,7 +34,6 @@ export default function CenterAnimal() {
   const { data, isLoading, error } = useGetMyCenterAnimals(
     {
       page: currentPage,
-      limit: 10,
       breed: searchTerm || undefined,
     },
     {

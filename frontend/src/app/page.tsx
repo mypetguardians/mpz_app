@@ -6,10 +6,11 @@ import { NavBar } from "@/components/common/NavBar";
 import { HomeHeader } from "@/app/_components/HomeHeader";
 import { PetSection } from "@/app/_components/PetSection";
 import { TopPetSection } from "@/app/_components/TopPetSection";
-import { HomePetSection } from "@/app/_components/MatchingSection";
+import { MatchingSection } from "@/app/_components/MatchingSection";
 import { CommunitySection } from "@/app/_components/CommunitySection";
 import { FooterSection } from "@/app/_components/FooterSection";
 import { useGetAnimals } from "@/hooks/query/useGetAnimals";
+import { useMatchingStepStore } from "@/lib/stores/matchingStepStore";
 
 import { useAuth } from "@/components/providers/AuthProvider";
 import { RawAnimalResponse } from "@/types/animal";
@@ -17,6 +18,7 @@ import { RawAnimalResponse } from "@/types/animal";
 export default function Home() {
   const { isAuthenticated } = useAuth();
   const [selectedLocation, setSelectedLocation] = useState<string>("");
+  const { aiMatchingResult } = useMatchingStepStore();
 
   const {
     data: animalsData,
@@ -75,12 +77,13 @@ export default function Home() {
         onLocationSelect={handleLocationSelect}
       />
 
-      <HomePetSection
+      <MatchingSection
         animals={animals}
         variant="variant2"
         isLoading={isLoading}
         error={error}
         isExpertAnalysis={true}
+        aiMatchingResult={aiMatchingResult}
       />
 
       <CommunitySection />

@@ -9,8 +9,9 @@ import { CustomModal } from "@/components/ui/CustomModal";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { RawAnimalResponse, transformRawAnimalToPetCard } from "@/types/animal";
 import { PetCardVariant } from "@/types/petcard";
+import { AIRecommendResponse } from "@/types/ai-matching";
 
-interface HomePetSectionProps {
+interface MatchingSectionProps {
   animals: RawAnimalResponse[];
   variant: PetCardVariant;
   showLocationFilter?: boolean;
@@ -18,9 +19,10 @@ interface HomePetSectionProps {
   isLoading?: boolean;
   error?: Error | null;
   isExpertAnalysis?: boolean;
+  aiMatchingResult?: AIRecommendResponse | null; // AI 매칭 결과 추가
 }
 
-export function HomePetSection({
+export function MatchingSection({
   animals,
   variant,
   showLocationFilter = false,
@@ -28,7 +30,8 @@ export function HomePetSection({
   isLoading = false,
   error = null,
   isExpertAnalysis = false,
-}: HomePetSectionProps) {
+  aiMatchingResult = null, // AI 매칭 결과 추가
+}: MatchingSectionProps) {
   const { user, isAuthenticated } = useAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
 
@@ -43,10 +46,7 @@ export function HomePetSection({
   };
 
   const handleKakaoLogin = () => {
-    // 카카오 로그인 처리
-    // 여기에 카카오 로그인 로직을 추가하거나
-    // 카카오 로그인 페이지로 리다이렉트
-    window.location.href = "/oauth/kakao";
+    window.location.href = "/login";
   };
 
   return (
@@ -149,7 +149,33 @@ export function HomePetSection({
               );
             }
 
-            const transformedAnimals = animals.map(transformRawAnimalToPetCard);
+            // AI 매칭 결과가 있으면 해당 데이터를 변환하여 사용
+            let transformedAnimals;
+            if (aiMatchingResult?.data?.animal_recommendations) {
+              transformedAnimals =
+                aiMatchingResult.data.animal_recommendations.map(
+                  (animal: Record<string, unknown>) => ({
+                    id: String(animal.animal_id),
+                    name: String(animal.animal_name),
+                    breed: String(animal.breed || "믹스견"),
+                    isFemale: String(animal.gender) === "암",
+                    status: "보호중" as const,
+                    centerId: String(animal.center_name || "AI 매칭"),
+                    animalImages: [
+                      {
+                        id: "0",
+                        imageUrl: "/img/dummyImg.jpeg", // AI 매칭 결과에는 이미지가 없으므로 기본 이미지 사용
+                        orderIndex: 0,
+                      },
+                    ],
+                    foundLocation: String(
+                      animal.found_location || "AI 매칭 추천"
+                    ),
+                  })
+                );
+            } else {
+              transformedAnimals = animals.map(transformRawAnimalToPetCard);
+            }
 
             // ExpertAnalysis 모드일 때
             if (isExpertAnalysis) {
@@ -161,7 +187,7 @@ export function HomePetSection({
                     {analysisAnimals.map((animal) => (
                       <PetCard
                         key={animal.id}
-                        pet={animal}
+                        pet={animal as unknown}
                         variant="variant2"
                       />
                     ))}
@@ -196,7 +222,11 @@ export function HomePetSection({
                   }`}
                 >
                   {transformedAnimals.map((animal) => (
-                    <PetCard key={animal.id} pet={animal} variant={variant} />
+                    <PetCard
+                      key={animal.id}
+                      pet={animal as unknown}
+                      variant={variant}
+                    />
                   ))}
                 </div>
               </>

@@ -112,7 +112,6 @@ export function PetSection({
         rightSlot={rightSlot}
         showLocationFilter={showLocationFilter}
         locations={locations}
-        variant={variant}
       />
     );
   }

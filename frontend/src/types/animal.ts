@@ -144,7 +144,12 @@ export type PetCardAnimal = Pick<
 > & {
   weight?: number | null;
   color?: string | null;
-  separationAnxiety?: number | null;
+  waitingDays?: number | null;
+  description?: string | null;
+  activityLevel?: string | null;
+  sensitivity?: string | null;
+  sociability?: string | null;
+  separationAnxiety?: string | null;
   specialNotes?: string | null;
   healthNotes?: string | null;
   basicTraining?: string | null;
@@ -152,6 +157,7 @@ export type PetCardAnimal = Pick<
   announceNumber?: string | null;
   announcementDate?: string | null;
   admissionDate?: string | null;
+  updatedAt?: string;
 };
 
 // RawAnimalResponse를 Animal으로 변환하는 함수
@@ -167,13 +173,13 @@ export function transformRawAnimalToAnimal(raw: RawAnimalResponse): Animal {
     description: raw.description,
     status: raw.status,
     waitingDays: raw.waiting_days,
-    activityLevel: raw.activity_level,
-    sensitivity: raw.sensitivity,
-    sociability: raw.sociability,
-    separationAnxiety: raw.separation_anxiety,
+    activityLevel: raw.activity_level?.toString() || null,
+    sensitivity: raw.sensitivity?.toString() || null,
+    sociability: raw.sociability?.toString() || null,
+    separationAnxiety: raw.separation_anxiety?.toString() || null,
     specialNotes: raw.special_notes,
     healthNotes: raw.health_notes,
-    basicTraining: raw.basic_training,
+    basicTraining: raw.basic_training?.toString() || null,
     trainerComment: raw.trainer_comment,
     announceNumber: raw.announce_number,
     announcementDate: raw.announcement_date,
@@ -220,13 +226,19 @@ export function transformRawAnimalToPetCard(
     foundLocation: raw.found_location,
     weight: raw.weight,
     color: raw.color,
-    separationAnxiety: raw.separation_anxiety,
+    waitingDays: raw.waiting_days,
+    description: raw.description,
+    activityLevel: raw.activity_level?.toString() || null,
+    sensitivity: raw.sensitivity?.toString() || null,
+    sociability: raw.sociability?.toString() || null,
+    separationAnxiety: raw.separation_anxiety?.toString() || null,
     specialNotes: raw.special_notes,
     healthNotes: raw.health_notes,
-    basicTraining: raw.basic_training,
+    basicTraining: raw.basic_training?.toString() || null,
     trainerComment: raw.trainer_comment,
     announceNumber: raw.announce_number,
     announcementDate: raw.announcement_date,
     admissionDate: raw.admission_date,
+    updatedAt: raw.updated_at,
   };
 }

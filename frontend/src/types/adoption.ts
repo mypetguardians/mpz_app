@@ -233,3 +233,10 @@ export type AnimalStatus =
   | "반환"
   | "방사"
   | "자연사";
+
+// 계약서 전송 요청 타입
+export interface SendContractRequest {
+  templateId: string;
+  customContent?: string;
+  centerNotes?: string;
+}

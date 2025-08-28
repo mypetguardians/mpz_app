@@ -10,7 +10,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import BasicInfo from "../../add/_components/BasicInfo";
 import DetailInfo from "../../add/_components/DetailInfo";
 import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
-import { useCreateAnimal, useUploadAnimalImages } from "@/hooks/mutation";
+import { useCreateAnimal, useUploadImages } from "@/hooks/mutation";
 
 interface FormData {
   basicInfo: {
@@ -70,7 +70,7 @@ export default function EditAnimal() {
   const router = useRouter();
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const createAnimalMutation = useCreateAnimal();
-  const uploadImagesMutation = useUploadAnimalImages();
+  const uploadImagesMutation = useUploadImages();
 
   const handleBack = () => {
     router.back();
@@ -149,7 +149,7 @@ export default function EditAnimal() {
 
       if (formData.images.length > 0) {
         await uploadImagesMutation.mutateAsync({
-          animalId: createdAnimal.id,
+          postId: createdAnimal.id,
           images: formData.images,
         });
       }

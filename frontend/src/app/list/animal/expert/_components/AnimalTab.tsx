@@ -3,15 +3,21 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { PetCard } from "@/components/ui/PetCard";
+import type { RawAnimalResponse } from "@/types/animal";
+import { useGetAnimals } from "@/hooks/query/useGetAnimals";
 
 const ITEMS_PER_PAGE = 5;
 
 function AnimalTab() {
   const router = useRouter();
-  const [pets, setPets] = useState<PetInfo[]>([]);
+  const [pets, setPets] = useState<RawAnimalResponse[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+
+  const { data: animalsData } = useGetAnimals();
+  const allAnimals =
+    animalsData?.pages?.flatMap((page) => page.data || []) || [];
 
   // 무한스크롤 시뮬레이션 (데이터 반복 X)
   const loadMorePets = () => {
@@ -22,14 +28,14 @@ function AnimalTab() {
     setTimeout(() => {
       const startIndex = (page - 1) * ITEMS_PER_PAGE;
       const endIndex = startIndex + ITEMS_PER_PAGE;
-      const newPets = mainPetInfo.slice(startIndex, endIndex);
+      const newPets = allAnimals.slice(startIndex, endIndex);
 
       if (newPets.length === 0) {
         setHasMore(false);
       } else {
         setPets((prev) => [...prev, ...newPets]);
         setPage((prev) => prev + 1);
-        if (endIndex >= mainPetInfo.length) setHasMore(false);
+        if (endIndex >= allAnimals.length) setHasMore(false);
       }
 
       setLoading(false);
@@ -78,7 +84,21 @@ function AnimalTab() {
             onClick={() => router.push(`/list/animal/${pet.id}`)}
           >
             <PetCard
-              pet={pet}
+              pet={{
+                id: pet.id,
+                name: pet.name || "",
+                breed: pet.breed || "",
+                isFemale: pet.is_female,
+                status: pet.status,
+                centerId: pet.center_id,
+                animalImages:
+                  pet.animal_images?.map((img) => ({
+                    id: img.id,
+                    imageUrl: img.image_url,
+                    orderIndex: img.order_index,
+                  })) || [],
+                foundLocation: pet.found_location || "",
+              }}
               variant="detail"
               imageSize="full"
               className="w-full"

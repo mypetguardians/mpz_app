@@ -376,22 +376,12 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
 
         {isSubscriber && (
           <SubscriberDetails
-            activityLevel={
-              animal.activity_level ? parseInt(animal.activity_level) || 3 : 3
-            }
-            sensitivity={
-              animal.sensitivity ? parseInt(animal.sensitivity) || 3 : 3
-            }
-            sociability={
-              animal.sociability ? parseInt(animal.sociability) || 3 : 3
-            }
-            separationAnxiety={
-              animal.separation_anxiety
-                ? parseInt(animal.separation_anxiety) || undefined
-                : undefined
-            }
+            activityLevel={animal.activity_level || 3}
+            sensitivity={animal.sensitivity || 3}
+            sociability={animal.sociability || 3}
+            separationAnxiety={animal.separation_anxiety || undefined}
             healthNotes={animal.health_notes ? [animal.health_notes] : []}
-            basicTraining={animal.basic_training || undefined}
+            basicTraining={animal.basic_training?.toString() || undefined}
             trainerComment={animal.trainer_comment || undefined}
           />
         )}
@@ -410,13 +400,13 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
             admissionDate: animal.admission_date,
             announceNumber: animal.announce_number,
             announcementDate: animal.announcement_date,
-            activityLevel: animal.activity_level,
-            sensitivity: animal.sensitivity,
-            sociability: animal.sociability,
-            separationAnxiety: animal.separation_anxiety,
+            activityLevel: animal.activity_level?.toString() || null,
+            sensitivity: animal.sensitivity?.toString() || null,
+            sociability: animal.sociability?.toString() || null,
+            separationAnxiety: animal.separation_anxiety?.toString() || null,
             specialNotes: animal.special_notes,
             healthNotes: animal.health_notes,
-            basicTraining: animal.basic_training,
+            basicTraining: animal.basic_training?.toString() || null,
             trainerComment: animal.trainer_comment,
             centerId: animal.center_id,
             waitingDays: animal.waiting_days,
@@ -424,6 +414,7 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
             isMegaphoned: animal.is_megaphoned,
             createdAt: animal.created_at,
             updatedAt: animal.updated_at,
+            breed: animal.breed,
           }}
         />
 
@@ -492,6 +483,8 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
                 name: animal.name || "",
                 isFemale: animal.is_female,
                 status: animal.status,
+                breed: animal.breed || "",
+                centerId: animal.center_id,
                 animalImages:
                   animal.animal_images?.map((img) => ({
                     id: img.id,

@@ -4,7 +4,6 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "@phosphor-icons/react";
 import { useGetUserAdoptionDetail } from "@/hooks/query/useGetUserAdoptionDetail";
-import { useAuth } from "@/components/providers/AuthProvider";
 
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
@@ -17,7 +16,6 @@ export default function ApplicationFormPage({
   params: Promise<{ id: string }>;
 }) {
   const router = useRouter();
-  const { user } = useAuth();
 
   const { id } = React.use(params);
 
@@ -27,7 +25,6 @@ export default function ApplicationFormPage({
     error,
   } = useGetUserAdoptionDetail({
     adoptionId: id,
-    userId: user?.id || "",
   });
 
   const handleBack = () => {
@@ -106,12 +103,12 @@ export default function ApplicationFormPage({
             <SectionLine>
               <h3 className="text-bk mb-3 font-medium">질문 응답</h3>
               <div className="space-y-4">
-                {adoptionDetail.questionResponses &&
-                adoptionDetail.questionResponses.length > 0 ? (
-                  adoptionDetail.questionResponses.map((response, index) => (
+                {adoptionDetail.question_responses &&
+                adoptionDetail.question_responses.length > 0 ? (
+                  adoptionDetail.question_responses.map((response, index) => (
                     <div key={index} className="flex flex-col gap-2">
                       <div className="flex flex-col gap-1">
-                        <h5 className="text-gr">{response.questionContent}</h5>
+                        <h5 className="text-gr">{response.question_content}</h5>
                         <p className="text-bk body">{response.answer}</p>
                       </div>
                     </div>

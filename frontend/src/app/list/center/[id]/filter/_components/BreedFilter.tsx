@@ -5,10 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { useGetAnimals } from "@/hooks/query/useGetAnimals";
-import type { AnimalResponseSchema } from "@/server/openapi/routes/animal";
-import { z } from "zod";
-
-type Animal = z.infer<typeof AnimalResponseSchema>;
+import type { RawAnimalResponse } from "@/types/animal";
 
 interface BreedFilterProps {
   selectedBreed: string;
@@ -32,7 +29,7 @@ export default function BreedFilter({
   setTempSelectedBreed,
 }: BreedFilterProps) {
   const searchParams = useSearchParams();
-  const [searchResults, setSearchResults] = useState<Animal[]>([]);
+  const [searchResults, setSearchResults] = useState<RawAnimalResponse[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
   // URL 파라미터에서 breed 값 읽어오기
@@ -67,7 +64,9 @@ export default function BreedFilter({
   // 검색 데이터가 업데이트되면 결과 설정
   useEffect(() => {
     if (searchData) {
-      const allAnimals = searchData.pages.flatMap((page) => page.animals);
+      const allAnimals = searchData.pages
+        .flatMap((page) => page.data || [])
+        .filter((animal): animal is RawAnimalResponse => animal !== undefined);
       setSearchResults(allAnimals);
       setIsSearching(false);
     }

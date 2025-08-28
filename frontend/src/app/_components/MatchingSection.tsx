@@ -114,7 +114,6 @@ export function HomePetSection({
                   rightSlot=""
                   showLocationFilter={showLocationFilter}
                   locations={locations}
-                  variant={variant}
                 />
               );
             }

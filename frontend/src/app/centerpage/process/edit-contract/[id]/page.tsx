@@ -39,8 +39,8 @@ export default function EditContractTemplate() {
 
   // 계약서 템플릿 데이터를 폼에 로드
   useEffect(() => {
-    if (procedureSettings?.contractTemplates) {
-      const contractTemplate = procedureSettings.contractTemplates.find(
+    if (procedureSettings?.contract_templates) {
+      const contractTemplate = procedureSettings.contract_templates.find(
         (template) => template.id === templateId
       );
 

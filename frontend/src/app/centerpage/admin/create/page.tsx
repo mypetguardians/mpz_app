@@ -56,7 +56,7 @@ export default function CreateCenterAdminPage() {
         password: password,
         email: email.trim() || "",
         nickname: nickname.trim(),
-        user_type: "센터관리자,센터최고관리자",
+        user_type: "센터관리자" as const,
         phone_number: phone_number.trim() || "",
       };
 

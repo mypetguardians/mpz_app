@@ -64,9 +64,9 @@ export default function BreedFilter({
   // 검색 데이터가 업데이트되면 결과 설정
   useEffect(() => {
     if (searchData) {
-      const allAnimals = searchData.pages.flatMap((page) =>
-        page.data.map(transformRawAnimalToAnimal)
-      );
+      const allAnimals = searchData.pages
+        .flatMap((page) => page.data?.map(transformRawAnimalToAnimal))
+        .filter((animal): animal is Animal => animal !== undefined);
       setSearchResults(allAnimals);
       setIsSearching(false);
     }

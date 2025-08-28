@@ -207,14 +207,18 @@ export default function AdoptionPage() {
                     name: adoption.animal_name || "이름 없음",
                     isFemale: adoption.animal_is_female,
                     breed: adoption.animal_breed || "종 미등록",
-                    status: (adoption.animal_status || "보호중") as
-                      | "보호중"
-                      | "입양완료"
-                      | "무지개다리"
-                      | "임시보호중"
-                      | "반환"
-                      | "방사"
-                      | "자연사",
+                    status: (() => {
+                      const status = adoption.animal_status || "보호중";
+                      if (status === "자연사") return "보호중";
+                      return status as
+                        | "보호중"
+                        | "입양완료"
+                        | "무지개다리"
+                        | "임시보호중"
+                        | "반환"
+                        | "방사";
+                    })(),
+                    centerId: adoption.center_id,
                     animalImages: adoption.animal_image
                       ? [
                           {
@@ -224,9 +228,8 @@ export default function AdoptionPage() {
                           },
                         ]
                       : [],
-                    updatedAt: adoption.updated_at,
+                    foundLocation: adoption.center_location || "",
                   }}
-                  showUpdatedAt={true}
                   showLocation={false}
                 />
               </div>

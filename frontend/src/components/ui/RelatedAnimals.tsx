@@ -1,12 +1,9 @@
 import React from "react";
 import { PetCard } from "./PetCard";
-import type { AnimalResponseSchema } from "@/server/openapi/routes/animal";
-import { z } from "zod";
-
-type Animal = z.infer<typeof AnimalResponseSchema>;
+import type { RawAnimalResponse } from "@/types/animal";
 
 interface RelatedAnimalsProps {
-  pets: Animal[];
+  pets: RawAnimalResponse[];
   location: string;
   className?: string;
 }
@@ -26,7 +23,21 @@ export function RelatedAnimals({
           {pets.slice(0, 6).map((pet) => (
             <PetCard
               key={pet.id}
-              pet={pet}
+              pet={{
+                id: pet.id,
+                name: pet.name || "",
+                breed: pet.breed || "",
+                isFemale: pet.is_female,
+                status: pet.status,
+                centerId: pet.center_id,
+                animalImages:
+                  pet.animal_images?.map((img) => ({
+                    id: img.id,
+                    imageUrl: img.image_url,
+                    orderIndex: img.order_index,
+                  })) || [],
+                foundLocation: pet.found_location || "",
+              }}
               variant="variant3"
               className="w-full"
             />

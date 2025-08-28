@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { PetCard } from "@/components/ui/PetCard";
@@ -213,11 +213,10 @@ function AnimalTab() {
     }
   }, [data]);
 
-  // 무한스크롤 처리
-  const loadMoreAnimals = () => {
+  const loadMoreAnimals = useCallback(() => {
     if (isFetchingNextPage || !hasNextPage) return;
     fetchNextPage();
-  };
+  }, [isFetchingNextPage, hasNextPage, fetchNextPage]);
 
   // 스크롤 이벤트 처리
   useEffect(() => {
@@ -232,7 +231,7 @@ function AnimalTab() {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [isFetchingNextPage, hasNextPage]);
+  }, [loadMoreAnimals]);
 
   // 로딩 상태 처리 - 스켈레톤 표시
   if (isLoading && allAnimals.length === 0) {

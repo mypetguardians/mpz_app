@@ -284,3 +284,5 @@ export function CustomInput({
     </div>
   );
 }
+
+export { CustomInput as Input };

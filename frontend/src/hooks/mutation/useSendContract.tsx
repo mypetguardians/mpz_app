@@ -1,12 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { z } from "zod";
-import type { SendContractRequestSchema } from "@/server/openapi/routes/center-adoption";
 import instance from "@/lib/axios-instance";
 
-type SendContractRequest = z.infer<typeof SendContractRequestSchema>;
-
-interface SendContractParams extends SendContractRequest {
+interface SendContractParams {
   adoptionId: string;
+  templateId: string;
+  customContent?: string;
+  centerNotes?: string;
 }
 
 interface SendContractResponse {
@@ -24,9 +23,9 @@ export const useSendContract = () => {
       const response = await instance.post<SendContractResponse>(
         `/center-admin/adoptions/${params.adoptionId}/send-contract`,
         {
-          templateId: params.templateId,
-          customContent: params.customContent,
-          centerNotes: params.centerNotes,
+          template_id: params.templateId,
+          custom_content: params.customContent,
+          center_notes: params.centerNotes,
         }
       );
       return response.data;

@@ -21,7 +21,7 @@ class AnimalRecommendation(BaseModel):
     age: Optional[int] = Field(None, description="나이(개월 수)")
     gender: str = Field(..., description="성별")
     matching_score: int = Field(..., ge=1, le=5, description="매칭 점수 (1-5점)")
-    matching_reasons: List[str] = Field(..., description="매칭 이유 목록")
+    matching_reasons: str = Field(..., description="매칭 이유 (3-4줄 문단 형태)")
     considerations: List[str] = Field(..., description="고려사항 및 주의점")
     care_tips: List[str] = Field(..., description="케어 팁")
     center_name: Optional[str] = Field(None, description="보호센터명")
@@ -80,11 +80,7 @@ class AIAnimalMatchingResponse(BaseModel):
                         "age": 24,
                         "gender": "수컷",
                         "matching_score": 5,
-                        "matching_reasons": [
-                            "사용자의 활발한 성격과 잘 맞음",
-                            "높은 사회성으로 가족과 잘 어울림",
-                            "적당한 운동량 필요"
-                        ],
+                        "matching_reasons": "바둑이는 사용자의 외향적이고 활발한 성격과 매우 잘 맞는 골든 리트리버입니다. 높은 사회성을 가지고 있어 가족들과 잘 어울리며, 사용자가 선호하는 활동적인 라이프스타일에 완벽하게 부합합니다. 적당한 운동량을 필요로 하여 함께 산책하며 스트레스를 해소할 수 있고, 친근하고 온순한 성격으로 반려동물 초보자도 쉽게 적응할 수 있습니다.",
                         "considerations": [
                             "매일 1-2시간 산책 필요",
                             "털 빠짐이 많아 정기적인 그루밍 필요"

@@ -86,13 +86,13 @@ export interface RawAnimalResponse {
   description: string | null;
   status: "보호중" | "입양완료" | "무지개다리" | "임시보호중" | "반환" | "방사";
   waiting_days: number | null;
-  activity_level: string | null;
-  sensitivity: string | null;
-  sociability: string | null;
-  separation_anxiety: string | null;
+  activity_level: number | null;
+  sensitivity: number | null;
+  sociability: number | null;
+  separation_anxiety: number | null;
   special_notes: string | null;
   health_notes: string | null;
-  basic_training: string | null;
+  basic_training: number | null;
   trainer_comment: string | null;
   announce_number: string | null;
   announcement_date: string | null;
@@ -114,12 +114,20 @@ export interface RawAnimalResponse {
 // 실제 API 응답 구조
 export interface ActualGetAnimalsResponse {
   animals: RawAnimalResponse[];
+  data?: RawAnimalResponse[]; // 실제 API 응답에서 사용되는 필드
   total: number;
   page: number;
   limit: number;
   totalPages: number;
   hasNext: boolean;
   hasPrev: boolean;
+  // 실제 API 응답에 맞는 추가 필드들
+  count?: number;
+  totalCnt?: number;
+  pageCnt?: number;
+  curPage?: number;
+  nextPage?: number;
+  previousPage?: number | null;
 }
 
 // PetCard에서 사용하는 타입
@@ -136,7 +144,7 @@ export type PetCardAnimal = Pick<
 > & {
   weight?: number | null;
   color?: string | null;
-  separationAnxiety?: string | null;
+  separationAnxiety?: number | null;
   specialNotes?: string | null;
   healthNotes?: string | null;
   basicTraining?: string | null;
@@ -190,9 +198,9 @@ export function transformRawAnimalToAnimal(raw: RawAnimalResponse): Animal {
 // RawAnimalResponse를 PetCardAnimal으로 변환하는 함수
 export function transformRawAnimalToPetCard(
   raw: RawAnimalResponse | null | undefined
-): PetCardAnimal | null {
+): PetCardAnimal {
   if (!raw) {
-    return null;
+    throw new Error("Raw animal data is required");
   }
 
   return {

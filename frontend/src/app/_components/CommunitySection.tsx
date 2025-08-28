@@ -49,12 +49,33 @@ export function CommunitySection({ users = [] }: CommunitySectionProps) {
     );
   }
 
-  if (error || !postsData?.posts) {
+  if (error) {
     return (
       <MainSection title="누군가의 가족이 된 순간들">
         <div className="text-center text-gray-500 py-8">
           게시물을 불러올 수 없습니다.
         </div>
+      </MainSection>
+    );
+  }
+
+  // 게시글이 없는 경우
+  if (!postsData?.posts || postsData.posts.length === 0) {
+    return (
+      <MainSection title="누군가의 가족이 된 순간들">
+        <div className="text-center py-8">
+          <div className="text-lg text-sm mb-4">
+            아직 업로드된 게시글이 없어요.
+            <br />첫 번째 게시글을 작성해보세요!
+          </div>
+        </div>
+        <MiniButton
+          text="첫 글 작성하기"
+          variant="filterOff"
+          className="py-4 w-full"
+          rightIcon={<CaretDown size={12} />}
+          onClick={() => router.push("/community/upload")}
+        />
       </MainSection>
     );
   }

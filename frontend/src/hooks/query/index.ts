@@ -5,7 +5,7 @@ export { useGetCenterFavorites } from "./useGetFavorites";
 export { useGetMyProfile } from "./useGetMyProfile";
 export { useGetNotifications } from "./useGetNotifications";
 export { useGetComments } from "./useGetComments";
-export { useGetPosts } from "./useGetPublicPosts";
+export { useGetPublicPosts } from "./useGetPublicPosts";
 export { useGetUserProfile } from "./useGetUserProfile";
 export { useGetAnimals } from "./useGetAnimals";
 export { useGetCenterByLocation } from "./useGetCenters";

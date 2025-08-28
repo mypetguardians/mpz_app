@@ -130,7 +130,8 @@ export interface ActualGetAnimalsResponse {
   previousPage?: number | null;
 }
 
-// PetCard에서 사용하는 타입
+// PetCard에서 사용하는 타입 (기존 호환성을 위해 유지)
+// 새로운 PetCard 타입 사용을 권장합니다
 export type PetCardAnimal = Pick<
   Animal,
   | "id"
@@ -201,7 +202,8 @@ export function transformRawAnimalToAnimal(raw: RawAnimalResponse): Animal {
   };
 }
 
-// RawAnimalResponse를 PetCardAnimal으로 변환하는 함수
+// RawAnimalResponse를 PetCardAnimal으로 변환하는 함수 (기존 호환성을 위해 유지)
+// 새로운 PetCard 타입 사용을 권장합니다
 export function transformRawAnimalToPetCard(
   raw: RawAnimalResponse | null | undefined
 ): PetCardAnimal {
@@ -225,7 +227,7 @@ export function transformRawAnimalToPetCard(
       : [],
     foundLocation: raw.found_location,
     weight: raw.weight,
-    color: raw.color,
+    color: raw.weight,
     waitingDays: raw.waiting_days,
     description: raw.description,
     activityLevel: raw.activity_level?.toString() || null,
@@ -241,4 +243,20 @@ export function transformRawAnimalToPetCard(
     admissionDate: raw.admission_date,
     updatedAt: raw.updated_at,
   };
+}
+
+// 새로운 PetCard 타입과의 호환성을 위한 변환 함수
+export function transformRawAnimalToExtendedPetCard(
+  raw: RawAnimalResponse | null | undefined
+) {
+  if (!raw) {
+    throw new Error("Raw animal data is required");
+  }
+
+  // 새로운 PetCard 타입을 사용하려면 아래 import를 사용하세요:
+  // import { defaultTransformRawAnimalToPetCard } from "@/types/petcard";
+  // return defaultTransformRawAnimalToPetCard(raw);
+  
+  // 기존 호환성을 위해 기존 함수 사용
+  return transformRawAnimalToPetCard(raw);
 }

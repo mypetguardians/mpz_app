@@ -128,7 +128,11 @@ export function HomePetSection({
                 <>
                   <div className="flex flex-col gap-3">
                     {analysisAnimals.map((animal) => (
-                      <PetCard key={animal.id} pet={animal} variant="detail" />
+                      <PetCard
+                        key={animal.id}
+                        pet={animal}
+                        variant="variant2"
+                      />
                     ))}
                   </div>
                   <MiniButton

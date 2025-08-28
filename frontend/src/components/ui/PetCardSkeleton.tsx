@@ -1,18 +1,19 @@
 import React from "react";
 import { cn } from "@/lib/utils";
+// 새로운 PetCard 타입 사용
+import { PetCardVariant, ImageSize, PetCardSkeletonProps as PetCardSkeletonPropsNew } from "@/types/petcard";
 
-type PetCardSkeletonVariant =
-  | "primary"
-  | "detail"
-  | "variant3"
-  | "variant4"
-  | "edit";
+// 기존 호환성을 위한 타입 (deprecated)
+type PetCardSkeletonVariant = PetCardVariant;
 
-interface PetCardSkeletonProps {
+interface PetCardSkeletonPropsLegacy {
   variant?: PetCardSkeletonVariant;
   className?: string;
   imageSize?: "sm" | "md" | "lg" | "full";
 }
+
+// 새로운 타입과 기존 타입을 모두 지원
+type PetCardSkeletonProps = PetCardSkeletonPropsNew | PetCardSkeletonPropsLegacy;
 
 export function PetCardSkeleton({
   variant = "primary",

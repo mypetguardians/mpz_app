@@ -1,15 +1,17 @@
 import React from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { GenderMale, GenderFemale, Link } from "@phosphor-icons/react";
 
 import { DotsIndicator } from "@/components/ui/DotsIndicator";
 import { MiniButton } from "./MiniButton";
 import { Chip } from "./Chip";
 import { cn, getRelativeTime } from "@/lib/utils";
+// 기존 호환성을 위한 타입 사용
 import { PetCardAnimal } from "@/types/animal";
 
 // PetCard에서 실제로 사용하는 필드들만 포함하는 타입
-type PetCardVariant = "primary" | "detail" | "variant3" | "variant4" | "edit";
+type PetCardVariant = "primary" | "variant2" | "variant3" | "variant4" | "edit";
 
 interface PetCardProps {
   pet: PetCardAnimal;
@@ -32,6 +34,8 @@ export function PetCard({
   showLocation = true,
   showUpdatedAt = false,
 }: PetCardProps) {
+  const router = useRouter();
+
   const {
     animalImages,
     waitingDays,
@@ -105,18 +109,24 @@ export function PetCard({
     }
   };
 
+  const handleCardClick = () => {
+    router.push(`/list/animal/${pet.id}`);
+  };
+
   const handleAdoptionClick = () => {
     if (onAdoptionClick) {
       onAdoptionClick(pet);
     }
   };
-  if (variant === "detail") {
+
+  if (variant === "variant2") {
     return (
       <div
         className={cn(
           "flex gap-4 items-center h-[154px] cursor-pointer",
           className
         )}
+        onClick={handleCardClick}
       >
         <div className="flex-shrink-0">
           <div className="relative w-[120px] h-[154px] overflow-hidden">
@@ -199,8 +209,9 @@ export function PetCard({
     return (
       <div
         className={cn("flex flex-col items-start cursor-pointer", className)}
+        onClick={handleCardClick}
       >
-        <div className="relative h-[125px] w-[125px] mb-2 ">
+        <div className={cn("relative mb-2", getImageSize())}>
           <Image
             src={getImageUrl()}
             alt={breed || "동물"}
@@ -226,6 +237,7 @@ export function PetCard({
           "flex items-center gap-3 p-3 border border-bg rounded-lg cursor-pointer",
           className
         )}
+        onClick={handleCardClick}
       >
         <Image
           src={getImageUrl()}
@@ -273,6 +285,7 @@ export function PetCard({
           "flex flex-col items-start min-w-[146px] pb-3 cursor-pointer",
           className
         )}
+        onClick={handleCardClick}
       >
         <div className={cn("relative mb-2", getImageSize())}>
           <Image
@@ -323,6 +336,7 @@ export function PetCard({
         "flex flex-col items-start min-w-[146px] pb-3 cursor-pointer",
         className
       )}
+      onClick={handleCardClick}
     >
       <div className={cn("relative mb-2", getImageSize())}>
         <Image

@@ -37,7 +37,7 @@ import { Toast } from "@/components/ui/Toast";
 import { NotificationToast } from "@/components/ui/NotificationToast";
 import { CustomModal } from "@/components/ui/CustomModal";
 import { BottomSheet } from "@/components/ui/BottomSheet";
-import { KakaoLoginButton } from "@/components/auth/KakaoLoginButton";
+import { useRouter } from "next/navigation";
 
 // Kakao 타입 정의
 declare global {
@@ -79,6 +79,7 @@ interface AnimalDetailPageProps {
 }
 
 export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
+  const router = useRouter();
   const { id } = use(params);
   const { isAuthenticated } = useAuth();
   const {
@@ -239,8 +240,6 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
       const animalUrl = `${window.location.origin}/list/animal/${id}`;
       window.Kakao.Share.sendScrap({ requestUrl: animalUrl });
 
-      setShareToastType("success");
-      setShowShareToast(true);
       setShowShareBottomSheet(false);
     } else {
       setShareToastMessage("카카오톡 공유를 사용할 수 없습니다.");
@@ -334,6 +333,7 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
             <IconButton
               icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
               size="iconM"
+              onClick={() => router.back()}
             />
           }
           center={<h4>자세히 보기</h4>}
@@ -430,7 +430,9 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
               : undefined
           }
           isVerified={center?.verified || false}
-          className="border-t border-bg mt-6 mb-8"
+          className="border-y border-bg mt-6 mb-8 pb-5"
+          isAuthenticated={isAuthenticated}
+          onShowLoginModal={() => setShowLoginModal(true)}
         />
 
         <RelatedAnimals
@@ -509,8 +511,8 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
         variant="variant2"
         ctaText="카카오톡으로 로그인하기"
         onCtaClick={() => {
-          <KakaoLoginButton />;
           setShowLoginModal(false);
+          router.push("/login");
         }}
         subLinkText="나중에 하기"
         onSubLinkClick={() => setShowLoginModal(false)}

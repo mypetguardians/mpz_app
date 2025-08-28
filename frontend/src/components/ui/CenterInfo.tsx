@@ -15,6 +15,8 @@ interface CenterInfoProps {
   adoptionProcedure?: string;
   isVerified?: boolean;
   className?: string;
+  isAuthenticated?: boolean;
+  onShowLoginModal?: () => void;
 }
 
 export function CenterInfo({
@@ -26,6 +28,8 @@ export function CenterInfo({
   adoptionProcedure,
   isVerified = false,
   className,
+  isAuthenticated = true,
+  onShowLoginModal,
 }: CenterInfoProps) {
   // 찜 상태 확인
   const { data: favoriteData, isLoading: isCheckingFavorite } =
@@ -37,6 +41,11 @@ export function CenterInfo({
 
   // 찜 토글 핸들러
   const handleFavoriteToggle = () => {
+    if (!isAuthenticated) {
+      onShowLoginModal?.();
+      return;
+    }
+
     toggleCenterFavorite.mutate({ centerId });
   };
 

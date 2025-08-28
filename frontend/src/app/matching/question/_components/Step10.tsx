@@ -19,9 +19,23 @@ export function Step10({ onNext }: StepProps) {
   const [selectedGender, setSelectedGender] = React.useState<string | null>(
     null
   );
-  const { setStepAnswer, answers } = useMatchingStepStore();
-  const { mutate: postAnimalMatching } = usePostAnimalMatching();
-  const { user, isAuthenticated } = useAuth();
+  const { setStepAnswer, answers, setAIMatchingResult } =
+    useMatchingStepStore();
+  const { mutate: postAnimalMatching } = usePostAnimalMatching({
+    onSuccess: (data) => {
+      console.log("AI 매칭 성공:", data);
+      // AI 매칭 결과를 스토어에 저장
+      setAIMatchingResult(data);
+      // 바로 결과 페이지로 이동
+      router.push("/matching/result?type=perfect");
+    },
+    onError: (error) => {
+      console.error("AI 매칭 실패:", error);
+      // 에러가 있어도 결과 페이지로 이동
+      router.push("/matching/result?type=perfect");
+    },
+  });
+  const { user } = useAuth();
   const router = useRouter();
 
   const handleNext = async () => {
@@ -29,9 +43,6 @@ export function Step10({ onNext }: StepProps) {
       setStepAnswer(10, { type: "gender", value: selectedGender });
 
       // AI 매칭 요청 전송
-      console.log("isAuthenticated:", isAuthenticated);
-      console.log("현재 사용자 정보:", user);
-      console.log("user?.id:", user?.id);
       console.log("각 단계별 상세 답변:");
       Object.entries(answers).forEach(([step, answer]) => {
         console.log(`Step ${step}:`, answer);
@@ -58,23 +69,7 @@ export function Step10({ onNext }: StepProps) {
 
         console.log("AI 매칭 요청 데이터:", requestData);
 
-        postAnimalMatching(requestData, {
-          onSuccess: (data) => {
-            console.log("AI 매칭 성공:", data);
-            // 매칭 결과를 URL 쿼리로 전달
-            if (data.data) {
-              const resultData = encodeURIComponent(JSON.stringify(data.data));
-              router.push(`/matching/loading?result=${resultData}`);
-            } else {
-              router.push("/matching/loading");
-            }
-          },
-          onError: (error) => {
-            console.error("AI 매칭 실패:", error);
-            // 에러가 있어도 로딩 페이지로 이동
-            router.push("/matching/loading");
-          },
-        });
+        postAnimalMatching(requestData);
       } else {
         console.log("사용자 정보가 없음");
         onNext();

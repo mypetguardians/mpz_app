@@ -10,11 +10,15 @@ import { Container } from "@/components/common/Container";
 import { PetCard } from "@/components/ui/PetCard";
 import { BigButton } from "@/components/ui/BigButton";
 import { MiniButton } from "@/components/ui/MiniButton";
-import { useGetAnimals } from "@/hooks/query/useGetAnimals";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { mainPetInfo } from "@/app/mock";
 
 // 매칭 결과 타입 정의
-type MatchingResultType = "perfect" | "good" | "moderate" | "silent";
+type MatchingResultType =
+  | "perfect" // 완벽한 매칭
+  | "good" // 좋은 매칭
+  | "moderate" // 적당한 매칭
+  | "silent"; // 조용한
 
 // 매칭 결과별 데이터
 const matchingResults = {
@@ -57,9 +61,7 @@ function MatchingResult({ type }: { type: MatchingResultType }) {
 
   return (
     <div className="flex flex-col gap-2 items-center">
-      <h6 className="text-brand">
-        {user?.nickname || "사용자"} 님의 매칭 결과
-      </h6>
+      <h6 className="text-brand">{user?.name || "사용자"} 님의 매칭 결과</h6>
       <h2 className="text-bk text-center">
         {result.message.split("\n").map((line, index) => (
           <span key={index}>
@@ -83,16 +85,35 @@ function MatchingResult({ type }: { type: MatchingResultType }) {
 // 매칭된 동물 목록 컴포넌트
 function MatchedPetsList() {
   const { user } = useAuth();
-  const {
-    data: animalsData,
-    isLoading,
-    error,
-  } = useGetAnimals({
-    status: "보호중",
-    limit: 5,
-  });
+  const searchParams = useSearchParams();
 
-  const animals = animalsData?.pages?.[0]?.animals || [];
+  // URL에서 매칭 결과 데이터 가져오기
+  const resultParam = searchParams.get("result");
+  let matchedAnimals: unknown[] = [];
+  let isLoading = false;
+  let error: unknown = null;
+
+  if (resultParam) {
+    try {
+      const resultData = JSON.parse(decodeURIComponent(resultParam));
+      matchedAnimals = resultData.animal_recommendations || [];
+    } catch (e) {
+      console.error("결과 데이터 파싱 오류:", e);
+      error = e;
+    }
+  }
+
+  // AI 매칭 결과가 없으면 기본 동물 목록 사용
+  const defaultAnimals = mainPetInfo
+    .filter((pet) => pet.tag === "보호중")
+    .slice(0, 5);
+  const defaultLoading = false;
+  const defaultError = null;
+
+  // AI 매칭 결과가 있으면 그것을 사용, 없으면 기본 동물 목록 사용
+  const animals = matchedAnimals.length > 0 ? matchedAnimals : defaultAnimals;
+  isLoading = defaultLoading;
+  error = error || defaultError;
 
   if (isLoading) {
     return (
@@ -143,39 +164,44 @@ function MatchedPetsList() {
       </div>
 
       <div className="flex flex-col gap-3">
-        {animals.map((animal, index) => (
-          <PetCard
-            key={animal.id}
-            pet={{
-              id: animal.id,
-              name: animal.name || "",
-              breed: animal.breed || "",
-              isFemale: animal.is_female,
-              status: animal.status as
-                | "보호중"
-                | "입양완료"
-                | "무지개다리"
-                | "임시보호중"
-                | "반환"
-                | "방사",
-              centerId: animal.center_id,
-              animalImages:
-                animal.animal_images?.map(
-                  (
-                    img: { id: string; image_url: string; order_index: number },
-                    idx: number
-                  ) => ({
-                    id: img.id || `${animal.id}-${idx}`,
-                    imageUrl: img.image_url,
-                    orderIndex: img.order_index || idx,
-                  })
-                ) || [],
-              foundLocation: animal.found_location || "",
-            }}
-            variant="variant2"
-            rank={index + 1}
-          />
-        ))}
+        {animals.map((animal, index) => {
+          const animalData = animal as Record<string, unknown>;
+          return (
+            <PetCard
+              key={String(animalData.animal_id || animalData.id)}
+              pet={{
+                id: String(animalData.animal_id || animalData.id),
+                name: String(animalData.animal_name || animalData.name || ""),
+                breed: String(animalData.breed || ""),
+                isFemale: Boolean(animalData.is_female),
+                status: "보호중" as const,
+                centerId: String(animalData.center_id || ""),
+                animalImages: Array.isArray(animalData.animal_images)
+                  ? animalData.animal_images.map(
+                      (img: Record<string, unknown>) => ({
+                        id: String(img.id),
+                        imageUrl: String(img.image_url),
+                        orderIndex: Number(img.order_index),
+                      })
+                    )
+                  : Array.isArray(animalData.imageUrls)
+                  ? animalData.imageUrls.map(
+                      (img: string, imgIndex: number) => ({
+                        id: String(imgIndex),
+                        imageUrl: img,
+                        orderIndex: imgIndex,
+                      })
+                    )
+                  : [],
+                foundLocation: String(
+                  animalData.found_location || animalData.foundLocation || ""
+                ),
+              }}
+              variant="variant2"
+              rank={index + 1}
+            />
+          );
+        })}
       </div>
     </div>
   );

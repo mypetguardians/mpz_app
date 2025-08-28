@@ -1,10 +1,11 @@
-import Link from "next/link";
+import { useState } from "react";
 
 import { CaretDown } from "@phosphor-icons/react";
 import { MiniButton } from "@/components/ui/MiniButton";
 import { PetCard } from "@/components/ui/PetCard";
 import { MainSection } from "@/components/common/MainSection";
 import { PetSectionError } from "@/components/ui/PetSectionError";
+import { CustomModal } from "@/components/ui/CustomModal";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { RawAnimalResponse, transformRawAnimalToPetCard } from "@/types/animal";
 import { PetCardVariant } from "@/types/petcard";
@@ -29,6 +30,24 @@ export function HomePetSection({
   isExpertAnalysis = false,
 }: HomePetSectionProps) {
   const { user, isAuthenticated } = useAuth();
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
+  const handleMatchingClick = () => {
+    if (isAuthenticated) {
+      // 로그인된 유저는 바로 매칭 페이지로 이동
+      window.location.href = "/matching";
+    } else {
+      // 미로그인 유저는 로그인 모달 표시
+      setShowLoginModal(true);
+    }
+  };
+
+  const handleKakaoLogin = () => {
+    // 카카오 로그인 처리
+    // 여기에 카카오 로그인 로직을 추가하거나
+    // 카카오 로그인 페이지로 리다이렉트
+    window.location.href = "/oauth/kakao";
+  };
 
   return (
     <>
@@ -41,10 +60,21 @@ export function HomePetSection({
           style={{ backgroundImage: 'url("/illust/HomeBanner.svg")' }}
         >
           <h5 className="text-wh">반려동물 성향 테스트</h5>
-          <Link href="/matching">
+          <button onClick={handleMatchingClick}>
             <MiniButton text="바로가기" />
-          </Link>
+          </button>
         </div>
+
+        {/* 로그인 모달 */}
+        <CustomModal
+          open={showLoginModal}
+          onClose={() => setShowLoginModal(false)}
+          title="로그인이 필요합니다"
+          description="반려동물 성향 테스트를 이용하려면 로그인해주세요."
+          variant="variant2"
+          ctaText="카카오톡으로 로그인하기"
+          onCtaClick={handleKakaoLogin}
+        />
 
         {/* PetSection 섹션 */}
         {isAuthenticated &&

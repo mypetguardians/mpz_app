@@ -38,8 +38,21 @@ export function CommunityDetail({
   onUserClick,
   onLoginRequired,
 }: CommunityDetailProps) {
-  const { images, title, content, createdAt, userId, contentTags, likeCount } =
-    post;
+  const { images, title, content, createdAt, userId, tags, likeCount } = post;
+
+  // 태그 디버깅용 로그
+  console.log("CommunityDetail - post:", post);
+  console.log("CommunityDetail - tags:", tags);
+  console.log("CommunityDetail - tags type:", typeof tags);
+  console.log("CommunityDetail - tags isArray:", Array.isArray(tags));
+  if (tags && Array.isArray(tags)) {
+    console.log("CommunityDetail - tags length:", tags.length);
+    tags.forEach((tag, index) => {
+      console.log(`CommunityDetail - tag[${index}]:`, tag);
+      console.log(`CommunityDetail - tag[${index}] type:`, typeof tag);
+    });
+  }
+
   const { isAuthenticated } = useAuth();
   const [currentLikeCount, setCurrentLikeCount] = useState(likeCount || 0);
   const [isLiked, setIsLiked] = useState(false);
@@ -105,12 +118,36 @@ export function CommunityDetail({
       return null;
     }
 
+    // 다양한 키(image_url, imageUrl, file_url, url, string)를 지원하여 URL 추출
+    const imageUrls = images
+      .map((img: unknown) => {
+        if (typeof img === "string") return img;
+        if (typeof img === "object" && img !== null) {
+          const obj = img as {
+            imageUrl?: unknown;
+            image_url?: unknown;
+            file_url?: unknown;
+            url?: unknown;
+          };
+          const candidate =
+            (obj.image_url as string | undefined) ??
+            (obj.imageUrl as string | undefined) ??
+            (obj.file_url as string | undefined) ??
+            (obj.url as string | undefined);
+          return typeof candidate === "string" ? candidate : "";
+        }
+        return "";
+      })
+      .filter((url: string) => Boolean(url) && url.trim() !== "");
+
+    if (imageUrls.length === 0) return null;
+
     return (
       <div className="mb-3">
-        {images.length === 1 ? (
+        {imageUrls.length === 1 ? (
           <div className="relative w-full h-64 rounded-lg overflow-hidden">
             <Image
-              src={images[0].imageUrl}
+              src={imageUrls[0]}
               alt={title}
               fill
               className="object-cover"
@@ -118,26 +155,26 @@ export function CommunityDetail({
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-2">
-            {images.slice(0, 4).map((img, i) => (
+            {imageUrls.slice(0, 4).map((url, i) => (
               <div
                 key={i}
                 className={`relative rounded-lg overflow-hidden ${
-                  i === 0 && images.length === 3 ? "col-span-2" : ""
+                  i === 0 && imageUrls.length === 3 ? "col-span-2" : ""
                 }`}
                 style={{
-                  height: i === 0 && images.length === 3 ? "200px" : "150px",
+                  height: i === 0 && imageUrls.length === 3 ? "200px" : "150px",
                 }}
               >
                 <Image
-                  src={img.imageUrl}
+                  src={url}
                   alt={`feed-img-${i}`}
                   fill
                   className="object-cover"
                 />
-                {i === 3 && images.length > 4 && (
+                {i === 3 && imageUrls.length > 4 && (
                   <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                     <span className="text-white font-bold">
-                      +{images.length - 4}
+                      +{imageUrls.length - 4}
                     </span>
                   </div>
                 )}
@@ -202,7 +239,7 @@ export function CommunityDetail({
 
         {/* 내용 */}
         <p className="text-gray-800 leading-relaxed">
-          {content.replace(/#\w+/g, "")}
+          {content.replace(/#[ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9_-]+/g, "")}
         </p>
 
         {/* 날짜 */}
@@ -225,11 +262,28 @@ export function CommunityDetail({
             toggleLikeMutation.isPending ? "opacity-50 cursor-not-allowed" : ""
           }
         />
-        {contentTags &&
-          Array.isArray(contentTags) &&
-          contentTags.map((tag: string, index: number) => (
-            <MiniButton key={index} text={`#${tag}`} variant="outline" />
-          ))}
+        {tags &&
+          Array.isArray(tags) &&
+          tags.map(
+            (
+              tag: string | { tagName?: string; tag_name?: string },
+              index: number
+            ) => {
+              const tagText =
+                typeof tag === "string"
+                  ? tag
+                  : tag.tagName || tag.tag_name || "";
+              if (!tagText) return null;
+
+              return (
+                <MiniButton
+                  key={index}
+                  text={`#${tagText}`}
+                  variant="outline"
+                />
+              );
+            }
+          )}
       </div>
     </div>
   );

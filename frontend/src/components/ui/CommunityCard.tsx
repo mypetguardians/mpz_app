@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import Image from "next/image";
 
 import { ThumbsUp, ChatCircle } from "@phosphor-icons/react";
@@ -38,6 +38,30 @@ export function CommunityCard({
 }: CommunityCardProps) {
   const [isActionSheetOpen, setIsActionSheetOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  // 공용 폴백 이미지 컴포넌트
+  const FallbackImage = ({
+    src,
+    alt,
+    className,
+    fill,
+  }: {
+    src: string;
+    alt: string;
+    className?: string;
+    fill?: boolean;
+  }) => {
+    const [hasError, setHasError] = useState(false);
+    return (
+      <Image
+        src={hasError ? "/img/dummyImg.jpeg" : src}
+        alt={alt}
+        className={className}
+        {...(fill ? { fill: true } : {})}
+        unoptimized
+        onError={() => setHasError(true)}
+      />
+    );
+  };
 
   const {
     images,
@@ -51,11 +75,33 @@ export function CommunityCard({
     userImage,
   } = item;
 
-  // images 배열에서 imageUrl 추출, 이미지가 없으면 빈 배열 반환
-  const imageUrls =
-    images.length > 0
-      ? images.map((img: { imageUrl: string }) => img.imageUrl)
-      : [];
+  // images 배열에서 유효한 URL 추출 (API 키 케이스 다양성 대응: imageUrl, image_url, file_url, url)
+  const imageUrls = useMemo(() => {
+    if (!images || images.length === 0) return [] as string[];
+    const extract = (img: unknown): string => {
+      if (typeof img === "string") return img;
+      if (typeof img === "object" && img !== null) {
+        const obj = img as {
+          imageUrl?: unknown;
+          image_url?: unknown;
+          file_url?: unknown;
+          url?: unknown;
+        };
+        const candidate =
+          (obj.image_url as string | undefined) ??
+          (obj.imageUrl as string | undefined) ??
+          (obj.file_url as string | undefined) ??
+          (obj.url as string | undefined);
+        return typeof candidate === "string" ? candidate : "";
+      }
+      return "";
+    };
+    return images
+      .map(extract)
+      .filter(
+        (url: string): url is string => Boolean(url) && url.trim() !== ""
+      );
+  }, [images]);
 
   // like, comment, date를 Post 타입에 맞게 매핑
   const like = postLikes?.length || 0;
@@ -88,25 +134,30 @@ export function CommunityCard({
 
     return (
       <div className="flex gap-1 mb-3 overflow-x-auto scrollbar-hide">
-        {imageUrls.map((url: string, i: number) => (
-          <div
-            key={i}
-            className={`relative rounded-sm overflow-hidden flex-shrink-0`}
-            style={{
-              width: size,
-              height: size,
-              minWidth: size,
-              minHeight: size,
-            }}
-          >
-            <Image
-              src={url}
-              alt={`feed-img-${i}`}
-              fill
-              className="object-cover"
-            />
-          </div>
-        ))}
+        {imageUrls.map((url: string, i: number) => {
+          // URL이 유효한지 확인
+          if (!url || url.trim() === "") return null;
+
+          return (
+            <div
+              key={i}
+              className={`relative rounded-sm overflow-hidden flex-shrink-0`}
+              style={{
+                width: size,
+                height: size,
+                minWidth: size,
+                minHeight: size,
+              }}
+            >
+              <FallbackImage
+                src={url}
+                alt={`feed-img-${i}`}
+                className="object-cover"
+                fill
+              />
+            </div>
+          );
+        })}
       </div>
     );
   };
@@ -114,13 +165,13 @@ export function CommunityCard({
   if (variant === "variant2") {
     return (
       <div className="w-full flex flex-col">
-        {imageUrls.length > 0 && (
+        {imageUrls.length > 0 && imageUrls[0] && imageUrls[0].trim() !== "" && (
           <div className="relative w-full aspect-square overflow-hidden rounded-sm mb-3">
-            <Image
+            <FallbackImage
               src={imageUrls[0]}
               alt={title}
-              fill
               className="object-cover"
+              fill
             />
           </div>
         )}
@@ -223,11 +274,11 @@ export function CommunityCard({
       {imageUrls.length > 0 && (
         <div className="flex-shrink-0">
           <div className="relative w-[112px] h-[119px] rounded-md overflow-hidden">
-            <Image
+            <FallbackImage
               src={imageUrls[0]}
               alt={title}
-              fill
               className="object-cover"
+              fill
             />
           </div>
         </div>

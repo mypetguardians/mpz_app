@@ -14,6 +14,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { useGetPublicPosts } from "@/hooks/query/useGetPublicPosts";
 import { useGetSystemTags } from "@/hooks/query/useGetPublicPosts";
 import { useDeletePost } from "@/hooks/mutation/useDeletePost";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { CustomModal } from "@/components/ui/CustomModal";
 import { Toast } from "@/components/ui/Toast";
@@ -21,6 +22,7 @@ import { Toast } from "@/components/ui/Toast";
 export default function CommunityPage() {
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
+  const queryClient = useQueryClient();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -91,6 +93,16 @@ export default function CommunityPage() {
   const handleDeletePost = async (postId: string) => {
     try {
       await deletePostMutation.mutateAsync(postId);
+
+      // 삭제 성공 후 관련 쿼리 강제 리패치
+      await queryClient.invalidateQueries({
+        queryKey: ["posts"],
+      });
+
+      // 강제로 리패치 실행
+      await queryClient.refetchQueries({
+        queryKey: ["posts"],
+      });
 
       setToastMessage("삭제 완료되었습니다.");
       setShowToast(true);
@@ -186,12 +198,10 @@ export default function CommunityPage() {
       <div className="mx-4 flex-1 overflow-y-auto">
         {posts.length === 0 ? (
           <div className="flex flex-col h-full items-center justify-center">
-            <div className="py-4.5 rounded-lg bg-bg w-full">
-              <h5 className="text-gr text-center">
-                아직 업로드된 게시글이 없어요.
-                <br />첫 번째 게시글을 작성해보세요!
-              </h5>
-            </div>
+            <h5 className="text-lg text-sm text-center">
+              아직 업로드된 게시글이 없어요.
+              <br />첫 번째 게시글을 작성해보세요!
+            </h5>
           </div>
         ) : (
           <div className="cursor-pointer">
@@ -262,12 +272,12 @@ export default function CommunityPage() {
         onCtaClick={() => {
           setIsLoginModalOpen(false);
           // 로그인 성공 후 글쓰기 페이지로 이동
-          router.push("/community/upload");
+          router.push("/login");
         }}
         onSubLinkClick={() => {
           setIsLoginModalOpen(false);
           // 센터 계정 로그인 성공 후 글쓰기 페이지로 이동
-          router.push("/community/upload");
+          router.push("/login");
         }}
       />
     </Container>

@@ -75,7 +75,17 @@ export default function CommunityEditPage({
     if (postData?.post) {
       setTitle(postData.post.title || "");
       setContent(postData.post.content || "");
-      setTags(postData.post.tags?.map((tag) => tag.tagName) || []);
+
+      // 기존 태그를 tagName 또는 tag_name 필드에서 추출
+      const existingTags =
+        postData.post.tags
+          ?.map(
+            (tag: { tagName?: string; tag_name?: string }) =>
+              tag.tagName || tag.tag_name || ""
+          )
+          .filter(Boolean) || [];
+
+      setTags(existingTags);
       setPublicType(postData.post.adoptionId ? "center" : "public");
 
       // 기존 이미지가 있다면 설정
@@ -221,7 +231,7 @@ export default function CommunityEditPage({
   };
 
   const handlePublicChange = () => {
-    setPublicType(publicType === "center" ? "public" : "center");
+    setPublicType(publicType === "public" ? "center" : "public");
   };
 
   const getPublicIcon = () => {
@@ -236,9 +246,9 @@ export default function CommunityEditPage({
     return publicType === "center" ? "센터공개" : "전체공개";
   };
 
-  // 태그 추출 함수
+  // 태그 추출 함수 - 초성, 자음, 모음도 포함
   const extractTags = (text: string): string[] => {
-    const tagRegex = /#(\w+)/g;
+    const tagRegex = /#([ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9_-]+)/g;
     const matches = text.match(tagRegex);
     if (!matches) return [];
 
@@ -258,7 +268,12 @@ export default function CommunityEditPage({
     // 기존 태그와 새로 추출된 태그를 합침
     const extractedTags = extractTags(newContent);
     const existingTags =
-      postData?.post?.tags?.map((tag) => tag.tagName).filter(Boolean) || [];
+      postData?.post?.tags
+        ?.map(
+          (tag: { tagName?: string; tag_name?: string }) =>
+            tag.tagName || tag.tag_name || ""
+        )
+        .filter(Boolean) || [];
 
     // 기존 태그와 새로 입력한 태그를 모두 포함, 유효한 문자열만 필터링
     const allTags = [...new Set([...existingTags, ...extractedTags])].filter(

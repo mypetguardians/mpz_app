@@ -100,7 +100,7 @@ export function PetCardSkeleton({
 
   if (variant === "variant3") {
     return (
-      <div className={cn("flex flex-col items-start", className)}>
+      <div className={cn("flex flex-col items-start w-full", className)}>
         <div className={cn("mb-2", getImageSize())}>
           <div className="w-full h-full bg-gray-200 animate-pulse rounded-[10px]" />
         </div>

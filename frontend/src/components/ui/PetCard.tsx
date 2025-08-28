@@ -22,6 +22,7 @@ interface PetCardProps {
   rank?: number;
   showLocation?: boolean;
   showUpdatedAt?: boolean;
+  disableNavigation?: boolean;
 }
 
 export function PetCard({
@@ -33,6 +34,7 @@ export function PetCard({
   rank,
   showLocation = true,
   showUpdatedAt = false,
+  disableNavigation = false,
 }: PetCardProps) {
   const router = useRouter();
 
@@ -110,6 +112,7 @@ export function PetCard({
   };
 
   const handleCardClick = () => {
+    if (disableNavigation) return;
     router.push(`/list/animal/${pet.id}`);
   };
 

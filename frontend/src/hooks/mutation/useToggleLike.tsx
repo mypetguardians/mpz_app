@@ -21,7 +21,16 @@ export const useToggleLike = () => {
       const response = await instance.post<PostLikeResponse>(
         `/posts/${data.postId}/like/toggle`
       );
-      return response.data;
+      const { isLiked, likeCount, message } =
+        response.data ?? ({} as Partial<PostLikeResponse>);
+      return {
+        message: message ?? "",
+        isLiked: Boolean(isLiked),
+        likeCount:
+          typeof likeCount === "number" && Number.isFinite(likeCount)
+            ? likeCount
+            : 0,
+      };
     },
     onSuccess: (data, variables) => {
       // 게시글 상세 정보 쿼리 무효화

@@ -129,7 +129,20 @@ export function CommentSection({
       {/* 댓글 헤더와 상단 입력 필드 */}
       <div className="flex flex-col gap-2 items-start px-4 py-4 ">
         <h4 className="text-bk">
-          댓글 {pagination?.totalCnt || comments.length}
+          댓글{" "}
+          {(() => {
+            // 메인 댓글 수
+            const mainCommentCount = comments.length;
+            // 대댓글 수 계산
+            const replyCount = comments.reduce(
+              (total, comment) => total + (comment.replies?.length || 0),
+              0
+            );
+            // 총 댓글 수
+            const totalCommentCount = mainCommentCount + replyCount;
+
+            return pagination?.totalCnt || totalCommentCount;
+          })()}
         </h4>
 
         {/* 상단 댓글 입력 필드 */}
@@ -173,7 +186,7 @@ export function CommentSection({
 
               {/* 메인 댓글에 대한 답글 입력 필드 */}
               {replyInputStates[comment.id] && (
-                <div className="ml-8 mt-2">
+                <div className="ml-8 mt-2 w-[360px]">
                   <CommentInput
                     placeholder="답글을 남겨보세요"
                     onSubmit={(text) => handleReply(text, comment.id)}

@@ -9,23 +9,25 @@ import {
 } from "@/types/posts";
 
 // API 응답을 Post로 변환하는 함수
-const transformRawPostToPost = (raw: ApiPostResponse): Post => ({
-  id: raw.id,
-  title: raw.title,
-  content: raw.content,
-  userId: raw.user_id,
-  animalId: raw.animal_id,
-  adoptionId: raw.adoption_id,
-  contentTags: raw.content_tags,
-  likeCount: raw.like_count,
-  commentCount: raw.comment_count,
-  createdAt: raw.created_at,
-  updatedAt: raw.updated_at,
-  userNickname: raw.user_nickname,
-  userImage: raw.user_image,
-  tags: raw.tags,
-  images: raw.images,
-});
+const transformRawPostToPost = (raw: ApiPostResponse): Post => {
+  return {
+    id: raw.id,
+    title: raw.title,
+    content: raw.content,
+    userId: raw.user_id,
+    animalId: raw.animal_id,
+    adoptionId: raw.adoption_id,
+    contentTags: raw.content_tags,
+    likeCount: raw.like_count,
+    commentCount: raw.comment_count,
+    createdAt: raw.created_at,
+    updatedAt: raw.updated_at,
+    userNickname: raw.user_nickname,
+    userImage: raw.user_image,
+    tags: raw.tags,
+    images: raw.images,
+  };
+};
 
 const getPublicPosts = async (
   params?: GetPostsParams

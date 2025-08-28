@@ -151,14 +151,12 @@ export default function CommunityUploadPage() {
   const isFetchingNextPage = false;
   const fetchNextPage = () => {};
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files) {
-      const newFiles = Array.from(files);
-      const newImageUrls = newFiles.map((file) => URL.createObjectURL(file));
-      setUploadedFiles((prev) => [...prev, ...newFiles]);
-      setUploadedImageUrls((prev) => [...prev, ...newImageUrls]);
-    }
+  const handleImageUpload = (files: File[]) => {
+    if (files.length === 0) return;
+
+    const newImageUrls = files.map((file) => URL.createObjectURL(file));
+    setUploadedFiles((prev) => [...prev, ...files]);
+    setUploadedImageUrls((prev) => [...prev, ...newImageUrls]);
   };
 
   const removeImage = (index: number) => {
@@ -200,14 +198,16 @@ export default function CommunityUploadPage() {
     return publicType === "center" ? "센터공개" : "전체공개";
   };
 
-  // 태그 추출 함수
+  // 태그 추출 함수 - 초성, 자음, 모음도 포함
   const extractTags = (text: string): string[] => {
-    const tagRegex = /#(\w+)/g;
+    const tagRegex = /#([ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9_-]+)/g;
     const matches = text.match(tagRegex);
     if (!matches) return [];
 
     // # 제거하고 중복 제거
-    return [...new Set(matches.map((tag) => tag.slice(1)))];
+    const extractedTags = [...new Set(matches.map((tag) => tag.slice(1)))];
+    console.log("추출된 태그:", extractedTags);
+    return extractedTags;
   };
 
   // 내용이 변경될 때마다 태그 추출
@@ -269,27 +269,29 @@ export default function CommunityUploadPage() {
       }
 
       // 포스트 생성 (이미지 URL 포함)
-      createPost(
-        {
-          title,
-          content,
-          tags,
-          images: imageUrls,
-          adoption_id: selectedAdoptionId || undefined,
-          is_all_access: publicType === "public", // 전체공개 = true, 센터공개 = false
+      const postData = {
+        title,
+        content,
+        tags,
+        images: imageUrls,
+        adoption_id: selectedAdoptionId || undefined,
+        is_all_access: publicType === "public", // 전체공개 = true, 센터공개 = false
+      };
+
+      console.log("전송할 포스트 데이터:", postData);
+      console.log("태그 배열:", tags);
+
+      createPost(postData, {
+        onSuccess: (postData) => {
+          console.log("포스트 생성 성공:", postData);
+          setShowSaveModal(false);
+          router.push("/community");
         },
-        {
-          onSuccess: (postData) => {
-            console.log("포스트 생성 성공:", postData);
-            setShowSaveModal(false);
-            router.back();
-          },
-          onError: (error) => {
-            console.error("포스트 생성 실패:", error);
-            console.error("에러 상세:", error.message);
-          },
-        }
-      );
+        onError: (error) => {
+          console.error("포스트 생성 실패:", error);
+          console.error("에러 상세:", error.message);
+        },
+      });
     } catch (error) {
       console.error("저장 중 오류 발생:", error);
     }
@@ -401,7 +403,12 @@ export default function CommunityUploadPage() {
                 type="file"
                 multiple
                 accept="image/*"
-                onChange={handleImageUpload}
+                onChange={(e) => {
+                  const files = e.target.files;
+                  if (files) {
+                    handleImageUpload(Array.from(files));
+                  }
+                }}
                 className="hidden"
               />
             </label>
@@ -463,6 +470,7 @@ export default function CommunityUploadPage() {
                     <PetCard
                       pet={pet}
                       variant="primary"
+                      disableNavigation
                       imageSize="full"
                       className="w-full"
                     />

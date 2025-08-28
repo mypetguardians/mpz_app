@@ -13,7 +13,7 @@ const createReply = async (
   data: CreateReplyData
 ): Promise<CreateReplyResponse> => {
   const response = await instance.post<CreateReplyResponse>(
-    `/comments/comments/${data.commentId}/replies`,
+    `/comments/${data.commentId}/replies`,
     { content: data.content }
   );
   return response.data;

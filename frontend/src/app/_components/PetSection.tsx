@@ -6,13 +6,11 @@ import { PetCardSkeleton } from "@/components/ui/PetCardSkeleton";
 import { MainSection } from "@/components/common/MainSection";
 import { PetSectionError } from "@/components/ui/PetSectionError";
 import { RawAnimalResponse, transformRawAnimalToPetCard } from "@/types/animal";
-import { PetCardVariant } from "@/types/petcard";
 
 interface PetSectionProps {
   title: string;
   rightSlot?: string;
   animals: RawAnimalResponse[];
-  variant: PetCardVariant;
   showLocationFilter?: boolean;
   locations?: string[];
   isLoading?: boolean;
@@ -24,7 +22,6 @@ export function PetSection({
   title,
   rightSlot,
   animals,
-  variant,
   showLocationFilter = false,
   locations = [],
   isLoading = false,
@@ -70,17 +67,9 @@ export function PetSection({
           </div>
         )}
 
-        <div
-          className={`flex gap-3 overflow-x-auto flex-nowrap -mx-4 px-4 ${
-            variant === "variant2" ? "flex-col" : ""
-          } ${
-            variant === "variant3"
-              ? "grid grid-cols-3 gap-x-2 gap-y-3 flex-nowrap"
-              : ""
-          }`}
-        >
+        <div className="grid grid-cols-3 gap-3 w-full">
           {[...Array(6)].map((_, index) => (
-            <PetCardSkeleton key={index} variant={variant} />
+            <PetCardSkeleton key={index} variant="variant3" imageSize="full" />
           ))}
         </div>
       </div>
@@ -144,7 +133,7 @@ export function PetSection({
             <PetCard
               key={animal.id}
               pet={transformRawAnimalToPetCard(animal)}
-              variant="variant2"
+              variant="variant3"
             />
           ))}
         </div>
@@ -173,21 +162,16 @@ export function PetSection({
           ))}
         </div>
       )}
-      <div
-        className={`flex gap-3 overflow-x-auto flex-nowrap -mx-4 px-4 ${
-          variant === "variant2" ? "flex-col" : ""
-        } ${
-          variant === "variant3"
-            ? "grid grid-cols-3 gap-x-2 gap-y-3 flex-nowrap"
-            : ""
-        }`}
-      >
+      <div className="grid grid-cols-3 gap-3 w-full">
         {limitedAnimals.map((animal) => (
-          <PetCard
-            key={animal.id}
-            pet={transformRawAnimalToPetCard(animal)}
-            variant={variant}
-          />
+          <div key={animal.id} className="flex justify-center">
+            <PetCard
+              pet={transformRawAnimalToPetCard(animal)}
+              variant="variant3"
+              imageSize="full"
+              className="w-full"
+            />
+          </div>
         ))}
       </div>
     </MainSection>

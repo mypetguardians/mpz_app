@@ -90,7 +90,6 @@ export default function Home() {
       <PetSection
         title={`총 ${totalPets}명의 아이들이 \n도움을 요청하고 있어요`}
         animals={animals}
-        variant="variant3"
         isLoading={isLoading}
         error={error}
       />

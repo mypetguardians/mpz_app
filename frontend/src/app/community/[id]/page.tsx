@@ -66,6 +66,29 @@ export default function CommunityDetailPage() {
   const handleKakaoShare = () => {
     if (typeof window !== "undefined" && window.Kakao) {
       try {
+        // 이미지 URL 추출: 문자열/객체(image_url, imageUrl 등) 모두 지원
+        const firstImageUrl = (() => {
+          const imgs = post?.images;
+          if (!imgs || imgs.length === 0) return "";
+          const first = imgs[0] as unknown;
+          if (typeof first === "string") return first;
+          if (typeof first === "object" && first !== null) {
+            const obj = first as {
+              image_url?: unknown;
+              imageUrl?: unknown;
+              url?: unknown;
+              file_url?: unknown;
+            };
+            const candidate =
+              (obj.image_url as string | undefined) ??
+              (obj.imageUrl as string | undefined) ??
+              (obj.file_url as string | undefined) ??
+              (obj.url as string | undefined);
+            return typeof candidate === "string" ? candidate : "";
+          }
+          return "";
+        })();
+
         window.Kakao.Link.sendDefault({
           objectType: "feed",
           content: {
@@ -73,11 +96,7 @@ export default function CommunityDetailPage() {
             description:
               post?.content?.substring(0, 100) ||
               "흥미로운 게시글을 확인해보세요!",
-            imageUrl:
-              (typeof post?.images?.[0] === "string"
-                ? post.images[0]
-                : post?.images?.[0]?.imageUrl) ||
-              "https://via.placeholder.com/300x200",
+            imageUrl: firstImageUrl || "",
             link: {
               mobileWebUrl: window.location.href,
               webUrl: window.location.href,

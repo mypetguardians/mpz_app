@@ -15,13 +15,21 @@ export const useCheckPostLike = (postId: string) => {
       const response = await instance.get<CheckPostLikeResponse>(
         `/posts/${postId}/like/status`
       );
-      return response.data;
+      const { isLiked, likeCount } =
+        response.data ?? ({} as Partial<CheckPostLikeResponse>);
+      return {
+        isLiked: Boolean(isLiked),
+        likeCount:
+          typeof likeCount === "number" && Number.isFinite(likeCount)
+            ? likeCount
+            : 0,
+      };
     },
     enabled: !!postId,
     staleTime: 5 * 60 * 1000, // 5분
     gcTime: 10 * 60 * 1000, // 10분
+    placeholderData: (previousData) => previousData,
     retry: (failureCount, error) => {
-      // 500 에러는 재시도하지 않음
       if (error.message.includes("서버 오류")) {
         return false;
       }

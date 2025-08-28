@@ -2,8 +2,7 @@
 
 import Image from "next/image";
 import { X, ShareNetwork, ArrowClockwise } from "@phosphor-icons/react";
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 import { IconButton } from "@/components/ui/IconButton";
 import { TopBar } from "@/components/common/TopBar";
@@ -86,16 +85,40 @@ function MatchingResult({ type }: { type: MatchingResultType }) {
 // 매칭된 동물 목록 컴포넌트
 function MatchedPetsList() {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
+
+  // URL에서 매칭 결과 데이터 가져오기
+  const resultParam = searchParams.get("result");
+  let matchedAnimals: any[] = [];
+  let isLoading = false;
+  let error = null;
+
+  if (resultParam) {
+    try {
+      const resultData = JSON.parse(decodeURIComponent(resultParam));
+      matchedAnimals = resultData.animal_recommendations || [];
+    } catch (e) {
+      console.error("결과 데이터 파싱 오류:", e);
+      error = e;
+    }
+  }
+
+  // AI 매칭 결과가 없으면 기본 동물 목록 사용
   const {
     data: animalsData,
-    isLoading,
-    error,
+    isLoading: defaultLoading,
+    error: defaultError,
   } = useGetAnimals({
     status: "보호중",
     limit: 5,
   });
 
-  const animals = animalsData?.pages?.[0]?.animals || [];
+  const defaultAnimals = animalsData?.pages?.[0]?.animals || [];
+
+  // AI 매칭 결과가 있으면 그것을 사용, 없으면 기본 동물 목록 사용
+  const animals = matchedAnimals.length > 0 ? matchedAnimals : defaultAnimals;
+  isLoading = defaultLoading;
+  error = error || defaultError;
 
   if (isLoading) {
     return (
@@ -148,21 +171,29 @@ function MatchedPetsList() {
       <div className="flex flex-col gap-3">
         {animals.map((animal, index) => (
           <PetCard
-            key={animal.id}
+            key={animal.animal_id || animal.id}
             pet={{
-              id: animal.id,
-              name: animal.name || "",
+              id: animal.animal_id || animal.id,
+              name: animal.animal_name || animal.name || "",
               breed: animal.breed || "",
-              isFemale: animal.is_female,
-              status: animal.status,
-              centerId: animal.center_id,
-              animalImages:
-                animal.animal_images?.map((img) => ({
-                  id: img.id,
-                  imageUrl: img.image_url,
-                  orderIndex: img.order_index,
-                })) || null,
-              foundLocation: animal.found_location || "",
+              isFemale: animal.is_female || false,
+              status: "보호중" as any,
+              centerId: animal.center_id || "",
+              animalImages: animal.animal_images
+                ? animal.animal_images.map((img: any) => ({
+                    id: img.id,
+                    imageUrl: img.image_url,
+                    orderIndex: img.order_index,
+                  }))
+                : animal.animalImages
+                ? animal.animalImages.map((img: any) => ({
+                    id: img.id,
+                    imageUrl: img.imageUrl,
+                    orderIndex: img.orderIndex,
+                  }))
+                : [],
+              foundLocation:
+                animal.found_location || animal.foundLocation || "",
             }}
             variant="variant2"
             rank={index + 1}

@@ -61,13 +61,18 @@ export function Step10({ onNext }: StepProps) {
         postAnimalMatching(requestData, {
           onSuccess: (data) => {
             console.log("AI 매칭 성공:", data);
-            // 매칭 결과 페이지로 이동
-            router.push("/matching/result");
+            // 매칭 결과를 URL 쿼리로 전달
+            if (data.data) {
+              const resultData = encodeURIComponent(JSON.stringify(data.data));
+              router.push(`/matching/loading?result=${resultData}`);
+            } else {
+              router.push("/matching/loading");
+            }
           },
           onError: (error) => {
             console.error("AI 매칭 실패:", error);
-            // 에러가 있어도 다음 단계로 진행
-            onNext();
+            // 에러가 있어도 로딩 페이지로 이동
+            router.push("/matching/loading");
           },
         });
       } else {

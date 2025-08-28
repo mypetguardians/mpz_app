@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { X, ShareNetwork, ArrowClockwise } from "@phosphor-icons/react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 import { IconButton } from "@/components/ui/IconButton";
 import { TopBar } from "@/components/common/TopBar";
@@ -10,14 +10,11 @@ import { Container } from "@/components/common/Container";
 import { PetCard } from "@/components/ui/PetCard";
 import { BigButton } from "@/components/ui/BigButton";
 import { MiniButton } from "@/components/ui/MiniButton";
-import { PetInfo, mainPetInfo } from "@/app/mock";
+import { useGetAnimals } from "@/hooks/query/useGetAnimals";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 // 매칭 결과 타입 정의
-type MatchingResultType =
-  | "perfect" // 완벽한 매칭
-  | "good" // 좋은 매칭
-  | "moderate" // 적당한 매칭
-  | "silent"; // 조용한
+type MatchingResultType = "perfect" | "good" | "moderate" | "silent";
 
 // 매칭 결과별 데이터
 const matchingResults = {
@@ -51,16 +48,18 @@ const matchingResults = {
   },
 };
 
-// 매칭된 동물 목록 데이터 (mock 데이터의 처음 5개 사용)
-const matchedPets: PetInfo[] = mainPetInfo.slice(0, 5);
+// 매칭된 동물 목록 데이터는 컴포넌트 내에서 동적으로 가져옴
 
 // 매칭 결과 컴포넌트
 function MatchingResult({ type }: { type: MatchingResultType }) {
+  const { user } = useAuth();
   const result = matchingResults[type];
 
   return (
     <div className="flex flex-col gap-2 items-center">
-      <h6 className="text-brand">username 님의 매칭 결과</h6>
+      <h6 className="text-brand">
+        {user?.nickname || "사용자"} 님의 매칭 결과
+      </h6>
       <h2 className="text-bk text-center">
         {result.message.split("\n").map((line, index) => (
           <span key={index}>
@@ -78,45 +77,100 @@ function MatchingResult({ type }: { type: MatchingResultType }) {
         ))}
       </h6>
     </div>
-    // here
   );
 }
 
 // 매칭된 동물 목록 컴포넌트
 function MatchedPetsList() {
+  const { user } = useAuth();
+  const {
+    data: animalsData,
+    isLoading,
+    error,
+  } = useGetAnimals({
+    status: "보호중",
+    limit: 5,
+  });
+
+  const animals = animalsData?.pages?.[0]?.animals || [];
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-4 w-full">
+        <div className="text-start mb-4">
+          <h2 className="text-bk text-xl font-bold mb-2">
+            {user?.nickname || "사용자"} 님과
+            <br />꼭 맞는 아이들이에요!
+          </h2>
+          <p className="text-dg text-sm">결과는 매일 업데이트 돼요.</p>
+        </div>
+        <div className="flex flex-col gap-3">
+          {[...Array(3)].map((_, index) => (
+            <div key={index} className="animate-pulse">
+              <div className="h-24 bg-gray-200 rounded-lg"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col gap-4 w-full">
+        <div className="text-start mb-4">
+          <h2 className="text-bk text-xl font-bold mb-2">
+            {user?.nickname || "사용자"} 님과
+            <br />꼭 맞는 아이들이에요!
+          </h2>
+          <p className="text-dg text-sm">결과는 매일 업데이트 돼요.</p>
+        </div>
+        <div className="text-center py-8">
+          <p className="text-gray-500">동물 목록을 불러오는데 실패했습니다.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4 w-full">
       <div className="text-start mb-4">
         <h2 className="text-bk text-xl font-bold mb-2">
-          UserName 님과
+          {user?.nickname || "사용자"} 님과
           <br />꼭 맞는 아이들이에요!
         </h2>
         <p className="text-dg text-sm">결과는 매일 업데이트 돼요.</p>
       </div>
 
       <div className="flex flex-col gap-3">
-        {matchedPets.map((pet, index) => (
+        {animals.map((animal, index) => (
           <PetCard
-            key={pet.id}
+            key={animal.id}
             pet={{
-              id: pet.id,
-              name: pet.name || "",
-              breed: pet.color || "",
-              isFemale: pet.isFemale,
-              status: pet.tag as
+              id: animal.id,
+              name: animal.name || "",
+              breed: animal.breed || "",
+              isFemale: animal.is_female,
+              status: animal.status as
                 | "보호중"
                 | "입양완료"
                 | "무지개다리"
                 | "임시보호중"
                 | "반환"
                 | "방사",
-              centerId: pet.center,
-              animalImages: pet.imageUrls.map((url, idx) => ({
-                id: `${pet.id}-${idx}`,
-                imageUrl: url,
-                orderIndex: idx,
-              })),
-              foundLocation: pet.foundLocation || "",
+              centerId: animal.center_id,
+              animalImages:
+                animal.animal_images?.map(
+                  (
+                    img: { id: string; image_url: string; order_index: number },
+                    idx: number
+                  ) => ({
+                    id: img.id || `${animal.id}-${idx}`,
+                    imageUrl: img.image_url,
+                    orderIndex: img.order_index || idx,
+                  })
+                ) || [],
+              foundLocation: animal.found_location || "",
             }}
             variant="variant2"
             rank={index + 1}
@@ -146,6 +200,7 @@ function MatchingResultImage({ type }: { type: MatchingResultType }) {
 }
 
 export default function MatchingCompletePage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const matchingTypeParam = searchParams.get("type") as MatchingResultType;
 
@@ -163,6 +218,7 @@ export default function MatchingCompletePage() {
           <IconButton
             icon={({ size }) => <X size={size} weight="bold" />}
             size="iconM"
+            onClick={() => router.push("/")}
           />
         }
       />
@@ -184,6 +240,7 @@ export default function MatchingCompletePage() {
               text="다시 해보기"
               leftIcon={<ArrowClockwise size={16} />}
               variant="primary"
+              onClick={() => router.push("/matching")}
             />
           </div>
         </div>

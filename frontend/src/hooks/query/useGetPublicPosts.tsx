@@ -10,11 +10,6 @@ import {
 
 // API 응답을 Post로 변환하는 함수
 const transformRawPostToPost = (raw: ApiPostResponse): Post => {
-  console.log("transformRawPostToPost - raw:", raw);
-  console.log("transformRawPostToPost - raw.tags:", raw.tags);
-  console.log("transformRawPostToPost - raw.tags type:", typeof raw.tags);
-  console.log("transformRawPostToPost - raw.tags isArray:", Array.isArray(raw.tags));
-  
   return {
     id: raw.id,
     title: raw.title,

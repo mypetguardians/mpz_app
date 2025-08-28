@@ -190,7 +190,6 @@ export default function CommunityPage() {
           tabs={tabs}
           variant="primary"
         />
-        {/* 디버깅용: tabs 배열 확인 */}
         {(() => {
           return null;
         })()}
@@ -271,12 +270,10 @@ export default function CommunityPage() {
         variant="variant2"
         onCtaClick={() => {
           setIsLoginModalOpen(false);
-          // 로그인 성공 후 글쓰기 페이지로 이동
           router.push("/login");
         }}
         onSubLinkClick={() => {
           setIsLoginModalOpen(false);
-          // 센터 계정 로그인 성공 후 글쓰기 페이지로 이동
           router.push("/login");
         }}
       />

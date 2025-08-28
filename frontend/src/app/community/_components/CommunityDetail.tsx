@@ -39,20 +39,6 @@ export function CommunityDetail({
   onLoginRequired,
 }: CommunityDetailProps) {
   const { images, title, content, createdAt, userId, tags, likeCount } = post;
-
-  // 태그 디버깅용 로그
-  console.log("CommunityDetail - post:", post);
-  console.log("CommunityDetail - tags:", tags);
-  console.log("CommunityDetail - tags type:", typeof tags);
-  console.log("CommunityDetail - tags isArray:", Array.isArray(tags));
-  if (tags && Array.isArray(tags)) {
-    console.log("CommunityDetail - tags length:", tags.length);
-    tags.forEach((tag, index) => {
-      console.log(`CommunityDetail - tag[${index}]:`, tag);
-      console.log(`CommunityDetail - tag[${index}] type:`, typeof tag);
-    });
-  }
-
   const { isAuthenticated } = useAuth();
   const [currentLikeCount, setCurrentLikeCount] = useState(likeCount || 0);
   const [isLiked, setIsLiked] = useState(false);
@@ -145,7 +131,7 @@ export function CommunityDetail({
     return (
       <div className="mb-3">
         {imageUrls.length === 1 ? (
-          <div className="relative w-full h-64 rounded-lg overflow-hidden">
+          <div className="relative w-[330px] h-[330px] overflow-hidden">
             <Image
               src={imageUrls[0]}
               alt={title}

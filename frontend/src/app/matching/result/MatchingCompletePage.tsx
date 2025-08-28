@@ -1,8 +1,9 @@
 "use client";
 
+import React from "react";
 import Image from "next/image";
 import { X, ShareNetwork, ArrowClockwise } from "@phosphor-icons/react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import { IconButton } from "@/components/ui/IconButton";
 import { TopBar } from "@/components/common/TopBar";
@@ -10,8 +11,10 @@ import { Container } from "@/components/common/Container";
 import { PetCard } from "@/components/ui/PetCard";
 import { BigButton } from "@/components/ui/BigButton";
 import { MiniButton } from "@/components/ui/MiniButton";
-import { useGetAnimals } from "@/hooks/query/useGetAnimals";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { useMatchingStepStore } from "@/lib/stores/matchingStepStore";
+import { mainPetInfo } from "@/app/mock";
+import { AIRecommendResponse } from "@/types/ai-matching";
 
 // 매칭 결과 타입 정의
 type MatchingResultType =
@@ -52,16 +55,48 @@ const matchingResults = {
   },
 };
 
+// 로딩 중일 때 사용할 일러스트 배열
+const loadingImages = [
+  "/illust/result01.svg",
+  "/illust/result02.svg",
+  "/illust/result03.svg",
+  "/illust/result04.svg",
+];
+
 // 매칭된 동물 목록 데이터는 컴포넌트 내에서 동적으로 가져옴
 
+// AI 매칭 결과를 기반으로 매칭 타입 결정하는 함수
+function getMatchingTypeFromAIResult(
+  aiResult: AIRecommendResponse | null
+): MatchingResultType {
+  if (!aiResult?.data?.matching_report) return "perfect";
+
+  const { confidence_level, recommended_count } = aiResult.data.matching_report;
+
+  // 신뢰도와 추천 수를 기반으로 매칭 타입 결정
+  if (confidence_level === "높음" && recommended_count >= 4) return "perfect";
+  if (confidence_level === "높음" && recommended_count >= 2) return "good";
+  if (confidence_level === "보통" && recommended_count >= 2) return "moderate";
+  return "silent";
+}
+
 // 매칭 결과 컴포넌트
-function MatchingResult({ type }: { type: MatchingResultType }) {
+function MatchingResult({
+  type,
+  aiResult,
+}: {
+  type: MatchingResultType;
+  aiResult: AIRecommendResponse | null;
+}) {
   const { user } = useAuth();
   const result = matchingResults[type];
 
+  // AI 매칭 결과가 있으면 분석 이유 정보 사용
+  const analysisReason = aiResult?.data?.analysis_reason;
+
   return (
     <div className="flex flex-col gap-2 items-center">
-      <h6 className="text-brand">{user?.name || "사용자"} 님의 매칭 결과</h6>
+      <h6 className="text-brand">{user?.name} 님의 매칭 결과</h6>
       <h2 className="text-bk text-center">
         {result.message.split("\n").map((line, index) => (
           <span key={index}>
@@ -78,54 +113,46 @@ function MatchingResult({ type }: { type: MatchingResultType }) {
           </span>
         ))}
       </h6>
+      {/* 디버깅용 */}
+      {analysisReason && (
+        <div className="mt-4 p-4 bg-white rounded-lg border border-gray-200 max-w-sm">
+          <h6 className="text-sm font-semibold text-bk mb-2">AI 분석 결과</h6>
+          <p className="text-xs text-dg mb-2">
+            <strong>성격 유형:</strong> {analysisReason.user_personality_type}
+          </p>
+          <p className="text-xs text-dg mb-2">
+            <strong>라이프스타일:</strong> {analysisReason.lifestyle_match}
+          </p>
+          <p className="text-xs text-dg">
+            <strong>경험 수준:</strong> {analysisReason.experience_level}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
 
 // 매칭된 동물 목록 컴포넌트
-function MatchedPetsList() {
+function MatchedPetsList({
+  isLoading,
+  aiMatchingResult,
+}: {
+  isLoading: boolean;
+  aiMatchingResult: AIRecommendResponse | null;
+}) {
   const { user } = useAuth();
-  const searchParams = useSearchParams();
-
-  // URL에서 매칭 결과 데이터 가져오기
-  const resultParam = searchParams.get("result");
-  let matchedAnimals: any[] = [];
-  let isLoading = false;
-  let error = null;
-
-  if (resultParam) {
-    try {
-      const resultData = JSON.parse(decodeURIComponent(resultParam));
-      matchedAnimals = resultData.animal_recommendations || [];
-    } catch (e) {
-      console.error("결과 데이터 파싱 오류:", e);
-      error = e;
-    }
-  }
-
-  // AI 매칭 결과가 없으면 기본 동물 목록 사용
-  const {
-    data: animalsData,
-    isLoading: defaultLoading,
-    error: defaultError,
-  } = useGetAnimals({
-    status: "보호중",
-    limit: 5,
-  });
-
-  const defaultAnimals = animalsData?.pages?.[0]?.animals || [];
 
   // AI 매칭 결과가 있으면 그것을 사용, 없으면 기본 동물 목록 사용
-  const animals = matchedAnimals.length > 0 ? matchedAnimals : defaultAnimals;
-  isLoading = defaultLoading;
-  error = error || defaultError;
+  const animals =
+    aiMatchingResult?.data?.animal_recommendations ||
+    mainPetInfo.filter((pet) => pet.tag === "보호중").slice(0, 5);
 
   if (isLoading) {
     return (
       <div className="flex flex-col gap-4 w-full">
         <div className="text-start mb-4">
           <h2 className="text-bk text-xl font-bold mb-2">
-            {user?.nickname || "사용자"} 님과
+            {user?.nickname} 님과
             <br />꼭 맞는 아이들이에요!
           </h2>
           <p className="text-dg text-sm">결과는 매일 업데이트 돼요.</p>
@@ -141,23 +168,6 @@ function MatchedPetsList() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex flex-col gap-4 w-full">
-        <div className="text-start mb-4">
-          <h2 className="text-bk text-xl font-bold mb-2">
-            {user?.nickname || "사용자"} 님과
-            <br />꼭 맞는 아이들이에요!
-          </h2>
-          <p className="text-dg text-sm">결과는 매일 업데이트 돼요.</p>
-        </div>
-        <div className="text-center py-8">
-          <p className="text-gray-500">동물 목록을 불러오는데 실패했습니다.</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-4 w-full">
       <div className="text-start mb-4">
@@ -166,56 +176,123 @@ function MatchedPetsList() {
           <br />꼭 맞는 아이들이에요!
         </h2>
         <p className="text-dg text-sm">결과는 매일 업데이트 돼요.</p>
+        {/* 디버깅용 */}
+        {aiMatchingResult?.data?.matching_report && (
+          <div className="mt-2 p-3 bg-brand-light/10 rounded-lg">
+            <p className="text-xs text-brand">
+              <strong>매칭 신뢰도:</strong>{" "}
+              {aiMatchingResult.data.matching_report.confidence_level}
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col gap-3">
-        {animals.map((animal, index) => (
-          <PetCard
-            key={animal.animal_id || animal.id}
-            pet={{
-              id: animal.animal_id || animal.id,
-              name: animal.animal_name || animal.name || "",
-              breed: animal.breed || "",
-              isFemale: animal.is_female || false,
-              status: "보호중" as any,
-              centerId: animal.center_id || "",
-              animalImages: animal.animal_images
-                ? animal.animal_images.map((img: any) => ({
-                    id: img.id,
-                    imageUrl: img.image_url,
-                    orderIndex: img.order_index,
-                  }))
-                : animal.animalImages
-                ? animal.animalImages.map((img: any) => ({
-                    id: img.id,
-                    imageUrl: img.imageUrl,
-                    orderIndex: img.orderIndex,
-                  }))
-                : [],
-              foundLocation:
-                animal.found_location || animal.foundLocation || "",
-            }}
-            variant="variant2"
-            rank={index + 1}
-          />
-        ))}
+        {animals.map((animal: unknown, index: number) => {
+          // AI 매칭 결과인지 mainPetInfo인지 확인
+          const animalData = animal as Record<string, unknown>;
+          const isAIMatching = animalData.animal_id;
+
+          if (isAIMatching) {
+            // AI 매칭 결과 데이터
+            return (
+              <PetCard
+                key={String(animalData.animal_id)}
+                pet={{
+                  id: String(animalData.animal_id),
+                  name: String(animalData.animal_name),
+                  breed: String(animalData.breed || "믹스견"),
+                  isFemale: String(animalData.gender) === "암",
+                  status: "보호중" as const,
+                  centerId: String(animalData.center_name || "AI 매칭"),
+                  animalImages: [
+                    {
+                      id: "0",
+                      imageUrl: "/img/dummyImg.jpeg", // AI 매칭 결과에는 이미지가 없으므로 기본 이미지 사용
+                      orderIndex: 0,
+                    },
+                  ],
+                  foundLocation: String(
+                    animalData.found_location || "AI 매칭 추천"
+                  ),
+                }}
+                variant="variant2"
+                rank={index + 1}
+              />
+            );
+          } else {
+            // mainPetInfo 데이터
+            const petInfo = animal as (typeof mainPetInfo)[0];
+            return (
+              <PetCard
+                key={petInfo.id}
+                pet={{
+                  id: petInfo.id,
+                  name: petInfo.name,
+                  breed: petInfo.color || "",
+                  isFemale: petInfo.isFemale,
+                  status: "보호중" as const,
+                  centerId: petInfo.center,
+                  animalImages: petInfo.imageUrls.map(
+                    (img: string, imgIndex: number) => ({
+                      id: String(imgIndex),
+                      imageUrl: img,
+                      orderIndex: imgIndex,
+                    })
+                  ),
+                  foundLocation: petInfo.foundLocation,
+                }}
+                variant="variant2"
+                rank={index + 1}
+              />
+            );
+          }
+        })}
       </div>
     </div>
   );
 }
 
 // 매칭 결과 이미지 컴포넌트
-function MatchingResultImage({ type }: { type: MatchingResultType }) {
+function MatchingResultImage({
+  type,
+  isLoading = false,
+}: {
+  type: MatchingResultType;
+  isLoading?: boolean;
+}) {
   const result = matchingResults[type];
+  const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
+
+  React.useEffect(() => {
+    if (isLoading) {
+      // 로딩 중일 때 1초마다 일러스트 변경
+      const interval = setInterval(() => {
+        setCurrentImageIndex((prev) => (prev + 1) % loadingImages.length);
+      }, 1000);
+
+      return () => clearInterval(interval);
+    } else {
+      // 로딩이 끝나면 해당 타입의 일러스트로 고정
+      setCurrentImageIndex(0);
+    }
+  }, [isLoading]);
+
+  const currentImage = isLoading
+    ? loadingImages[currentImageIndex]
+    : result.image;
+  const currentAlt = isLoading
+    ? `로딩 중 일러스트 ${currentImageIndex + 1}`
+    : result.imageAlt;
 
   return (
     <div className="flex justify-center">
       <Image
-        src={result.image}
-        alt={result.imageAlt}
+        src={currentImage}
+        alt={currentAlt}
         width={330}
         height={240}
-        className="object-contain"
+        className="object-contain transition-all duration-500 ease-in-out"
         priority
       />
     </div>
@@ -224,14 +301,24 @@ function MatchingResultImage({ type }: { type: MatchingResultType }) {
 
 export default function MatchingCompletePage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const matchingTypeParam = searchParams.get("type") as MatchingResultType;
+  const [isLoading, setIsLoading] = React.useState(true);
+  const { aiMatchingResult } = useMatchingStepStore();
 
-  // URL 파라미터가 없거나 유효하지 않은 경우 기본값 사용
+  // AI 매칭 결과를 기반으로 매칭 타입 결정
   const matchingType: MatchingResultType =
-    matchingTypeParam && matchingResults[matchingTypeParam]
-      ? matchingTypeParam
-      : "perfect";
+    getMatchingTypeFromAIResult(aiMatchingResult);
+
+  React.useEffect(() => {
+    // AI 매칭 결과가 있으면 바로 사용, 없으면 1초 후 로딩 상태 해제
+    if (aiMatchingResult) {
+      setIsLoading(false);
+    } else {
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [aiMatchingResult]);
 
   return (
     <Container className="min-h-screen flex flex-col bg-gradient-to-b from-brand-light/10 to-transparent">
@@ -246,9 +333,12 @@ export default function MatchingCompletePage() {
         }
       />
       <div className="flex flex-col px-4 py-20 items-center gap-9">
-        <MatchingResult type={matchingType} />
-        <MatchingResultImage type={matchingType} />
-        <MatchedPetsList />
+        <MatchingResult type={matchingType} aiResult={aiMatchingResult} />
+        <MatchingResultImage type={matchingType} isLoading={isLoading} />
+        <MatchedPetsList
+          isLoading={isLoading}
+          aiMatchingResult={aiMatchingResult}
+        />
 
         <div className="flex flex-col gap-3 w-full mt-8">
           <BigButton

@@ -29,7 +29,7 @@ export default function MyPage() {
   const [showLogoutToast, setShowLogoutToast] = useState(false);
   const { isAuthenticated, logout } = useAuth();
   const { data: myCenter } = useGetMyCenter();
-  console.log(myCenter);
+
   const isSubscriber = myCenter?.isSubscriber === true;
 
   // 로그아웃 처리 함수

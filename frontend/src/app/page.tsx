@@ -28,12 +28,6 @@ export default function Home() {
     sortOrder: "desc",
   });
 
-  // 데이터 구조 디버깅을 위한 콘솔 출력
-  console.log("Home - Full animalsData:", animalsData);
-  if (animalsData?.pages?.[0]) {
-    console.log("Home - First page structure:", animalsData.pages[0]);
-  }
-
   // page.data를 사용하여 데이터 추출 (실제 API 응답 구조)
   const animals: RawAnimalResponse[] =
     animalsData?.pages?.flatMap((page) => {
@@ -43,7 +37,6 @@ export default function Home() {
     }) || [];
 
   const totalPets = animals.length;
-  console.log("Home - Total animals:", totalPets);
 
   const handleLocationSelect = (location: string) => {
     setSelectedLocation(location);

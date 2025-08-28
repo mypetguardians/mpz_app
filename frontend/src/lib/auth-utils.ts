@@ -113,7 +113,7 @@ export function hasPermission(
     일반사용자: 1,
     센터관리자: 2,
     훈련사: 3,
-    최고관리자: 4,
+    센터최고관리자: 4,
   };
 
   const userLevel =

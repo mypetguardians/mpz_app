@@ -3,9 +3,12 @@ import { CenterAdminResponseSchema } from "@/server/openapi/routes/center-admin"
 import instance from "@/lib/axios-instance";
 
 interface CreateCenterAdminData {
-  name: string;
-  email: string;
+  username: string;
   password: string;
+  email: string;
+  nickname: string;
+  user_type: string;
+  phone_number: string;
 }
 
 export const useCreateCenterAdmin = () => {
@@ -16,12 +19,12 @@ export const useCreateCenterAdmin = () => {
       data: CreateCenterAdminData
     ): Promise<typeof CenterAdminResponseSchema> => {
       const response = await instance.post<typeof CenterAdminResponseSchema>(
-        "/center-admin",
+        "/admin/center-admin",
         data
       );
       return response.data;
     },
-    onSuccess: (_data) => {
+    onSuccess: () => {
       // 관련 쿼리 무효화
       queryClient.invalidateQueries({ queryKey: ["centerAdmins"] });
     },

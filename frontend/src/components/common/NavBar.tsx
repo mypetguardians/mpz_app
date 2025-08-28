@@ -47,7 +47,8 @@ function NavBar() {
   const router = useRouter();
   const pathname = usePathname();
   const { user, isAuthenticated } = useAuth();
-  const isCenter = user?.userType === "센터관리자";
+  const isCenter =
+    user?.userType === "센터관리자" || user?.userType === "센터최고관리자";
 
   // 현재 경로에 따라 active 탭 결정
   const getActiveTab = () => {

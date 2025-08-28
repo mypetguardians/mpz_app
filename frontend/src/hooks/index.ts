@@ -42,6 +42,10 @@ export { useUpdateQuestionForm } from "./mutation/useUpdateQuestionForm";
 export { useUpdateQuestionSequence } from "./mutation/useUpdateQuestionSequence";
 export { useDeleteQuestionForm } from "./mutation/useDeleteQuestionForm";
 export { useGetCenterProcedureSettings } from "./query/useGetCenterProcedureSettings";
+export type {
+  CenterProcedureSettings,
+  ContractTemplate,
+} from "./query/useGetCenterProcedureSettings";
 export { useGetContractTemplate } from "./query/useGetContractTemplate";
 export { useCreateCenterProcedureSettings } from "./mutation/useCreateCenterProcedureSettings";
 export { useUpdateCenterProcedureSettings } from "./mutation/useUpdateCenterProcedureSettings";

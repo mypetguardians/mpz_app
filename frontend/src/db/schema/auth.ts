@@ -13,7 +13,7 @@ export const user = sqliteTable("user", {
   nickname: text("nickname"),
   phoneNumber: text("phone_number"),
   userType: text("user_type", {
-    enum: ["일반사용자", "센터관리자", "훈련사", "최고관리자"],
+    enum: ["일반사용자", "센터관리자", "훈련사", "센터최고관리자"],
   }).default("일반사용자"),
   isPhoneVerified: integer("is_phone_verified", { mode: "boolean" }).default(
     false

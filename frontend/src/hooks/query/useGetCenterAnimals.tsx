@@ -3,20 +3,22 @@ import instance from "@/lib/axios-instance";
 import type { Animal } from "@/types/animal";
 
 interface GetMyCenterAnimalsParams {
+  center_id?: string | null;
   status?:
     | "보호중"
+    | "입양대기"
     | "입양완료"
     | "무지개다리"
     | "임시보호중"
     | "반환"
     | "방사";
   breed?: string;
-  gender?: "male" | "female";
+  gender?: "female" | "male";
   weight?: "10kg_under" | "25kg_under" | "over_25kg";
   age?: "2_under" | "7_under" | "over_7";
-  hasTrainerComment?: "true" | "false";
+  has_trainer_comment?: "true" | "false";
   page?: number;
-  limit?: number;
+  page_size?: number;
 }
 
 // API 응답의 실제 구조
@@ -31,13 +33,13 @@ interface ApiAnimalResponse {
   description: string | null;
   status: string;
   waiting_days: number | null;
-  activity_level: number | null;
-  sensitivity: number | null;
-  sociability: number | null;
-  separation_anxiety: number | null;
+  activity_level: string | null;
+  sensitivity: string | null;
+  sociability: string | null;
+  separation_anxiety: string | null;
   special_notes: string | null;
   health_notes: string | null;
-  basic_training: number | null;
+  basic_training: string | null;
   trainer_comment: string | null;
   announce_number: string | null;
   announcement_date: string | null;
@@ -77,19 +79,13 @@ const transformApiResponseToAnimal = (apiAnimal: ApiAnimalResponse): Animal => {
     description: apiAnimal.description,
     status: apiAnimal.status as Animal["status"],
     waitingDays: apiAnimal.waiting_days,
-    activityLevel: apiAnimal.activity_level
-      ? String(apiAnimal.activity_level)
-      : null,
-    sensitivity: apiAnimal.sensitivity ? String(apiAnimal.sensitivity) : null,
-    sociability: apiAnimal.sociability ? String(apiAnimal.sociability) : null,
-    separationAnxiety: apiAnimal.separation_anxiety
-      ? String(apiAnimal.separation_anxiety)
-      : null,
+    activityLevel: apiAnimal.activity_level,
+    sensitivity: apiAnimal.sensitivity,
+    sociability: apiAnimal.sociability,
+    separationAnxiety: apiAnimal.separation_anxiety,
     specialNotes: apiAnimal.special_notes,
     healthNotes: apiAnimal.health_notes,
-    basicTraining: apiAnimal.basic_training
-      ? String(apiAnimal.basic_training)
-      : null,
+    basicTraining: apiAnimal.basic_training,
     trainerComment: apiAnimal.trainer_comment,
     announceNumber: apiAnimal.announce_number,
     announcementDate: apiAnimal.announcement_date,
@@ -117,7 +113,7 @@ const getMyCenterAnimals = async (
   animals: Animal[];
   total: number;
   page: number;
-  limit: number;
+  pageSize: number;
   totalPages: number;
   hasNext: boolean;
   hasPrev: boolean;
@@ -126,7 +122,7 @@ const getMyCenterAnimals = async (
 
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined) {
+      if (value !== undefined && value !== null) {
         searchParams.append(key, value.toString());
       }
     });
@@ -142,7 +138,7 @@ const getMyCenterAnimals = async (
     animals,
     total: response.data.totalCnt,
     page: response.data.curPage,
-    limit: response.data.pageCnt,
+    pageSize: params?.page_size || 10,
     totalPages: response.data.pageCnt,
     hasNext: response.data.nextPage !== null,
     hasPrev: response.data.previousPage !== null,

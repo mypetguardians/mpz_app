@@ -4,14 +4,18 @@ import type { AppBindings } from "@/types";
 import { getCookie } from "hono/cookie";
 
 // 사용자 타입 정의
-export type UserType = "일반사용자" | "센터관리자" | "훈련사" | "최고관리자";
+export type UserType =
+  | "일반사용자"
+  | "센터관리자"
+  | "훈련사"
+  | "센터최고관리자";
 
 // 권한 레벨 (숫자가 높을수록 높은 권한)
 export const PERMISSION_LEVELS: Record<UserType, number> = {
   일반사용자: 1,
   센터관리자: 2,
   훈련사: 3,
-  최고관리자: 4,
+  센터최고관리자: 4,
 };
 
 // 현재 사용자 정보 조회
@@ -54,6 +58,7 @@ export async function getCurrentUser(c: Context<AppBindings>) {
 
     return users[0] || null;
   } catch (error) {
+    console.error("getCurrentUser 오류:", error);
     return null;
   }
 }
@@ -204,7 +209,7 @@ export async function isAuthorOrSuperAdmin(
   const isAuthor = user.id === authorUserId;
 
   // 최고관리자인지 확인
-  const isSuperAdmin = user.userType === "최고관리자";
+  const isSuperAdmin = user.userType === "센터최고관리자";
 
   return isAuthor || isSuperAdmin;
 }

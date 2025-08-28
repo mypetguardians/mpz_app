@@ -6,9 +6,11 @@ import { IconButton } from "@/components/ui/IconButton";
 import { MiniButton } from "@/components/ui/MiniButton";
 import { Container } from "@/components/common/Container";
 import { useGetCenterAdmins } from "@/hooks/query/useGetCenterAdmins";
+import { useRouter } from "next/navigation";
 
 export default function AdminPage() {
   const { data: centerAdminsData, isLoading, error } = useGetCenterAdmins();
+  const router = useRouter();
 
   const handleBack = () => {
     // 뒤로가기 로직
@@ -17,7 +19,7 @@ export default function AdminPage() {
 
   const handleCreateId = () => {
     // 아이디 만들기 로직
-    console.log("아이디 만들기 클릭");
+    router.push("/centerpage/admin/create");
   };
 
   const handleDelete = (id: string) => {

@@ -2,10 +2,10 @@ import { getDB } from "@/db";
 import { notifications } from "@/db/schema/notifications";
 import { user } from "@/db/schema/auth";
 import { centers } from "@/db/schema/centers";
-import { eq, and } from "drizzle-orm";
+import { eq, and, SQL } from "drizzle-orm";
 import { createFCMService } from "./fcm-utils";
 import type { Context } from "hono";
-import type { AppBindings } from "@/types";
+import { AppBindings } from "@/types";
 
 const fcm = createFCMService();
 
@@ -63,7 +63,15 @@ export class NotificationService {
       .select()
       .from(centers)
       .innerJoin(user, eq(centers.userId, user.id))
-      .where(and(eq(centers.id, centerId), eq(user.userType, "센터관리자")));
+      .where(
+        and(
+          eq(centers.id, centerId),
+          or(
+            eq(user.userType, "센터관리자"),
+            eq(user.userType, "센터최고관리자")
+          )
+        )
+      );
 
     const adminIds = centerAdmins.map((admin) => admin.user.id);
 
@@ -145,7 +153,15 @@ export class NotificationService {
       .select()
       .from(centers)
       .innerJoin(user, eq(centers.userId, user.id))
-      .where(and(eq(centers.id, centerId), eq(user.userType, "센터관리자")));
+      .where(
+        and(
+          eq(centers.id, centerId),
+          or(
+            eq(user.userType, "센터관리자"),
+            eq(user.userType, "센터최고관리자")
+          )
+        )
+      );
 
     const adminIds = centerAdmins.map((admin) => admin.user.id);
 
@@ -210,4 +226,10 @@ export class NotificationService {
       console.error("FCM 전송 실패:", error);
     }
   }
+}
+function or(
+  arg0: SQL<unknown>,
+  arg1: SQL<unknown>
+): import("drizzle-orm").SQLWrapper | undefined {
+  throw new Error("Function not implemented.");
 }

@@ -8,7 +8,7 @@ export interface User {
   nickname?: string;
   phoneNumber?: string;
   image?: string;
-  userType: "일반사용자" | "센터관리자" | "훈련사" | "최고관리자";
+  userType: "일반사용자" | "센터관리자" | "훈련사" | "센터최고관리자";
   centers?: {
     id: string;
     name: string;

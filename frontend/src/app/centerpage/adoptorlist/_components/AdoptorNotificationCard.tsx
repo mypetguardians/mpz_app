@@ -41,7 +41,7 @@ function AdoptorNotificationCard({
           router.push(`/centerpage/adoptorlist/application/${id}/meeting`);
           break;
         case "계약서작성":
-          router.push(`/centerpage/adoptorlist/application/${id}/contractform`);
+          router.push(`/centerpage/adoptorlist/application/${id}/writing`);
           break;
         case "입양완료":
           router.push(`/centerpage/adoptorlist/application/${id}/complete`);

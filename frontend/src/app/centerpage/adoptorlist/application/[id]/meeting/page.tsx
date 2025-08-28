@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useState } from "react";
+import React, { use, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "@phosphor-icons/react";
 
@@ -13,7 +13,8 @@ import { BigButton } from "@/components/ui/BigButton";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Toast } from "@/components/ui/Toast";
 import { SectionLine } from "@/app/centerpage/adoptorlist/application/_components/SectionLine";
-import { useGetCenterAdoption } from "@/hooks/query/useGetCenterAdoption";
+import { useGetCenterAdoptions } from "@/hooks/query/useGetCenterAdoptions";
+import { useGetAdoptionMonitoringPosts } from "@/hooks/query/useGetAdoptionMonitoringPosts";
 import { transformRawAnimalToPetCard } from "@/types/animal";
 import { useGetAnimalById } from "@/hooks/query/useGetAnimals";
 import { useUpdateAdoptionStatus } from "@/hooks/mutation/useUpdateAdoptionStatus";
@@ -35,12 +36,28 @@ export default function AdoptionMeetingPage({
 
   const { id } = use(params);
 
-  // 실제 입양 데이터 가져오기
+  // 센터 입양 신청 목록 조회
   const {
-    data: adoptionData,
+    data: adoptionsData,
     isLoading: adoptionLoading,
     error: adoptionError,
-  } = useGetCenterAdoption(id);
+  } = useGetCenterAdoptions({
+    page: 1,
+    limit: 100, // 충분한 데이터를 가져오기 위해 큰 값 설정
+  });
+
+  // 현재 입양 신청 찾기
+  const adoptionData = useMemo(() => {
+    if (!adoptionsData?.data) return null;
+    return adoptionsData.data.find((adoption) => adoption.id === id) || null;
+  }, [adoptionsData, id]);
+
+  // 입양 모니터링 포스트 조회
+  const {
+    data: monitoringPostsData,
+    isLoading: isPostsLoading,
+    error: postsError,
+  } = useGetAdoptionMonitoringPosts(id, 1, 10);
 
   // 동물 정보 가져오기 (입양 데이터에서 animal_id 추출)
   const {
@@ -70,9 +87,16 @@ export default function AdoptionMeetingPage({
     router.back();
   };
 
+  const handleViewApplicationForm = () => {
+    if (adoptionData) {
+      router.push(`/centerpage/adoptorlist/application/${id}/applicationForm`);
+    }
+  };
+
   const handleViewConsent = () => {
-    // 동의서 보기 로직
-    console.log("동의서 보기");
+    if (adoptionData) {
+      router.push(`/centerpage/adoptorlist/application/${id}/consentform`);
+    }
   };
 
   const handleStatusChange = () => {
@@ -104,9 +128,25 @@ export default function AdoptionMeetingPage({
     );
   };
 
-  const handleNextStep = () => {
-    setSelectedStatus("계약서작성");
-    setShowStatusModal(true);
+  const handleContractSend = () => {
+    updateStatusMutation.mutate(
+      {
+        adoption_id: id,
+        status: "계약서작성",
+        center_notes: centerNotes || null,
+        meeting_scheduled_at: null,
+      },
+      {
+        onSuccess: () => {
+          setShowToast(true);
+          setTimeout(() => setShowToast(false), 3000);
+        },
+        onError: (error) => {
+          console.error("상태 변경 실패:", error);
+          // 에러 처리 로직 추가 가능
+        },
+      }
+    );
   };
 
   const handleReject = () => {
@@ -199,7 +239,7 @@ export default function AdoptionMeetingPage({
           <div className="p-4">
             {/* Main Title */}
             <h2 className="flex itemx-center justify-center text-bk mb-6">
-              미팅이 예정되어 있어요
+              미팅이 팔요하다면 진행해주세요!
             </h2>
 
             {/* Progress Bar */}
@@ -212,7 +252,7 @@ export default function AdoptionMeetingPage({
             </SectionLine>
 
             <SectionLine>
-              {/* My Information */}
+              {/* 사용자 정보 */}
               <div className="mb-6">
                 <h3 className="text-bk mb-3">입양 신청자 정보</h3>
                 <div className="bg-white rounded-lg p-4">
@@ -234,7 +274,7 @@ export default function AdoptionMeetingPage({
                         </td>
                         <td className="text-sm py-1">
                           <div className="py-1 px-3">
-                            {adoptionData.user_info.phone}
+                            {adoptionData.user_info.phone || "-"}
                           </div>
                         </td>
                       </tr>
@@ -244,7 +284,31 @@ export default function AdoptionMeetingPage({
                         </td>
                         <td className="text-sm py-1">
                           <div className="py-1 px-3">
-                            {adoptionData.user_info.address}
+                            {adoptionData.user_info.address || "-"}
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="text-gr h5 py-1 pr-3 align-top w-20">
+                          신청일
+                        </td>
+                        <td className="text-sm py-1">
+                          <div className="py-1 px-3">
+                            {adoptionData.timeline?.applied_at
+                              ? new Date(
+                                  adoptionData.timeline.applied_at
+                                ).toLocaleDateString()
+                              : "-"}
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="text-gr h5 py-1 pr-3 align-top w-20">
+                          메모
+                        </td>
+                        <td className="text-sm py-1">
+                          <div className="py-1 px-3">
+                            {adoptionData.notes || "-"}
                           </div>
                         </td>
                       </tr>
@@ -255,10 +319,10 @@ export default function AdoptionMeetingPage({
               <div className="flex flex-col items-center gap-2">
                 <BigButton
                   variant="variant5"
-                  onClick={handleNextStep}
+                  onClick={handleViewApplicationForm}
                   className="w-full py-4"
                 >
-                  다음 단계로
+                  신청서 보기
                 </BigButton>
                 <BigButton
                   variant="variant5"
@@ -272,10 +336,66 @@ export default function AdoptionMeetingPage({
 
             <SectionLine>
               <h3 className="text-bk mb-3">입양 신청자가 올린 글</h3>
-              {/* @TODO 사용자의 글로 연결 로직 추가 필요*/}
-              <div className="text-center py-8 text-gray-500">
-                관련 게시물이 없습니다
-              </div>
+              {isPostsLoading ? (
+                <div className="flex flex-col gap-4">
+                  {[1, 2, 3].map((i) => (
+                    <div
+                      key={i}
+                      className="h-32 bg-gray-200 animate-pulse rounded-lg"
+                    />
+                  ))}
+                </div>
+              ) : postsError ? (
+                <div className="text-center py-8 text-gray-500">
+                  아직 업로드된 게시글이 없어요.
+                  {/* TODO 권한 확인 */}
+                </div>
+              ) : !monitoringPostsData?.data ||
+                monitoringPostsData.data.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-lg text-sm mb-4">
+                    아직 업로드된 게시글이 없어요.
+                    <br />첫 번째 게시글을 작성해보세요!
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  {monitoringPostsData.data.map((post) => (
+                    <div
+                      key={post.id}
+                      className="cursor-pointer"
+                      onClick={() => router.push(`/community/${post.id}`)}
+                    >
+                      <div className="bg-white rounded-lg p-4 border border-gray-200">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 bg-gray-300 rounded-full flex-shrink-0"></div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="font-medium text-sm text-gray-900">
+                                {post.user_nickname}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {new Date(post.created_at).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <h4 className="font-medium text-gray-900 mb-2 line-clamp-2">
+                              {post.title}
+                            </h4>
+                            <p className="text-sm text-gray-600 line-clamp-3">
+                              {post.content}
+                            </p>
+                            {post.images && post.images.length > 0 && (
+                              <div className="mt-3">
+                                <div className="w-16 h-16 bg-gray-200 rounded-lg"></div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </SectionLine>
 
             {/* Action Buttons */}
@@ -289,10 +409,10 @@ export default function AdoptionMeetingPage({
               </BigButton>
               <BigButton
                 variant="primary"
-                onClick={handleNextStep}
+                onClick={handleContractSend}
                 className="w-full py-4"
               >
-                계약서 작성
+                계약서 전송
               </BigButton>
             </div>
           </div>
@@ -357,7 +477,9 @@ export default function AdoptionMeetingPage({
             <Toast>
               {selectedStatus === "취소"
                 ? "입양 신청이 거절되었습니다."
-                : "입양 신청 상태가 변경되었습니다."}
+                : selectedStatus === "계약서작성"
+                ? "입양자에게 계약서를 전송했습니다."
+                : "계약서를 전송했습니다."}
             </Toast>
           </div>
         )}

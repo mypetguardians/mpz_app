@@ -35,7 +35,12 @@ export const CenterAdoptionDataSchema = z.object({
   center_notes: z.string(),
   is_temporary_protection: z.boolean(),
   user_info: UserInfoSchema,
-  question_responses: z.array(z.any()),
+  question_responses: z.array(
+    z.object({
+      question: z.string(),
+      answer: z.string(),
+    })
+  ),
   agreements: AgreementsSchema,
   timeline: TimelineSchema,
   created_at: z.string(),

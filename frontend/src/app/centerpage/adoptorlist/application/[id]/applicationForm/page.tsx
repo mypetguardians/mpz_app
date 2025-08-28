@@ -3,8 +3,8 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "@phosphor-icons/react";
-import { useGetUserAdoptionDetail } from "@/hooks/query/useGetUserAdoptionDetail";
-import { useAuth } from "@/components/providers/AuthProvider";
+import { useGetCenterAdoptions } from "@/hooks/query/useGetCenterAdoptions";
+import { useMemo } from "react";
 
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
@@ -17,18 +17,24 @@ export default function ApplicationFormPage({
   params: Promise<{ id: string }>;
 }) {
   const router = useRouter();
-  const { user } = useAuth();
 
   const { id } = React.use(params);
 
+  // 센터 입양 신청 목록 조회
   const {
-    data: adoptionDetail,
+    data: adoptionsData,
     isLoading,
     error,
-  } = useGetUserAdoptionDetail({
-    adoptionId: id,
-    userId: user?.id || "",
+  } = useGetCenterAdoptions({
+    page: 1,
+    limit: 100, // 충분한 데이터를 가져오기 위해 큰 값 설정
   });
+
+  // 현재 입양 신청 찾기
+  const currentAdoption = useMemo(() => {
+    if (!adoptionsData?.data) return null;
+    return adoptionsData.data.find((adoption) => adoption.id === id) || null;
+  }, [adoptionsData, id]);
 
   const handleBack = () => {
     router.back();
@@ -57,7 +63,7 @@ export default function ApplicationFormPage({
     );
   }
 
-  if (error || !adoptionDetail) {
+  if (error || !currentAdoption) {
     return (
       <Container className="min-h-screen">
         <TopBar
@@ -106,12 +112,12 @@ export default function ApplicationFormPage({
             <SectionLine>
               <h3 className="text-bk mb-3 font-medium">질문 응답</h3>
               <div className="space-y-4">
-                {adoptionDetail.questionResponses &&
-                adoptionDetail.questionResponses.length > 0 ? (
-                  adoptionDetail.questionResponses.map((response, index) => (
+                {currentAdoption.question_responses &&
+                currentAdoption.question_responses.length > 0 ? (
+                  currentAdoption.question_responses.map((response, index) => (
                     <div key={index} className="flex flex-col gap-2">
                       <div className="flex flex-col gap-1">
-                        <h5 className="text-gr">{response.questionContent}</h5>
+                        <h5 className="text-gr">{response.question}</h5>
                         <p className="text-bk body">{response.answer}</p>
                       </div>
                     </div>

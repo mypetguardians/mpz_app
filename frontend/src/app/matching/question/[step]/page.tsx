@@ -55,7 +55,7 @@ export default function MatchingQuestionPage() {
     7: <Step7 onNext={handleNext} />,
     8: <Step8 onNext={handleNext} />,
     9: <Step9 onNext={handleNext} />,
-    10: <Step10 onNext={() => router.push("/matching/result")} />,
+    10: <Step10 onNext={() => router.push("/matching/loading")} />,
   };
 
   if (!stepsMap[currentStep]) {

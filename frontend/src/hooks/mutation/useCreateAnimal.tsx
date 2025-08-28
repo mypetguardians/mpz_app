@@ -71,7 +71,7 @@ export const useCreateAnimal = () => {
       );
       return response.data;
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       // 동물 목록 캐시 무효화
       queryClient.invalidateQueries({ queryKey: ["animals"] });
 

@@ -8,6 +8,7 @@ interface UpdatePostData {
   content: string;
   images?: string[];
   contentTags?: string;
+  tags?: string[];
 }
 
 interface UpdatePostResponse {

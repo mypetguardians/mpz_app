@@ -17,7 +17,9 @@ interface GetCenterAdminsResponse {
 }
 
 const getCenterAdmins = async (): Promise<GetCenterAdminsResponse> => {
-  const response = await instance.get<GetCenterAdminsResponse>("/center-admin");
+  const response = await instance.get<GetCenterAdminsResponse>(
+    "/admin/center-admins"
+  );
   return response.data;
 };
 

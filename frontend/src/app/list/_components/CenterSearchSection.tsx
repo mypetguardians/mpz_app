@@ -6,10 +6,7 @@ import { SearchInput } from "@/components/ui/SearchInput";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { CenterCard } from "@/components/ui/CenterCard";
 import { useGetCenterByLocation } from "@/hooks/query/useGetCenters";
-import type { CenterResponseSchema } from "@/server/openapi/routes/center";
-import { z } from "zod";
-
-type Center = z.infer<typeof CenterResponseSchema>;
+import type { Center } from "@/types/center";
 
 interface CenterSearchSectionProps {
   onSearchStateChange: (isSearching: boolean) => void;

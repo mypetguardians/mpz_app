@@ -1,10 +1,7 @@
 import React from "react";
 import { CommunityCard } from "@/components/ui/CommunityCard";
 import { useGetPublicPosts } from "@/hooks/query/useGetPublicPosts";
-import type { AnimalResponseSchema } from "@/server/openapi/routes/animal";
-import { z } from "zod";
-
-type Animal = z.infer<typeof AnimalResponseSchema>;
+import type { Animal } from "@/types/animal";
 
 interface RelatedPostsProps {
   currentPet: Animal;

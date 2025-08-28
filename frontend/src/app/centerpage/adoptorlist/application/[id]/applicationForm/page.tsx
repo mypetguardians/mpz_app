@@ -1,0 +1,137 @@
+"use client";
+
+import React from "react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft } from "@phosphor-icons/react";
+import { useGetCenterAdoptions } from "@/hooks/query/useGetCenterAdoptions";
+import { useMemo } from "react";
+
+import { Container } from "@/components/common/Container";
+import { TopBar } from "@/components/common/TopBar";
+import { IconButton } from "@/components/ui/IconButton";
+import { SectionLine } from "../../_components/SectionLine";
+
+export default function ApplicationFormPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const router = useRouter();
+
+  const { id } = React.use(params);
+
+  // 센터 입양 신청 목록 조회
+  const {
+    data: adoptionsData,
+    isLoading,
+    error,
+  } = useGetCenterAdoptions({
+    page: 1,
+    limit: 100, // 충분한 데이터를 가져오기 위해 큰 값 설정
+  });
+
+  // 현재 입양 신청 찾기
+  const currentAdoption = useMemo(() => {
+    if (!adoptionsData?.data) return null;
+    return adoptionsData.data.find((adoption) => adoption.id === id) || null;
+  }, [adoptionsData, id]);
+
+  const handleBack = () => {
+    router.back();
+  };
+
+  if (isLoading) {
+    return (
+      <Container className="min-h-screen">
+        <TopBar
+          variant="variant4"
+          left={
+            <div className="flex items-center gap-2">
+              <IconButton
+                icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
+                size="iconM"
+                onClick={handleBack}
+              />
+              <h4>입양 신청서</h4>
+            </div>
+          }
+        />
+        <div className="flex flex-col gap-3 px-4 py-4">
+          <div className="text-center py-8">로딩 중...</div>
+        </div>
+      </Container>
+    );
+  }
+
+  if (error || !currentAdoption) {
+    return (
+      <Container className="min-h-screen">
+        <TopBar
+          variant="variant4"
+          left={
+            <div className="flex items-center gap-2">
+              <IconButton
+                icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
+                size="iconM"
+                onClick={handleBack}
+              />
+              <h4>입양 신청서</h4>
+            </div>
+          }
+        />
+        <div className="flex flex-col gap-3 px-4 py-4">
+          <div className="text-center py-8 text-red-500">
+            오류가 발생했습니다.
+          </div>
+        </div>
+      </Container>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-bg">
+      <Container className="min-h-screen">
+        {/* TopBar */}
+        <TopBar
+          variant="variant4"
+          left={
+            <div className="flex items-center gap-2">
+              <IconButton
+                icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
+                size="iconM"
+                onClick={handleBack}
+              />
+              <h4>입양 신청서</h4>
+            </div>
+          }
+        />
+
+        {/* Main Content */}
+        <div className="flex-1 bg-white rounded-t-3xl -mt-4 relative z-10">
+          <div className="p-4">
+            <SectionLine>
+              <h3 className="text-bk mb-3 font-medium">질문 응답</h3>
+              <div className="space-y-4">
+                {currentAdoption.question_responses &&
+                currentAdoption.question_responses.length > 0 ? (
+                  currentAdoption.question_responses.map((response, index) => (
+                    <div key={index} className="flex flex-col gap-2">
+                      <div className="flex flex-col gap-1">
+                        <h5 className="text-gr">{response.question}</h5>
+                        <p className="text-bk body">{response.answer}</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center text-gr py-8">
+                    질문 응답이 없습니다.
+                  </div>
+                )}
+              </div>
+            </SectionLine>
+          </div>
+        </div>
+      </Container>
+    </div>
+  );
+}

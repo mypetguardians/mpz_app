@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import React, { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { X } from "@phosphor-icons/react";
 
 import { TopBar } from "@/components/common/TopBar";
@@ -18,13 +18,12 @@ interface ContractData {
   guidelinesContent: string;
 }
 
-export default function ContractPage() {
+function ContractContent() {
   const [openSignSheet, setOpenSignSheet] = useState(false);
   const [contractData, setContractData] = useState<ContractData | null>(null);
   const [userSignature, setUserSignature] = useState("");
   const [isSigned, setIsSigned] = useState(false);
   const searchParams = useSearchParams();
-  const router = useRouter();
 
   useEffect(() => {
     const dataParam = searchParams.get("data");
@@ -122,7 +121,7 @@ export default function ContractPage() {
             setOpenSignSheet(true);
           }
         }}
-        disabled={false}
+        primaryButtonDisabled={false}
       />
 
       <BottomSheet
@@ -151,5 +150,22 @@ export default function ContractPage() {
         </div>
       </BottomSheet>
     </>
+  );
+}
+
+export default function ContractPage() {
+  return (
+    <Suspense
+      fallback={
+        <Container className="min-h-screen">
+          <TopBar variant="variant6" />
+          <div className="px-4 py-8">
+            <p className="text-center text-gr">로딩 중...</p>
+          </div>
+        </Container>
+      }
+    >
+      <ContractContent />
+    </Suspense>
   );
 }

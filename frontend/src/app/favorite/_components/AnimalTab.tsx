@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { PetCard } from "@/components/ui/PetCard";
 import { useGetAnimalFavorites } from "@/hooks";
@@ -21,10 +21,10 @@ function AnimalTab() {
   const total = favoritesData?.total || 0;
 
   // 무한스크롤 처리
-  const loadMorePets = () => {
+  const loadMorePets = useCallback(() => {
     if (isFetching || !hasMore) return;
     setPage((prev) => prev + 1);
-  };
+  }, [isFetching, hasMore]);
 
   // 스크롤 이벤트 처리
   useEffect(() => {
@@ -39,7 +39,7 @@ function AnimalTab() {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [isFetching, hasMore]);
+  }, [loadMorePets]);
 
   // 에러 상태
   if (error) {
@@ -79,13 +79,13 @@ function AnimalTab() {
             <PetCard
               pet={{
                 id: pet.id,
+                name: pet.name,
                 breed: pet.breed,
                 isFemale: pet.isFemale,
                 status: pet.status,
-                //TODO foundLocation: pet.foundLocation,
-                animalImages: [
-                  { id: "1", imageUrl: "/img/dummyImg.jpeg", orderIndex: 0 },
-                ],
+                animalImages: [],
+                centerId: pet.centerId,
+                foundLocation: pet.centerName || "",
               }}
               variant="primary"
               imageSize="full"

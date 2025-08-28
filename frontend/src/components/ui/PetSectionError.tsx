@@ -3,7 +3,6 @@ interface PetSectionErrorProps {
   rightSlot?: string;
   showLocationFilter?: boolean;
   locations?: string[];
-  variant: "primary" | "detail" | "variant3";
   selectedLocation?: string;
   onLocationSelect?: (location: string) => void;
 }
@@ -13,7 +12,6 @@ export function PetSectionError({
   rightSlot,
   showLocationFilter = false,
   locations = [],
-  variant,
   selectedLocation,
   onLocationSelect,
 }: PetSectionErrorProps) {

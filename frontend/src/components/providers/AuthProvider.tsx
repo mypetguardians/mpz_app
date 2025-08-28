@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 import instance from "@/lib/axios-instance";
 import {
   User,
@@ -9,7 +10,6 @@ import {
   AuthContextType,
   LoginResult,
 } from "@/types/auth";
-import Cookies from "js-cookie";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -36,8 +36,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const data: LoginResponse = response.data;
 
         // 토큰을 로컬 스토리지에 저장
-        Cookies.set("access", data.access_token);
-        Cookies.set("refresh", data.refresh_token);
+        Cookies.set("access_token", data.access_token);
+        Cookies.set("refresh_token", data.refresh_token);
 
         // axios 인스턴스에 토큰 설정 - 인터셉터가 자동으로 처리하므로 제거
         // instance.defaults.headers.common[

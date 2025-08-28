@@ -1,11 +1,7 @@
-import type {
-  CenterResponseSchema,
-  AnimalResponseSchema,
-} from "@/server/openapi/routes";
-import { z } from "zod";
+import type { Center } from "@/types/center";
+import type { Animal } from "@/types/animal";
 
-export type Center = z.infer<typeof CenterResponseSchema>;
-export type Animal = z.infer<typeof AnimalResponseSchema>;
+export type { Center, Animal };
 export type TabType = "info" | "animals";
 
 export interface CenterDetailProps {

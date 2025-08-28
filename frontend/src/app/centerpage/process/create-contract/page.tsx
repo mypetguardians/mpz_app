@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
-import { Input } from "@/components/ui/CustomInput";
+import { CustomInput } from "@/components/ui/CustomInput";
 import { BigButton } from "@/components/ui/BigButton";
 import { NotificationToast } from "@/components/ui/NotificationToast";
 import { useCreateContractTemplate } from "@/hooks";
@@ -86,7 +86,7 @@ export default function CenterProcessCreateContract() {
         }
       />
       <div className="w-full flex flex-col px-4 gap-4 min-h-[100px]">
-        <Input
+        <CustomInput
           variant="primary"
           label="계약서 제목"
           placeholder="제목을 입력해주세요."
@@ -94,7 +94,7 @@ export default function CenterProcessCreateContract() {
           onChange={(e) => setTitle(e.target.value)}
           required={true}
         />
-        <Input
+        <CustomInput
           variant="primary"
           label="계약서 부가설명"
           placeholder="예) 꼼꼼히 확인 후 서명해주세요."
@@ -108,7 +108,7 @@ export default function CenterProcessCreateContract() {
             placeholder="내용을 입력해주세요."
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="flex w-full rounded-md border border-input bg-background px-4 py-3 h5 placeholder:text-gr placeholder:text-body placeholder:text-top disabled:cursor-not-allowed disabled:opacity-50 resize-none h-[150px] focus:outline-none"
+            className="flex w-full rounded-md border border-lg px-4 py-3 h5 placeholder:text-gr placeholder:text-body placeholder:text-top disabled:cursor-not-allowed disabled:opacity-50 resize-none h-[150px] focus:outline-none"
           />
         </div>
       </div>
@@ -120,6 +120,11 @@ export default function CenterProcessCreateContract() {
         >
           {isLoading ? "저장 중..." : "저장하기"}
         </BigButton>
+        {/* 디버깅용 정보 */}
+        <div className="text-xs text-gray-500 mt-2 text-center">
+          제목: &quot;{title}&quot; (길이: {title.length}) | 내용: &quot;
+          {content}&quot; (길이: {content.length})
+        </div>
       </div>
 
       {toast.show && (

@@ -10,3 +10,5 @@ export * from "./ai-matching";
 export * from "./notifications";
 // Auth types
 export * from "./auth";
+// Center Admin types
+export * from "./center-admin";

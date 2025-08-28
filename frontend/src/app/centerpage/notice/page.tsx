@@ -45,7 +45,7 @@ export default function Notification() {
 
         {error && (
           <div className="text-center py-8 text-red-500">
-            <p>에러가 발생했습니다: {error.message}</p>
+            <p>알림 불러오기에 실패했습니다.</p>
             <button
               onClick={() => window.location.reload()}
               className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"

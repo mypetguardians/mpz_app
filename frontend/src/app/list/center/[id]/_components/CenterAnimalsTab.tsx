@@ -231,7 +231,16 @@ export function CenterAnimalsTab({
         {filteredAnimals.map((animal) => (
           <PetCard
             key={animal.id}
-            pet={animal}
+            pet={{
+              id: animal.id,
+              name: animal.name || "",
+              breed: animal.breed || "",
+              isFemale: animal.isFemale,
+              status: animal.status,
+              centerId: animal.centerId,
+              animalImages: animal.animalImages || [],
+              foundLocation: animal.foundLocation || "",
+            }}
             variant="detail"
             className="w-full"
           />
@@ -249,7 +258,16 @@ export function CenterAnimalsTab({
           onClick={() => router.push(`/list/animal/${animal.id}`)}
         >
           <PetCard
-            pet={animal}
+            pet={{
+              id: animal.id,
+              name: animal.name || "",
+              breed: animal.breed || "",
+              isFemale: animal.isFemale,
+              status: animal.status,
+              centerId: animal.centerId,
+              animalImages: animal.animalImages || [],
+              foundLocation: animal.foundLocation || "",
+            }}
             variant="primary"
             imageSize="full"
             className="w-full"

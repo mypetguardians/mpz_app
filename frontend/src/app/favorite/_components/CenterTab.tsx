@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { CenterCard } from "@/components/ui/CenterCard";
 import { useGetCenterFavorites, useToggleCenterFavorite } from "@/hooks";
 
@@ -64,10 +64,10 @@ function CenterTab() {
   };
 
   // 무한스크롤 처리
-  const loadMoreCenters = () => {
+  const loadMoreCenters = useCallback(() => {
     if (isFetching || !hasMore) return;
     setPage((prev) => prev + 1);
-  };
+  }, [isFetching, hasMore]);
 
   // 스크롤 이벤트 처리
   useEffect(() => {
@@ -82,7 +82,7 @@ function CenterTab() {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [isFetching, hasMore]);
+  }, [loadMoreCenters]);
 
   // 에러 상태
   if (error) {

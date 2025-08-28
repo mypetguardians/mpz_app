@@ -149,7 +149,21 @@ function MatchedPetsList() {
         {animals.map((animal, index) => (
           <PetCard
             key={animal.id}
-            pet={animal}
+            pet={{
+              id: animal.id,
+              name: animal.name || "",
+              breed: animal.breed || "",
+              isFemale: animal.is_female,
+              status: animal.status,
+              centerId: animal.center_id,
+              animalImages:
+                animal.animal_images?.map((img) => ({
+                  id: img.id,
+                  imageUrl: img.image_url,
+                  orderIndex: img.order_index,
+                })) || null,
+              foundLocation: animal.found_location || "",
+            }}
             variant="detail"
             rank={index + 1}
           />

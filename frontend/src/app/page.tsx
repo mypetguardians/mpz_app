@@ -28,8 +28,14 @@ export default function Home() {
     sortOrder: "desc",
   });
 
+  // page.data를 사용하여 데이터 추출 (실제 API 응답 구조)
   const animals: RawAnimalResponse[] =
-    animalsData?.pages?.flatMap((page) => page.animals) || [];
+    animalsData?.pages?.flatMap((page) => {
+      console.log("Home - Page data:", page);
+      // 타입 단언을 사용하여 data 필드에 접근
+      return (page as { data?: RawAnimalResponse[] }).data || [];
+    }) || [];
+
   const totalPets = animals.length;
 
   const handleLocationSelect = (location: string) => {

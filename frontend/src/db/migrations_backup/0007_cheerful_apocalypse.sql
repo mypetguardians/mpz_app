@@ -1,1 +1,0 @@
-ALTER TABLE `feedback` DROP COLUMN `title`;

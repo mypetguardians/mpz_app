@@ -1,14 +1,16 @@
 "use client";
 
-import { ChevronLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, Trash } from "@phosphor-icons/react";
 import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
 import { MiniButton } from "@/components/ui/MiniButton";
 import { Container } from "@/components/common/Container";
 import { useGetCenterAdmins } from "@/hooks/query/useGetCenterAdmins";
+import { useRouter } from "next/navigation";
 
 export default function AdminPage() {
   const { data: centerAdminsData, isLoading, error } = useGetCenterAdmins();
+  const router = useRouter();
 
   const handleBack = () => {
     // 뒤로가기 로직
@@ -17,7 +19,7 @@ export default function AdminPage() {
 
   const handleCreateId = () => {
     // 아이디 만들기 로직
-    console.log("아이디 만들기 클릭");
+    router.push("/centerpage/admin/create");
   };
 
   const handleDelete = (id: string) => {
@@ -33,7 +35,7 @@ export default function AdminPage() {
           left={
             <div className="flex items-center gap-2">
               <IconButton
-                icon={ChevronLeft}
+                icon={ArrowLeft}
                 onClick={handleBack}
                 label="뒤로가기"
               />
@@ -56,7 +58,7 @@ export default function AdminPage() {
           left={
             <div className="flex items-center gap-2">
               <IconButton
-                icon={ChevronLeft}
+                icon={ArrowLeft}
                 onClick={handleBack}
                 label="뒤로가기"
               />
@@ -81,7 +83,7 @@ export default function AdminPage() {
         left={
           <div className="flex items-center gap-2">
             <IconButton
-              icon={ChevronLeft}
+              icon={ArrowLeft}
               onClick={handleBack}
               label="뒤로가기"
             />
@@ -117,7 +119,7 @@ export default function AdminPage() {
                   </p>
                 </div>
                 <IconButton
-                  icon={Trash2}
+                  icon={Trash}
                   size="iconS"
                   onClick={() => handleDelete(admin.id)}
                   label="삭제"

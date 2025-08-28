@@ -8,7 +8,7 @@ import Link from "next/link";
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
-import { Input } from "@/components/ui/CustomInput";
+import { CustomInput } from "@/components/ui/CustomInput";
 import { BigButton } from "@/components/ui/BigButton";
 import { AddButton } from "@/components/ui/AddButton";
 import { InfoCard } from "@/components/ui/InfoCard";
@@ -24,7 +24,6 @@ export default function CenterProcess() {
   const [isMonitoring, setIsMonitoring] = useState("");
   const [period, setPeriod] = useState("");
   const [adoptionProcedure, setAdoptionProcedure] = useState("");
-  const [adoptionContractTemplate, setAdoptionContractTemplate] = useState("");
   const [adoptionGuidelines, setAdoptionGuidelines] = useState("");
   const [monitoringDescription, setMonitoringDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -45,27 +44,18 @@ export default function CenterProcess() {
   useEffect(() => {
     if (procedureSettings) {
       setIsMonitoring(
-        procedureSettings.hasMonitoring ? "모니터링 필수" : "모니터링 안 함"
+        procedureSettings.has_monitoring ? "모니터링 필수" : "모니터링 안 함"
       );
       setPeriod(
-        procedureSettings.monitoringPeriodMonths
-          ? `${procedureSettings.monitoringPeriodMonths}개월`
+        procedureSettings.monitoring_period_months
+          ? `${procedureSettings.monitoring_period_months}개월`
           : ""
       );
-      setAdoptionProcedure(procedureSettings.adoptionProcedure || "");
-      setAdoptionGuidelines(procedureSettings.adoptionGuidelines || "");
-      setMonitoringDescription(procedureSettings.monitoringDescription || "");
-      setAdoptionContractTemplate(
-        procedureSettings.contractTemplates.length > 0
-          ? "계약서 템플릿 있음"
-          : "계약서 템플릿 없음"
-      );
+      setAdoptionProcedure(procedureSettings.adoption_procedure || "");
+      setAdoptionGuidelines(procedureSettings.adoption_guidelines || "");
+      setMonitoringDescription(procedureSettings.monitoring_description || "");
     }
   }, [procedureSettings]);
-
-  const handleBack = () => {
-    router.back();
-  };
 
   // 저장하기 함수
   const handleSave = async () => {
@@ -80,12 +70,12 @@ export default function CenterProcess() {
       const hasMonitoring = isMonitoring === "모니터링 필수";
 
       const settingsData = {
-        hasMonitoring,
-        monitoringPeriodMonths,
-        monitoringIntervalDays: 14, // 기본값 14일
-        monitoringDescription,
-        adoptionGuidelines,
-        adoptionProcedure,
+        has_monitoring: hasMonitoring,
+        monitoring_period_months: monitoringPeriodMonths,
+        monitoring_interval_days: 14, // 기본값 14일
+        monitoring_description: monitoringDescription,
+        adoption_guidelines: adoptionGuidelines,
+        adoption_procedure: adoptionProcedure,
       };
 
       if (procedureSettings) {
@@ -114,7 +104,7 @@ export default function CenterProcess() {
             <IconButton
               icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
               size="iconM"
-              onClick={handleBack}
+              onClick={() => router.push("/centerpage")}
             />
             <h4>입양 절차 관리</h4>
           </div>
@@ -125,7 +115,7 @@ export default function CenterProcess() {
           <div className="w-full flex flex-col gap-3">
             <h5 className="text-dg">입양 신청서</h5>
             {isLoadingQuestions ? (
-              <Input
+              <CustomInput
                 variant="text"
                 placeholder="질문 폼을 불러오는 중..."
                 disabled={true}
@@ -137,7 +127,7 @@ export default function CenterProcess() {
                 {questionFormsData.questions
                   .sort((a, b) => (a.sequence || 0) - (b.sequence || 0))
                   .map((question, index) => (
-                    <Input
+                    <CustomInput
                       key={question.id}
                       variant="text"
                       placeholder={`질문${index + 1}`}
@@ -147,7 +137,7 @@ export default function CenterProcess() {
                   ))}
               </div>
             ) : (
-              <Input
+              <CustomInput
                 variant="text"
                 placeholder="등록된 질문이 없습니다"
                 disabled={true}
@@ -167,11 +157,13 @@ export default function CenterProcess() {
           </div>
           <div className="w-full flex flex-col gap-3">
             <h5 className="text-dg">입양 유의사항</h5>
-            <Input
+            <CustomInput
               variant="text"
               placeholder="입양 유의사항을 입력해주세요"
               value={adoptionGuidelines}
-              onChange={(e) => setAdoptionGuidelines(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setAdoptionGuidelines(e.target.value)
+              }
             />
             <Link href="/centerpage/process/create-consent">
               <AddButton>유의사항 동의서 만들기</AddButton>
@@ -180,17 +172,17 @@ export default function CenterProcess() {
           <div className="w-full flex flex-col gap-3">
             <h5 className="text-dg">입양 계약서</h5>
             {isLoadingSettings ? (
-              <Input
+              <CustomInput
                 variant="text"
                 placeholder="계약서 템플릿을 불러오는 중..."
                 disabled={true}
                 className="text-gr"
               />
-            ) : procedureSettings?.contractTemplates &&
-              procedureSettings.contractTemplates.length > 0 ? (
+            ) : procedureSettings?.contract_templates &&
+              procedureSettings.contract_templates.length > 0 ? (
               <div className="w-full flex flex-col">
-                {procedureSettings.contractTemplates.map((template, index) => (
-                  <Input
+                {procedureSettings.contract_templates.map((template, index) => (
+                  <CustomInput
                     key={template.id}
                     variant="text"
                     placeholder={`계약서${index + 1}`}
@@ -205,7 +197,7 @@ export default function CenterProcess() {
                 ))}
               </div>
             ) : (
-              <Input
+              <CustomInput
                 variant="text"
                 placeholder="등록된 계약서 템플릿이 없습니다"
                 disabled={true}
@@ -223,8 +215,10 @@ export default function CenterProcess() {
             <textarea
               placeholder="해당 보호센터만의 입양 절차를 입력해주세요."
               value={adoptionProcedure}
-              onChange={(e) => setAdoptionProcedure(e.target.value)}
-              className="flex w-full rounded-md border border-input bg-background px-4 py-3 h5 ring-offset-background placeholder:text-gr placeholder:text-body placeholder:text-top disabled:cursor-not-allowed disabled:opacity-50 resize-none h-[150px] focus:outline-none"
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                setAdoptionProcedure(e.target.value)
+              }
+              className="flex w-full rounded-md border border-lg px-4 py-3 h5 ring-offset-background placeholder:text-gr placeholder:text-body placeholder:text-top disabled:cursor-not-allowed disabled:opacity-50 resize-none h-[150px] focus:outline-none"
             />
           </div>
           <InfoCard>
@@ -233,7 +227,7 @@ export default function CenterProcess() {
           </InfoCard>
         </div>
         <div className="w-full flex flex-col gap-3">
-          <Input
+          <CustomInput
             label="사후 모니터링 여부"
             variant="Variant7"
             value={isMonitoring}
@@ -241,7 +235,7 @@ export default function CenterProcess() {
             twoOptions={["모니터링 필수", "모니터링 안 함"]}
             required={true}
           />
-          <Input
+          <CustomInput
             variant="bottomsheet"
             label="상태"
             placeholder="모니터링 기간을 입력해주세요"
@@ -268,8 +262,10 @@ export default function CenterProcess() {
             <textarea
               placeholder="모니터링에 대한 설명을 입력해주세요."
               value={monitoringDescription}
-              onChange={(e) => setMonitoringDescription(e.target.value)}
-              className="flex w-full rounded-md border border-input bg-background px-4 py-3 h5 ring-offset-background placeholder:text-gr placeholder:text-body placeholder:text-top disabled:cursor-not-allowed disabled:opacity-50 resize-none h-[100px] focus:outline-none"
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                setMonitoringDescription(e.target.value)
+              }
+              className="flex w-full rounded-md border border-lg px-4 py-3 h5 ring-offset-background placeholder:text-gr placeholder:text-body placeholder:text-top disabled:cursor-not-allowed disabled:opacity-50 resize-none h-[100px] focus:outline-none"
             />
           </div>
           <InfoCard>

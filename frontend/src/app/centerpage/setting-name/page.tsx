@@ -8,7 +8,7 @@ import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
 import { ImageCard } from "@/components/ui/ImageCard";
-import { Input } from "@/components/ui/CustomInput";
+import { CustomInput } from "@/components/ui/CustomInput";
 import { BigButton } from "@/components/ui/BigButton";
 import { InfoCard } from "@/components/ui/InfoCard";
 import { Toast } from "@/components/ui/Toast";
@@ -178,7 +178,7 @@ export default function CenterSettingName() {
       />
       <div className="w-full flex flex-col pb-3 px-4 gap-4 min-h-[100px]">
         <ImageCard variant="add" />
-        <Input
+        <CustomInput
           variant="primary"
           label="보호소 이름"
           placeholder="보호소 이름을 입력해주세요."
@@ -186,7 +186,7 @@ export default function CenterSettingName() {
           value={centerName}
           onChange={(e) => setCenterName(e.target.value)}
         />
-        <Input
+        <CustomInput
           variant="primary"
           label="보호소 번호"
           placeholder="000-0000-0000"
@@ -194,7 +194,7 @@ export default function CenterSettingName() {
           value={centerNumber}
           onChange={(e) => setCenterNumber(e.target.value)}
         />
-        <Input
+        <CustomInput
           variant="Variant7"
           value={isPublicNumber}
           onChangeOption={setIsPublicNumber}
@@ -205,21 +205,21 @@ export default function CenterSettingName() {
           <h5 className="text-dg">
             보호소 주소 <span className="text-brand">*</span>
           </h5>
-          <Input
+          <CustomInput
             variant="primary"
             placeholder="보호소 주소를 입력해주세요."
             required={true}
             value={address}
             onChange={(e) => setAddress(e.target.value)}
           />
-          <Input
+          <CustomInput
             variant="Variant7"
             value={isPublicAddress}
             onChangeOption={setIsPublicAddress}
             twoOptions={["모두에게 공개", "입양자에게만 공개"]}
             required={true}
           />
-          <Input
+          <CustomInput
             variant="primary"
             label="책임비"
             placeholder="예)100,000"

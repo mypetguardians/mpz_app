@@ -8,7 +8,7 @@ import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
 import { CommunityCard } from "@/components/ui/CommunityCard";
 import { IconButton } from "@/components/ui/IconButton";
-import { useGetUserProfile, useGetPosts } from "@/hooks";
+import { useGetUserProfile, useGetPublicPosts } from "@/hooks";
 
 export default function UserProfilePage() {
   const params = useParams();
@@ -24,7 +24,7 @@ export default function UserProfilePage() {
     data: postsData,
     isLoading: isPostsLoading,
     error: postsError,
-  } = useGetPosts({ userId });
+  } = useGetPublicPosts({ userId });
 
   // 로딩 상태 처리
   if (isUserLoading || isPostsLoading) {

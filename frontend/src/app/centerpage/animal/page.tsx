@@ -13,12 +13,8 @@ import { AddButton } from "@/components/ui/AddButton";
 import { PetCard } from "@/components/ui/PetCard";
 import { useGetMyCenterAnimals } from "@/hooks/query";
 import { useGetMyCenter } from "@/hooks/query";
-import type { AnimalResponseSchema } from "@/server/openapi/routes/animal";
-import { z } from "zod";
-import { useAuth } from "@/components/providers/AuthProvider";
+import type { Animal } from "@/types/animal";
 import { NotificationToast } from "@/components/ui/NotificationToast";
-
-type Animal = z.infer<typeof AnimalResponseSchema>;
 
 export default function CenterAnimal() {
   const router = useRouter();
@@ -27,7 +23,6 @@ export default function CenterAnimal() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState<"success" | "error">("success");
-  const { isAuthenticated } = useAuth();
   const {
     data: centerData,
     isLoading: centerLoading,
@@ -39,7 +34,6 @@ export default function CenterAnimal() {
   const { data, isLoading, error } = useGetMyCenterAnimals(
     {
       page: currentPage,
-      limit: 10,
       breed: searchTerm || undefined,
     },
     {
@@ -166,8 +160,11 @@ export default function CenterAnimal() {
                       id: animal.id,
                       name: animal.name || "",
                       isFemale: animal.isFemale,
+                      breed: animal.breed,
                       status: animal.status,
+                      centerId: animal.centerId,
                       animalImages: animal.animalImages,
+                      foundLocation: animal.foundLocation || "위치 정보 없음",
                     }}
                     variant="edit"
                     imageSize="full"

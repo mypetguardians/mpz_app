@@ -9,6 +9,7 @@ export { useGetAnimalAdoptions } from "./query/useGetAdoptions";
 export { useGetComments } from "./query/useGetComments";
 export { useGetNotifications } from "./query/useGetNotifications";
 export { useGetPublicPosts } from "./query/useGetPublicPosts";
+export { useGetPublicPostDetail } from "./query/useGetPublicPosts";
 export { useGetUserProfile } from "./query/useGetUserProfile";
 export { useGetMyProfile } from "./query/useGetMyProfile";
 export { useGetMyCenter, invalidateMyCenter } from "./query/useGetMyCenter";
@@ -41,6 +42,10 @@ export { useUpdateQuestionForm } from "./mutation/useUpdateQuestionForm";
 export { useUpdateQuestionSequence } from "./mutation/useUpdateQuestionSequence";
 export { useDeleteQuestionForm } from "./mutation/useDeleteQuestionForm";
 export { useGetCenterProcedureSettings } from "./query/useGetCenterProcedureSettings";
+export type {
+  CenterProcedureSettings,
+  ContractTemplate,
+} from "./query/useGetCenterProcedureSettings";
 export { useGetContractTemplate } from "./query/useGetContractTemplate";
 export { useCreateCenterProcedureSettings } from "./mutation/useCreateCenterProcedureSettings";
 export { useUpdateCenterProcedureSettings } from "./mutation/useUpdateCenterProcedureSettings";

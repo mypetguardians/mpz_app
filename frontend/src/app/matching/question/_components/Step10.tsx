@@ -2,7 +2,10 @@
 
 import React from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useMatchingStepStore } from "@/lib/stores/matchingStepStore";
+import { usePostAnimalMatching } from "@/hooks/mutation/usePostAnimalMatching";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 import { SelectButton } from "@/components/ui/SelectButton";
 import { Container } from "@/components/common/Container";
@@ -13,15 +16,64 @@ export interface StepProps {
 }
 
 export function Step10({ onNext }: StepProps) {
-  const [selectedGender, setSelectedGender] = React.useState<number | null>(
+  const [selectedGender, setSelectedGender] = React.useState<string | null>(
     null
   );
-  const { setStepAnswer } = useMatchingStepStore();
+  const { setStepAnswer, answers } = useMatchingStepStore();
+  const { mutate: postAnimalMatching } = usePostAnimalMatching();
+  const { user, isAuthenticated } = useAuth();
+  const router = useRouter();
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (selectedGender !== null) {
       setStepAnswer(10, { type: "gender", value: selectedGender });
-      onNext();
+
+      // AI 매칭 요청 전송
+      console.log("isAuthenticated:", isAuthenticated);
+      console.log("현재 사용자 정보:", user);
+      console.log("user?.id:", user?.id);
+      console.log("각 단계별 상세 답변:");
+      Object.entries(answers).forEach(([step, answer]) => {
+        console.log(`Step ${step}:`, answer);
+      });
+
+      if (user?.id) {
+        const preferences: Record<string, string | number | boolean> = {};
+
+        // 모든 답변을 preferences 객체로 변환
+        Object.entries(answers).forEach(([, answer]) => {
+          if (answer) {
+            preferences[answer.type] = answer.value;
+          }
+        });
+
+        // 현재 단계의 답변도 추가
+        preferences.gender = selectedGender;
+
+        const requestData = {
+          user_id: user.id,
+          preferences,
+          limit: 5,
+        };
+
+        console.log("AI 매칭 요청 데이터:", requestData);
+
+        postAnimalMatching(requestData, {
+          onSuccess: (data) => {
+            console.log("AI 매칭 성공:", data);
+            // 매칭 결과 페이지로 이동
+            router.push("/matching/result");
+          },
+          onError: (error) => {
+            console.error("AI 매칭 실패:", error);
+            // 에러가 있어도 다음 단계로 진행
+            onNext();
+          },
+        });
+      } else {
+        console.log("사용자 정보가 없음");
+        onNext();
+      }
     }
   };
 
@@ -56,8 +108,8 @@ export function Step10({ onNext }: StepProps) {
               <SelectButton
                 key={option.id}
                 variant="3"
-                selected={selectedGender === option.id}
-                onClick={() => setSelectedGender(option.id)}
+                selected={selectedGender === option.text}
+                onClick={() => setSelectedGender(option.text)}
                 className="w-full text-center"
                 icon={
                   option.icon ? (
@@ -78,8 +130,8 @@ export function Step10({ onNext }: StepProps) {
           {/* 하단: 상관 없음 버튼 */}
           <SelectButton
             variant="3"
-            selected={selectedGender === genderOptions[2].id}
-            onClick={() => setSelectedGender(genderOptions[2].id)}
+            selected={selectedGender === genderOptions[2].text}
+            onClick={() => setSelectedGender(genderOptions[2].text)}
             className="w-full text-center"
           >
             <span className="text-sm">{genderOptions[2].text}</span>

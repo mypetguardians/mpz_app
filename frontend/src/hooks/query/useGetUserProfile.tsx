@@ -1,23 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
-import { z } from "zod";
-import instance from "@/lib/axios-instance";
-import { UserProfileSchema } from "@/server/openapi/routes/user";
+import axiosInstance from "@/lib/axios-instance";
+import { UserProfile } from "@/types/auth";
 
-type UserProfile = z.infer<typeof UserProfileSchema>;
-
-const getUserProfile = async (userId: string): Promise<UserProfile> => {
-  const response = await instance.get<UserProfile>(`/users/${userId}/`);
+// 사용자 프로필 조회 API
+const getUserProfile = async (): Promise<UserProfile> => {
+  const response = await axiosInstance.get("/api/users/profile");
   return response.data;
 };
 
-export const useGetUserProfile = (userId: string) => {
+export const useGetUserProfile = () => {
   return useQuery({
-    queryKey: ["userProfile", userId],
-    queryFn: () => getUserProfile(userId),
-    enabled: !!userId,
+    queryKey: ["userProfile"],
+    queryFn: getUserProfile,
     staleTime: 5 * 60 * 1000, // 5분
     gcTime: 10 * 60 * 1000, // 10분
-    retry: 1,
-    refetchOnWindowFocus: false,
   });
 };

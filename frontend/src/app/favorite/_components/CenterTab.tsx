@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { CenterCard } from "@/components/ui/CenterCard";
 import { useGetCenterFavorites, useToggleCenterFavorite } from "@/hooks";
 
@@ -8,6 +8,9 @@ const ITEMS_PER_PAGE = 10;
 
 function CenterTab() {
   const [page, setPage] = useState(1);
+  const [localFavorites, setLocalFavorites] = useState<Record<string, boolean>>(
+    {}
+  );
   const {
     data: favoritesData,
     isLoading,
@@ -23,14 +26,48 @@ function CenterTab() {
 
   // 찜하기 토글 처리
   const handleLikeToggle = (centerId: string) => {
-    toggleCenterFavorite.mutate({ centerId });
+    // 현재 찜하기 상태 확인 (로컬 상태 또는 API 응답)
+    const currentFavorite =
+      localFavorites[centerId] !== undefined
+        ? localFavorites[centerId]
+        : centers.find((c) => c.id === centerId)?.isFavorited || false;
+
+    // 즉시 로컬 상태 업데이트 (optimistic update) - 현재 상태의 반대
+    setLocalFavorites((prev) => ({
+      ...prev,
+      [centerId]: !currentFavorite,
+    }));
+
+    toggleCenterFavorite.mutate(
+      { centerId },
+      {
+        onSuccess: (data) => {
+          // 성공 시 로컬 상태를 서버 응답으로 업데이트
+          const isFavorited =
+            data.isFavorited !== undefined
+              ? data.isFavorited
+              : data.is_favorited ?? false;
+          setLocalFavorites((prev) => ({
+            ...prev,
+            [centerId]: isFavorited,
+          }));
+        },
+        onError: () => {
+          // 실패 시 원래 상태로 되돌리기
+          setLocalFavorites((prev) => ({
+            ...prev,
+            [centerId]: currentFavorite,
+          }));
+        },
+      }
+    );
   };
 
   // 무한스크롤 처리
-  const loadMoreCenters = () => {
+  const loadMoreCenters = useCallback(() => {
     if (isFetching || !hasMore) return;
     setPage((prev) => prev + 1);
-  };
+  }, [isFetching, hasMore]);
 
   // 스크롤 이벤트 처리
   useEffect(() => {
@@ -45,7 +82,7 @@ function CenterTab() {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [isFetching, hasMore]);
+  }, [loadMoreCenters]);
 
   // 에러 상태
   if (error) {
@@ -76,19 +113,27 @@ function CenterTab() {
   return (
     <div>
       <div className="flex flex-col gap-4 px-4">
-        {centers.map((center) => (
-          <div key={center.id}>
-            <CenterCard
-              imageUrl="/img/dummyImg.jpeg" // 더미 이미지 사용
-              name={center.name}
-              location={center.location || "위치 정보 없음"}
-              verified={false} // 임시
-              isLiked={center.isFavorited}
-              onLikeToggle={() => handleLikeToggle(center.id)}
-              centerId={center.id}
-            />
-          </div>
-        ))}
+        {centers.map((center) => {
+          // 로컬 상태가 있으면 로컬 상태 사용, 없으면 API 응답 사용
+          const isLiked =
+            localFavorites[center.id] !== undefined
+              ? localFavorites[center.id]
+              : center.isFavorited;
+
+          return (
+            <div key={center.id}>
+              <CenterCard
+                imageUrl={center.imageUrl || "/img/dummyImg.jpeg"} // 실제 이미지 URL 사용, 없으면 더미 이미지
+                name={center.name}
+                location={center.location || center.region || "위치 정보 없음"}
+                verified={false} // 임시
+                isLiked={isLiked}
+                onLikeToggle={() => handleLikeToggle(center.id)}
+                centerId={center.id}
+              />
+            </div>
+          );
+        })}
       </div>
 
       {/* 로딩 상태 */}

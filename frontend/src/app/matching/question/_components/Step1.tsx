@@ -13,7 +13,7 @@ export interface StepProps {
 }
 
 export function Step1({ onNext }: StepProps) {
-  const [selectedActivity, setSelectedActivity] = React.useState<number | null>(
+  const [selectedActivity, setSelectedActivity] = React.useState<string | null>(
     null
   );
   const { setStepAnswer } = useMatchingStepStore();
@@ -59,8 +59,8 @@ export function Step1({ onNext }: StepProps) {
             <SelectButton
               key={option.id}
               variant="1"
-              selected={selectedActivity === option.id}
-              onClick={() => setSelectedActivity(option.id)}
+              selected={selectedActivity === option.text}
+              onClick={() => setSelectedActivity(option.text)}
               className="w-full text-left"
               icon={
                 <Image

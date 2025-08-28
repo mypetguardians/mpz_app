@@ -1,0 +1,224 @@
+// 기존 center 타입들
+export interface CenterBasic {
+  id: string;
+  name: string;
+  centerNumber: string | null;
+  description: string | null;
+  location: string | null;
+  region: string | null;
+  phoneNumber: string | null;
+  verified: boolean;
+  isPublic: boolean;
+  adoptionPrice: number;
+  imageUrl: string | null;
+  isSubscriber: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// 상세한 Center 타입 (useGetMyCenter에서 사용)
+export interface Center extends CenterBasic {
+  userId: string;
+  adoptionProcedure: string | null;
+  adoptionGuidelines: string | null;
+  hasMonitoring: boolean;
+  monitoringPeriodMonths: number | null;
+  monitoringIntervalDays: number | null;
+  monitoringDescription: string | null;
+  isSubscriber: boolean;
+  isFavorited?: boolean; // 찜하기 상태 추가
+}
+
+// Center 생성/수정용 타입
+export interface CreateCenterRequest {
+  name: string;
+  centerNumber?: string;
+  description?: string;
+  location?: string;
+  region?: string;
+  phoneNumber?: string;
+  adoptionProcedure?: string;
+  adoptionGuidelines?: string;
+  hasMonitoring?: boolean;
+  monitoringPeriodMonths?: number;
+  monitoringIntervalDays?: number;
+  monitoringDescription?: string;
+  isPublic?: boolean;
+  adoptionPrice?: number;
+  imageUrl?: string;
+}
+
+export interface UpdateCenterRequest extends Partial<CreateCenterRequest> {
+  id: string;
+}
+
+// Center 목록 조회용 타입
+export interface CenterListResponse {
+  centers: CenterBasic[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+// Center 검색/필터링용 타입
+export interface CenterSearchParams {
+  region?: string;
+  verified?: boolean;
+  isPublic?: boolean;
+  hasMonitoring?: boolean;
+  minPrice?: number;
+  maxPrice?: number;
+  search?: string;
+  page?: number;
+  limit?: number;
+}
+
+// API 응답의 실제 snake_case 구조 (새로운 스키마 기반)
+export interface RawCenterResponse {
+  id: string;
+  user_id: string;
+  name: string;
+  center_number: string;
+  description: string;
+  location: string;
+  region: string;
+  phone_number: string;
+  adoption_procedure: string;
+  adoption_guidelines: string;
+  has_monitoring: boolean;
+  monitoring_period_months: number;
+  monitoring_interval_days: number;
+  monitoring_description: string;
+  verified: boolean;
+  is_public: boolean;
+  adoption_price: number;
+  image_url: string;
+  created_at: string;
+  updated_at: string;
+  is_fav?: boolean; // 찜하기 상태 추가
+}
+
+// 센터 목록 API 응답 구조 (새로운 스키마 기반)
+export interface GetCentersResponse {
+  count: number;
+  totalCnt: number;
+  pageCnt: number;
+  curPage: number;
+  nextPage: number;
+  previousPage: number;
+  data: RawCenterResponse[];
+}
+
+// RawCenterResponse를 Center로 변환하는 함수 (새로운 스키마 기반)
+export function transformRawCenterToCenter(raw: RawCenterResponse): Center {
+  return {
+    id: raw.id,
+    userId: raw.user_id,
+    name: raw.name,
+    centerNumber: raw.center_number,
+    description: raw.description,
+    location: raw.location,
+    region: raw.region,
+    phoneNumber: raw.phone_number,
+    adoptionProcedure: raw.adoption_procedure,
+    adoptionGuidelines: raw.adoption_guidelines,
+    hasMonitoring: raw.has_monitoring,
+    monitoringPeriodMonths: raw.monitoring_period_months,
+    monitoringIntervalDays: raw.monitoring_interval_days,
+    monitoringDescription: raw.monitoring_description,
+    verified: raw.verified,
+    isPublic: raw.is_public,
+    adoptionPrice: raw.adoption_price,
+    imageUrl: raw.image_url,
+    isSubscriber: false, // 기본값 설정
+    createdAt: raw.created_at,
+    updatedAt: raw.updated_at,
+    isFavorited: raw.is_fav || false, // is_fav를 isFavorited로 변환
+  };
+}
+
+// 좋아요 관련 타입들
+export interface ToggleCenterFavoriteParams {
+  centerId: string;
+}
+
+export interface ToggleCenterFavoriteResponse {
+  isFavorited: boolean;
+  message: string;
+  totalFavorites: number;
+  // 서버 응답 구조에 맞는 필드 추가
+  is_favorited?: boolean;
+  total_favorites?: number;
+}
+
+export interface CheckCenterFavoriteParams {
+  centerId: string;
+}
+
+export interface CheckCenterFavoriteResponse {
+  isFavorited: boolean;
+  totalFavorites: number;
+  // 서버 응답 구조에 맞는 필드 추가
+  is_favorited?: boolean;
+  total_favorites?: number;
+}
+
+// 센터 설정 관련 타입들
+export type CenterRegion =
+  | "서울"
+  | "부산"
+  | "대구"
+  | "인천"
+  | "광주"
+  | "대전"
+  | "울산"
+  | "세종"
+  | "경기"
+  | "강원"
+  | "충북"
+  | "충남"
+  | "전북"
+  | "전남"
+  | "경북"
+  | "경남"
+  | "제주";
+
+export interface UpdateCenterSettingsRequest {
+  name?: string;
+  centerNumber?: string;
+  description?: string;
+  location?: string;
+  region?: CenterRegion;
+  phoneNumber?: string;
+  adoptionProcedure?: string;
+  adoptionGuidelines?: string;
+  hasMonitoring?: boolean;
+  monitoringPeriodMonths?: number;
+  monitoringIntervalDays?: number;
+  monitoringDescription?: string;
+  isPublic?: boolean;
+  adoptionPrice?: number;
+  imageUrl?: string;
+}
+
+export interface UpdateCenterSettingsResponse {
+  id: string;
+  name: string;
+  centerNumber: string | null;
+  description: string | null;
+  location: string | null;
+  region: CenterRegion | null;
+  phoneNumber: string | null;
+  adoptionProcedure: string | null;
+  adoptionGuidelines: string | null;
+  hasMonitoring: boolean;
+  monitoringPeriodMonths: number | null;
+  monitoringIntervalDays: number | null;
+  monitoringDescription: string | null;
+  verified: boolean;
+  isPublic: boolean;
+  adoptionPrice: number;
+  imageUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
+}

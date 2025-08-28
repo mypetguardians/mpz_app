@@ -1,20 +1,28 @@
 "use client";
 
 import { ArrowLeft } from "@phosphor-icons/react";
-import { useRouter } from "next/navigation";
-import { useParams } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
-import { useGetCenterNoticeById } from "@/hooks";
+import { useGetCenterNotices, useGetMyCenter } from "@/hooks/query";
 
 export default function Notification() {
   const router = useRouter();
   const params = useParams();
-  const id = params.id as string;
+  const noticeId = params.id as string;
+  const { data: myCenter } = useGetMyCenter();
+  const centerId = myCenter?.id;
 
-  const { data: notice, isLoading, error } = useGetCenterNoticeById(id);
+  const {
+    data: centerNotices,
+    isLoading,
+    error,
+  } = useGetCenterNotices(centerId || "");
+
+  // 특정 공지사항 찾기
+  const notice = centerNotices?.find((n) => n.id === noticeId);
 
   const handleBack = () => {
     router.back();

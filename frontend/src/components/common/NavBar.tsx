@@ -33,8 +33,8 @@ export function NavbarBtn({
       {iconWithColor}
       <h6
         className={cn(
-          "text-xs font-medium cursor-pointer",
-          active ? "text-dg" : "text-lg"
+          "text-sm font-medium cursor-pointer",
+          active && "text-dg"
         )}
       >
         {label}
@@ -47,14 +47,18 @@ function NavBar() {
   const router = useRouter();
   const pathname = usePathname();
   const { user, isAuthenticated } = useAuth();
-  const isCenter = user?.userType === "센터관리자";
+  const isCenter =
+    user?.userType === "센터관리자" || user?.userType === "센터최고관리자";
 
   // 현재 경로에 따라 active 탭 결정
   const getActiveTab = () => {
     if (pathname === "/") return "home";
     if (pathname.startsWith("/list/animal")) return "list";
     if (pathname.startsWith("/community")) return "commmunity";
-    if (pathname.startsWith("/favorite") || pathname.startsWith("/like"))
+    if (
+      pathname.startsWith("/favorite/animal") ||
+      pathname.startsWith("/favorite/center")
+    )
       return "like";
     if (pathname.startsWith(isCenter ? "/centerpage" : "/my")) return "my";
     return "home";
@@ -75,7 +79,7 @@ function NavBar() {
         url = "/community";
         break;
       case "like":
-        url = "/favorite";
+        url = "/favorite/animal";
         break;
       case "my":
         url = isAuthenticated ? (isCenter ? "/centerpage" : "/my") : "/login";

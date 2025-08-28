@@ -1,4 +1,3 @@
-import { is } from "drizzle-orm";
 import React from "react";
 
 interface AnimalDetailsProps {

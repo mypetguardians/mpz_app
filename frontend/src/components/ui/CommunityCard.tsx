@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 import Image from "next/image";
-import { z } from "zod";
 
 import { ThumbsUp, ChatCircle } from "@phosphor-icons/react";
 import { ProfileInfo } from "./ProfileInfo";
 import { IconButton } from "./IconButton";
 import { BottomSheet } from "./BottomSheet";
-import type { PostWithExtrasSchema } from "@/server/openapi/routes/posts";
+import type { Post } from "@/types/posts";
 import { getRelativeTime } from "@/lib/utils";
 
 interface User {
@@ -15,7 +14,6 @@ interface User {
   image?: string | null;
   createdAt?: string | null;
 }
-type Post = z.infer<typeof PostWithExtrasSchema>;
 
 type CommunityCardVariant = "primary" | "variant2" | "variant3" | "variant4";
 
@@ -46,7 +44,7 @@ export function CommunityCard({
     title,
     content,
     postLikes,
-    comments,
+    commentCount,
     createdAt,
     userId,
     userNickname,
@@ -61,7 +59,7 @@ export function CommunityCard({
 
   // like, comment, date를 Post 타입에 맞게 매핑
   const like = postLikes?.length || 0;
-  const comment = comments?.length || 0;
+  const comment = commentCount || 0;
   const date = createdAt;
 
   const user = users.find((u) => u.id === userId);

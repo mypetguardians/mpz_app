@@ -1,10 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, X, Heart } from "@phosphor-icons/react";
-import { useToggleCenterFavorite } from "@/hooks";
+import { ArrowLeft, X } from "@phosphor-icons/react";
 import { useGetUserAdoptionDetail } from "@/hooks/query/useGetUserAdoptionDetail";
 import { useAuth } from "@/components/providers/AuthProvider";
 
@@ -21,40 +19,27 @@ import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Toast } from "@/components/ui/Toast";
 import { SectionLine } from "../../_components/SectionLine";
 
-export default function MeetingPage({ params }: { params: { id: string } }) {
+export default function MeetingPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = React.use(params);
   const router = useRouter();
   const { user } = useAuth();
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showToast, setShowToast] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(true);
-  const toggleCenterFavorite = useToggleCenterFavorite();
 
   const {
     data: adoptionDetail,
     isLoading,
     error,
   } = useGetUserAdoptionDetail({
-    adoptionId: params.id,
-    userId: user?.id || "",
+    adoptionId: id,
   });
 
   const handleBack = () => {
     router.push("/my/adoption");
-  };
-
-  const handleFavoriteToggle = () => {
-    // 실제 API 호출
-    if (adoptionDetail?.adoption.centerId) {
-      toggleCenterFavorite.mutate({
-        centerId: adoptionDetail.adoption.centerId,
-      });
-      setIsFavorite(!isFavorite);
-    }
-  };
-
-  const handleViewConsent = () => {
-    // 동의서 보기 로직
-    console.log("동의서 보기");
   };
 
   const handleWithdrawClick = () => {
@@ -123,6 +108,8 @@ export default function MeetingPage({ params }: { params: { id: string } }) {
     );
   }
 
+  const { adoption } = adoptionDetail;
+
   return (
     <div className="min-h-screen bg-bg">
       <Container className="min-h-screen">
@@ -161,11 +148,9 @@ export default function MeetingPage({ params }: { params: { id: string } }) {
             <SectionLine>
               <CenterInfo
                 variant="primary"
-                centerId={adoptionDetail.adoption.centerId}
-                name={adoptionDetail.adoption.centerName}
-                location={
-                  adoptionDetail.adoption.centerLocation || "위치 정보 없음"
-                }
+                centerId={adoption.center_id}
+                name={adoption.center_name}
+                location={adoption.center_location || "위치 정보 없음"}
                 phoneNumber="000-000-0000"
                 className="mb-6"
               />
@@ -174,38 +159,27 @@ export default function MeetingPage({ params }: { params: { id: string } }) {
             {/* Pet Info */}
             <SectionLine>
               <h3 className="text-bk mb-3">입양 신청 동물</h3>
-              <div className="flex items-center justify-between">
-                <Link href={`/list/animal/${adoptionDetail.adoption.animalId}`}>
-                  <PetCard
-                    pet={{
-                      id: adoptionDetail.adoption.animalId,
-                      name: adoptionDetail.adoption.animalName,
-                      isFemale: adoptionDetail.adoption.animalGender === "암컷",
-                      breed: adoptionDetail.adoption.animalBreed || undefined,
-                      status: "보호중",
-                      animalImages: [adoptionDetail.adoption.animalImage || ""],
-                      foundLocation: adoptionDetail.adoption.foundLocation,
-                    }}
-                    variant="variant4"
-                    showLocation={true}
-                    showUpdatedAt={false}
-                  />
-                </Link>
-                <button
-                  onClick={handleFavoriteToggle}
-                  className="ml-3 p-2 rounded-full hover:bg-gray-100 transition-colors"
-                >
-                  {isFavorite ? (
-                    <Heart size={24} weight="fill" className="text-red-500" />
-                  ) : (
-                    <Heart
-                      size={24}
-                      weight="regular"
-                      className="text-gray-400"
-                    />
-                  )}
-                </button>
-              </div>
+              <PetCard
+                pet={{
+                  id: adoption.animal_id,
+                  name: adoption.animal_name,
+                  isFemale: adoption.animal_gender === "암컷",
+                  breed: adoption.animal_breed || "종 미등록",
+                  status: "보호중" as const,
+                  centerId: adoption.center_id,
+                  animalImages: adoption.animal_image
+                    ? [
+                        {
+                          id: "1",
+                          imageUrl: adoption.animal_image,
+                          orderIndex: 0,
+                        },
+                      ]
+                    : [],
+                  foundLocation: adoption.center_location || "",
+                }}
+                variant="variant4"
+              />
             </SectionLine>
             <SectionLine>
               {/* My Information */}
@@ -220,7 +194,7 @@ export default function MeetingPage({ params }: { params: { id: string } }) {
                         </td>
                         <td className="text-sm py-1">
                           <div className="py-1 px-3">
-                            {user?.name || "사용자"}
+                            {user?.nickname || "사용자"}
                           </div>
                         </td>
                       </tr>
@@ -258,34 +232,51 @@ export default function MeetingPage({ params }: { params: { id: string } }) {
               </div>
             </SectionLine>
 
-            {/* My Responses */}
-            <SectionLine>
-              <h3 className="text-bk mb-3">내 응답</h3>
-              <div className="flex flex-col ">
-                {adoptionDetail.questionResponses &&
-                adoptionDetail.questionResponses.length > 0 ? (
-                  adoptionDetail.questionResponses.map((response, index) => (
-                    <div
-                      key={index}
-                      className="flex flex-col py-3 border-b border-bg"
-                    >
-                      <h5 className="text-gr">{response.questionContent}</h5>
-                      <p className="text-bk body">{response.answer}</p>
+            {/* Question Responses */}
+            {adoptionDetail.question_responses &&
+              adoptionDetail.question_responses.length > 0 && (
+                <SectionLine>
+                  <div className="mb-6">
+                    <h3 className="text-bk mb-3">질문 응답</h3>
+                    <div className="space-y-3">
+                      {adoptionDetail.question_responses.map((response) => (
+                        <div
+                          key={response.id}
+                          className="bg-gray-50 p-3 rounded-lg"
+                        >
+                          <div className="font-medium text-gray-700 mb-1">
+                            {response.question_content}
+                          </div>
+                          <div className="text-gray-600">{response.answer}</div>
+                        </div>
+                      ))}
                     </div>
-                  ))
-                ) : (
-                  <div className="text-gray-500 text-sm py-3">
-                    질문 응답이 없습니다.
                   </div>
-                )}
-              </div>
-            </SectionLine>
+                </SectionLine>
+              )}
 
             {/* Action Buttons */}
             <div className="space-y-3 pb-6">
               <BigButton
                 variant="variant5"
-                onClick={handleViewConsent}
+                onClick={() => {
+                  router.push(`/my/adoption/${id}/applicationForm`);
+                }}
+                className="w-full py-4"
+              >
+                신청서 보기
+              </BigButton>
+              <BigButton
+                variant="variant5"
+                onClick={() => {
+                  const guidelinesContent =
+                    adoptionDetail.contract?.guidelines_content ||
+                    "동의서 내용이 준비되지 않았습니다.";
+                  const encodedContent = encodeURIComponent(guidelinesContent);
+                  router.push(
+                    `/my/adoption/${id}/consentForm?guidelines=${encodedContent}`
+                  );
+                }}
                 className="w-full py-4"
               >
                 동의서 보기
@@ -308,7 +299,7 @@ export default function MeetingPage({ params }: { params: { id: string } }) {
           variant="primary"
           title="정말 철회하시겠습니까?"
           description={`${
-            user?.nickname || user?.name || "사용자"
+            user?.nickname || "사용자"
           }님의 신중하고 현명한 결정을 존중해요.`}
           leftButtonText="아니요"
           rightButtonText="네, 철회할래요"

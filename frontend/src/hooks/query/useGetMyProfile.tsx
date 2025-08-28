@@ -7,7 +7,7 @@ interface UserProfile {
   email: string;
   nickname: string | null;
   phoneNumber: string | null;
-  userType: "일반사용자" | "센터관리자" | "훈련사" | "최고관리자" | null;
+  userType: "일반사용자" | "센터관리자" | "훈련사" | "센터최고관리자" | null;
   isPhoneVerified: boolean | null;
   image: string | null;
   createdAt: string;

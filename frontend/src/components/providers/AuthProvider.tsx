@@ -2,56 +2,14 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 import instance from "@/lib/axios-instance";
-
-interface User {
-  id: string;
-  email: string;
-  name?: string;
-  nickname?: string;
-  phoneNumber?: string;
-  image?: string;
-  userType: "일반사용자" | "센터관리자" | "훈련사" | "최고관리자";
-  // 센터 정보 (센터관리자인 경우)
-  centers?: {
-    id: string;
-    name: string;
-    centerNumber: string | null;
-    description: string | null;
-    location: string | null;
-    region: string | null;
-    phoneNumber: string | null;
-    verified: boolean;
-    isPublic: boolean;
-    adoptionPrice: number;
-    imageUrl: string | null;
-    isSubscriber: boolean;
-    createdAt: string;
-    updatedAt: string;
-  } | null;
-  // 매칭 세션 정보
-  matchingSession?: {
-    id: string;
-    userId: string;
-    createdAt: string;
-    updatedAt: string;
-  } | null;
-  accounts?: {
-    providerId: string;
-  } | null;
-}
-
-interface AuthContextType {
-  user: User | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  isLoggingIn: boolean;
-  login: (userData: User) => void;
-  logout: () => Promise<void>;
-  updateUser: (userData: Partial<User>) => void;
-  setUserFromToken: () => Promise<void>;
-  setLoggingIn: (status: boolean) => void;
-}
+import {
+  User,
+  LoginResponse,
+  AuthContextType,
+  LoginResult,
+} from "@/types/auth";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -63,27 +21,112 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
+  // 센터 로그인 함수
+  const centerLogin = async (
+    username: string,
+    password: string
+  ): Promise<LoginResult> => {
+    try {
+      const response = await instance.post("/auth/login", {
+        username,
+        password,
+      });
+
+      if (response.status === 200) {
+        const data: LoginResponse = response.data;
+
+        // 토큰을 로컬 스토리지에 저장
+        Cookies.set("access_token", data.access_token);
+        Cookies.set("refresh_token", data.refresh_token);
+
+        // axios 인스턴스에 토큰 설정 - 인터셉터가 자동으로 처리하므로 제거
+        // instance.defaults.headers.common[
+        //   "Authorization"
+        // ] = `Bearer ${data.access_token}`;
+
+        // 사용자 정보 가져오기
+        try {
+          await setUserFromToken();
+          return { success: true, message: "로그인에 성공했습니다!" };
+        } catch (error) {
+          console.error("사용자 정보 가져오기 실패:", error);
+          return {
+            success: false,
+            message: "사용자 정보를 가져오는데 실패했습니다.",
+          };
+        }
+      } else {
+        return { success: false, message: "로그인에 실패했습니다." };
+      }
+    } catch (error: unknown) {
+      console.error("센터 로그인 에러:", error);
+      if (error && typeof error === "object" && "response" in error) {
+        const axiosError = error as {
+          response?: { status?: number; data?: { message?: string } };
+        };
+        if (axiosError.response?.status === 401) {
+          return {
+            success: false,
+            message: "아이디 또는 비밀번호가 올바르지 않습니다.",
+          };
+        } else if (axiosError.response?.data?.message) {
+          return { success: false, message: axiosError.response.data.message };
+        }
+      }
+      return { success: false, message: "로그인 중 오류가 발생했습니다." };
+    }
+  };
+
   // 세션 토큰으로 사용자 정보 가져오기
   const fetchCurrentUser = async () => {
     try {
-      console.log("fetchCurrentUser 시작");
-      const response = await instance.get("/auth/me");
+      // 로컬 스토리지에서 토큰 확인
+      const accessToken = localStorage.getItem("access_token");
+      if (accessToken) {
+        instance.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${accessToken}`;
+      }
 
-      console.log("API 응답 상태:", response.status);
-      console.log(
-        "API 응답 헤더:",
-        Object.fromEntries(response.headers.entries())
-      );
+      const response = await instance.get("/auth/me");
 
       if (response.status === 200) {
         const data = response.data;
-        setUser(data.user);
-        setIsAuthenticated(true); // API 호출 성공 시 인증 상태 true
+
+        // user 객체가 있으면 그것을 사용, 없으면 응답 데이터 자체를 사용
+        const userData = data.user || data;
+
+        if (userData && (userData.username || userData.email || userData.id)) {
+          // User 인터페이스에 맞게 데이터 변환
+          const user: User = {
+            id: userData.id || userData.username,
+            email: userData.email || "이메일 정보 없음",
+            name: userData.name || userData.nickname || "이름 정보 없음",
+            nickname: userData.nickname || "닉네임 정보 없음",
+            userType: userData.user_type || userData.userType || "일반사용자",
+            // 기타 필드는 기본값으로 설정
+            phoneNumber: userData.phone_number || userData.phoneNumber,
+            image: userData.image,
+            centers: userData.centers,
+            matchingSession: userData.matchingSession,
+            accounts: userData.accounts,
+          };
+
+          setUser(user);
+          setIsAuthenticated(true);
+        } else {
+          setUser(null);
+          setIsAuthenticated(false);
+        }
       } else if (response.status === 401) {
         // 인증되지 않은 상태 (정상적인 상황)
         console.log("401 에러 - 인증되지 않은 사용자");
         setUser(null);
         setIsAuthenticated(false);
+        // 토큰 제거
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        delete instance.defaults.headers.common["Authorization"];
       } else {
         // 기타 서버 오류
         console.log("에러 응답 내용:", response.data);
@@ -94,6 +137,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error("fetchCurrentUser 에러:", error);
       setUser(null);
       setIsAuthenticated(false);
+      // 토큰 제거
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      delete instance.defaults.headers.common["Authorization"];
     } finally {
       setIsLoading(false);
     }
@@ -101,25 +148,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // 컴포넌트 마운트 시 사용자 정보 확인
   useEffect(() => {
-    // 세션 쿠키가 있을 때만 사용자 정보 확인
-    const sessionToken = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("better-auth.session_token="));
-
-    if (sessionToken) {
-      console.log("세션 토큰 발견, 사용자 정보 확인");
-      fetchCurrentUser();
-    } else {
-      console.log("세션 토큰 없음, 로그인 필요");
-      setUser(null);
-      setIsAuthenticated(false);
-      setIsLoading(false);
-    }
+    fetchCurrentUser();
   }, []);
 
   // 로그인 처리
   const login = (userData: User) => {
-    console.log(" login 호출됨:", userData);
     setUser(userData);
     setIsAuthenticated(true);
     setIsLoading(false);
@@ -128,7 +161,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // 로그인 상태 설정
   const setLoggingIn = (status: boolean) => {
-    console.log(" setLoggingIn:", status);
     setIsLoggingIn(status);
   };
 
@@ -141,6 +173,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // 클라이언트 쿠키도 삭제
         document.cookie =
           "better-auth.session_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+        // 로컬 스토리지 토큰 제거
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        delete instance.defaults.headers.common["Authorization"];
 
         // 사용자 상태 초기화
         setUser(null);
@@ -179,8 +216,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (response.status === 200) {
         const data = response.data;
         console.log("setUserFromToken 성공:", data.user);
-        setUser(data.user);
-        setIsAuthenticated(true);
+
+        // user 객체가 있으면 그것을 사용, 없으면 응답 데이터 자체를 사용
+        const userData = data.user || data;
+
+        if (userData && (userData.username || userData.email || userData.id)) {
+          // User 인터페이스에 맞게 데이터 변환
+          const user: User = {
+            id: userData.id || userData.username,
+            email: userData.email || "이메일 정보 없음",
+            name: userData.name || userData.nickname || "이름 정보 없음",
+            nickname: userData.nickname || "닉네임 정보 없음",
+            userType: userData.user_type || userData.userType || "일반사용자",
+            // 기타 필드는 기본값으로 설정
+            phoneNumber: userData.phone_number || userData.phoneNumber,
+            image: userData.image,
+            centers: userData.centers,
+            matchingSession: userData.matchingSession,
+            accounts: userData.accounts,
+          };
+
+          setUser(user);
+          setIsAuthenticated(true);
+        } else {
+          setUser(null);
+          setIsAuthenticated(false);
+        }
+
         setIsLoading(false);
         setIsLoggingIn(false); // 토큰으로 사용자 정보 가져오기 완료
       } else if (response.status === 401) {
@@ -190,6 +252,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsAuthenticated(false);
         setIsLoading(false);
         setIsLoggingIn(false);
+        // 토큰 제거
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        delete instance.defaults.headers.common["Authorization"];
       } else {
         console.log("setUserFromToken 실패:", response.statusText);
         setUser(null);
@@ -218,6 +284,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     updateUser,
     setUserFromToken,
     setLoggingIn,
+    centerLogin,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

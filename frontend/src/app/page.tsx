@@ -10,17 +10,32 @@ import { HomePetSection } from "@/app/_components/MatchingSection";
 import { CommunitySection } from "@/app/_components/CommunitySection";
 import { FooterSection } from "@/app/_components/FooterSection";
 import { useGetAnimals } from "@/hooks/query/useGetAnimals";
-import { useGetPosts } from "@/hooks/query/useGetPosts";
+
 import { useAuth } from "@/components/providers/AuthProvider";
+import { RawAnimalResponse } from "@/types/animal";
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
   const [selectedLocation, setSelectedLocation] = useState<string>("");
 
-  const { data: animalsData, isLoading, error } = useGetAnimals({ limit: 100 });
-  const { data: postsData } = useGetPosts({ sort: "latest", limit: 3 });
+  const {
+    data: animalsData,
+    isLoading,
+    error,
+  } = useGetAnimals({
+    limit: 100,
+    sortBy: "admission_date",
+    sortOrder: "desc",
+  });
 
-  const animals = animalsData?.pages?.flatMap((page) => page.animals) || [];
+  // page.data를 사용하여 데이터 추출 (실제 API 응답 구조)
+  const animals: RawAnimalResponse[] =
+    animalsData?.pages?.flatMap((page) => {
+      console.log("Home - Page data:", page);
+      // 타입 단언을 사용하여 data 필드에 접근
+      return (page as { data?: RawAnimalResponse[] }).data || [];
+    }) || [];
+
   const totalPets = animals.length;
 
   const handleLocationSelect = (location: string) => {
@@ -64,13 +79,13 @@ export default function Home() {
 
       <HomePetSection
         animals={animals}
-        variant="detail"
+        variant="variant2"
         isLoading={isLoading}
         error={error}
         isExpertAnalysis={true}
       />
 
-      <CommunitySection feedItems={postsData?.posts || []} users={[]} />
+      <CommunitySection />
 
       <PetSection
         title={`총 ${totalPets}명의 아이들이 \n도움을 요청하고 있어요`}

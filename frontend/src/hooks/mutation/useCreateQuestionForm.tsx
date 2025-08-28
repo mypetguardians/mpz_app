@@ -30,7 +30,7 @@ export const useCreateQuestionForm = () => {
     {
       mutationFn: async (data: CreateQuestionFormData) => {
         const response = await instance.post<CreateQuestionFormResponse>(
-          "/centers/procedures/questions",
+          "/centers/procedures/questions/",
           data
         );
         return response.data;

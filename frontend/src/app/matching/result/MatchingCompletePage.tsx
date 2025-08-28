@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { X, ShareNetwork, ArrowClockwise } from "@phosphor-icons/react";
 import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import { IconButton } from "@/components/ui/IconButton";
 import { TopBar } from "@/components/common/TopBar";
@@ -101,7 +102,7 @@ function MatchedPetsList() {
       <div className="flex flex-col gap-4 w-full">
         <div className="text-start mb-4">
           <h2 className="text-bk text-xl font-bold mb-2">
-            {user?.name || "사용자"} 님과
+            {user?.nickname || "사용자"} 님과
             <br />꼭 맞는 아이들이에요!
           </h2>
           <p className="text-dg text-sm">결과는 매일 업데이트 돼요.</p>
@@ -122,7 +123,7 @@ function MatchedPetsList() {
       <div className="flex flex-col gap-4 w-full">
         <div className="text-start mb-4">
           <h2 className="text-bk text-xl font-bold mb-2">
-            {user?.name || "사용자"} 님과
+            {user?.nickname || "사용자"} 님과
             <br />꼭 맞는 아이들이에요!
           </h2>
           <p className="text-dg text-sm">결과는 매일 업데이트 돼요.</p>
@@ -138,7 +139,7 @@ function MatchedPetsList() {
     <div className="flex flex-col gap-4 w-full">
       <div className="text-start mb-4">
         <h2 className="text-bk text-xl font-bold mb-2">
-          {user?.name || "사용자"} 님과
+          {user?.nickname || "사용자"} 님과
           <br />꼭 맞는 아이들이에요!
         </h2>
         <p className="text-dg text-sm">결과는 매일 업데이트 돼요.</p>
@@ -148,8 +149,22 @@ function MatchedPetsList() {
         {animals.map((animal, index) => (
           <PetCard
             key={animal.id}
-            pet={animal}
-            variant="detail"
+            pet={{
+              id: animal.id,
+              name: animal.name || "",
+              breed: animal.breed || "",
+              isFemale: animal.is_female,
+              status: animal.status,
+              centerId: animal.center_id,
+              animalImages:
+                animal.animal_images?.map((img) => ({
+                  id: img.id,
+                  imageUrl: img.image_url,
+                  orderIndex: img.order_index,
+                })) || null,
+              foundLocation: animal.found_location || "",
+            }}
+            variant="variant2"
             rank={index + 1}
           />
         ))}
@@ -177,6 +192,7 @@ function MatchingResultImage({ type }: { type: MatchingResultType }) {
 }
 
 export default function MatchingCompletePage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const matchingTypeParam = searchParams.get("type") as MatchingResultType;
 
@@ -194,6 +210,7 @@ export default function MatchingCompletePage() {
           <IconButton
             icon={({ size }) => <X size={size} weight="bold" />}
             size="iconM"
+            onClick={() => router.push("/")}
           />
         }
       />
@@ -215,6 +232,7 @@ export default function MatchingCompletePage() {
               text="다시 해보기"
               leftIcon={<ArrowClockwise size={16} />}
               variant="primary"
+              onClick={() => router.push("/matching")}
             />
           </div>
         </div>

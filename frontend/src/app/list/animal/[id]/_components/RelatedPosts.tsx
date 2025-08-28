@@ -1,10 +1,7 @@
 import React from "react";
 import { CommunityCard } from "@/components/ui/CommunityCard";
-import { useGetPosts } from "@/hooks/query/useGetPosts";
-import type { AnimalResponseSchema } from "@/server/openapi/routes/animal";
-import { z } from "zod";
-
-type Animal = z.infer<typeof AnimalResponseSchema>;
+import { useGetPublicPosts } from "@/hooks/query/useGetPublicPosts";
+import type { Animal } from "@/types/animal";
 
 interface RelatedPostsProps {
   currentPet: Animal;
@@ -17,9 +14,9 @@ export default function RelatedPosts({ currentPet, title }: RelatedPostsProps) {
     data: postsData,
     isLoading,
     error,
-  } = useGetPosts({
+  } = useGetPublicPosts({
     animalId: currentPet.id,
-    limit: 10,
+    limit: 6,
   });
 
   // 현재 동물과 관련된 게시물

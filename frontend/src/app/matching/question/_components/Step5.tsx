@@ -13,7 +13,7 @@ export interface StepProps {
 
 export function Step5({ onNext }: StepProps) {
   const [selectedExperience, setSelectedExperience] = React.useState<
-    number | null
+    string | null
   >(null);
   const { setStepAnswer } = useMatchingStepStore();
 
@@ -52,8 +52,8 @@ export function Step5({ onNext }: StepProps) {
             <SelectButton
               key={option.id}
               variant="1"
-              selected={selectedExperience === option.id}
-              onClick={() => setSelectedExperience(option.id)}
+              selected={selectedExperience === option.text}
+              onClick={() => setSelectedExperience(option.text)}
               className="w-full text-left"
             >
               <span className="text-sm">{option.text}</span>

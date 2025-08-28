@@ -6,7 +6,7 @@ import { z } from "zod";
 
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
-import { Input } from "@/components/ui/CustomInput";
+import { CustomInput } from "@/components/ui/CustomInput";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { CustomModal } from "@/components/ui/CustomModal";
 import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
@@ -22,8 +22,17 @@ import {
 } from "@phosphor-icons/react";
 import { IconButton } from "@/components/ui/IconButton";
 import { MiniButton } from "@/components/ui/MiniButton";
-import { useCreatePost, useGetAnimals, useUploadMultipleImages } from "@/hooks";
-import type { AnimalResponseSchema } from "@/server/openapi/routes/animal";
+import {
+  useCreatePost,
+  useGetUserAdoptions,
+  useGetAnimalFavorites,
+  useUploadImages,
+} from "@/hooks";
+import type { PetCardAnimal } from "@/types/animal";
+import type { UserAdoptionOut } from "@/types/adoption";
+
+// PetCardAnimal을 확장한 타입 (adoptionId 포함)
+type ExtendedPetCardAnimal = PetCardAnimal & { adoptionId?: string };
 
 type PublicType = "center" | "public";
 
@@ -42,9 +51,15 @@ export default function CommunityUploadPage() {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [selectedPet, setSelectedPet] = useState<Animal | null>(null);
-  const [uploadedImages, setUploadedImages] = useState<File[]>([]);
+  const [selectedPet, setSelectedPet] = useState<ExtendedPetCardAnimal | null>(
+    null
+  );
+  const [selectedAdoptionId, setSelectedAdoptionId] = useState<string | null>(
+    null
+  );
+
   const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [showPetSelection, setShowPetSelection] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
@@ -53,10 +68,7 @@ export default function CommunityUploadPage() {
   const [publicType, setPublicType] = useState<PublicType>("center");
 
   const { mutate: createPost, isPending: creating } = useCreatePost();
-  const { mutate: uploadImages, isPending: uploadingImages } =
-    useUploadMultipleImages();
-
-  type Animal = z.infer<typeof AnimalResponseSchema>;
+  const { mutate: uploadImages, isPending: uploading } = useUploadImages();
 
   const { user } = useAuth();
   const isAdmin = user?.userType !== "일반사용자";
@@ -67,40 +79,100 @@ export default function CommunityUploadPage() {
     setPublicType(isAdmin ? "center" : "public");
   }, [isAdmin, user]);
 
-  // 동물 목록 (무한 스크롤)
-  const {
-    data: animalsPages,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useGetAnimals({ status: "보호중", limit: 20 });
+  const { data: adoptionsData } = useGetUserAdoptions({
+    filters: {
+      status: undefined,
+    },
+  });
 
+  const adoptionAnimals = useMemo(() => {
+    const adoptionsArray =
+      (adoptionsData as { data?: UserAdoptionOut[] })?.data || adoptionsData;
+    if (!adoptionsArray || !Array.isArray(adoptionsArray)) return [];
+
+    // PetCardAnimal 형태로 변환
+    const transformedAnimals = adoptionsArray.map((adoption) => ({
+      id: adoption.animal_id,
+      name: adoption.animal_name,
+      breed: adoption.animal_breed,
+      isFemale: adoption.animal_is_female,
+      status: adoption.animal_status as PetCardAnimal["status"],
+      centerId: adoption.center_id,
+      animalImages: adoption.animal_image
+        ? [
+            {
+              id: "1",
+              imageUrl: adoption.animal_image,
+              orderIndex: 1,
+            },
+          ]
+        : undefined,
+      foundLocation: adoption.center_location || "위치 정보 확인 불가",
+      adoptionId: adoption.id, // adoption ID 추가
+    }));
+
+    return transformedAnimals as PetCardAnimal[];
+  }, [adoptionsData]);
+
+  // 찜한 동물 목록
+  const { data: favoriteAnimalsData } = useGetAnimalFavorites(1, 100);
+
+  const favoriteAnimals = useMemo(() => {
+    if (!favoriteAnimalsData?.animals) {
+      return [];
+    }
+
+    const transformed = favoriteAnimalsData.animals.map((favoriteAnimal) => {
+      return {
+        id: favoriteAnimal.id,
+        name: favoriteAnimal.name,
+        breed: favoriteAnimal.breed,
+        isFemale: favoriteAnimal.isFemale,
+        status: favoriteAnimal.status,
+        centerId: favoriteAnimal.centerId,
+        animalImages: [
+          { id: "1", imageUrl: "/img/dummyImg.jpeg", orderIndex: 1 },
+        ],
+        foundLocation: "위치 정보 확인 불가", // 기본 지역 설정
+      };
+    }) as PetCardAnimal[];
+
+    return transformed;
+  }, [favoriteAnimalsData]);
+
+  // 현재 활성 탭에 따른 동물 목록
   const animals = useMemo(() => {
-    return animalsPages?.pages.flatMap((p) => p.animals) ?? [];
-  }, [animalsPages]);
+    const result = activeTab === "adoption" ? adoptionAnimals : favoriteAnimals;
+    return result;
+  }, [activeTab, adoptionAnimals, favoriteAnimals]);
+
+  // 현재 활성 탭에 따른 페이지네이션 정보
+  const hasNextPage = false;
+  const isFetchingNextPage = false;
+  const fetchNextPage = () => {};
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files) {
       const newFiles = Array.from(files);
       const newImageUrls = newFiles.map((file) => URL.createObjectURL(file));
-
-      setUploadedImages((prev) => [...prev, ...newFiles]);
+      setUploadedFiles((prev) => [...prev, ...newFiles]);
       setUploadedImageUrls((prev) => [...prev, ...newImageUrls]);
     }
   };
 
   const removeImage = (index: number) => {
-    setUploadedImages((prev) => prev.filter((_, i) => i !== index));
     setUploadedImageUrls((prev) => prev.filter((_, i) => i !== index));
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const removePet = () => {
     setSelectedPet(null);
   };
 
-  const handlePetSelect = (pet: Animal) => {
+  const handlePetSelect = (pet: PetCardAnimal, adoptionId: string) => {
     setSelectedPet(pet);
+    setSelectedAdoptionId(adoptionId);
     setShowPetSelection(false);
   };
 
@@ -113,7 +185,6 @@ export default function CommunityUploadPage() {
   };
 
   const handlePublicChange = () => {
-    if (!isAdmin) return; // 일반사용자는 전체공개 고정
     setPublicType(publicType === "center" ? "public" : "center");
   };
 
@@ -164,46 +235,64 @@ export default function CommunityUploadPage() {
     }
   }, [title, content, selectedPet, uploadedImageUrls, tags]);
 
-  const handleConfirmSave = () => {
-    // 먼저 포스트를 생성
-    createPost(
-      {
-        title,
-        content,
-        animalId: selectedPet?.id,
-        contentTags: tags.join(","), // 태그를 쉼표로 구분하여 contentTags에 저장
-        visibility: publicType,
-      },
-      {
-        onSuccess: (response) => {
-          // 포스트 생성 성공 후 이미지 업로드
-          if (uploadedImages.length > 0) {
-            uploadImages(
-              {
-                postId: response.community.id,
-                images: uploadedImages,
+  const handleConfirmSave = async () => {
+    try {
+      let imageUrls: string[] = [];
+
+      // 이미지가 있으면 먼저 업로드
+      if (uploadedFiles.length > 0) {
+        // 임시 포스트 ID 생성 (실제로는 서버에서 생성됨)
+        const tempPostId = "temp_" + Date.now();
+
+        // 이미지 업로드 수행
+        const uploadResult = await new Promise<{
+          message: string;
+          images: string[];
+        }>((resolve, reject) => {
+          uploadImages(
+            {
+              postId: tempPostId,
+              images: uploadedFiles,
+            },
+            {
+              onSuccess: (data) => {
+                resolve(data);
               },
-              {
-                onSuccess: () => {
-                  setShowSaveModal(false);
-                  router.back();
-                },
-                onError: (error) => {
-                  console.error("이미지 업로드 실패:", error);
-                  // 이미지 업로드 실패해도 포스트는 생성되었으므로 뒤로가기
-                  setShowSaveModal(false);
-                  router.back();
-                },
-              }
-            );
-          } else {
-            // 이미지가 없으면 바로 뒤로가기
+              onError: (error) => {
+                reject(error);
+              },
+            }
+          );
+        });
+
+        imageUrls = uploadResult.images;
+      }
+
+      // 포스트 생성 (이미지 URL 포함)
+      createPost(
+        {
+          title,
+          content,
+          tags,
+          images: imageUrls,
+          adoption_id: selectedAdoptionId || undefined,
+          is_all_access: publicType === "public", // 전체공개 = true, 센터공개 = false
+        },
+        {
+          onSuccess: (postData) => {
+            console.log("포스트 생성 성공:", postData);
             setShowSaveModal(false);
             router.back();
-          }
-        },
-      }
-    );
+          },
+          onError: (error) => {
+            console.error("포스트 생성 실패:", error);
+            console.error("에러 상세:", error.message);
+          },
+        }
+      );
+    } catch (error) {
+      console.error("저장 중 오류 발생:", error);
+    }
   };
 
   const handleConfirmBack = () => {
@@ -230,11 +319,13 @@ export default function CommunityUploadPage() {
       <div className="px-4 pb-24">
         {/* 제목 입력 */}
         <div className="mb-6">
-          <Input
+          <CustomInput
             label="제목"
             placeholder="제목을 입력하세요."
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setTitle(e.target.value)
+            }
             variant="primary"
           />
         </div>
@@ -246,7 +337,7 @@ export default function CommunityUploadPage() {
             placeholder="오늘은 어떤 이야기를 나눠볼까요? 사진과 태그를 이용해 자유롭게 작성해보세요! #태그를 사용해보세요"
             value={content}
             onChange={handleContentChange}
-            className="w-full h-32 p-4 border border-input rounded-md resize-none text-body placeholder:text-gr focus:outline-none focus:border-brand"
+            className="w-full h-32 p-4 border border-lg rounded-md resize-none text-body placeholder:text-gr focus:outline-none focus:border-brand"
           />
           {/* 추출된 태그 표시 */}
           {tags.length > 0 && (
@@ -254,7 +345,7 @@ export default function CommunityUploadPage() {
               {tags.map((tag, index) => (
                 <span
                   key={index}
-                  className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                  className="px-2 py-1 bg-brand-op text-white text-xs rounded-full"
                 >
                   #{tag}
                 </span>
@@ -289,8 +380,8 @@ export default function CommunityUploadPage() {
               />
             </div>
           ) : (
-            <div className="p-7.5 text-center bg-bg text-gr rounded-lg">
-              아직 선택된 공고가 없어요.
+            <div className="p-7.5 h-20 flex items-center justify-center bg-bg text-gr rounded-lg">
+              <span className="text-center">아직 선택된 공고가 없어요.</span>
             </div>
           )}
         </div>
@@ -338,7 +429,7 @@ export default function CommunityUploadPage() {
         onResetButtonClick={handlePublicChange}
         applyButtonText="등록하기"
         onApplyButtonClick={handleSave}
-        applyButtonDisabled={!isFormValid || creating || uploadingImages}
+        applyButtonDisabled={!isFormValid || creating || uploading}
       />
 
       {/* 공고 선택 BottomSheet */}
@@ -348,35 +439,52 @@ export default function CommunityUploadPage() {
         variant="variant7"
         title="어떤 공고를 선택할까요?"
         tabs={[
-          { label: "입양 진행중인 공고", value: "adoption" },
-          { label: "접한 공고", value: "recent" },
+          { label: "입양 진행중인 동물", value: "adoption" },
+          { label: "찜한 동물 리스트", value: "favorite" },
         ]}
         activeTab={activeTab}
         onTabChange={setActiveTab}
       >
         <div className="h-[480px] overflow-y-auto">
-          <div className="flex flex-wrap justify-start gap-2 px-4">
-            {animals.map((pet) => (
-              <div
-                key={pet.id}
-                onClick={() => handlePetSelect(pet)}
-                className="cursor-pointer w-[calc(50%-4px)]"
-              >
-                <PetCard
-                  pet={pet}
-                  variant="primary"
-                  imageSize="full"
-                  className="w-full"
-                />
+          {animals.length > 0 ? (
+            <>
+              <div className="flex flex-wrap justify-start gap-2 px-4">
+                {animals.map((pet: PetCardAnimal) => (
+                  <div
+                    key={pet.id}
+                    onClick={() =>
+                      handlePetSelect(
+                        pet,
+                        (pet as ExtendedPetCardAnimal).adoptionId || ""
+                      )
+                    }
+                    className="cursor-pointer w-[calc(50%-4px)]"
+                  >
+                    <PetCard
+                      pet={pet}
+                      variant="primary"
+                      imageSize="full"
+                      className="w-full"
+                    />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          {hasNextPage && (
-            <div className="px-4 py-3">
-              <MiniButton
-                text={isFetchingNextPage ? "불러오는 중..." : "더 보기"}
-                onClick={() => fetchNextPage()}
-              />
+              {hasNextPage && (
+                <div className="px-4 py-3">
+                  <MiniButton
+                    text={isFetchingNextPage ? "불러오는 중..." : "더 보기"}
+                    onClick={() => fetchNextPage()}
+                  />
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center text-gray-500">
+                {activeTab === "adoption"
+                  ? "등록된 동물이 없습니다."
+                  : "찜한 동물이 없습니다."}
+              </div>
             </div>
           )}
         </div>

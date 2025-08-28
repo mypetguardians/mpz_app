@@ -6,7 +6,7 @@ interface ToggleAnimalFavoriteParams {
 }
 
 interface ToggleAnimalFavoriteResponse {
-  isFavorited: boolean;
+  is_favorited: boolean;
   message: string;
 }
 
@@ -28,6 +28,11 @@ export const useToggleAnimalFavorite = () => {
       // 찜한 동물 목록 캐시 무효화
       queryClient.invalidateQueries({
         queryKey: ["animal-favorites"],
+      });
+
+      // 찜하기 상태 캐시 무효화 (즉시 상태 업데이트를 위해)
+      queryClient.invalidateQueries({
+        queryKey: ["animal-favorite-status", variables.animalId],
       });
 
       // 동물 상세 정보 캐시 무효화 (찜 개수 업데이트를 위해)

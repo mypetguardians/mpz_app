@@ -8,6 +8,7 @@ interface UpdatePostData {
   content: string;
   images?: string[];
   contentTags?: string;
+  tags?: string[];
 }
 
 interface UpdatePostResponse {
@@ -27,7 +28,7 @@ export const useUpdatePost = () => {
       data: UpdatePostData;
     }): Promise<UpdatePostResponse> => {
       const response = await instance.put<UpdatePostResponse>(
-        `/community/posts/${postId}`,
+        `/posts/${postId}`,
         data
       );
       return response.data;

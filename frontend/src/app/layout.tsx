@@ -19,7 +19,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <body className={inter.className + "min-h-screen bg-dg"}>
+      <body className={`${inter.className} min-h-screen bg-dg`}>
         <KakaoProvider />
         <QueryProvider>
           <AuthProvider>{children}</AuthProvider>

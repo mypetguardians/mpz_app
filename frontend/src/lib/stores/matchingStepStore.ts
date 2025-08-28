@@ -3,15 +3,15 @@ import { persist } from "zustand/middleware";
 
 // 각 단계별 답변 타입 정의
 type StepAnswer =
-  | { type: "activity"; value: number }
-  | { type: "space"; value: number }
-  | { type: "age"; value: number }
-  | { type: "gender"; value: number }
-  | { type: "sensitivity"; value: number }
-  | { type: "size"; value: number }
-  | { type: "experience"; value: number }
-  | { type: "time"; value: number }
-  | { type: "budget"; value: number }
+  | { type: "activity"; value: string }
+  | { type: "space"; value: string }
+  | { type: "age"; value: string }
+  | { type: "gender"; value: string }
+  | { type: "sensitivity"; value: string }
+  | { type: "size"; value: string }
+  | { type: "experience"; value: string }
+  | { type: "time"; value: string }
+  | { type: "budget"; value: string }
   | { type: "custom"; value: string };
 
 interface MatchingStepStore {

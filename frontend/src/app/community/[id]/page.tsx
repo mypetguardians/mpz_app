@@ -12,7 +12,7 @@ import { BottomSheet } from "@/components/ui/BottomSheet";
 import { CustomModal } from "@/components/ui/CustomModal";
 import { Toast } from "@/components/ui/Toast";
 import { IconButton } from "@/components/ui/IconButton";
-import { useGetPostDetail } from "@/hooks/query/useGetPosts";
+import { useGetPublicPostDetail } from "@/hooks/query/useGetPublicPosts";
 import { useGetComments } from "@/hooks/query/useGetComments";
 import { useDeletePost } from "@/hooks/mutation/useDeletePost";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -25,6 +25,7 @@ export default function CommunityDetailPage() {
   const [showBottomSheet, setShowBottomSheet] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   const [bottomSheetVariant, setBottomSheetVariant] = useState<
     "report" | "postAction"
   >("report");
@@ -36,7 +37,7 @@ export default function CommunityDetailPage() {
     data: postDetailData,
     isLoading: isPostLoading,
     error: postError,
-  } = useGetPostDetail(params.id as string);
+  } = useGetPublicPostDetail(params.id as string);
 
   const { data: commentsData, isLoading: isCommentsLoading } = useGetComments(
     params.id as string
@@ -46,10 +47,78 @@ export default function CommunityDetailPage() {
 
   // 게시글 데이터
   const post = postDetailData?.post;
-  const comments = commentsData?.comments || [];
+  const comments = commentsData?.data || [];
+  const pagination = commentsData
+    ? {
+        count: commentsData.count,
+        totalCnt: commentsData.totalCnt,
+        pageCnt: commentsData.pageCnt,
+        curPage: commentsData.curPage,
+        nextPage: commentsData.nextPage,
+        previousPage: commentsData.previousPage,
+      }
+    : undefined;
 
   // 현재 사용자가 게시글 작성자인지 확인 (실제 로그인된 유저 기준)
   const isMyPost = user?.id && post?.userId && user.id === post.userId;
+
+  // 공유 관련 함수들
+  const handleKakaoShare = () => {
+    if (typeof window !== "undefined" && window.Kakao) {
+      try {
+        window.Kakao.Link.sendDefault({
+          objectType: "feed",
+          content: {
+            title: post?.title || "커뮤니티 게시글",
+            description:
+              post?.content?.substring(0, 100) ||
+              "흥미로운 게시글을 확인해보세요!",
+            imageUrl:
+              (typeof post?.images?.[0] === "string"
+                ? post.images[0]
+                : post?.images?.[0]?.imageUrl) ||
+              "https://via.placeholder.com/300x200",
+            link: {
+              mobileWebUrl: window.location.href,
+              webUrl: window.location.href,
+            },
+          },
+          buttons: [
+            {
+              title: "자세히 보기",
+              link: {
+                mobileWebUrl: window.location.href,
+                webUrl: window.location.href,
+              },
+            },
+          ],
+        });
+        setShowToast(true);
+        setToastMessage("카카오톡으로 공유되었습니다!");
+        setShowShareModal(false);
+      } catch (error) {
+        console.error("카카오톡 공유 실패:", error);
+        setShowToast(true);
+        setToastMessage("카카오톡 공유에 실패했습니다.");
+      }
+    } else {
+      setShowToast(true);
+      setToastMessage("카카오톡과 연결되어 있지 않습니다.");
+    }
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setShowToast(true);
+      setToastMessage("링크가 복사되었습니다!");
+      setShowShareModal(false);
+    } catch (error) {
+      console.error("링크 복사 실패:", error);
+      setShowToast(true);
+      setToastMessage("링크 복사에 실패했습니다.");
+    }
+  };
 
   // 토스트 자동 숨김
   useEffect(() => {
@@ -216,6 +285,7 @@ export default function CommunityDetailPage() {
           <IconButton
             icon={({ size }) => <ShareNetwork size={size} weight="bold" />}
             size="iconM"
+            onClick={() => setShowShareModal(true)}
           />
         }
       />
@@ -245,6 +315,7 @@ export default function CommunityDetailPage() {
           comments={comments}
           postId={post.id}
           isLoading={isCommentsLoading}
+          pagination={pagination}
           isAuthenticated={isAuthenticated}
           onLoginRequired={() => setShowLoginModal(true)}
         />
@@ -269,6 +340,16 @@ export default function CommunityDetailPage() {
         rightButtonText="네, 삭제할래요"
         onLeftClick={() => setShowDeleteModal(false)}
         onRightClick={handleDeleteConfirm}
+      />
+
+      {/* 공유 모달 */}
+      <CustomModal
+        open={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        title="공유하기"
+        variant="variant4"
+        onKakaoShare={handleKakaoShare}
+        onCopyLink={handleCopyLink}
       />
 
       {/* 로그인 모달 */}

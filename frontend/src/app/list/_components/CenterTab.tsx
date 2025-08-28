@@ -3,15 +3,18 @@
 import { useState, useEffect } from "react";
 import { CenterCard } from "@/components/ui/CenterCard";
 import { useGetCenters } from "@/hooks/query/useGetCenters";
+import { useCheckCenterFavorite } from "@/hooks/query/useCheckCenterFavorite";
+import { useToggleCenterFavorite } from "@/hooks/mutation/useToggleCenterFavorite";
 import { useAuth } from "@/components/providers/AuthProvider";
-import type { CenterResponseSchema } from "@/server/openapi/routes/center";
-import { z } from "zod";
-
-type Center = z.infer<typeof CenterResponseSchema>;
+import { Center, transformRawCenterToCenter } from "@/types/center";
 
 function CenterTab() {
   const [centers, setCenters] = useState<Center[]>([]);
+  const [localFavorites, setLocalFavorites] = useState<Record<string, boolean>>(
+    {}
+  );
   const { isAuthenticated } = useAuth();
+  const toggleFavorite = useToggleCenterFavorite();
 
   const {
     data: centersData,
@@ -21,13 +24,60 @@ function CenterTab() {
 
   useEffect(() => {
     if (centersData) {
-      // centersData가 배열인 경우 직접 사용, 객체인 경우 centers 속성 사용
-      const allCenters = Array.isArray(centersData)
-        ? centersData
-        : centersData.centers;
-      setCenters(allCenters || []);
+      // 새로운 API 응답 구조에 맞게 data 필드 사용
+      const rawCenters = centersData.data || [];
+
+      if (rawCenters) {
+        const transformedCenters = rawCenters.map(transformRawCenterToCenter);
+        setCenters(transformedCenters);
+      } else {
+        setCenters([]);
+      }
     }
   }, [centersData]);
+
+  // 좋아요 토글 핸들러
+  const handleLikeToggle = (centerId: string) => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    // 현재 찜하기 상태 확인 (로컬 상태 또는 API 응답)
+    const currentFavorite =
+      localFavorites[centerId] !== undefined
+        ? localFavorites[centerId]
+        : centers.find((c) => c.id === centerId)?.isFavorited || false;
+
+    // 즉시 로컬 상태 업데이트 (optimistic update) - 현재 상태의 반대
+    setLocalFavorites((prev) => ({
+      ...prev,
+      [centerId]: !currentFavorite,
+    }));
+
+    toggleFavorite.mutate(
+      { centerId },
+      {
+        onSuccess: (data) => {
+          // 성공 시 로컬 상태를 서버 응답으로 업데이트
+          const isFavorited =
+            data.isFavorited !== undefined
+              ? data.isFavorited
+              : data.is_favorited ?? false;
+          setLocalFavorites((prev) => ({
+            ...prev,
+            [centerId]: isFavorited,
+          }));
+        },
+        onError: () => {
+          // 실패 시 원래 상태로 되돌리기
+          setLocalFavorites((prev) => ({
+            ...prev,
+            [centerId]: currentFavorite,
+          }));
+        },
+      }
+    );
+  };
 
   // 로딩 상태 처리
   if (isApiLoading && (!centers || centers.length === 0)) {
@@ -60,19 +110,56 @@ function CenterTab() {
     <div>
       <div className="flex flex-col gap-4 px-4">
         {centers?.map((center, idx) => (
-          <CenterCard
+          <CenterCardWithFavorite
             key={center.id ?? idx}
-            imageUrl="/img/dummyImg.jpeg"
-            name={center.name}
-            location={center.location || "주소 정보 없음"}
-            verified={center.verified || false}
-            isLiked={false}
-            onLikeToggle={isAuthenticated ? () => {} : undefined}
-            centerId={center.id}
+            center={center}
+            isAuthenticated={isAuthenticated}
+            onLikeToggle={handleLikeToggle}
+            localFavorite={localFavorites[center.id]}
           />
         ))}
       </div>
     </div>
+  );
+}
+
+// 좋아요 상태를 확인하는 개별 센터 카드 컴포넌트
+function CenterCardWithFavorite({
+  center,
+  isAuthenticated,
+  onLikeToggle,
+  localFavorite,
+}: {
+  center: Center;
+  isAuthenticated: boolean;
+  onLikeToggle: (centerId: string) => void;
+  localFavorite?: boolean;
+}) {
+  // 로컬 상태가 있으면 API 호출을 비활성화
+  const { data: favoriteData } = useCheckCenterFavorite(
+    center.id,
+    isAuthenticated && localFavorite === undefined
+  );
+
+  // 로컬 상태가 있으면 로컬 상태 사용, 없으면 API 응답 사용
+  const isLiked =
+    isAuthenticated &&
+    (localFavorite !== undefined
+      ? localFavorite
+      : favoriteData
+      ? favoriteData.isFavorited || favoriteData.is_favorited
+      : false);
+
+  return (
+    <CenterCard
+      imageUrl="/img/dummyImg.jpeg"
+      name={center.name}
+      location={center.location || "주소 정보 없음"}
+      verified={center.verified || false}
+      isLiked={isLiked}
+      onLikeToggle={isAuthenticated ? () => onLikeToggle(center.id) : undefined}
+      centerId={center.id}
+    />
   );
 }
 

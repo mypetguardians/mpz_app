@@ -5,10 +5,12 @@ import { Container } from "@/components/common/Container";
 import { CenterAnimalsTab } from "./CenterAnimalsTab";
 import { CenterInfoTab } from "./CenterInfoTab";
 import type { TabType, CenterDetailProps } from "./types";
+import type { RawAnimalResponse } from "@/types/animal";
 
-interface CenterDetailTabsProps extends CenterDetailProps {
+interface CenterDetailTabsProps extends Omit<CenterDetailProps, "animals"> {
   activeTab: TabType;
   onTabChange: (value: TabType) => void;
+  animals: RawAnimalResponse[];
 }
 
 export function CenterDetailTabs({
@@ -35,7 +37,42 @@ export function CenterDetailTabs({
       case "animals":
         return (
           <CenterAnimalsTab
-            animals={animals}
+            animals={animals.map((animal) => ({
+              id: animal.id,
+              name: animal.name || "",
+              isFemale: animal.is_female,
+              age: animal.age || 0,
+              weight: animal.weight,
+              color: animal.color,
+              breed: animal.breed,
+              description: animal.description,
+              status: animal.status,
+              waitingDays: animal.waiting_days,
+              activityLevel: animal.activity_level?.toString() || null,
+              sensitivity: animal.sensitivity?.toString() || null,
+              sociability: animal.sociability?.toString() || null,
+              separationAnxiety: animal.separation_anxiety?.toString() || null,
+              specialNotes: animal.special_notes,
+              healthNotes: animal.health_notes,
+              basicTraining: animal.basic_training?.toString() || null,
+              trainerComment: animal.trainer_comment,
+              announceNumber: animal.announce_number,
+              announcementDate: animal.announcement_date,
+              admissionDate: animal.admission_date,
+              foundLocation: animal.found_location,
+              personality: animal.personality,
+              megaphoneCount: animal.megaphone_count || 0,
+              isMegaphoned: animal.is_megaphoned || false,
+              centerId: animal.center_id,
+              animalImages:
+                animal.animal_images?.map((img) => ({
+                  id: img.id,
+                  imageUrl: img.image_url,
+                  orderIndex: img.order_index,
+                })) || null,
+              createdAt: animal.created_at,
+              updatedAt: animal.updated_at,
+            }))}
             isLoading={animalsLoading}
             showFilters={true}
             centerId={center.id}

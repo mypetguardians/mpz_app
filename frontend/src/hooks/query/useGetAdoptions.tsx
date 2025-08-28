@@ -4,9 +4,10 @@ import instance from "@/lib/axios-instance";
 interface Animal {
   id: string;
   name: string;
+  breed: string;
+  age: number;
   isFemale: boolean;
-  breed?: string;
-  status: "보호중" | "입양완료" | "무지개다리" | "임시보호중" | "반환" | "방사";
+  status: string;
   imageUrl?: string;
 }
 
@@ -39,7 +40,7 @@ interface Adoption {
 }
 
 interface GetAdoptionsParams {
-  userId: string; // userId를 필수로 변경
+  userId: string;
   animalId?: string;
   centerId?: string;
   status?: Adoption["status"];
@@ -54,11 +55,10 @@ interface GetAdoptionsResponse {
   limit: number;
   totalPages: number;
   hasNext: boolean;
-  hasPrev: boolean;
 }
 
 const getAdoptions = async (
-  params: GetAdoptionsParams // params를 필수로 변경
+  params: GetAdoptionsParams
 ): Promise<GetAdoptionsResponse> => {
   const { userId, ...otherParams } = params;
   const searchParams = new URLSearchParams();
@@ -104,19 +104,6 @@ export const useGetAdoptionsInfinite = (params: GetAdoptionsParams) => {
     retry: 1,
     refetchOnWindowFocus: false,
     enabled: !!params.userId, // userId가 있을 때만 쿼리 실행
-  });
-};
-
-// 특정 사용자의 입양 목록을 가져오는 훅
-export const useGetUserAdoptions = (userId: string) => {
-  return useQuery<GetAdoptionsResponse>({
-    queryKey: ["user-adoptions", userId],
-    queryFn: () => getAdoptions({ userId }),
-    staleTime: 5 * 60 * 1000, // 5분
-    gcTime: 10 * 60 * 1000, // 10분
-    retry: 1,
-    refetchOnWindowFocus: false,
-    enabled: !!userId, // userId가 있을 때만 쿼리 실행
   });
 };
 

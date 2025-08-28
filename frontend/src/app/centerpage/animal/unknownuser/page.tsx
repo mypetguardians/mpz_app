@@ -28,7 +28,7 @@ function UnknownUserAddContent() {
     data: center,
     isLoading: centerLoading,
     error: centerError,
-  } = useGetCenterById(centerId || animal?.centerId);
+  } = useGetCenterById(centerId || animal?.center_id);
 
   // 로딩 상태 처리
   if (animalLoading || centerLoading) {
@@ -93,8 +93,8 @@ function UnknownUserAddContent() {
 
   // 동물 이미지 URL (첫 번째 이미지 사용)
   const animalImageUrl =
-    animal.animalImages && animal.animalImages.length > 0
-      ? animal.animalImages[0]
+    animal.animal_images && animal.animal_images.length > 0
+      ? animal.animal_images[0]
       : "/img/dummyImg.jpeg";
 
   return (
@@ -113,7 +113,7 @@ function UnknownUserAddContent() {
           <h4>{animal.name || "이름 없음"} 입양신청서</h4>
         </div>
         <Image
-          src={animalImageUrl}
+          src={animalImageUrl as string}
           alt={`${animal.name || "동물"} 이미지`}
           width={134}
           height={134}

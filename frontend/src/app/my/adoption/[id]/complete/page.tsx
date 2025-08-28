@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Heart } from "@phosphor-icons/react";
+import { ArrowLeft } from "@phosphor-icons/react";
 import { useGetUserAdoptionDetail } from "@/hooks/query/useGetUserAdoptionDetail";
 import { useAuth } from "@/components/providers/AuthProvider";
 
@@ -15,36 +15,31 @@ import { CenterInfo } from "@/components/ui/CenterInfo";
 import { PetCard } from "@/components/ui/PetCard";
 import { BigButton } from "@/components/ui/BigButton";
 import { SectionLine } from "../../_components/SectionLine";
+import {
+  calculateRemainingMonitoringPeriod,
+  calculateRemainingMonitoringChecks,
+  calculateTotalMonitoringPeriod,
+} from "@/lib/utils";
 
 export default function AdoptionCompletePage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = React.use(params);
   const router = useRouter();
   const { user } = useAuth();
-  const [isFavorite, setIsFavorite] = useState(true);
 
   const {
     data: adoptionDetail,
     isLoading,
     error,
   } = useGetUserAdoptionDetail({
-    adoptionId: params.id,
-    userId: user?.id || "",
+    adoptionId: id,
   });
 
   const handleBack = () => {
     router.push("/my/adoption");
-  };
-
-  const handleFavoriteToggle = () => {
-    setIsFavorite(!isFavorite);
-  };
-
-  const handleViewConsent = () => {
-    // 동의서 보기 로직
-    console.log("동의서 보기");
   };
 
   if (isLoading) {
@@ -95,6 +90,8 @@ export default function AdoptionCompletePage({
     );
   }
 
+  const { adoption } = adoptionDetail;
+
   return (
     <div className="min-h-screen bg-bg">
       <Container className="min-h-screen">
@@ -126,25 +123,45 @@ export default function AdoptionCompletePage({
 
             {/* Info Card */}
             <InfoCard className="mb-6">
-              모니터링은 14일에 한 번 진행되며, n개월간 응해주시면 돼요.
+              모니터링은 14일에 한 번 진행되며, 총{" "}
+              {adoption.monitoring_started_at && adoption.monitoring_end_date
+                ? calculateTotalMonitoringPeriod(
+                    adoption.monitoring_started_at,
+                    adoption.monitoring_end_date
+                  )
+                : "기간 정보 없음"}
+              간 진행돼요.
             </InfoCard>
             <div className="mb-6">
               <h3 className="text-bk mb-1">모니터링 현황</h3>
               <div className="flex items-center gap-2">
-                <h6 className="text-gr">남은횟수 {`10`}회</h6>
+                <h6 className="text-gr">
+                  남은횟수{" "}
+                  {calculateRemainingMonitoringChecks(
+                    adoption.monitoring_total_checks || 0,
+                    adoption.monitoring_completed_checks || 0
+                  )}
+                  회
+                </h6>
                 <h6 className="text-gr">|</h6>
-                <h6 className="text-gr">남은 기간 {`3개월 1주`} 남았어요</h6>
+                <h6 className="text-gr">
+                  남은 기간{" "}
+                  {adoption.monitoring_end_date
+                    ? calculateRemainingMonitoringPeriod(
+                        adoption.monitoring_end_date
+                      )
+                    : "정보 없음"}{" "}
+                  남았어요
+                </h6>
               </div>
             </div>
             {/* Center Info */}
             <SectionLine>
               <CenterInfo
                 variant="primary"
-                centerId={adoptionDetail.adoption.centerId}
-                name={adoptionDetail.adoption.centerName}
-                location={
-                  adoptionDetail.adoption.centerLocation || "위치 정보 없음"
-                }
+                centerId={adoption.center_id}
+                name={adoption.center_name}
+                location={adoption.center_location || "위치 정보 없음"}
                 phoneNumber="000-000-0000"
                 className="mb-6"
               />
@@ -153,33 +170,27 @@ export default function AdoptionCompletePage({
             {/* Pet Info */}
             <SectionLine>
               <h3 className="text-bk mb-3">입양 신청 동물</h3>
-              <div className="flex items-center justify-between">
-                <PetCard
-                  pet={{
-                    id: adoptionDetail.adoption.animalId,
-                    name: adoptionDetail.adoption.animalName,
-                    isFemale: adoptionDetail.adoption.animalGender === "female",
-                    breed: adoptionDetail.adoption.animalBreed || undefined,
-                    status: "보호중" as const,
-                    animalImages: [adoptionDetail.adoption.animalImage || ""],
-                  }}
-                  variant="variant4"
-                />
-                <button
-                  onClick={handleFavoriteToggle}
-                  className="ml-3 p-2 rounded-full hover:bg-gray-100 transition-colors"
-                >
-                  {isFavorite ? (
-                    <Heart size={24} weight="fill" className="text-red-500" />
-                  ) : (
-                    <Heart
-                      size={24}
-                      weight="regular"
-                      className="text-gray-400"
-                    />
-                  )}
-                </button>
-              </div>
+              <PetCard
+                pet={{
+                  id: adoption.animal_id,
+                  name: adoption.animal_name,
+                  isFemale: adoption.animal_gender === "암컷",
+                  breed: adoption.animal_breed || "종 미등록",
+                  status: "보호중" as const,
+                  centerId: adoption.center_id,
+                  animalImages: adoption.animal_image
+                    ? [
+                        {
+                          id: "1",
+                          imageUrl: adoption.animal_image,
+                          orderIndex: 0,
+                        },
+                      ]
+                    : [],
+                  foundLocation: adoption.center_location || "",
+                }}
+                variant="variant4"
+              />
             </SectionLine>
             <SectionLine>
               {/* My Information */}
@@ -194,7 +205,7 @@ export default function AdoptionCompletePage({
                         </td>
                         <td className="text-sm py-1">
                           <div className="py-1 px-3">
-                            {user?.name || "사용자"}
+                            {user?.nickname || "사용자"}
                           </div>
                         </td>
                       </tr>
@@ -232,42 +243,49 @@ export default function AdoptionCompletePage({
               </div>
             </SectionLine>
 
-            {/* My Responses */}
-            <SectionLine>
-              <h3 className="text-bk mb-3">내 응답</h3>
-              <div className="flex flex-col ">
-                {adoptionDetail.questionResponses &&
-                adoptionDetail.questionResponses.length > 0 ? (
-                  adoptionDetail.questionResponses.map((response, index) => (
-                    <div
-                      key={index}
-                      className="flex flex-col py-3 border-b border-bg"
-                    >
-                      <h5 className="text-gr">{response.questionContent}</h5>
-                      <p className="text-bk body">{response.answer}</p>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-gray-500 text-sm py-3">
-                    질문 응답이 없습니다.
-                  </div>
-                )}
-              </div>
-            </SectionLine>
-
             {/* Action Buttons */}
             <div className="space-y-3 pb-6">
               <BigButton
                 variant="variant5"
-                onClick={handleViewConsent}
+                onClick={() => {
+                  router.push(`/my/adoption/${id}/applicationForm`);
+                }}
+                className="w-full py-4"
+              >
+                신청서 보기
+              </BigButton>
+              <BigButton
+                variant="variant5"
+                onClick={() => {
+                  const guidelinesContent =
+                    adoptionDetail.contract?.guidelines_content ||
+                    "동의서 내용이 준비되지 않았습니다.";
+                  const encodedContent = encodeURIComponent(guidelinesContent);
+                  router.push(
+                    `/my/adoption/${id}/consentForm?guidelines=${encodedContent}`
+                  );
+                }}
                 className="w-full py-4"
               >
                 동의서 보기
               </BigButton>
               <BigButton
                 variant="variant5"
-                onClick={handleViewConsent}
-                className="w-full py-4"
+                onClick={() => {
+                  const contractData = {
+                    adoptionId: id,
+                    animalName: adoption.animal_name,
+                    centerName: adoption.center_name,
+                    contractContent:
+                      adoptionDetail.contract?.contract_content ||
+                      "계약서 내용이 준비되지 않았습니다.",
+                  };
+                  const encodedData = encodeURIComponent(
+                    JSON.stringify(contractData)
+                  );
+                  router.push(`/adoption/contract?data=${encodedData}`);
+                }}
+                className="w-full py-4 my-3"
               >
                 계약서 보기
               </BigButton>

@@ -27,7 +27,7 @@ export function useCreateContractTemplate() {
       data: CreateContractTemplateData
     ): Promise<ContractTemplate> => {
       const response = await instance.post<ContractTemplate>(
-        "/centers/procedures/contract-template",
+        "/centers/procedures/contract-template/",
         data
       );
       return response.data;

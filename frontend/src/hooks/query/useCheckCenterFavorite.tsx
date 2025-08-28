@@ -1,14 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import instance from "@/lib/axios-instance";
-
-interface CheckCenterFavoriteParams {
-  centerId: string;
-}
-
-interface CheckCenterFavoriteResponse {
-  isFavorited: boolean;
-  totalFavorites: number;
-}
+import {
+  CheckCenterFavoriteParams,
+  CheckCenterFavoriteResponse,
+} from "@/types/center";
 
 const checkCenterFavorite = async ({
   centerId,
@@ -27,9 +22,9 @@ export const useCheckCenterFavorite = (
     queryKey: ["center-favorite-status", centerId],
     queryFn: () => checkCenterFavorite({ centerId }),
     enabled: enabled && !!centerId,
-    staleTime: 0,
+    staleTime: 30 * 1000, // 30초
     gcTime: 5 * 60 * 1000, // 5분
     retry: 1,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
   });
 };

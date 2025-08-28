@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { CreateCommentResponse } from "@/types/posts";
 import instance from "@/lib/axios-instance";
 
 interface CreateCommentData {
@@ -8,16 +9,11 @@ interface CreateCommentData {
   content: string;
 }
 
-interface CreateCommentResponse {
-  message: string;
-  commentId: string;
-}
-
 const createComment = async (
   data: CreateCommentData
 ): Promise<CreateCommentResponse> => {
   const response = await instance.post<CreateCommentResponse>(
-    `/community/${data.postId}/comments`,
+    `/comments/${data.postId}/comments`,
     { content: data.content }
   );
   return response.data;

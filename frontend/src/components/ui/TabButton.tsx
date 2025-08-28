@@ -48,8 +48,14 @@ export function TabButton({
     return (
       <div className="w-full">
         <div className="bg-transparent border-b border-lg flex w-full">
-          {tabs.map((tab) => {
+          {tabs.map((tab, index) => {
             const isActive = value === tab.value;
+            // tab.value가 유효하지 않은 경우 index를 fallback으로 사용
+            const tabKey =
+              tab.value && typeof tab.value === "string"
+                ? tab.value
+                : `tab-${index}`;
+
             const content = (
               <div
                 className={cn(
@@ -62,11 +68,11 @@ export function TabButton({
             );
 
             return tab.href ? (
-              <Link key={tab.value} href={tab.href} className="flex-1">
+              <Link key={tabKey} href={tab.href} className="flex-1">
                 {content}
               </Link>
             ) : (
-              <div key={tab.value} className="flex-1">
+              <div key={tabKey} className="flex-1">
                 {content}
               </div>
             );
@@ -80,11 +86,17 @@ export function TabButton({
   return (
     <Tabs value={value} onValueChange={onValueChange} className="w-full">
       <TabsList className="bg-transparent border-b border-lg flex w-full overflow-x-auto scrollbar-hide whitespace-nowrap pb-2 min-w-max">
-        {tabs.map((tab) => {
+        {tabs.map((tab, index) => {
           const isActive = value === tab.value;
+          // tab.value가 유효하지 않은 경우 index를 fallback으로 사용
+          const tabKey =
+            tab.value && typeof tab.value === "string"
+              ? tab.value
+              : `tab-${index}`;
+
           return (
             <TabsTrigger
-              key={tab.value}
+              key={tabKey}
               value={tab.value}
               className={cn(
                 "bg-transparent rounded-none flex flex-col  items-center justify-end flex-shrink-0 p-3 pb-[10px] whitespace-nowrap",

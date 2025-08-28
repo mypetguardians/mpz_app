@@ -112,7 +112,7 @@ export function AnimalSearchSection({
     });
 
   // 검색 결과가 있는지 확인
-  const hasSearchResults = (searchData?.pages?.[0]?.animals?.length ?? 0) > 0;
+  const hasSearchResults = (searchData?.pages?.[0]?.data?.length ?? 0) > 0;
   const showSearchResults = isSearching && searchValue.trim().length > 0;
 
   // 검색 상태가 변경될 때마다 부모 컴포넌트에 알림
@@ -121,18 +121,23 @@ export function AnimalSearchSection({
   }, [showSearchResults, onSearchStateChange]);
 
   // 검색 결과 데이터 추출
-  const searchAnimals = searchData?.pages.flatMap((page) => page.animals) || [];
-  const searchTotal = searchData?.pages[0]?.total || 0;
+  const searchAnimals = searchData?.pages.flatMap((page) => page.data) || [];
+  const searchTotal = searchData?.pages[0]?.totalCnt || 0;
 
   // 품종 검색 결과 추출
   const breedSearchResults =
-    breedSearchData?.pages.flatMap((page) => page.animals) || [];
+    breedSearchData?.pages.flatMap((page) => page.data) || [];
   const uniqueBreeds = Array.from(
     new Set(
       breedSearchResults
-        .filter((animal) => animal && typeof animal === "object")
-        .map((animal) => animal.breed || "")
-        .filter((breed) => breed !== "")
+        ?.filter(
+          (animal): animal is NonNullable<typeof animal> =>
+            animal !== null &&
+            animal !== undefined &&
+            typeof animal === "object"
+        )
+        ?.map((animal) => animal.breed || "")
+        ?.filter((breed) => breed !== "") || []
     )
   );
 
@@ -262,20 +267,41 @@ export function AnimalSearchSection({
 
           {hasSearchResults && (
             <div className="flex flex-wrap justify-start gap-2 cursor-pointer">
-              {searchAnimals.map((animal, idx) => (
-                <div
-                  key={animal.id ?? idx}
-                  className="w-[calc(50%-4px)] cursor-pointer"
-                  onClick={() => router.push(`/list/animal/${animal.id}`)}
-                >
-                  <PetCard
-                    pet={animal}
-                    variant="primary"
-                    imageSize="full"
-                    className="w-full"
-                  />
-                </div>
-              ))}
+              {searchAnimals
+                .filter(
+                  (animal): animal is NonNullable<typeof animal> =>
+                    animal !== null &&
+                    animal !== undefined &&
+                    typeof animal === "object"
+                )
+                .map((animal, idx) => (
+                  <div
+                    key={animal.id ?? idx}
+                    className="w-[calc(50%-4px)] cursor-pointer"
+                    onClick={() => router.push(`/list/animal/${animal.id}`)}
+                  >
+                    <PetCard
+                      pet={{
+                        id: animal.id,
+                        name: animal.name,
+                        breed: animal.breed,
+                        isFemale: animal.is_female,
+                        status: animal.status,
+                        animalImages:
+                          animal.animal_images?.map((image) => ({
+                            id: image.id,
+                            imageUrl: image.image_url,
+                            orderIndex: image.order_index,
+                          })) || [],
+                        foundLocation: animal.found_location || "",
+                        centerId: animal.center_id,
+                      }}
+                      variant="primary"
+                      imageSize="full"
+                      className="w-full"
+                    />
+                  </div>
+                ))}
             </div>
           )}
         </div>

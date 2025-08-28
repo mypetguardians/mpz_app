@@ -46,23 +46,72 @@ export default function ProfileEditPage() {
       setName(authUser.name || "");
       setPhoneNumber(authUser.phoneNumber || "");
       setProfileImage(authUser.image || null);
-      console.log("AuthProvider 사용자 정보:", authUser);
     }
   }, [authUser]);
-
-  // 디버깅을 위한 로그
-  useEffect(() => {
-    console.log("인증 상태:", { isAuthenticated, authLoading, authUser });
-  }, [isAuthenticated, authLoading, authUser]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setProfileImage(e.target?.result as string);
+      // 파일 크기 제한 (1MB)
+      if (file.size > 1024 * 1024) {
+        setToastMessage("이미지 크기는 1MB 이하여야 합니다");
+        setToastType("error");
+        setShowToast(true);
+        return;
+      }
+
+      // 이미지 압축 및 크기 조정
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const img = new window.Image();
+
+      img.onload = () => {
+        // 최대 크기 설정 (200x200)
+        const maxSize = 200;
+        let { width, height } = img;
+
+        if (width > height) {
+          if (width > maxSize) {
+            height = (height * maxSize) / width;
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width = (width * maxSize) / height;
+            height = maxSize;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        // 이미지 그리기
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+        }
+
+        // 압축된 이미지를 base64로 변환 (품질 0.7)
+        const compressedImage = canvas.toDataURL("image/jpeg", 0.7);
+
+        // base64 문자열 길이 확인 (500자 제한)
+        if (compressedImage.length > 500) {
+          // 더 강한 압축 시도
+          const moreCompressed = canvas.toDataURL("image/jpeg", 0.5);
+          if (moreCompressed.length > 500) {
+            setToastMessage(
+              "이미지가 너무 큽니다. 더 작은 이미지를 선택해주세요"
+            );
+            setToastType("error");
+            setShowToast(true);
+            return;
+          }
+          setProfileImage(moreCompressed);
+        } else {
+          setProfileImage(compressedImage);
+        }
       };
-      reader.readAsDataURL(file);
+
+      img.src = URL.createObjectURL(file);
     }
   };
 
@@ -71,7 +120,7 @@ export default function ProfileEditPage() {
       await updateProfileMutation.mutateAsync({
         name: name.trim(),
         nickname: nickname.trim() || "",
-        phoneNumber: phoneNumber.trim() || "",
+        phone_number: phoneNumber.trim() || "",
         image: profileImage || "",
       });
 

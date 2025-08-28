@@ -4,23 +4,16 @@ import instance from "@/lib/axios-instance";
 interface UpdateProfileRequest {
   name?: string;
   nickname?: string;
-  phoneNumber?: string;
+  phone_number?: string;
+  birth?: string;
+  address?: string;
+  address_is_public?: boolean;
   image?: string;
 }
 
 interface UpdateProfileResponse {
-  message: string;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    nickname: string | null;
-    phoneNumber: string | null;
-    userType: "일반사용자" | "센터관리자" | "훈련사" | "최고관리자" | null;
-    isPhoneVerified: boolean | null;
-    image: string | null;
-    createdAt: string;
-  };
+  username: string;
+  status: string;
 }
 
 export const useUpdateProfile = () => {
@@ -28,8 +21,8 @@ export const useUpdateProfile = () => {
 
   return useMutation<UpdateProfileResponse, Error, UpdateProfileRequest>({
     mutationFn: async (data: UpdateProfileRequest) => {
-      const response = await instance.put<UpdateProfileResponse>(
-        "/users/profile",
+      const response = await instance.patch<UpdateProfileResponse>(
+        "/auth/me",
         data
       );
       return response.data;

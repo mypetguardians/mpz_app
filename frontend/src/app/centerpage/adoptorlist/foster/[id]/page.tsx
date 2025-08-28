@@ -55,11 +55,66 @@ export default function AdoptorlistDetailPage({
             {/* Pet Info */}
             <SectionLine>
               <h3 className="text-bk mb-3">임시보호 동물</h3>
-              <PetCard pet={mainPetInfo[0]} variant="variant4" />
+              <PetCard
+                pet={{
+                  id: mainPetInfo[0].id,
+                  name: mainPetInfo[0].name,
+                  breed: mainPetInfo[0].tag,
+                  isFemale: mainPetInfo[0].isFemale,
+                  status:
+                    mainPetInfo[0].tag === "보호중" ? "보호중" : "임시보호중",
+                  centerId: "1",
+                  animalImages: mainPetInfo[0].imageUrls.map((url, index) => ({
+                    id: index.toString(),
+                    imageUrl: url,
+                    orderIndex: index,
+                  })),
+                  foundLocation: mainPetInfo[0].foundLocation,
+                }}
+                variant="variant4"
+              />
             </SectionLine>
 
             {animal && (
-              <RelatedPosts currentPet={animal} title="임시보호자가 올린 글" />
+              <RelatedPosts
+                currentPet={{
+                  id: animal.id,
+                  name: animal.name,
+                  breed: animal.tag,
+                  isFemale: animal.isFemale,
+                  status: animal.tag === "보호중" ? "보호중" : "임시보호중",
+                  age: animal.age || 0,
+                  weight: animal.weight || null,
+                  color: animal.color || null,
+                  description: animal.description || null,
+                  waitingDays: animal.waitingDays || null,
+                  activityLevel: animal.activityLevel?.toString() || null,
+                  sensitivity: animal.sensitivity?.toString() || null,
+                  sociability: animal.sociability?.toString() || null,
+                  separationAnxiety: null,
+                  specialNotes: null,
+                  healthNotes: null,
+                  basicTraining: null,
+                  trainerComment: null,
+                  announceNumber: null,
+                  announcementDate: null,
+                  admissionDate: null,
+                  foundLocation: animal.foundLocation || null,
+                  personality: null,
+                  megaphoneCount: 0,
+                  isMegaphoned: false,
+                  centerId: "1",
+                  animalImages:
+                    animal.imageUrls?.map((url, index) => ({
+                      id: index.toString(),
+                      imageUrl: url,
+                      orderIndex: index,
+                    })) || null,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                }}
+                title="임시보호자가 올린 글"
+              />
             )}
 
             <SectionLine>

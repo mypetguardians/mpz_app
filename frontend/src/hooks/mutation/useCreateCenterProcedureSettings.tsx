@@ -3,12 +3,12 @@ import type { CenterProcedureSettings } from "@/hooks/query/useGetCenterProcedur
 import instance from "@/lib/axios-instance";
 
 export interface CreateCenterProcedureSettingsData {
-  hasMonitoring?: boolean;
-  monitoringPeriodMonths?: number;
-  monitoringIntervalDays?: number;
-  monitoringDescription?: string;
-  adoptionGuidelines?: string;
-  adoptionProcedure?: string;
+  has_monitoring?: boolean;
+  monitoring_period_months?: number;
+  monitoring_interval_days?: number;
+  monitoring_description?: string;
+  adoption_guidelines?: string;
+  adoption_procedure?: string;
 }
 
 export function useCreateCenterProcedureSettings() {
@@ -19,7 +19,7 @@ export function useCreateCenterProcedureSettings() {
       data: CreateCenterProcedureSettingsData
     ): Promise<CenterProcedureSettings> => {
       const response = await instance.post<CenterProcedureSettings>(
-        "/centers/procedures/settings",
+        "/centers/procedures/settings/",
         data
       );
       return response.data;

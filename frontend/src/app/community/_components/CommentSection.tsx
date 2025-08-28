@@ -3,24 +3,24 @@
 import { useState } from "react";
 import { CommentInput } from "./CommentInput";
 import { CommentItem } from "./CommentItem";
-import type { CommentWithRepliesSchema } from "@/server/openapi/routes/posts";
-import { z } from "zod";
+import type { Comment } from "@/types/posts";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useCreateComment, useCreateReply } from "@/hooks/mutation";
 import { CustomModal } from "@/components/ui/CustomModal";
 import { Toast } from "@/components/ui/Toast";
 
-type Comment = z.infer<typeof CommentWithRepliesSchema>;
-
 interface CommentSectionProps {
   comments: Comment[];
   postId: string;
   isLoading?: boolean;
-  users?: Array<{
-    id: string;
-    nickname: string;
-    profileImg: string;
-  }>;
+  pagination?: {
+    count: number;
+    totalCnt: number;
+    pageCnt: number;
+    curPage: number;
+    nextPage: number;
+    previousPage: number;
+  };
   isAuthenticated: boolean;
   onLoginRequired?: () => void;
 }
@@ -29,7 +29,7 @@ export function CommentSection({
   comments,
   postId,
   isLoading = false,
-  users,
+  pagination,
 }: CommentSectionProps) {
   const { isAuthenticated } = useAuth();
   const [showReplies, setShowReplies] = useState<Record<string, boolean>>({});
@@ -50,15 +50,6 @@ export function CommentSection({
 
   const createCommentMutation = useCreateComment();
   const createReplyMutation = useCreateReply();
-
-  // 사용자 정보 null 대체
-  const defaultUsers =
-    users ||
-    comments.map((comment) => ({
-      id: comment.userId,
-      nickname: comment.user?.nickname || "사용자",
-      profileImg: comment.user?.image || "/img/dummyImg.jpeg",
-    }));
 
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ show: true, message, type });
@@ -137,7 +128,9 @@ export function CommentSection({
     <>
       {/* 댓글 헤더와 상단 입력 필드 */}
       <div className="flex flex-col gap-2 items-start px-4 py-4 ">
-        <h4 className="text-bk">댓글 {comments.length}</h4>
+        <h4 className="text-bk">
+          댓글 {pagination?.totalCnt || comments.length}
+        </h4>
 
         {/* 상단 댓글 입력 필드 */}
         <CommentInput
@@ -158,7 +151,6 @@ export function CommentSection({
                 variant="primary"
                 onToggleReplies={() => toggleReplies(comment.id)}
                 onAddReply={() => showReplyInput(comment.id)}
-                users={defaultUsers}
                 onLoginRequired={() => setIsLoginModalOpen(true)}
               />
 

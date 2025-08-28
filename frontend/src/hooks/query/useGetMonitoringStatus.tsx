@@ -1,15 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { z } from "zod";
-import type { MonitoringStatusResponseSchema } from "@/server/openapi/routes/center-adoption";
 import instance from "@/lib/axios-instance";
-
-export type MonitoringStatus = z.infer<typeof MonitoringStatusResponseSchema>;
+import { MonitoringStatusResponse } from "@/types/adoption-monitoring";
 
 export const useGetMonitoringStatus = (adoptionId: string) => {
   return useQuery({
     queryKey: ["monitoring-status", adoptionId],
-    queryFn: async (): Promise<MonitoringStatus> => {
-      const response = await instance.get<MonitoringStatus>(
+    queryFn: async (): Promise<MonitoringStatusResponse> => {
+      const response = await instance.get<MonitoringStatusResponse>(
         `/center-admin/adoptions/${adoptionId}/monitoring-status`
       );
       return response.data;

@@ -96,7 +96,31 @@ function MatchedPetsList() {
 
       <div className="flex flex-col gap-3">
         {matchedPets.map((pet, index) => (
-          <PetCard key={pet.id} pet={pet} variant="detail" rank={index + 1} />
+          <PetCard
+            key={pet.id}
+            pet={{
+              id: pet.id,
+              name: pet.name || "",
+              breed: pet.color || "",
+              isFemale: pet.isFemale,
+              status: pet.tag as
+                | "보호중"
+                | "입양완료"
+                | "무지개다리"
+                | "임시보호중"
+                | "반환"
+                | "방사",
+              centerId: pet.center,
+              animalImages: pet.imageUrls.map((url, idx) => ({
+                id: `${pet.id}-${idx}`,
+                imageUrl: url,
+                orderIndex: idx,
+              })),
+              foundLocation: pet.foundLocation || "",
+            }}
+            variant="variant2"
+            rank={index + 1}
+          />
         ))}
       </div>
     </div>

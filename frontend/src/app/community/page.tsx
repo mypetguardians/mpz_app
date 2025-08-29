@@ -7,7 +7,7 @@ import { Bell, Plus } from "@phosphor-icons/react";
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
 import { NavBar } from "@/components/common/NavBar";
-import { CommunityCard } from "@/components/ui/CommunityCard";
+import { CommunityCard, CommunityCardSkeleton } from "@/components/ui";
 import { TabButton } from "@/components/ui/TabButton";
 import { BigButton } from "@/components/ui/BigButton";
 import { IconButton } from "@/components/ui/IconButton";
@@ -131,8 +131,32 @@ export default function CommunityPage() {
             />
           }
         />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <div className="w-full overflow-x-auto scrollbar-hide">
+          {/* 탭 스켈레톤 */}
+          <div className="flex gap-2 px-4 py-3">
+            <div className="w-20 h-10 bg-gray-200 rounded-lg animate-pulse" />
+            <div className="w-24 h-10 bg-gray-200 rounded-lg animate-pulse" />
+            <div className="w-20 h-10 bg-gray-200 rounded-lg animate-pulse" />
+          </div>
+        </div>
+        <div className="mx-4 flex-1 overflow-y-auto">
+          {/* 게시글 스켈레톤 */}
+          <div className="space-y-4">
+            {[...Array(5)].map((_, index) => (
+              <div key={index}>
+                {(index === 0 || (index + 1) % 3 === 0) && (
+                  <div className="py-5 px-0 border-b border-bg">
+                    <div className="flex bg-brand-light/50 py-[27px] px-5 justify-between items-center rounded-lg">
+                      <h5 className="text-wh">쇼핑몰 연계 배너</h5>
+                    </div>
+                  </div>
+                )}
+                <div className="pt-4">
+                  <CommunityCardSkeleton />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
         <NavBar />
       </Container>
@@ -195,7 +219,25 @@ export default function CommunityPage() {
         })()}
       </div>
       <div className="mx-4 flex-1 overflow-y-auto">
-        {posts.length === 0 ? (
+        {isLoading ? (
+          // 로딩 중일 때 스켈레톤 표시
+          <div className="space-y-4">
+            {[...Array(5)].map((_, index) => (
+              <div key={index}>
+                {(index === 0 || (index + 1) % 3 === 0) && (
+                  <div className="py-5 px-0 border-b border-bg">
+                    <div className="flex bg-brand-light/50 py-[27px] px-5 justify-between items-center rounded-lg">
+                      <h5 className="text-wh">쇼핑몰 연계 배너</h5>
+                    </div>
+                  </div>
+                )}
+                <div className="pt-4">
+                  <CommunityCardSkeleton />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : posts.length === 0 ? (
           <div className="flex flex-col h-full items-center justify-center">
             <h5 className="text-lg text-sm text-center">
               아직 업로드된 게시글이 없어요.

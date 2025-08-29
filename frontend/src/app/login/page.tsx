@@ -34,7 +34,7 @@ export default function LogIn() {
             priority
           />
         </Link>
-        <h4 className="text-dg">마펫쯔 한 줄 라이팅</h4>
+        <h4 className="text-dg">컴팩트한 유기동물 입양</h4>
       </div>
 
       <div className="flex justify-center">

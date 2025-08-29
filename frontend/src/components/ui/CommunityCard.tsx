@@ -284,11 +284,11 @@ export function CommunityCard({
         </div>
       )}
       <div
-        className={`flex flex-col flex-1 min-w-0 justify-between ${
+        className={`flex flex-col flex-1 justify-between ${
           imageUrls.length > 0 ? "h-[119px]" : ""
         }`}
       >
-        <div>
+        <div className="flex flex-col gap-1 w-full">
           <ProfileInfo
             author={author}
             profileImage={profileImage}

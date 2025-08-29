@@ -74,7 +74,6 @@ export function CommunityDetail({
     }
 
     try {
-      // 낙관적 업데이트 (즉시 UI 반영)
       const newIsLiked = !isLiked;
       const newLikeCount = newIsLiked
         ? currentLikeCount + 1
@@ -85,12 +84,10 @@ export function CommunityDetail({
 
       const result = await toggleLikeMutation.mutateAsync({ postId: post.id });
 
-      // 서버 응답으로 최종 상태 동기화
       setIsLiked(result.isLiked);
       setCurrentLikeCount(result.likeCount);
     } catch (error) {
       console.error("좋아요 처리 실패:", error);
-      // 에러 발생 시 원래 상태로 되돌리기
       setIsLiked(!isLiked);
       setCurrentLikeCount(
         isLiked ? currentLikeCount - 1 : currentLikeCount + 1
@@ -99,12 +96,10 @@ export function CommunityDetail({
   };
 
   const renderGallery = () => {
-    // 이미지가 없으면 아무것도 표시하지 않음
     if (!images || images.length === 0) {
       return null;
     }
 
-    // 다양한 키(image_url, imageUrl, file_url, url, string)를 지원하여 URL 추출
     const imageUrls = images
       .map((img: unknown) => {
         if (typeof img === "string") return img;
@@ -136,7 +131,7 @@ export function CommunityDetail({
               src={imageUrls[0]}
               alt={title}
               fill
-              className="object-cover"
+              className="object-fill"
             />
           </div>
         ) : (
@@ -155,7 +150,7 @@ export function CommunityDetail({
                   src={url}
                   alt={`feed-img-${i}`}
                   fill
-                  className="object-cover"
+                  className="object-fill"
                 />
                 {i === 3 && imageUrls.length > 4 && (
                   <div className="absolute inset-0 bg-black/50 flex items-center justify-center">

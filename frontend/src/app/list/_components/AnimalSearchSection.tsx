@@ -93,13 +93,15 @@ export function AnimalSearchSection({
           : undefined,
     }),
     ...(filters.protectionStatus.length > 0 && {
-      status: filters.protectionStatus[0] as
-        | "보호중"
-        | "입양완료"
-        | "무지개다리"
-        | "임시보호중"
-        | "반환"
-        | "방사",
+      status:
+        filters.protectionStatus[0] === "무지개다리"
+          ? "자연사"
+          : (filters.protectionStatus[0] as
+              | "보호중"
+              | "입양완료"
+              | "임시보호중"
+              | "반환"
+              | "방사"),
     }),
     ...(filters.expertOpinion.length > 0 && { hasTrainerComment: "true" }),
   });
@@ -113,7 +115,12 @@ export function AnimalSearchSection({
 
   // 검색 결과가 있는지 확인
   const hasSearchResults = (searchData?.pages?.[0]?.data?.length ?? 0) > 0;
-  const showSearchResults = isSearching && searchValue.trim().length > 0;
+
+  // 검색 상태 업데이트 - 텍스트 검색 또는 필터 적용 중 하나라도 활성화되어 있으면 true
+  const hasActiveFilters = Object.values(filters).some((value) =>
+    Array.isArray(value) ? value.length > 0 : Boolean(value)
+  );
+  const showSearchResults = isSearching || hasActiveFilters;
 
   // 검색 상태가 변경될 때마다 부모 컴포넌트에 알림
   React.useEffect(() => {
@@ -191,6 +198,10 @@ export function AnimalSearchSection({
   const handleSearchClear = () => {
     setSearchValue("");
     setIsSearching(false);
+    // 필터도 초기화
+    const currentUrl = new URL(window.location.href);
+    currentUrl.search = "";
+    router.push(currentUrl.pathname);
     onSearchStateChange(false);
   };
 
@@ -234,14 +245,20 @@ export function AnimalSearchSection({
         <div className="px-4 pt-4">
           <div className="flex items-center justify-between mb-3">
             <h5 className="text-dg">
-              &ldquo;{searchValue}&rdquo; 검색 결과
+              {isSearching && searchValue.trim().length > 0
+                ? `"${searchValue}" 검색 결과`
+                : hasActiveFilters
+                ? "필터링된 결과"
+                : "검색 결과"}
               {searchData && ` (${searchTotal}건)`}
             </h5>
             <button
               onClick={handleSearchClear}
               className="text-sm text-gray-500 hover:text-gray-700 cursor-pointer"
             >
-              검색 초기화
+              {isSearching && searchValue.trim().length > 0
+                ? "검색 초기화"
+                : "필터 초기화"}
             </button>
           </div>
 

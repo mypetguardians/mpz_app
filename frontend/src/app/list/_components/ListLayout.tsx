@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Bell } from "@phosphor-icons/react";
 import Link from "next/link";
@@ -23,6 +23,8 @@ export function ListLayout({ children }: ListLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // 검색 상태 관리
   const [isSearching, setIsSearching] = useState(false);
 
   // 현재 경로에서 활성 탭 결정
@@ -30,7 +32,7 @@ export function ListLayout({ children }: ListLayoutProps) {
 
   const tabs = [
     { label: "동물 찾기", value: "animal", href: "/list/animal" },
-    { label: "보호소 찾기", value: "center", href: "/list/center" },
+    { label: "보호센터 찾기", value: "center", href: "/list/center" },
   ];
 
   // URL 파라미터에서 필터 상태 읽기 (동물 탭에서만 사용)
@@ -55,6 +57,7 @@ export function ListLayout({ children }: ListLayoutProps) {
     router.push(path);
   };
 
+  // 검색 상태 변경 핸들러
   const handleSearchStateChange = (searching: boolean) => {
     setIsSearching(searching);
   };
@@ -96,7 +99,7 @@ export function ListLayout({ children }: ListLayoutProps) {
         <CenterSearchSection onSearchStateChange={handleSearchStateChange} />
       )}
 
-      {/* 메인 콘텐츠 - 검색 중이 아닐 때만 표시 */}
+      {/* 검색 중이 아닐 때만 기존 리스트 표시 */}
       {!isSearching && children}
       <NavBar />
     </Container>

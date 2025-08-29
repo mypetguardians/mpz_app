@@ -134,7 +134,7 @@ export default function MyPage() {
                 {isAuthenticated && myCenter ? (
                   <div>
                     <span className="font-medium text-black">
-                      {myCenter.name || "보호소 이름"}
+                      {myCenter.name || "보호센터 이름"}
                     </span>
                   </div>
                 ) : (

@@ -64,9 +64,7 @@ export function MatchingSection({
           style={{ backgroundImage: 'url("/illust/HomeBanner.svg")' }}
         >
           <h5 className="text-wh">반려동물 성향 테스트</h5>
-          <button onClick={handleMatchingClick}>
-            <MiniButton text="바로가기" />
-          </button>
+          <MiniButton text="바로가기" onClick={handleMatchingClick} />
         </div>
 
         {/* 로그인 모달 */}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { PetCard } from "@/components/ui/PetCard";
+import { PetCard, PetCardSkeleton } from "@/components/ui";
 import { useGetAnimalFavorites } from "@/hooks";
 
 const ITEMS_PER_PAGE = 10;
@@ -97,8 +97,16 @@ function AnimalTab() {
 
       {/* 로딩 상태 */}
       {(isLoading || isFetching) && (
-        <div className="text-center py-4">
-          <div className="text-gray-500">로딩 중...</div>
+        <div className="flex flex-wrap justify-start gap-2 px-4">
+          {[...Array(4)].map((_, index) => (
+            <div key={index} className="w-[calc(50%-4px)]">
+              <PetCardSkeleton
+                variant="primary"
+                imageSize="full"
+                className="w-full"
+              />
+            </div>
+          ))}
         </div>
       )}
 

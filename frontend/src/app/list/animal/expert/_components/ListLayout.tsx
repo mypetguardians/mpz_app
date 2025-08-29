@@ -28,7 +28,7 @@ export function ListLayout({ children }: ListLayoutProps) {
 
   const tabs = [
     { label: "동물 찾기", value: "animal", href: "/list/animal" },
-    { label: "보호소 찾기", value: "center", href: "/list/center" },
+    { label: "보호센터 찾기", value: "center", href: "/list/center" },
   ];
 
   // URL 파라미터에서 필터 상태 읽기
@@ -131,7 +131,7 @@ export function ListLayout({ children }: ListLayoutProps) {
           placeholder={
             activeTab === "animal"
               ? "품종으로 검색해보세요."
-              : "보호소명으로 검색해보세요."
+              : "보호센터명으로 검색해보세요."
           }
           variant="primary"
         />

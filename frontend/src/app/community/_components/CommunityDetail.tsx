@@ -74,7 +74,6 @@ export function CommunityDetail({
     }
 
     try {
-      // 낙관적 업데이트 (즉시 UI 반영)
       const newIsLiked = !isLiked;
       const newLikeCount = newIsLiked
         ? currentLikeCount + 1
@@ -85,12 +84,10 @@ export function CommunityDetail({
 
       const result = await toggleLikeMutation.mutateAsync({ postId: post.id });
 
-      // 서버 응답으로 최종 상태 동기화
       setIsLiked(result.isLiked);
       setCurrentLikeCount(result.likeCount);
     } catch (error) {
       console.error("좋아요 처리 실패:", error);
-      // 에러 발생 시 원래 상태로 되돌리기
       setIsLiked(!isLiked);
       setCurrentLikeCount(
         isLiked ? currentLikeCount - 1 : currentLikeCount + 1
@@ -99,12 +96,10 @@ export function CommunityDetail({
   };
 
   const renderGallery = () => {
-    // 이미지가 없으면 아무것도 표시하지 않음
     if (!images || images.length === 0) {
       return null;
     }
 
-    // 다양한 키(image_url, imageUrl, file_url, url, string)를 지원하여 URL 추출
     const imageUrls = images
       .map((img: unknown) => {
         if (typeof img === "string") return img;
@@ -129,9 +124,9 @@ export function CommunityDetail({
     if (imageUrls.length === 0) return null;
 
     return (
-      <div className="mb-3">
+      <div className="mb-3 w-full">
         {imageUrls.length === 1 ? (
-          <div className="relative w-[330px] h-[330px] overflow-hidden">
+          <div className="relative w-full max-w-[420px] mx-auto h-[330px] overflow-hidden">
             <Image
               src={imageUrls[0]}
               alt={title}
@@ -140,16 +135,11 @@ export function CommunityDetail({
             />
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-2">
-            {imageUrls.slice(0, 4).map((url, i) => (
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
+            {imageUrls.map((url, i) => (
               <div
                 key={i}
-                className={`relative rounded-lg overflow-hidden ${
-                  i === 0 && imageUrls.length === 3 ? "col-span-2" : ""
-                }`}
-                style={{
-                  height: i === 0 && imageUrls.length === 3 ? "200px" : "150px",
-                }}
+                className="relative flex-shrink-0 w-[330px] h-[330px] overflow-hidden"
               >
                 <Image
                   src={url}
@@ -157,13 +147,6 @@ export function CommunityDetail({
                   fill
                   className="object-cover"
                 />
-                {i === 3 && imageUrls.length > 4 && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                    <span className="text-white font-bold">
-                      +{imageUrls.length - 4}
-                    </span>
-                  </div>
-                )}
               </div>
             ))}
           </div>

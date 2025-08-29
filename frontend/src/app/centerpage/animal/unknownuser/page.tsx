@@ -23,7 +23,7 @@ function UnknownUserAddContent() {
     error: animalError,
   } = useGetAnimalById(animalId || "");
 
-  // 보호소 정보 가져오기
+  // 보호센터 정보 가져오기
   const {
     data: center,
     isLoading: centerLoading,
@@ -84,7 +84,7 @@ function UnknownUserAddContent() {
         />
         <div className="flex flex-col justify-center items-center py-[98px] mx-auto">
           <div className="text-center text-red-500">
-            동물 또는 보호소 정보를 찾을 수 없습니다
+            동물 또는 보호센터 정보를 찾을 수 없습니다
           </div>
         </div>
       </Container>

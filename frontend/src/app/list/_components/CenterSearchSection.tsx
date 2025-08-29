@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import React from "react"; // Added missing import
 
 import { SearchInput } from "@/components/ui/SearchInput";
 import { BottomSheet } from "@/components/ui/BottomSheet";
@@ -16,7 +17,7 @@ export function CenterSearchSection({
   onSearchStateChange,
 }: CenterSearchSectionProps) {
   const [searchValue, setSearchValue] = useState("");
-  const [isSearching, setIsSearching] = useState(false);
+  const [localIsSearching, setLocalIsSearching] = useState(false);
   const [likedCenters, setLikedCenters] = useState<Set<string>>(new Set());
 
   // 지역 검색 바텀시트 상태
@@ -24,13 +25,23 @@ export function CenterSearchSection({
   const [regionSearchTerm, setRegionSearchTerm] = useState("");
   const [tempSelectedRegion, setTempSelectedRegion] = useState("");
 
-  // 검색 결과 가져오기
+  // 검색 결과 가져오기 - 텍스트 입력은 location으로, 지역 선택은 region으로 검색
   const {
     data: searchData,
     isLoading: isSearchLoading,
     error: searchError,
   } = useGetCenterByLocation({
-    region: searchValue.trim() || undefined,
+    location: searchValue.trim() || undefined,
+  });
+
+  // 지역별 검색을 위한 별도 훅
+  const {
+    data: regionSearchData,
+    isLoading: isRegionSearchLoading,
+    error: regionSearchError,
+    refetch: refetchRegionSearch,
+  } = useGetCenterByLocation({
+    region: tempSelectedRegion || undefined,
   });
 
   // 고정된 지역 리스트
@@ -54,25 +65,39 @@ export function CenterSearchSection({
     "제주",
   ];
 
-  // 검색 결과가 있는지 확인
+  // 검색 결과가 있는지 확인 - 텍스트 검색과 지역 검색 결과를 모두 고려
   const hasSearchResults =
-    searchData && searchData.centers && searchData.centers.length > 0;
-  const showSearchResults = isSearching && searchValue.trim().length > 0;
+    (searchData && searchData.data && searchData.data.length > 0) ||
+    (regionSearchData &&
+      regionSearchData.data &&
+      regionSearchData.data.length > 0);
 
-  // 검색 결과 데이터 추출
-  const searchCenters = searchData?.centers || [];
-  const searchTotal = searchData?.centers?.length || 0;
+  // 검색 상태 업데이트 - 텍스트 검색 또는 지역 검색 중 하나라도 활성화되어 있으면 true
+  const showSearchResults =
+    localIsSearching ||
+    (tempSelectedRegion &&
+      regionSearchData?.data &&
+      regionSearchData.data.length > 0);
+
+  // 검색 결과 데이터 추출 - 지역 검색 결과가 우선
+  const searchCenters = regionSearchData?.data || searchData?.data || [];
+  const searchTotal = searchCenters.length;
+
+  // 검색 상태가 변경될 때마다 부모 컴포넌트에 알림
+  React.useEffect(() => {
+    onSearchStateChange(showSearchResults);
+  }, [showSearchResults, onSearchStateChange]);
 
   const handleSearch = () => {
     if (searchValue.trim()) {
-      setIsSearching(true);
+      setLocalIsSearching(true);
       onSearchStateChange(true);
     }
   };
 
   const handleSearchClear = () => {
     setSearchValue("");
-    setIsSearching(false);
+    setLocalIsSearching(false);
     onSearchStateChange(false);
   };
 
@@ -99,8 +124,10 @@ export function CenterSearchSection({
     setIsRegionSheetOpen(false);
     setRegionSearchTerm("");
     if (region.trim()) {
-      setIsSearching(true);
+      setLocalIsSearching(true);
       onSearchStateChange(true);
+      // 지역 선택 시 region 검색 실행
+      refetchRegionSearch();
     }
   };
 
@@ -134,7 +161,7 @@ export function CenterSearchSection({
           <div className="flex items-center justify-between mb-3">
             <h5 className="text-dg">
               &ldquo;{searchValue}&rdquo; 검색 결과
-              {searchData && ` (${searchTotal}건)`}
+              {searchTotal > 0 && ` (${searchTotal}건)`}
             </h5>
             <button
               onClick={handleSearchClear}
@@ -144,25 +171,30 @@ export function CenterSearchSection({
             </button>
           </div>
 
-          {isSearchLoading && (
+          {(isSearchLoading || isRegionSearchLoading) && (
             <div className="text-center py-8">
               <div className="text-gray-500">검색 중...</div>
             </div>
           )}
 
-          {searchError && (
+          {(searchError || regionSearchError) && (
             <div className="text-center py-8">
               <div className="text-red-500">검색 중 오류가 발생했습니다</div>
             </div>
           )}
 
-          {!isSearchLoading && !searchError && !hasSearchResults && (
-            <div className="text-center py-8">
-              <div className="text-gray-500">
-                &ldquo;{searchValue}&rdquo;에 해당하는 보호소를 찾을 수 없습니다
+          {!isSearchLoading &&
+            !isRegionSearchLoading &&
+            !searchError &&
+            !regionSearchError &&
+            !hasSearchResults && (
+              <div className="text-center py-8">
+                <div className="text-gray-500">
+                  &ldquo;{searchValue}&rdquo;에 해당하는 보호센터를 찾을 수
+                  없습니다
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           {hasSearchResults && (
             <div className="flex flex-col gap-4">

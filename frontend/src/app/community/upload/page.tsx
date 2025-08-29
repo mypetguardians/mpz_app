@@ -154,8 +154,20 @@ export default function CommunityUploadPage() {
   const handleImageUpload = (files: File[]) => {
     if (files.length === 0) return;
 
-    const newImageUrls = files.map((file) => URL.createObjectURL(file));
-    setUploadedFiles((prev) => [...prev, ...files]);
+    // 최대 5개 제한 확인
+    const currentCount = uploadedFiles.length;
+    const remainingSlots = 5 - currentCount;
+
+    if (remainingSlots <= 0) {
+      alert("이미지는 최대 5개까지 업로드할 수 있습니다.");
+      return;
+    }
+
+    // 남은 슬롯만큼만 파일 추가
+    const filesToAdd = files.slice(0, remainingSlots);
+    const newImageUrls = filesToAdd.map((file) => URL.createObjectURL(file));
+
+    setUploadedFiles((prev) => [...prev, ...filesToAdd]);
     setUploadedImageUrls((prev) => [...prev, ...newImageUrls]);
   };
 
@@ -393,25 +405,27 @@ export default function CommunityUploadPage() {
           <h5 className="text-dg mb-2">사진 / 영상 업로드</h5>
           <div className="flex gap-3 flex-wrap">
             {/* 업로드 버튼 */}
-            <label>
-              <ImageCard
-                variant="add"
-                onClick={() => {}}
-                className="w-20 h-20"
-              />
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={(e) => {
-                  const files = e.target.files;
-                  if (files) {
-                    handleImageUpload(Array.from(files));
-                  }
-                }}
-                className="hidden"
-              />
-            </label>
+            {uploadedImageUrls.length < 5 && (
+              <label>
+                <ImageCard
+                  variant="add"
+                  onClick={() => {}}
+                  className="w-20 h-20"
+                />
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={(e) => {
+                    const files = e.target.files;
+                    if (files) {
+                      handleImageUpload(Array.from(files));
+                    }
+                  }}
+                  className="hidden"
+                />
+              </label>
+            )}
 
             {/* 업로드된 이미지들 */}
             {uploadedImageUrls.map((imageUrl, index) => (
@@ -424,6 +438,10 @@ export default function CommunityUploadPage() {
                 className="w-20 h-20"
               />
             ))}
+          </div>
+          {/* 남은 슬롯 표시 */}
+          <div className="mt-2 text-sm text-gr">
+            {uploadedImageUrls.length}/5 이미지 업로드됨
           </div>
         </div>
       </div>

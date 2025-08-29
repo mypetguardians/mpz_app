@@ -25,7 +25,6 @@ class PostOut(Schema):
     content: str = Field(..., description="내용")
     user_id: str = Field(..., description="작성자 ID")
     animal_id: Optional[str] = Field(None, description="관련 동물 ID")
-    adoption_id: Optional[str] = Field(None, description="관련 입양 ID")
     content_tags: Optional[dict] = Field(None, description="콘텐츠 태그")
     like_count: int = Field(0, description="좋아요 수")
     comment_count: int = Field(0, description="댓글 수")

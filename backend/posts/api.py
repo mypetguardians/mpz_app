@@ -32,11 +32,12 @@ def _build_post_response(post, tags=None, images=None, user_nickname=None, user_
         "title": post.title,
         "content": post.content,
         "user_id": str(post.user.id),
-        "animal_id": str(post.animal.id) if hasattr(post, 'animal') and post.animal else None,
-        "adoption_id": str(post.adoption.id) if hasattr(post, 'adoption') and post.adoption else None,
+        "animal_id": str(post.animal.id) if post.animal else None,
         "content_tags": getattr(post, 'content_tags', None),
         "like_count": getattr(post, 'like_count', 0),
         "comment_count": getattr(post, 'comment_count', 0),
+        "is_liked": False,  # 기본값, 필요시 별도 로직으로 설정
+        "is_all_access": getattr(post, 'is_all_access', True),
         "created_at": post.created_at,
         "updated_at": post.updated_at,
         "user_nickname": user_nickname or post.user.username,
@@ -517,7 +518,7 @@ async def create_post(request: HttpRequest, data: PostCreateIn):
                 user=current_user,
                 title=data.title,
                 content=data.content,
-                adoption_id=data.adoption_id if data.adoption_id else None,
+                animal_id=data.animal_id if data.animal_id else None,
                 is_all_access=data.is_all_access if data.is_all_access is not None else True
             )
 
@@ -602,8 +603,8 @@ async def update_post(request: HttpRequest, post_id: str, data: PostUpdateIn):
                 post.title = data.title
             if data.content is not None:
                 post.content = data.content
-            if data.adoption_id is not None:
-                post.adoption_id = data.adoption_id
+            if data.animal_id is not None:
+                post.animal_id = data.animal_id
             if data.is_all_access is not None:
                 post.is_all_access = data.is_all_access
             

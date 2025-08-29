@@ -9,7 +9,6 @@ from ninja.testing import TestAsyncClient
 from asgiref.sync import sync_to_async
 
 from posts.models import Post, PostTag, PostImage, SystemTag
-from comments.models import Comment, Reply
 from user.models import User
 from posts.api import router as posts_router
 
@@ -98,38 +97,50 @@ class TestPostsAPI(TestCase):
             description="강아지 관련 게시글",
             is_active=True
         )
-
-        self.system_tag2 = SystemTag.objects.create(
-            name="고양이",
-            description="고양이 관련 게시글",
-            is_active=True
+        
+        # 테스트용 센터 생성
+        from centers.models import Center
+        self.center = Center.objects.create(
+            name="테스트 센터",
+            location="서울시 강남구",
+            phone_number="02-1234-5678",
+            is_public=True
+        )
+        
+        # 테스트용 동물 생성
+        from animals.models import Animal
+        self.animal = Animal.objects.create(
+            name="멍멍이",
+            center=self.center,
+            status="보호중",
+            breed="믹스",
+            age=24,
+            is_female=False
         )
 
+
     def generate_jwt_token(self, user):
-        """JWT 토큰을 생성합니다."""
+        """JWT 토큰 생성"""
         payload = {
             'user_id': str(user.id),
             'username': user.username,
-            'user_type': user.user_type,
-            'exp': timezone.now() + timedelta(hours=1)
+            'exp': timezone.now() + timedelta(hours=1),
+            'iat': timezone.now()
         }
-        return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+        token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+        return token
 
-    def authenticate(self, user=None):
-        """사용자 인증 및 JWT 토큰 획득"""
+
+    async def authenticate(self, user=None):
+        """사용자 인증"""
         if user is None:
             user = self.user1
+            
+        token = self.generate_jwt_token(user)
+        return {
+            "Authorization": f"Bearer {token}",
+        }
 
-        try:
-            token = self.generate_jwt_token(user)
-            return {
-                "Authorization": f"Bearer {token}",
-            }
-        except Exception as e:
-            print(f"Token generation failed: {e}")
-            return {
-                "Authorization": "Bearer test_token_for_testing",
-            }
 
     # === 게시글 생성 테스트 ===
 
@@ -148,6 +159,7 @@ class TestPostsAPI(TestCase):
         response = await self.client.post("/", json=post_data, headers=headers)
         self.assertEqual(response.status_code, 201)
         
+        # 응답 데이터 검증
         response_data = response.json()
         self.assertIn("message", response_data)
         self.assertIn("community", response_data)
@@ -174,6 +186,115 @@ class TestPostsAPI(TestCase):
         
         response = await self.client.post("/", json=post_data, headers=headers)
         self.assertEqual(response.status_code, 422)  # Validation error
+
+    @override_settings(DJANGO_ENV_NAME="local")
+    async def test_create_post_with_animal_id_success(self):
+        """동물 ID와 함께 게시글 생성 성공 테스트"""
+        headers = await self.authenticate()
+        
+        post_data = {
+            "title": "멍멍이에 대한 이야기",
+            "content": "멍멍이와 함께한 시간이 정말 즐거웠습니다.",
+            "animal_id": str(self.animal.id),
+            "tags": ["강아지", "즐거움"],
+            "images": ["https://example.com/animal1.jpg"],
+            "is_all_access": True
+        }
+        
+        response = await self.client.post("/", json=post_data, headers=headers)
+        self.assertEqual(response.status_code, 201)
+        
+        # 응답 데이터 검증
+        response_data = response.json()
+        self.assertIn("message", response_data)
+        self.assertIn("community", response_data)
+        
+        # 생성된 게시글 검증
+        post = response_data["community"]
+        self.assertEqual(post["title"], "멍멍이에 대한 이야기")
+        self.assertEqual(post["content"], "멍멍이와 함께한 시간이 정말 즐거웠습니다.")
+        self.assertEqual(post["animal_id"], str(self.animal.id))
+        self.assertTrue(post["is_all_access"])
+
+
+    @override_settings(DJANGO_ENV_NAME="local")
+    async def test_create_post_without_animal_id_success(self):
+        """동물 ID 없이 게시글 생성 성공 테스트"""
+        headers = await self.authenticate()
+        
+        post_data = {
+            "title": "일반적인 이야기",
+            "content": "동물과 관련 없는 일반적인 이야기입니다.",
+            "tags": ["일상"],
+            "images": [],
+            "is_all_access": True
+        }
+        
+        response = await self.client.post("/", json=post_data, headers=headers)
+        self.assertEqual(response.status_code, 201)
+        
+        # 응답 데이터 검증
+        response_data = response.json()
+        self.assertIn("message", response_data)
+        self.assertIn("community", response_data)
+        
+        # 생성된 게시글 검증
+        post = response_data["community"]
+        self.assertEqual(post["title"], "일반적인 이야기")
+        self.assertEqual(post["content"], "동물과 관련 없는 일반적인 이야기입니다.")
+        self.assertIsNone(post.get("animal_id"))
+
+
+    @override_settings(DJANGO_ENV_NAME="local")
+    async def test_create_post_with_invalid_animal_id(self):
+        """잘못된 동물 ID로 게시글 생성 실패 테스트"""
+        headers = await self.authenticate()
+        
+        post_data = {
+            "title": "잘못된 동물 ID 테스트",
+            "content": "존재하지 않는 동물 ID로 테스트합니다.",
+            "animal_id": "00000000-0000-4000-8000-000000000000",
+            "tags": ["테스트"],
+            "is_all_access": True
+        }
+        
+        response = await self.client.post("/", json=post_data, headers=headers)
+        # 동물 ID가 잘못되어도 게시글은 생성되어야 함 (동물 ID는 선택사항)
+        self.assertEqual(response.status_code, 201)
+
+
+    @override_settings(DJANGO_ENV_NAME="local")
+    async def test_update_post_animal_id_success(self):
+        """게시글 수정 시 동물 ID 변경 성공 테스트"""
+        headers = await self.authenticate()
+        
+        # 먼저 동물 ID 없이 게시글 생성
+        post_data = {
+            "title": "수정 전 게시글",
+            "content": "수정 전 내용입니다.",
+            "is_all_access": True
+        }
+        
+        create_response = await self.client.post("/", json=post_data, headers=headers)
+        self.assertEqual(create_response.status_code, 201)
+        
+        post_id = create_response.json()["community"]["id"]
+        
+        # 동물 ID를 추가하여 게시글 수정
+        update_data = {
+            "title": "수정된 게시글",
+            "content": "수정된 내용입니다.",
+            "animal_id": str(self.animal.id)
+        }
+        
+        response = await self.client.put(f"/{post_id}", json=update_data, headers=headers)
+        self.assertEqual(response.status_code, 200)
+        
+        # 수정된 게시글 검증
+        response_data = response.json()
+        self.assertEqual(response_data["title"], "수정된 게시글")
+        self.assertEqual(response_data["content"], "수정된 내용입니다.")
+        self.assertEqual(response_data["animal_id"], str(self.animal.id))
 
     # === 게시글 목록 조회 테스트 ===
 

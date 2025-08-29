@@ -8,6 +8,7 @@ from animals.models import Animal
 from adoptions.models import AdoptionQuestion
 from django.test import override_settings
 from django.utils import timezone
+from asgiref.sync import sync_to_async
 
 
 class TestAdoptionAPI(TestCase):
@@ -136,7 +137,6 @@ class TestAdoptionAPI(TestCase):
     async def test_get_adoption_pre_check_unauthorized_user(self):
         """권한 없는 사용자 테스트"""
         # 센터 관리자 생성
-        from asgiref.sync import sync_to_async
         center_admin = await sync_to_async(User.objects.create_user)(
             username="admin_user",
             password="admin_user",
@@ -234,7 +234,6 @@ class TestAdoptionAPI(TestCase):
     async def test_submit_adoption_application_phone_not_verified(self):
         """전화번호 미인증 사용자 테스트"""
         # 전화번호 미인증 사용자 생성
-        from asgiref.sync import sync_to_async
         unverified_user = await sync_to_async(User.objects.create_user)(
             username="unverified_user",
             password="password1234!",
@@ -300,3 +299,123 @@ class TestAdoptionAPI(TestCase):
         self.assertEqual(response.status_code, 403)
         response_data = response.json()
         self.assertIn("이미 해당 동물에 대한 입양 신청을 하셨습니다", response_data.get("detail", ""))
+
+
+    @override_settings(DJANGO_ENV_NAME="local", SECRET_KEY="test-secret-key-for-jwt")
+    async def test_withdraw_adoption_application_success(self):
+        """입양 신청 철회 성공 테스트"""
+        headers = await self.authenticate()
+        
+        # 먼저 입양 신청 생성
+        adoption_data = {
+            "animal_id": str(self.animal.id),
+            "monitoring_agreement": True,
+            "guidelines_agreement": True,
+            "is_temporary_protection": False,
+            "question_responses": [
+                {
+                    "question_id": str(self.question1.id),
+                    "answer": "네, 반려견을 키워본 경험이 있습니다."
+                },
+                {
+                    "question_id": str(self.question2.id),
+                    "answer": "하루에 4-5시간 정도 함께할 수 있습니다."
+                }
+            ]
+        }
+        
+        response = await self.client.post("/apply", json=adoption_data, headers=headers)
+        self.assertEqual(response.status_code, 201)
+        
+        # 생성된 입양 신청 ID 추출
+        adoption_response = response.json()
+        adoption_id = adoption_response["id"]
+        
+        # 입양 신청 철회
+        withdraw_response = await self.client.delete(f"/{adoption_id}/withdraw", headers=headers)
+        self.assertEqual(withdraw_response.status_code, 200)
+        
+        # 응답 데이터 검증
+        withdraw_data = withdraw_response.json()
+        self.assertEqual(withdraw_data["message"], "입양 신청이 성공적으로 철회되었습니다")
+        self.assertEqual(withdraw_data["adoption_id"], adoption_id)
+        self.assertEqual(withdraw_data["status"], "취소")
+
+
+    @override_settings(DJANGO_ENV_NAME="local", SECRET_KEY="test-secret-key-for-jwt")
+    async def test_withdraw_adoption_application_not_found(self):
+        """입양 신청 철회 실패 테스트: 존재하지 않는 입양 신청"""
+        headers = await self.authenticate()
+        
+        # 존재하지 않는 입양 신청 ID로 철회 시도
+        fake_adoption_id = "00000000-0000-4000-8000-000000000000"
+        response = await self.client.delete(f"/{fake_adoption_id}/withdraw", headers=headers)
+        self.assertEqual(response.status_code, 404)
+
+
+    @override_settings(DJANGO_ENV_NAME="local", SECRET_KEY="test-secret-key-for-jwt")
+    async def test_withdraw_adoption_application_unauthorized(self):
+        """입양 신청 철회 실패 테스트: 권한 없음"""
+        headers = await self.authenticate()
+        
+        # 다른 사용자의 입양 신청을 생성하기 위해 새로운 사용자 생성
+        @sync_to_async
+        def create_other_user_and_adoption():
+            other_user = User.objects.create_user(
+                username="other_user",
+                password="password1234!",
+                email="other@example.com",
+                user_type=User.UserTypeChoice.normal,
+                terms_of_service=True,
+                privacy_policy_agreement=True,
+                center=self.center,
+                phone_number="010-9876-5432",
+                is_phone_verified=True,
+                phone_verified_at=timezone.now(),
+                nickname="다른유저",
+                birth="1995-01-01",
+                address="서울시 서초구",
+                address_is_public=False
+            )
+            
+            # 다른 사용자로 입양 신청 생성
+            from adoptions.models import Adoption
+            other_adoption = Adoption.objects.create(
+                user=other_user,
+                animal=self.animal,
+                status="신청",
+                monitoring_agreement=True,
+                guidelines_agreement=True
+            )
+            return other_adoption
+        
+        other_adoption = await create_other_user_and_adoption()
+        
+        # 본인의 입양 신청이 아닌 것을 철회 시도
+        response = await self.client.delete(f"/{other_adoption.id}/withdraw", headers=headers)
+        self.assertEqual(response.status_code, 403)
+
+
+    @override_settings(DJANGO_ENV_NAME="local", SECRET_KEY="test-secret-key-for-jwt")
+    async def test_withdraw_adoption_application_invalid_status(self):
+        """입양 신청 철회 실패 테스트: 철회 불가능한 상태"""
+        headers = await self.authenticate()
+        
+        # 입양 완료 상태의 입양 신청 생성
+        @sync_to_async
+        def create_completed_adoption():
+            from adoptions.models import Adoption
+            completed_adoption = Adoption.objects.create(
+                user=self.normal_user,
+                animal=self.animal,
+                status="입양완료",
+                monitoring_agreement=True,
+                guidelines_agreement=True
+            )
+            return completed_adoption
+        
+        completed_adoption = await create_completed_adoption()
+        
+        # 입양 완료 상태에서는 철회 불가능
+        response = await self.client.delete(f"/{completed_adoption.id}/withdraw", headers=headers)
+        self.assertEqual(response.status_code, 400)

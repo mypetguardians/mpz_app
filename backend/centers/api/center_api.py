@@ -141,7 +141,7 @@ async def get_center_notices(request: HttpRequest, center_id: str):
             from notices.models import Notice
             notices = Notice.objects.filter(
                 center=center,
-                is_active=True
+                is_published=True
             ).order_by('-created_at')
             
             # 응답 데이터 변환
@@ -150,7 +150,7 @@ async def get_center_notices(request: HttpRequest, center_id: str):
                     id=str(notice.id),
                     title=notice.title,
                     content=notice.content,
-                    is_important=notice.is_important,
+                    is_important=notice.notice_type in ['important', 'urgent'],
                     created_at=notice.created_at.isoformat(),
                     updated_at=notice.updated_at.isoformat(),
                 )

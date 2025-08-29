@@ -328,3 +328,110 @@ class TestCenterAPI(TestCase):
         
         # 403 Forbidden
         self.assertEqual(response.status_code, 403)
+
+
+    @override_settings(DJANGO_ENV_NAME="local")
+    async def test_get_center_notices_success(self):
+        """센터 공지사항 조회 성공 테스트"""
+        # 공지사항 생성
+        from notices.models import Notice
+        
+        @sync_to_async
+        def create_notices():
+            notice1 = Notice.objects.create(
+                center=self.center,
+                title="중요 공지사항",
+                content="이것은 중요한 공지사항입니다.",
+                notice_type="important",
+                is_published=True
+            )
+            notice2 = Notice.objects.create(
+                center=self.center,
+                title="일반 공지사항",
+                content="이것은 일반적인 공지사항입니다.",
+                notice_type="general",
+                is_published=True
+            )
+            return notice1, notice2
+        
+        await create_notices()
+        
+        # 공지사항 조회
+        response = await self.client.get(f"/{self.center.id}/notices")
+        self.assertEqual(response.status_code, 200)
+        
+        # 응답 데이터 검증
+        response_data = response.json()
+        self.assertIn("notices", response_data)
+        self.assertEqual(response_data["total"], 2)
+        self.assertEqual(len(response_data["notices"]), 2)
+        
+        # 공지사항 순서 확인 (최신순)
+        self.assertEqual(response_data["notices"][0]["title"], "일반 공지사항")
+        self.assertEqual(response_data["notices"][1]["title"], "중요 공지사항")
+        
+        # 공지사항 내용 검증
+        first_notice = response_data["notices"][0]
+        self.assertIn("id", first_notice)
+        self.assertIn("title", first_notice)
+        self.assertIn("content", first_notice)
+        self.assertIn("is_important", first_notice)
+        self.assertIn("created_at", first_notice)
+        self.assertIn("updated_at", first_notice)
+
+
+    @override_settings(DJANGO_ENV_NAME="local")
+    async def test_get_center_notices_not_found(self):
+        """센터 공지사항 조회 실패 테스트: 존재하지 않는 센터"""
+        fake_center_id = "00000000-0000-4000-8000-000000000000"
+        response = await self.client.get(f"/{fake_center_id}/notices")
+        self.assertEqual(response.status_code, 404)
+
+
+    @override_settings(DJANGO_ENV_NAME="local")
+    async def test_get_center_notices_empty(self):
+        """센터 공지사항 조회 성공 테스트: 공지사항 없음"""
+        # 공지사항이 없는 센터로 조회
+        response = await self.client.get(f"/{self.center2.id}/notices")
+        self.assertEqual(response.status_code, 200)
+        
+        # 응답 데이터 검증
+        response_data = response.json()
+        self.assertIn("notices", response_data)
+        self.assertEqual(response_data["total"], 0)
+        self.assertEqual(len(response_data["notices"]), 0)
+
+
+    @override_settings(DJANGO_ENV_NAME="local")
+    async def test_get_center_notices_inactive_filtered(self):
+        """센터 공지사항 조회 테스트: 비활성 공지사항 필터링"""
+        # 활성화된 공지사항과 비활성화된 공지사항 생성
+        from notices.models import Notice
+        
+        @sync_to_async
+        def create_notices():
+            active_notice = Notice.objects.create(
+                center=self.center,
+                title="활성 공지사항",
+                content="이것은 활성화된 공지사항입니다.",
+                is_published=True
+            )
+            inactive_notice = Notice.objects.create(
+                center=self.center,
+                title="비활성 공지사항",
+                content="이것은 비활성화된 공지사항입니다.",
+                is_published=False
+            )
+            return active_notice, inactive_notice
+        
+        await create_notices()
+        
+        # 공지사항 조회
+        response = await self.client.get(f"/{self.center.id}/notices")
+        self.assertEqual(response.status_code, 200)
+        
+        # 응답 데이터 검증 (비활성 공지사항은 제외되어야 함)
+        response_data = response.json()
+        self.assertEqual(response_data["total"], 1)
+        self.assertEqual(len(response_data["notices"]), 1)
+        self.assertEqual(response_data["notices"][0]["title"], "활성 공지사항")

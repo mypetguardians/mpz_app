@@ -3,10 +3,13 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { PetCard } from "@/components/ui/PetCard";
-import { PetCardSkeleton } from "@/components/ui/PetCardSkeleton";
+import { PetCard, PetCardSkeleton, FilterChip } from "@/components/ui";
 import { useGetAnimals } from "@/hooks/query/useGetAnimals";
-import { transformRawAnimalToPetCard, RawAnimalResponse } from "@/types/animal";
+import {
+  transformRawAnimalToPetCard,
+  RawAnimalResponse,
+  GetAnimalsParams,
+} from "@/types/animal";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -32,39 +35,7 @@ function AnimalTab() {
 
   // 필터 파라미터를 API 요청에 맞게 변환
   const apiParams = useMemo(() => {
-    const params: {
-      limit: number;
-      breed?: string;
-      weight?: "10kg_under" | "25kg_under" | "over_25kg";
-      region?:
-        | "서울"
-        | "부산"
-        | "대구"
-        | "인천"
-        | "광주"
-        | "대전"
-        | "울산"
-        | "세종"
-        | "경기"
-        | "강원"
-        | "충북"
-        | "충남"
-        | "전북"
-        | "전남"
-        | "경북"
-        | "경남"
-        | "제주";
-      age?: "2_under" | "7_under" | "over_7";
-      gender?: "male" | "female";
-      status?:
-        | "보호중"
-        | "입양완료"
-        | "무지개다리"
-        | "임시보호중"
-        | "반환"
-        | "방사";
-      hasTrainerComment?: "true" | "false";
-    } = {
+    const params: GetAnimalsParams = {
       limit: ITEMS_PER_PAGE,
     };
 
@@ -165,19 +136,25 @@ function AnimalTab() {
         [key: string]:
           | "보호중"
           | "입양완료"
-          | "무지개다리"
+          | "입양진행중"
           | "임시보호중"
-          | "반환"
+          | "자연사"
+          | "안락사"
           | "방사";
       } = {
         보호중: "보호중",
         입양완료: "입양완료",
-        무지개다리: "무지개다리",
+        입양진행중: "입양진행중",
         임시보호중: "임시보호중",
       };
       const statusValue = statusMap[filters.protectionStatus[0]];
       if (statusValue) {
         params.status = statusValue;
+      }
+
+      // 무지개다리 필터가 선택된 경우 자연사나 안락사 중 하나 선택
+      if (filters.protectionStatus.includes("무지개다리")) {
+        params.status = Math.random() > 0.5 ? "자연사" : "안락사";
       }
     }
 
@@ -198,17 +175,14 @@ function AnimalTab() {
     hasNextPage,
     isFetchingNextPage,
   } = useGetAnimals(apiParams);
+  console.log(data);
 
   // 데이터가 로드되면 상태 업데이트
   useEffect(() => {
     if (data) {
-      console.log("AnimalTab - Full data structure:", data);
-      console.log("AnimalTab - First page structure:", data.pages[0]);
-
       const allAnimalsData = data.pages
         .flatMap((page) => page.data || [])
         .filter((animal) => animal && typeof animal === "object");
-      console.log("AnimalTab - Raw animals from API:", allAnimalsData);
       setAllAnimals(allAnimalsData);
     }
   }, [data]);
@@ -232,6 +206,64 @@ function AnimalTab() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [loadMoreAnimals]);
+
+  // 필터 초기화 함수
+  const handleClearFilters = useCallback(() => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    // 모든 필터 파라미터 제거
+    params.delete("breed");
+    params.delete("weights");
+    params.delete("regions");
+    params.delete("ages");
+    params.delete("genders");
+    params.delete("protectionStatus");
+    params.delete("expertOpinion");
+
+    // 현재 페이지로 이동 (필터만 제거)
+    const queryString = params.toString();
+    const targetUrl = queryString ? `?${queryString}` : "";
+    router.push(`/list/animal${targetUrl}`, { scroll: false });
+  }, [searchParams, router]);
+
+  // 필터 제거 함수
+  const handleRemoveFilter = useCallback(
+    (filterType: string, value: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      if (filterType === "breed") {
+        params.delete("breed");
+      } else {
+        const currentValues =
+          params.get(filterType)?.split(",").filter(Boolean) || [];
+        const newValues = currentValues.filter((v) => v !== value);
+
+        if (newValues.length > 0) {
+          params.set(filterType, newValues.join(","));
+        } else {
+          params.delete(filterType);
+        }
+      }
+
+      const queryString = params.toString();
+      const targetUrl = queryString ? `?${queryString}` : "";
+      router.push(`/list/animal${targetUrl}`, { scroll: false });
+    },
+    [searchParams, router]
+  );
+
+  // 현재 적용된 필터가 있는지 확인
+  const hasActiveFilters = useMemo(() => {
+    return (
+      filters.breed ||
+      filters.weights.length > 0 ||
+      filters.regions.length > 0 ||
+      filters.ages.length > 0 ||
+      filters.genders.length > 0 ||
+      filters.protectionStatus.length > 0 ||
+      filters.expertOpinion.length > 0
+    );
+  }, [filters]);
 
   // 로딩 상태 처리 - 스켈레톤 표시
   if (isLoading && allAnimals.length === 0) {
@@ -272,6 +304,71 @@ function AnimalTab() {
 
   return (
     <div>
+      {/* 활성 필터 표시 */}
+      {hasActiveFilters && (
+        <div className="mx-4 mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-gray-600">적용된 필터</span>
+            <button
+              onClick={handleClearFilters}
+              className="text-sm text-blue-500 hover:text-blue-700"
+            >
+              전체 해제
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {filters.breed && (
+              <FilterChip
+                label={filters.breed}
+                onRemove={() => handleRemoveFilter("breed", filters.breed)}
+              />
+            )}
+            {filters.weights.map((weight) => (
+              <FilterChip
+                key={weight}
+                label={weight}
+                onRemove={() => handleRemoveFilter("weights", weight)}
+              />
+            ))}
+            {filters.regions.map((region) => (
+              <FilterChip
+                key={region}
+                label={region}
+                onRemove={() => handleRemoveFilter("regions", region)}
+              />
+            ))}
+            {filters.ages.map((age) => (
+              <FilterChip
+                key={age}
+                label={age}
+                onRemove={() => handleRemoveFilter("ages", age)}
+              />
+            ))}
+            {filters.genders.map((gender) => (
+              <FilterChip
+                key={gender}
+                label={gender}
+                onRemove={() => handleRemoveFilter("genders", gender)}
+              />
+            ))}
+            {filters.protectionStatus.map((status) => (
+              <FilterChip
+                key={status}
+                label={status}
+                onRemove={() => handleRemoveFilter("protectionStatus", status)}
+              />
+            ))}
+            {filters.expertOpinion.map((opinion) => (
+              <FilterChip
+                key={opinion}
+                label={opinion}
+                onRemove={() => handleRemoveFilter("expertOpinion", opinion)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-wrap justify-start gap-2 cursor-pointer mx-4">
         {allAnimals
           .filter((animal) => animal && animal.id)

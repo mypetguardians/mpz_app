@@ -38,6 +38,7 @@ export { BottomSheet } from "./BottomSheet";
 export { CenterCard } from "./CenterCard";
 export { CenterCardSkeleton } from "./CenterCardSkeleton";
 export { Chip } from "./Chip";
+export { FilterChip } from "./FilterChip";
 export { Add } from "./Add";
 export { AddButton } from "./AddButton";
 export { AdoptorListItem } from "./AdoptorListItem";

@@ -94,7 +94,7 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
   const { data: myCenter } = useGetMyCenter();
   const subscriber = myCenter?.isSubscriber === true;
 
-  // 동물의 보호소 정보 가져오기
+  // 동물의 보호센터 정보 가져오기
   const { data: center, isLoading: centerLoading } = useGetCenterById(
     animal?.center_id
   );
@@ -441,7 +441,7 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
         <CenterInfo
           variant={isSubscriber ? "subscriber" : "primary"}
           centerId={center?.id || ""}
-          name={center?.name || "보호소 정보 없음"}
+          name={center?.name || "보호센터 정보 없음"}
           location={center?.location || "주소 정보 없음"}
           phoneNumber={center?.phoneNumber || "연락처 정보 없음"}
           adoptionProcedure={

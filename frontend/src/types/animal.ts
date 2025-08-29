@@ -8,7 +8,17 @@ export interface Animal {
   color: string | null;
   breed: string | null;
   description: string | null;
-  status: "보호중" | "입양완료" | "무지개다리" | "임시보호중" | "반환" | "방사";
+  status:
+    | "보호중"
+    | "입양완료"
+    | "자연사"
+    | "안락사"
+    | "임시보호중"
+    | "입양대기"
+    | "반환"
+    | "방사"
+    | "무지개다리"
+    | "입양진행중";
   waitingDays: number | null;
   activityLevel: string | null;
   sensitivity: string | null;
@@ -40,10 +50,13 @@ export interface GetAnimalsParams {
   status?:
     | "보호중"
     | "입양완료"
-    | "무지개다리"
+    | "자연사"
+    | "안락사"
     | "임시보호중"
+    | "입양대기"
     | "반환"
-    | "방사";
+    | "방사"
+    | "입양진행중";
   centerId?: string;
   region?:
     | "서울"
@@ -84,7 +97,16 @@ export interface RawAnimalResponse {
   color: string | null;
   breed: string | null;
   description: string | null;
-  status: "보호중" | "입양완료" | "무지개다리" | "임시보호중" | "반환" | "방사";
+  status:
+    | "보호중"
+    | "입양완료"
+    | "자연사"
+    | "안락사"
+    | "임시보호중"
+    | "입양대기"
+    | "반환"
+    | "방사"
+    | "입양진행중";
   waiting_days: number | null;
   activity_level: number | null;
   sensitivity: number | null;

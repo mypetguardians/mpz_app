@@ -98,7 +98,7 @@ function AnimalFilterContent() {
       params.set("expertOpinion", filters.expertOpinion.join(","));
 
     const queryString = params.toString();
-    // 보호소 상세 페이지의 보호 동물 탭으로 돌아가기
+    // 보호센터 상세 페이지의 보호 동물 탭으로 돌아가기
     const centerId = window.location.pathname.split("/")[3];
     const tabParam = "tab=animals";
     const targetUrl = queryString

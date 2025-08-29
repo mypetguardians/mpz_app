@@ -25,9 +25,7 @@ function CenterTab() {
 
   useEffect(() => {
     if (centersData) {
-      // 새로운 API 응답 구조에 맞게 data 필드 사용
       const rawCenters = centersData.data || [];
-
       if (rawCenters) {
         const transformedCenters = rawCenters.map(transformRawCenterToCenter);
         setCenters(transformedCenters);
@@ -110,18 +108,16 @@ function CenterTab() {
   }
 
   return (
-    <div>
-      <div className="flex flex-col gap-4 px-4">
-        {centers?.map((center, idx) => (
-          <CenterCardWithFavorite
-            key={center.id ?? idx}
-            center={center}
-            isAuthenticated={isAuthenticated}
-            onLikeToggle={handleLikeToggle}
-            localFavorite={localFavorites[center.id]}
-          />
-        ))}
-      </div>
+    <div className="flex flex-col gap-4 px-4">
+      {centers?.map((center, idx) => (
+        <CenterCardWithFavorite
+          key={center.id ?? idx}
+          center={center}
+          isAuthenticated={isAuthenticated}
+          onLikeToggle={handleLikeToggle}
+          localFavorite={localFavorites[center.id]}
+        />
+      ))}
     </div>
   );
 }

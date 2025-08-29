@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Bell, Plus } from "@phosphor-icons/react";
 
 import { Container } from "@/components/common/Container";
@@ -18,6 +19,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { CustomModal } from "@/components/ui/CustomModal";
 import { Toast } from "@/components/ui/Toast";
+import { useGetBanners } from "@/hooks/query/useGetBanners";
 
 export default function CommunityPage() {
   const router = useRouter();
@@ -27,8 +29,42 @@ export default function CommunityPage() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
+  // TODO 배너 종류 구분
+  const { data: banners, isLoading: bannersLoading } = useGetBanners({
+    type: "main",
+  });
+
   // 시스템 태그 가져오기
   const { data: systemTags, isLoading: tagsLoading } = useGetSystemTags();
+
+  // 배너 섹션 컴포넌트
+  const BannerSection = () => {
+    // 로딩 중이거나 배너가 없으면 섹션 자체를 렌더링하지 않음
+    if (bannersLoading || !banners?.data || banners.data.length === 0) {
+      return null;
+    }
+
+    return (
+      <div className="py-5 px-0 border-b border-bg">
+        <div className="flex py-[27px] px-5 justify-between items-center rounded-lg">
+          <div className="flex gap-2">
+            {banners.data.slice(0, 3).map((banner) => (
+              <div key={banner.id} className="flex items-center gap-2">
+                <Image
+                  src={banner.image_url}
+                  alt={banner.alt}
+                  width={32}
+                  height={32}
+                  className="w-8 h-8 rounded object-fill"
+                />
+                <span className="text-sm text-brand">{banner.title}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // 기본 탭과 시스템 태그를 조합하여 탭 옵션 생성
   const tabs = useMemo(() => {
@@ -144,13 +180,7 @@ export default function CommunityPage() {
           <div className="space-y-4">
             {[...Array(5)].map((_, index) => (
               <div key={index}>
-                {(index === 0 || (index + 1) % 3 === 0) && (
-                  <div className="py-5 px-0 border-b border-bg">
-                    <div className="flex bg-brand-light/50 py-[27px] px-5 justify-between items-center rounded-lg">
-                      <h5 className="text-wh">쇼핑몰 연계 배너</h5>
-                    </div>
-                  </div>
-                )}
+                {(index === 0 || (index + 1) % 3 === 0) && <BannerSection />}
                 <div className="pt-4">
                   <CommunityCardSkeleton />
                 </div>
@@ -224,13 +254,7 @@ export default function CommunityPage() {
           <div className="space-y-4">
             {[...Array(5)].map((_, index) => (
               <div key={index}>
-                {(index === 0 || (index + 1) % 3 === 0) && (
-                  <div className="py-5 px-0 border-b border-bg">
-                    <div className="flex bg-brand-light/50 py-[27px] px-5 justify-between items-center rounded-lg">
-                      <h5 className="text-wh">쇼핑몰 연계 배너</h5>
-                    </div>
-                  </div>
-                )}
+                {(index === 0 || (index + 1) % 3 === 0) && <BannerSection />}
                 <div className="pt-4">
                   <CommunityCardSkeleton />
                 </div>
@@ -248,13 +272,7 @@ export default function CommunityPage() {
           <div className="cursor-pointer">
             {posts.map((post, index) => (
               <div key={post.id}>
-                {(index === 0 || (index + 1) % 3 === 0) && (
-                  <div className="py-5 px-0 border-b border-bg">
-                    <div className="flex bg-brand-light/50 py-[27px] px-5 justify-between items-center rounded-lg">
-                      <h5 className="text-wh">쇼핑몰 연계 배너</h5>
-                    </div>
-                  </div>
-                )}
+                {(index === 0 || (index + 1) % 3 === 0) && <BannerSection />}
                 <div className="pt-4">
                   <a href={`/community/${post.id}`} className="block">
                     <CommunityCard

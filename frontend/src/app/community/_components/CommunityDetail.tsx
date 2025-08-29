@@ -124,41 +124,29 @@ export function CommunityDetail({
     if (imageUrls.length === 0) return null;
 
     return (
-      <div className="mb-3">
+      <div className="mb-3 w-full">
         {imageUrls.length === 1 ? (
-          <div className="relative w-[330px] h-[330px] overflow-hidden">
+          <div className="relative w-full max-w-[420px] mx-auto h-[330px] overflow-hidden">
             <Image
               src={imageUrls[0]}
               alt={title}
               fill
-              className="object-fill"
+              className="object-cover"
             />
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-2">
-            {imageUrls.slice(0, 4).map((url, i) => (
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
+            {imageUrls.map((url, i) => (
               <div
                 key={i}
-                className={`relative rounded-lg overflow-hidden ${
-                  i === 0 && imageUrls.length === 3 ? "col-span-2" : ""
-                }`}
-                style={{
-                  height: i === 0 && imageUrls.length === 3 ? "200px" : "150px",
-                }}
+                className="relative flex-shrink-0 w-[330px] h-[330px] overflow-hidden"
               >
                 <Image
                   src={url}
                   alt={`feed-img-${i}`}
                   fill
-                  className="object-fill"
+                  className="object-cover"
                 />
-                {i === 3 && imageUrls.length > 4 && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                    <span className="text-white font-bold">
-                      +{imageUrls.length - 4}
-                    </span>
-                  </div>
-                )}
               </div>
             ))}
           </div>

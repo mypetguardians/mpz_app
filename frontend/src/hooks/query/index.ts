@@ -25,3 +25,4 @@ export { useGetContractTemplate } from "./useGetContractTemplate";
 export { useGetCenterAdoptions } from "./useGetCenterAdoptions";
 export { useGetMonitoringStatus } from "./useGetMonitoringStatus";
 export { useGetAdopterDetail } from "./useGetAdopterDetail";
+export { useGetBanners } from "./useGetBanners";

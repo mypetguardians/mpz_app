@@ -37,7 +37,7 @@ export function ProfileInfo({
       onClick={onClick}
     >
       <div
-        className={`relative ${sizeClasses[size]} rounded-full overflow-hidden bg-lg`}
+        className={`relative ${sizeClasses[size]} rounded-full overflow-hidden bg-lg  flex-shrink-0`}
       >
         {profileImage ? (
           <Image
@@ -54,7 +54,9 @@ export function ProfileInfo({
           </div>
         )}
       </div>
-      <span className={`text-dg ${textSizes[size]}`}>{author}</span>
+      <span className={`text-dg ${textSizes[size]} flex-1 truncate`}>
+        {author}
+      </span>
     </div>
   );
 }

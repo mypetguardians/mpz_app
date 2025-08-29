@@ -61,7 +61,7 @@ export default function CenterDetailPage() {
   if (!center) {
     return (
       <Container className="min-h-screen">
-        <div className="text-center py-8">보호소를 찾을 수 없습니다.</div>
+        <div className="text-center py-8">보호센터를 찾을 수 없습니다.</div>
       </Container>
     );
   }

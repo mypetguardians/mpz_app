@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { CenterCard } from "@/components/ui/CenterCard";
 import { useGetCenterFavorites, useToggleCenterFavorite } from "@/hooks";
+import { CenterCardSkeleton } from "@/components/ui/CenterCardSkeleton";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -138,8 +139,10 @@ function CenterTab() {
 
       {/* 로딩 상태 */}
       {(isLoading || isFetching) && (
-        <div className="text-center py-4">
-          <div className="text-gray-500">로딩 중...</div>
+        <div className="flex flex-col gap-4 px-4">
+          {[...Array(3)].map((_, index) => (
+            <CenterCardSkeleton key={index} />
+          ))}
         </div>
       )}
 

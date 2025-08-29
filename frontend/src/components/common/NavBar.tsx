@@ -53,7 +53,11 @@ function NavBar() {
   // 현재 경로에 따라 active 탭 결정
   const getActiveTab = () => {
     if (pathname === "/") return "home";
-    if (pathname.startsWith("/list/animal")) return "list";
+    if (
+      pathname.startsWith("/list/animal") ||
+      pathname.startsWith("/list/center")
+    )
+      return "list";
     if (pathname.startsWith("/community")) return "commmunity";
     if (
       pathname.startsWith("/favorite/animal") ||
@@ -74,6 +78,7 @@ function NavBar() {
         break;
       case "list":
         url = "/list/animal";
+        if (isCenter) url = "/list/center";
         break;
       case "commmunity":
         url = "/community";

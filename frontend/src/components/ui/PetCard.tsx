@@ -98,16 +98,23 @@ export function PetCard({
 
   const getStatusColorClass = (status?: string) => {
     switch (status) {
+      case "자연사":
+      case "안락사":
+        return "bg-orange-100/10";
+      case "입양대기":
+      case "입양진행중":
       case "보호중":
         return "bg-green/10 text-green";
-      case "방사":
-      case "반환":
-        return "bg-bg text-gr";
-      // @TODO 색 적용안됨
       case "입양완료":
         return "bg-brand/10 text-brand";
-      default:
+      case "임시보호중":
         return "bg-yellow/10 text-yellow";
+      case "방사":
+      case "반환":
+        return "bg-gr/10 text-gr";
+
+      default:
+        return "bg-gray-300/10 text-gray-600";
     }
   };
 
@@ -155,9 +162,14 @@ export function PetCard({
         <div className="flex flex-col flex-1 min-w-0">
           <div className="flex items-center mb-[6px] gap-1">
             <Chip className={getStatusColorClass(status || "보호중")}>
-              {["보호중", "방사", "반환", "입양완료"].includes(
-                status || "보호중"
-              )
+              {[
+                "보호중",
+                "입양완료",
+                "임시보호중",
+                "입양대기",
+                "입양진행중",
+                "반환",
+              ].includes(status || "보호중")
                 ? status
                 : "🌈"}
             </Chip>
@@ -224,7 +236,15 @@ export function PetCard({
         </div>
         <div className="flex items-center mb-[6px] gap-1">
           <Chip className={getStatusColorClass(status || "보호중")}>
-            {["보호중", "방사", "반환", "입양완료"].includes(status || "보호중")
+            {[
+              "보호중",
+              "입양완료",
+              "임시보호중",
+              "입양대기",
+              "입양진행중",
+              "방사",
+              "반환",
+            ].includes(status || "보호중")
               ? status
               : "🌈"}
           </Chip>
@@ -252,9 +272,15 @@ export function PetCard({
         <div className="flex-1">
           <div className="flex items-center mb-[6px] gap-1">
             <Chip className={getStatusColorClass(status || "보호중")}>
-              {["보호중", "방사", "반환", "입양완료"].includes(
-                status || "보호중"
-              )
+              {[
+                "보호중",
+                "입양완료",
+                "임시보호중",
+                "입양대기",
+                "입양진행중",
+                "방사",
+                "반환",
+              ].includes(status || "보호중")
                 ? status
                 : "🌈"}
             </Chip>
@@ -305,7 +331,15 @@ export function PetCard({
         </div>
         <div className="flex items-center mb-[6px] gap-1">
           <Chip className={getStatusColorClass(status || "보호중")}>
-            {["보호중", "방사", "반환", "입양완료"].includes(status || "보호중")
+            {[
+              "보호중",
+              "입양완료",
+              "임시보호중",
+              "입양대기",
+              "입양진행중",
+              "방사",
+              "반환",
+            ].includes(status || "보호중")
               ? status
               : "🌈"}
           </Chip>
@@ -356,7 +390,15 @@ export function PetCard({
       </div>
       <div className="flex items-center mb-[6px] gap-1">
         <Chip className={getStatusColorClass(status || "보호중")}>
-          {["보호중", "방사", "반환", "입양완료"].includes(status || "보호중")
+          {[
+            "보호중",
+            "입양완료",
+            "임시보호중",
+            "입양대기",
+            "입양진행중",
+            "방사",
+            "반환",
+          ].includes(status || "보호중")
             ? status
             : "🌈"}
         </Chip>

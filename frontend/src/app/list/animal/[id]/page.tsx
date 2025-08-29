@@ -94,7 +94,7 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
   const { data: myCenter } = useGetMyCenter();
   const subscriber = myCenter?.isSubscriber === true;
 
-  // 동물의 보호소 정보 가져오기
+  // 동물의 보호센터 정보 가져오기
   const { data: center, isLoading: centerLoading } = useGetCenterById(
     animal?.center_id
   );
@@ -308,7 +308,27 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
   if (isLoading || centerLoading || relatedAnimalsLoading || favoriteLoading) {
     return (
       <Container>
-        <div className="text-center py-8">로딩 중...</div>
+        <div className="min-h-screen bg-gray-50">
+          {/* TopBar 스켈레톤 */}
+          <div className="border-b border-lg bg-white">
+            <div className="flex items-center justify-between px-4 py-3">
+              <div className="w-8 h-8 bg-gray-200 rounded animate-pulse" />
+              <div className="w-24 h-6 bg-gray-200 rounded animate-pulse" />
+              <div className="w-8 h-8 bg-gray-200 rounded animate-pulse" />
+            </div>
+          </div>
+
+          {/* 이미지 스켈레톤 */}
+          <div className="w-full h-80 bg-gray-200 animate-pulse" />
+
+          {/* 정보 스켈레톤 */}
+          <div className="px-4 py-6 space-y-4">
+            <div className="w-3/4 h-6 bg-gray-200 rounded animate-pulse" />
+            <div className="w-1/2 h-4 bg-gray-200 rounded animate-pulse" />
+            <div className="w-full h-4 bg-gray-200 rounded animate-pulse" />
+            <div className="w-2/3 h-4 bg-gray-200 rounded animate-pulse" />
+          </div>
+        </div>
       </Container>
     );
   }
@@ -421,7 +441,7 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
         <CenterInfo
           variant={isSubscriber ? "subscriber" : "primary"}
           centerId={center?.id || ""}
-          name={center?.name || "보호소 정보 없음"}
+          name={center?.name || "보호센터 정보 없음"}
           location={center?.location || "주소 정보 없음"}
           phoneNumber={center?.phoneNumber || "연락처 정보 없음"}
           adoptionProcedure={

@@ -12,6 +12,10 @@ import { BottomSheet } from "@/components/ui/BottomSheet";
 import { CustomModal } from "@/components/ui/CustomModal";
 import { Toast } from "@/components/ui/Toast";
 import { IconButton } from "@/components/ui/IconButton";
+import {
+  CommunityDetailSkeleton,
+  CommentSectionSkeleton,
+} from "@/components/ui";
 import { useGetPublicPostDetail } from "@/hooks/query/useGetPublicPosts";
 import { useGetComments } from "@/hooks/query/useGetComments";
 import { useDeletePost } from "@/hooks/mutation/useDeletePost";
@@ -31,6 +35,7 @@ export default function CommunityDetailPage() {
   >("report");
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   // 실제 API 데이터 가져오기
   const {
@@ -48,6 +53,13 @@ export default function CommunityDetailPage() {
   // 게시글 데이터
   const post = postDetailData?.post;
   const comments = commentsData?.data || [];
+  // 로딩 상태 관리
+  useEffect(() => {
+    if (postDetailData && post) {
+      setIsLoading(false);
+    }
+  }, [postDetailData, post]);
+
   const pagination = commentsData
     ? {
         count: commentsData.count,
@@ -149,12 +161,20 @@ export default function CommunityDetailPage() {
     }
   }, [showToast]);
 
-  // 로딩 상태
-  if (isPostLoading) {
+  // 로딩 상태 또는 데이터가 없을 때 스켈레톤 표시
+  if (isLoading || isPostLoading || !postDetailData || !post) {
+    console.log("스켈레톤 렌더링 중:", {
+      isLoading,
+      isPostLoading,
+      hasPostDetailData: !!postDetailData,
+      hasPost: !!post,
+    });
+
     return (
       <Container className="min-h-screen bg-white">
         <TopBar
           variant="variant5"
+          className="border-b border-lg"
           left={
             <div className="flex items-center gap-2">
               <IconButton
@@ -162,19 +182,33 @@ export default function CommunityDetailPage() {
                 size="iconM"
                 onClick={() => window.history.back()}
               />
-              <h2>게시글</h2>
             </div>
           }
+          center={<h4>자세히 보기</h4>}
+          right={
+            <IconButton
+              icon={({ size }) => <ShareNetwork size={size} weight="bold" />}
+              size="iconM"
+              onClick={() => {}}
+            />
+          }
         />
-        <div className="flex flex-col items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+
+        <div className="flex-1 overflow-y-auto">
+          {/* 게시글 내용 스켈레톤 */}
+          <div className="py-3">
+            <CommunityDetailSkeleton />
+          </div>
+
+          {/* 댓글 섹션 스켈레톤 */}
+          <CommentSectionSkeleton />
         </div>
       </Container>
     );
   }
 
   // 에러 상태
-  if (postError || !post) {
+  if (postError) {
     return (
       <Container className="min-h-screen bg-white">
         <TopBar
@@ -191,7 +225,7 @@ export default function CommunityDetailPage() {
           }
         />
         <div className="flex flex-col items-center justify-center min-h-screen">
-          <p className="text-gray-500">게시글을 찾을 수 없습니다.</p>
+          <p className="text-gray-500">게시글을 불러오는데 실패했습니다.</p>
         </div>
       </Container>
     );

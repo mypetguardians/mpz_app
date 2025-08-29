@@ -62,7 +62,7 @@ export function CenterDetailHeader({
     <div className="px-4 py-5">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-bk text-xl font-bold">
-          {centerName || "보호소 정보 없음"}
+          {centerName || "보호센터 정보 없음"}
         </h2>
         <MiniButton
           text="찜"

@@ -6,8 +6,10 @@ import { useRouter } from "next/navigation";
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
+import { NotificationCardSkeleton } from "@/components/ui";
 import { NotificationCard } from "./_components/NotificationCard";
-import { useGetCenterNotices, useGetMyCenter } from "@/hooks/query";
+import { useCenterNotices, useGetMyCenter } from "@/hooks/query";
+import { getRelativeTime } from "@/lib/utils";
 
 export default function Notification() {
   const router = useRouter();
@@ -15,10 +17,10 @@ export default function Notification() {
   const centerId = myCenter?.id;
 
   const {
-    data: centerNotices,
+    data: centerNoticesData,
     error,
     isLoading,
-  } = useGetCenterNotices(centerId || "");
+  } = useCenterNotices({ centerId: centerId || "", enabled: !!centerId });
 
   const handleBack = () => {
     router.back();
@@ -39,14 +41,19 @@ export default function Notification() {
               size="iconM"
               onClick={handleBack}
             />
-            <h4>공지사항</h4>
+            <h4>
+              공지사항{" "}
+              {centerNoticesData?.total ? `(${centerNoticesData.total}개)` : ""}
+            </h4>
           </div>
         }
       />
       <div className="flex flex-col gap-4 p-4">
         {isLoading && (
-          <div className="text-center py-8">
-            <p>공지사항을 불러오는 중...</p>
+          <div className="flex flex-col gap-4">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <NotificationCardSkeleton key={index} />
+            ))}
           </div>
         )}
 
@@ -62,15 +69,14 @@ export default function Notification() {
           </div>
         )}
 
-        {centerNotices && centerNotices.length > 0 ? (
-          centerNotices.map((item) => (
+        {centerNoticesData?.notices && centerNoticesData.notices.length > 0 ? (
+          centerNoticesData.notices.map((item) => (
             <NotificationCard
               key={item.id}
               id={item.id}
               variant="primary"
-              title={item.title}
               message={item.content}
-              date={item.createdAt}
+              date={getRelativeTime(item.created_at)}
               onClick={() => handleNotificationClick(item.id)}
             />
           ))

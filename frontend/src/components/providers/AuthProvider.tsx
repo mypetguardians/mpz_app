@@ -39,11 +39,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         Cookies.set("access_token", data.access_token);
         Cookies.set("refresh_token", data.refresh_token);
 
-        // axios 인스턴스에 토큰 설정 - 인터셉터가 자동으로 처리하므로 제거
-        // instance.defaults.headers.common[
-        //   "Authorization"
-        // ] = `Bearer ${data.access_token}`;
-
         // 사용자 정보 가져오기
         try {
           await setUserFromToken();

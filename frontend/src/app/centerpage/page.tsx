@@ -22,12 +22,13 @@ interface MenuItem {
   label: string;
   onClick: () => void;
   href?: string;
+  disabled?: boolean;
 }
 
 export default function MyPage() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showLogoutToast, setShowLogoutToast] = useState(false);
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, user } = useAuth();
   const { data: myCenter } = useGetMyCenter();
 
   const isSubscriber = myCenter?.isSubscriber === true;
@@ -86,6 +87,7 @@ export default function MyPage() {
         console.log("관리자 초대 및 관리");
       },
       href: isAuthenticated ? "/centerpage/admin" : undefined,
+      disabled: user?.userType !== "센터최고관리자",
     },
     {
       id: "6",
@@ -157,14 +159,16 @@ export default function MyPage() {
           </div>
         </div>
         <div className="w-full flex flex-col px-4 gap-1">
-          {menuItems.map((item) => (
-            <TextMenu
-              key={item.id}
-              title={item.label}
-              onClick={item.onClick}
-              href={item.href}
-            />
-          ))}
+          {menuItems
+            .filter((item) => !item.disabled)
+            .map((item) => (
+              <TextMenu
+                key={item.id}
+                title={item.label}
+                onClick={item.onClick}
+                href={item.href}
+              />
+            ))}
         </div>
       </div>
 

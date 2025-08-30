@@ -22,3 +22,17 @@ export interface NotificationsResponse {
   previousPage: number;
   data: Notification[];
 }
+
+export interface CenterNotice {
+  id: string;
+  title: string;
+  content: string;
+  is_important: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CenterNoticesResponse {
+  notices: CenterNotice[];
+  total: number;
+}

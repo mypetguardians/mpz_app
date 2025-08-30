@@ -156,7 +156,6 @@ export default function AdoptionPage() {
       </Container>
     );
   }
-  console.log(adoptionsData?.data);
 
   return (
     <Container className="min-h-screen">

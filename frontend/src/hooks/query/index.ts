@@ -19,6 +19,7 @@ export { useCheckPostLike } from "./useCheckPostLike";
 export { useGetMyCenter } from "./useGetMyCenter";
 export { useGetMyCenterAnimals } from "./useGetCenterAnimals";
 export { useGetCenterNotices } from "./useGetCenterNotices";
+export { useCenterNotices } from "./useCenterNotices";
 export { useGetQuestionForms } from "./useGetQuestionForms";
 export { useGetCenterProcedureSettings } from "./useGetCenterProcedureSettings";
 export { useGetContractTemplate } from "./useGetContractTemplate";

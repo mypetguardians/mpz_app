@@ -23,6 +23,7 @@ interface PetCardProps {
   showLocation?: boolean;
   showUpdatedAt?: boolean;
   disableNavigation?: boolean;
+  adoptionStatus?: string; // 입양 상태를 표시할 때 사용
 }
 
 export function PetCard({
@@ -111,6 +112,7 @@ export function PetCard({
         return "bg-yellow/10 text-yellow";
       case "방사":
       case "반환":
+      case "취소":
         return "bg-gr/10 text-gr";
 
       default:
@@ -169,6 +171,7 @@ export function PetCard({
                 "입양대기",
                 "입양진행중",
                 "반환",
+                "취소",
               ].includes(status || "보호중")
                 ? status
                 : "🌈"}
@@ -244,6 +247,7 @@ export function PetCard({
               "입양진행중",
               "방사",
               "반환",
+              "취소",
             ].includes(status || "보호중")
               ? status
               : "🌈"}
@@ -280,6 +284,7 @@ export function PetCard({
                 "입양진행중",
                 "방사",
                 "반환",
+                "취소",
               ].includes(status || "보호중")
                 ? status
                 : "🌈"}
@@ -339,6 +344,7 @@ export function PetCard({
               "입양진행중",
               "방사",
               "반환",
+              "취소",
             ].includes(status || "보호중")
               ? status
               : "🌈"}
@@ -398,6 +404,7 @@ export function PetCard({
             "입양진행중",
             "방사",
             "반환",
+            "취소",
           ].includes(status || "보호중")
             ? status
             : "🌈"}

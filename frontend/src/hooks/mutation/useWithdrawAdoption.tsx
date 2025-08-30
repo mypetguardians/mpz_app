@@ -16,7 +16,7 @@ export const useWithdrawAdoption = () => {
       adoptionId: string
     ): Promise<WithdrawAdoptionResponse> => {
       try {
-        const response = await instance.patch(
+        const response = await instance.delete(
           `/adoptions/${adoptionId}/withdraw`
         );
         return response.data;

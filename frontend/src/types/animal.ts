@@ -17,7 +17,7 @@ export interface Animal {
     | "입양대기"
     | "반환"
     | "방사"
-    | "무지개다리"
+    | "취소"
     | "입양진행중";
   waitingDays: number | null;
   activityLevel: string | null;

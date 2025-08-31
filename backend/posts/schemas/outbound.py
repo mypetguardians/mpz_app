@@ -57,8 +57,17 @@ class PostUpdateOut(Schema):
 
 
 class PostDeleteOut(Schema):
-    """게시글 삭제 응답 스키마"""
-    message: str = Field(..., description="응답 메시지")
+    """게시글 삭제 출력 스키마"""
+    message: str = Field(..., description="삭제 완료 메시지")
+
+
+class MixedAccessPostsOut(Schema):
+    """전체/제한 공개 게시글 목록 출력 스키마"""
+    public_posts: List[PostOut] = Field(..., description="전체 공개 게시글 목록")
+    private_posts: List[PostOut] = Field(..., description="제한 공개 게시글 목록 (센터 권한자만)")
+    public_count: int = Field(..., description="전체 공개 게시글 개수")
+    private_count: int = Field(..., description="제한 공개 게시글 개수")
+    total_count: int = Field(..., description="전체 게시글 개수")
 
 
 

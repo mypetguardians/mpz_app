@@ -10,7 +10,9 @@ from centers.schemas.inbound import (
 )
 from centers.schemas.outbound import (
     CenterOut,
-    ErrorOut
+    ErrorOut,
+    CenterNoticeListOut,
+    CenterNoticeOut,
 )
 
 router = Router(tags=["Centers"])
@@ -112,3 +114,56 @@ async def get_center_by_id(request: HttpRequest, center_id: str):
         raise
     except Exception as e:
         raise HttpError(500, f"보호소 정보 조회 중 오류가 발생했습니다: {str(e)}")
+
+
+@router.get(
+    "/{center_id}/notices",
+    summary="[R] 센터 공지사항 조회",
+    description="특정 센터의 공지사항 목록을 조회합니다.",
+    response={
+        200: CenterNoticeListOut,
+        404: ErrorOut,
+        500: ErrorOut,
+    },
+)
+async def get_center_notices(request: HttpRequest, center_id: str):
+    """센터 공지사항을 조회합니다."""
+    try:
+        @sync_to_async
+        def get_center_notices_list():
+            # 센터 존재 확인
+            try:
+                center = Center.objects.get(id=center_id)
+            except Center.DoesNotExist:
+                raise HttpError(404, "보호소를 찾을 수 없습니다")
+            
+            # 공지사항 조회 (notices 앱에서)
+            from notices.models import Notice
+            notices = Notice.objects.filter(
+                center=center,
+                is_published=True
+            ).order_by('-created_at')
+            
+            # 응답 데이터 변환
+            notices_response = [
+                CenterNoticeOut(
+                    id=str(notice.id),
+                    content=notice.content,
+                    is_important=notice.notice_type in ['important', 'urgent'],
+                    created_at=notice.created_at.isoformat(),
+                    updated_at=notice.updated_at.isoformat(),
+                )
+                for notice in notices
+            ]
+            
+            return CenterNoticeListOut(
+                notices=notices_response,
+                total=len(notices_response)
+            )
+        
+        return await get_center_notices_list()
+        
+    except HttpError:
+        raise
+    except Exception as e:
+        raise HttpError(500, f"센터 공지사항 조회 중 오류가 발생했습니다: {str(e)}")

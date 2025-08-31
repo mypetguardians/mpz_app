@@ -10,7 +10,6 @@ class Post(BaseModel):
     title = models.CharField(max_length=200, help_text="제목")
     content = models.TextField(help_text="내용")
     animal = models.ForeignKey('animals.Animal', on_delete=models.SET_NULL, null=True, blank=True, help_text="관련 동물")
-    adoption = models.ForeignKey('adoptions.Adoption', on_delete=models.SET_NULL, null=True, blank=True, help_text="관련 입양")
     content_tags = models.JSONField(null=True, blank=True, help_text="콘텐츠 태그")
     like_count = models.IntegerField(default=0, help_text="좋아요 수")
     is_all_access = models.BooleanField(default=True, help_text="전체 공개 여부 (False인 경우 센터 권한자만 접근 가능)")

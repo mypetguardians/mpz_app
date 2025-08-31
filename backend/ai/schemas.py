@@ -26,6 +26,17 @@ class AnimalRecommendation(BaseModel):
     care_tips: List[str] = Field(..., description="케어 팁")
     center_name: Optional[str] = Field(None, description="보호센터명")
     adoption_fee: Optional[int] = Field(None, description="입양비")
+    # 동물 특성 levels 추가
+    activity_level: Optional[int] = Field(None, description="활동량 수준 (1-5)")
+    sensitivity: Optional[int] = Field(None, description="예민함 정도 (1-5)")
+    sociability: Optional[int] = Field(None, description="사회성 (1-5)")
+    separation_anxiety: Optional[int] = Field(None, description="분리불안 정도 (1-5)")
+    basic_training: Optional[int] = Field(None, description="기본 훈련 상태 (1-5)")
+    # 동물 설명 추가
+    description: Optional[str] = Field(None, description="동물 설명")
+    personality: Optional[str] = Field(None, description="성격")
+    health_notes: Optional[str] = Field(None, description="건강 상태 메모")
+    special_needs: Optional[str] = Field(None, description="특별한 요구사항")
 
 
 class PersonalityAnalysis(BaseModel):

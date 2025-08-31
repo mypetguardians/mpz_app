@@ -85,3 +85,15 @@ class SuccessOut(Schema):
     """성공 응답 스키마"""
     success: bool = Field(..., description="성공 여부")
     message: str = Field(..., description="응답 메시지")
+
+
+class ErrorOut(Schema):
+    """에러 응답 스키마"""
+    error: str = Field(..., description="에러 메시지")
+
+
+class AdoptionWithdrawOut(Schema):
+    """입양 철회 응답 스키마"""
+    message: str = Field(..., description="철회 완료 메시지")
+    adoption_id: str = Field(..., description="철회된 입양 신청 ID")
+    status: str = Field(..., description="변경된 상태")

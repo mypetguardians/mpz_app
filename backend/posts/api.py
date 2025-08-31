@@ -14,7 +14,7 @@ from posts.schemas.inbound import (
     PostCreateIn, PostUpdateIn, PostListQueryIn
 )
 from posts.schemas.outbound import (
-    PostOut, PostDetailOut, PostCreateOut, PostUpdateOut, PostDeleteOut
+    PostOut, PostDetailOut, PostCreateOut, PostUpdateOut, PostDeleteOut, MixedAccessPostsOut
 )
 from api.security import jwt_auth
 from user.models import User
@@ -32,11 +32,12 @@ def _build_post_response(post, tags=None, images=None, user_nickname=None, user_
         "title": post.title,
         "content": post.content,
         "user_id": str(post.user.id),
-        "animal_id": str(post.animal.id) if hasattr(post, 'animal') and post.animal else None,
-        "adoption_id": str(post.adoption.id) if hasattr(post, 'adoption') and post.adoption else None,
+        "animal_id": str(post.animal.id) if post.animal else None,
         "content_tags": getattr(post, 'content_tags', None),
         "like_count": getattr(post, 'like_count', 0),
         "comment_count": getattr(post, 'comment_count', 0),
+        "is_liked": False,  # 기본값, 필요시 별도 로직으로 설정
+        "is_all_access": getattr(post, 'is_all_access', True),
         "created_at": post.created_at,
         "updated_at": post.updated_at,
         "user_nickname": user_nickname or post.user.username,
@@ -97,98 +98,169 @@ async def get_all_public_posts(request: HttpRequest, query: Query[PostListQueryI
                     
                     if system_tag_names:
                         # 정규식 기반 매칭 시도
-                        try:
-                            matching_system_tags = SystemTag.objects.filter(
-                                is_active=True,
-                                name__iregex='|'.join(system_tag_names)
-                            ).values_list('name', flat=True)
-                            
-                            if matching_system_tags:
-                                posts_query = posts_query.filter(
-                                    posttag__tag_name__in=matching_system_tags
-                                ).distinct()
-                            else:
-                                return []
-                                
-                        except Exception as e:
-                            # iregex가 지원되지 않는 경우 fallback to exact matching
-                            try:
-                                matching_system_tags = SystemTag.objects.filter(
-                                    is_active=True,
-                                    name__in=system_tag_names
-                                ).values_list('name', flat=True)
-                                
-                                if matching_system_tags:
-                                    posts_query = posts_query.filter(
-                                        posttag__tag_name__in=matching_system_tags
-                                    ).distinct()
-                                else:
-                                    return []
-                                    
-                            except Exception as fallback_e:
-                                import logging
-                                logger = logging.getLogger(__name__)
-                                logger.error(f"시스템 태그 필터링 중 오류 발생: {str(fallback_e)}")
-                                # 오류 발생 시 필터링 없이 진행
-                                pass
-                
+                        import re
+                        system_tag_patterns = [re.compile(rf'.*{re.escape(tag)}.*', re.IGNORECASE) for tag in system_tag_names]
+                        
+                        # 각 시스템 태그에 대해 매칭되는 게시글 찾기
+                        matching_posts = []
+                        for post in posts_query:
+                            post_content = f"{post.title} {post.content}".lower()
+                            if any(pattern.search(post_content) for pattern in system_tag_patterns):
+                                matching_posts.append(post)
+                        
+                        posts_query = Post.objects.filter(id__in=[post.id for post in matching_posts])
                 except Exception as e:
-                    import logging
-                    logger = logging.getLogger(__name__)
-                    logger.error(f"시스템 태그 필터링 중 오류 발생: {str(e)}")
+                    print(f"시스템 태그 필터링 오류: {e}")
                     # 오류 발생 시 필터링 없이 진행
-                    pass
             
-            posts = posts_query.order_by('-created_at')
+            # 정렬 적용
+            if query.sort_by == "latest":
+                posts_query = posts_query.order_by('-created_at')
+            elif query.sort_by == "oldest":
+                posts_query = posts_query.order_by('created_at')
+            elif query.sort_by == "most_liked":
+                posts_query = posts_query.order_by('-like_count', '-created_at')
+            elif query.sort_by == "most_commented":
+                posts_query = posts_query.order_by('-comment_count', '-created_at')
+            else:
+                posts_query = posts_query.order_by('-created_at')  # 기본값
             
-            # 대량 조회로 N+1 쿼리 문제 해결
-            post_ids = [post.id for post in posts]
+            posts = list(posts_query)
             
-            # 모든 태그를 한 번에 조회 후 그룹핑
-            all_tags = PostTag.objects.filter(post_id__in=post_ids).select_related('post')
-            tags_by_post = {}
-            for tag in all_tags:
-                if tag.post_id not in tags_by_post:
-                    tags_by_post[tag.post_id] = []
-                tags_by_post[tag.post_id].append(tag)
-            
-            # 모든 이미지를 한 번에 조회 후 그룹핑
-            all_images = PostImage.objects.filter(post_id__in=post_ids).order_by('post_id', 'order_index')
-            images_by_post = {}
-            for image in all_images:
-                if image.post_id not in images_by_post:
-                    images_by_post[image.post_id] = []
-                images_by_post[image.post_id].append(image)
-            
-            # 댓글 수를 한 번에 조회
-            from django.db.models import Count
-            comment_counts = Comment.objects.filter(post_id__in=post_ids).values('post_id').annotate(count=Count('id'))
-            comment_count_by_post = {item['post_id']: item['count'] for item in comment_counts}
-            
-            posts_with_data = []
+            # 응답 데이터 구성
+            posts_response = []
             for post in posts:
-                tags = tags_by_post.get(post.id, [])
-                images = images_by_post.get(post.id, [])
-                comment_count = comment_count_by_post.get(post.id, 0)
+                # 태그 정보 가져오기
+                tags = [_build_tag_response(tag) for tag in post.posttag_set.all()]
                 
-                post_data = _build_post_response(
-                    post,
-                    tags=[_build_tag_response(tag) for tag in tags],
-                    images=[_build_image_response(img) for img in images],
-                    user_nickname=getattr(post.user, 'nickname', post.user.username),
-                    user_image=getattr(post.user, 'image', None)
-                )
-                post_data['comment_count'] = comment_count
-                post_data['is_liked'] = False  # 전체 공개는 좋아요 상태 미제공
-                post_data['is_all_access'] = post.is_all_access
-                posts_with_data.append(post_data)
+                # 이미지 정보 가져오기
+                images = [_build_image_response(img) for img in post.postimage_set.all().order_by('order_index')]
+                
+                # 사용자 정보 가져오기
+                user_nickname = getattr(post.user, 'nickname', post.user.username)
+                user_image = getattr(post.user, 'image', None)
+                
+                post_response = _build_post_response(post, tags, images, user_nickname, user_image)
+                posts_response.append(post_response)
             
-            return posts_with_data
+            return posts_response
         
         return await get_public_posts()
         
     except Exception as e:
-        raise HttpError(500, f"전체 공개 게시글 목록 조회 중 오류가 발생했습니다: {str(e)}")
+        print(f"Get all public posts error: {e}")
+        raise HttpError(500, "게시글 목록 조회 중 오류가 발생했습니다")
+
+
+@router.get(
+    "/mixed/",
+    summary="[R] 전체/제한 공개 게시글 목록 조회",
+    description="전체 공개(is_all_access=True)와 제한 공개(is_all_access=False) 게시글 목록을 한꺼번에 조회합니다. 제한 공개 게시글은 센터 권한자(센터관리자, 센터최고관리자, 훈련사)만 볼 수 있습니다.",
+    response={
+        200: MixedAccessPostsOut,
+        500: dict,
+    },
+)
+async def get_mixed_access_posts(request: HttpRequest, query: Query[PostListQueryIn]):
+    """전체 공개와 제한 공개 게시글 목록을 한꺼번에 조회합니다. 제한 공개 게시글은 센터 권한자만 볼 수 있습니다."""
+    try:
+        current_user = request.auth
+        if hasattr(current_user, '__await__'):
+            current_user = await current_user
+
+        @sync_to_async
+        def get_mixed_posts():
+            # 전체 공개 게시글 조회
+            public_posts_query = Post.objects.filter(is_all_access=True).select_related('user').prefetch_related('posttag_set', 'postimage_set')
+            
+            # 제한 공개 게시글 조회 (센터 권한자만)
+            private_posts_query = Post.objects.filter(is_all_access=False).select_related('user').prefetch_related('posttag_set', 'postimage_set')
+            
+            # 필터링 적용 (전체 공개)
+            if query.user_id:
+                public_posts_query = public_posts_query.filter(user_id=query.user_id)
+            
+            # 필터링 적용 (제한 공개) - 센터 권한자만
+            if query.user_id:
+                private_posts_query = private_posts_query.filter(user_id=query.user_id)
+            
+            # 센터 권한 체크
+            has_center_permission = False
+            if current_user and hasattr(current_user, 'user_type'):
+                has_center_permission = current_user.user_type in ["센터관리자", "센터최고관리자", "훈련사"]
+            
+            # 센터 권한이 없으면 제한 공개 게시글은 빈 리스트
+            if not has_center_permission:
+                private_posts_query = Post.objects.none()
+            
+            # 시스템 태그 필터링 적용 (전체 공개)
+            if query.system_tags:
+                try:
+                    from posts.models import SystemTag
+                    
+                    system_tag_names = [tag.strip().lower() for tag in query.system_tags if tag.strip()]
+                    
+                    if system_tag_names:
+                        # 정규식 기반 매칭 시도
+                        import re
+                        system_tag_patterns = [re.compile(rf'.*{re.escape(tag)}.*', re.IGNORECASE) for tag in system_tag_names]
+                        
+                        # 각 시스템 태그에 대해 매칭되는 게시글 찾기
+                        matching_public_posts = []
+                        for post in public_posts_query:
+                            post_content = f"{post.title} {post.content}".lower()
+                            if any(pattern.search(post_content) for pattern in system_tag_patterns):
+                                matching_public_posts.append(post)
+                        
+                        public_posts_query = Post.objects.filter(id__in=[post.id for post in matching_public_posts], is_all_access=True)
+                except Exception as e:
+                    print(f"시스템 태그 필터링 오류: {e}")
+                    # 오류 발생 시 필터링 없이 진행
+            
+            # 정렬 적용 (전체 공개) - 기본값으로 최신순
+            public_posts_query = public_posts_query.order_by('-created_at')
+            
+            # 제한 공개 게시글도 같은 정렬 적용 - 기본값으로 최신순
+            private_posts_query = private_posts_query.order_by('-created_at')
+            
+            public_posts = list(public_posts_query)
+            private_posts = list(private_posts_query)
+            
+            # 응답 데이터 구성
+            def build_posts_response(posts):
+                posts_response = []
+                for post in posts:
+                    # 태그 정보 가져오기
+                    tags = [_build_tag_response(tag) for tag in post.posttag_set.all()]
+                    
+                    # 이미지 정보 가져오기
+                    images = [_build_image_response(img) for img in post.postimage_set.all().order_by('order_index')]
+                    
+                    # 사용자 정보 가져오기
+                    user_nickname = getattr(post.user, 'nickname', post.user.username)
+                    user_image = getattr(post.user, 'image', None)
+                    
+                    post_response = _build_post_response(post, tags, images, user_nickname, user_image)
+                    posts_response.append(post_response)
+                
+                return posts_response
+            
+            public_response = build_posts_response(public_posts)
+            private_response = build_posts_response(private_posts)
+            
+            return MixedAccessPostsOut(
+                public_posts=public_response,
+                private_posts=private_response,
+                public_count=len(public_response),
+                private_count=len(private_response),
+                total_count=len(public_response) + len(private_response)
+            )
+        
+        return await get_mixed_posts()
+        
+    except Exception as e:
+        print(f"Get mixed access posts error: {e}")
+        raise HttpError(500, "게시글 목록 조회 중 오류가 발생했습니다")
 
 
 @router.get(
@@ -517,7 +589,7 @@ async def create_post(request: HttpRequest, data: PostCreateIn):
                 user=current_user,
                 title=data.title,
                 content=data.content,
-                adoption_id=data.adoption_id if data.adoption_id else None,
+                animal_id=data.animal_id if data.animal_id else None,
                 is_all_access=data.is_all_access if data.is_all_access is not None else True
             )
 
@@ -602,8 +674,8 @@ async def update_post(request: HttpRequest, post_id: str, data: PostUpdateIn):
                 post.title = data.title
             if data.content is not None:
                 post.content = data.content
-            if data.adoption_id is not None:
-                post.adoption_id = data.adoption_id
+            if data.animal_id is not None:
+                post.animal_id = data.animal_id
             if data.is_all_access is not None:
                 post.is_all_access = data.is_all_access
             

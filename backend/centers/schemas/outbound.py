@@ -79,13 +79,13 @@ class CenterAnimalOut(Schema):
     description: Optional[str] = Field(None, description="동물 설명")
     status: str = Field(..., description="동물 상태 (보호중, 입양대기, 입양완료)")
     waiting_days: Optional[int] = Field(None, description="보호 기간 (일)")
-    activity_level: Optional[str] = Field(None, description="활동량 수준")
-    sensitivity: Optional[str] = Field(None, description="예민함 정도")
-    sociability: Optional[str] = Field(None, description="사회성")
-    separation_anxiety: Optional[str] = Field(None, description="분리불안 정도")
+    activity_level: Optional[int] = Field(None, description="활동량 수준")
+    sensitivity: Optional[int] = Field(None, description="예민함 정도")
+    sociability: Optional[int] = Field(None, description="사회성")
+    separation_anxiety: Optional[int] = Field(None, description="분리불안 정도")
     special_notes: Optional[str] = Field(None, description="특이사항")
     health_notes: Optional[str] = Field(None, description="건강 정보")
-    basic_training: Optional[str] = Field(None, description="기본 훈련 상태")
+    basic_training: Optional[int] = Field(None, description="기본 훈련 상태")
     trainer_comment: Optional[str] = Field(None, description="훈련사 코멘트")
     announce_number: Optional[str] = Field(None, description="공고번호")
     announcement_date: Optional[str] = Field(None, description="공고일 (ISO 형식)")
@@ -127,3 +127,18 @@ class QuestionFormListOut(Schema):
 class QuestionFormDeleteOut(Schema):
     """질문 폼 삭제 출력 스키마"""
     message: str = Field(..., description="삭제 완료 메시지")
+
+
+class CenterNoticeOut(Schema):
+    """센터 공지사항 출력 스키마"""
+    id: str = Field(..., description="공지사항 ID")
+    content: str = Field(..., description="공지사항 내용")
+    is_important: bool = Field(..., description="중요 공지사항 여부")
+    created_at: str = Field(..., description="생성일시 (ISO 형식)")
+    updated_at: str = Field(..., description="수정일시 (ISO 형식)")
+
+
+class CenterNoticeListOut(Schema):
+    """센터 공지사항 목록 출력 스키마"""
+    notices: List[CenterNoticeOut] = Field(..., description="공지사항 목록")
+    total: int = Field(..., description="전체 공지사항 수")

@@ -81,9 +81,9 @@ async def create_center_admin(request, data: UserCreateIn):
     try:
         current_user = request.auth
         
-        # 센터 최고관리자 권한 확인
-        if current_user.user_type != User.UserTypeChoice.center_super_admin:
-            raise HttpError(403, "센터 최고관리자만 접근할 수 있습니다.")
+        # 센터 관리자 이상 권한 확인
+        if current_user.user_type not in [User.UserTypeChoice.center_admin, User.UserTypeChoice.center_super_admin]:
+            raise HttpError(403, "센터 관리자 이상의 권한이 필요합니다.")
 
         # 현재 사용자의 센터 조회 (소유한 센터)
         try:
@@ -119,7 +119,8 @@ async def create_center_admin(request, data: UserCreateIn):
 
         # 생성된 사용자 정보 반환
         created_user = await User.objects.aget(id=user.id)
-        return created_user
+        from user.schemas.outbound import UserMeOut
+        return UserMeOut.from_user(created_user)
         
     except HttpError:
         raise
@@ -172,7 +173,8 @@ async def update_center_admin(request, admin_id: str, data: UserUpdateIn):
         
         # 업데이트된 사용자 정보 반환
         updated_user = await User.objects.aget(id=admin_id)
-        return updated_user
+        from user.schemas.outbound import UserMeOut
+        return UserMeOut.from_user(updated_user)
         
     except HttpError:
         raise
@@ -264,7 +266,8 @@ async def change_center_admin_role(request, admin_id: str, data: UserRoleChangeI
         
         # 변경된 사용자 정보 반환
         updated_user = await User.objects.aget(id=admin_id)
-        return updated_user
+        from user.schemas.outbound import UserMeOut
+        return UserMeOut.from_user(updated_user)
         
     except HttpError:
         raise

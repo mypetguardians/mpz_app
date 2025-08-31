@@ -7,7 +7,7 @@ from adoptions.schemas.inbound import (
 from adoptions.schemas.outbound import (
     AdoptionPreCheckOut, AdoptionApplicationOut, 
     AnimalInfoOut, CenterInfoOut, ContractTemplateOut,
-    UserSettingsOut, AdoptionQuestionOut
+    UserSettingsOut, AdoptionQuestionOut, AdoptionWithdrawOut
 )
 from adoptions.models import (
     Adoption, AdoptionQuestion, AdoptionQuestionResponse
@@ -214,15 +214,22 @@ async def submit_adoption_application(request, data: AdoptionApplicationIn):
         if data.question_responses:
             question_response_values = []
             for response in data.question_responses:
-                question_response_values.append(
-                    AdoptionQuestionResponse(
-                        adoption=adoption,
-                        question_id=response.question_id,
-                        answer=response.answer,
+                # AdoptionQuestion 객체 조회
+                try:
+                    question = await AdoptionQuestion.objects.aget(id=response.question_id)
+                    question_response_values.append(
+                        AdoptionQuestionResponse(
+                            adoption=adoption,
+                            question=question,
+                            answer=response.answer,
+                        )
                     )
-                )
+                except AdoptionQuestion.DoesNotExist:
+                    # 질문이 존재하지 않는 경우 건너뛰기
+                    continue
             
-            await AdoptionQuestionResponse.objects.abulk_create(question_response_values)
+            if question_response_values:
+                await AdoptionQuestionResponse.objects.abulk_create(question_response_values)
         
         # 입양 신청 완료 알림 전송 (사용자에게)
         try:
@@ -250,10 +257,14 @@ async def submit_adoption_application(request, data: AdoptionApplicationIn):
             logger.error(f"센터 관리자 알림 전송 실패: {e}")
         
         return 201, AdoptionApplicationOut(
-            message="입양 신청이 성공적으로 제출되었습니다",
-            adoption_id=str(adoption.id),
+            id=str(adoption.id),
+            animal_id=str(animal.id),
             animal_name=animal.name,
-            center_name=animal.center.name
+            center_name=animal.center.name,
+            status="신청",
+            notes=data.notes,
+            created_at=adoption.created_at.isoformat(),
+            updated_at=adoption.updated_at.isoformat()
         )
         
     except HttpError:
@@ -261,3 +272,45 @@ async def submit_adoption_application(request, data: AdoptionApplicationIn):
     except Exception as e:
         print(f"Submit adoption application error: {e}")
         raise HttpError(500, "입양 신청 제출 중 오류가 발생했습니다")
+
+
+@router.delete(
+    "/{adoption_id}/withdraw",
+    summary="[D] 입양 신청 철회",
+    description="사용자가 입양 신청을 철회합니다",
+    response={200: AdoptionWithdrawOut, 401: dict, 403: dict, 404: dict, 500: dict},
+    auth=jwt_auth,
+)
+async def withdraw_adoption_application(request, adoption_id: str):
+    """입양 신청을 철회합니다."""
+    try:
+        current_user = request.auth
+        
+        # 입양 신청 조회 (user와 animal, center 모두 함께 조회)
+        try:
+            adoption = await Adoption.objects.select_related('user', 'animal', 'animal__center').aget(id=adoption_id)
+        except Adoption.DoesNotExist:
+            raise HttpError(404, "입양 신청을 찾을 수 없습니다")
+        
+        # 본인의 입양 신청인지 확인
+        if str(adoption.user.id) != str(current_user.id):
+            raise HttpError(403, "본인의 입양 신청만 철회할 수 있습니다")
+        
+        # 철회 가능한 상태인지 확인 (신청, 미팅, 계약서작성 상태만 철회 가능)
+        if adoption.status not in ["신청", "미팅", "계약서작성"]:
+            raise HttpError(400, f"현재 상태({adoption.status})에서는 철회할 수 없습니다")
+        
+        # 입양 신청 상태를 철회로 변경
+        adoption.status = "취소"
+        await adoption.asave()
+        
+        return 200, AdoptionWithdrawOut(
+            message="입양 신청이 성공적으로 철회되었습니다",
+            adoption_id=adoption_id,
+            status="취소"
+        )
+        
+    except HttpError:
+        raise
+    except Exception as e:
+        raise HttpError(500, f"입양 신청 철회 중 오류가 발생했습니다: {str(e)}")

@@ -8,7 +8,7 @@ class PostCreateIn(Schema):
     content: str = Field(..., min_length=1, description="게시글 내용")
     tags: Optional[List[str]] = Field(None, description="태그 목록")
     images: Optional[List[str]] = Field(None, description="이미지 URL 목록")
-    adoption_id: Optional[str] = Field(None, description="관련 입양 ID")
+    animal_id: Optional[str] = Field(None, description="관련 동물 ID")
     is_all_access: Optional[bool] = Field(True, description="전체 공개 여부")
 
 
@@ -18,7 +18,7 @@ class PostUpdateIn(Schema):
     content: Optional[str] = Field(None, min_length=1, description="게시글 내용")
     tags: Optional[List[str]] = Field(None, description="태그 목록")
     images: Optional[List[str]] = Field(None, description="이미지 URL 목록")
-    adoption_id: Optional[str] = Field(None, description="관련 입양 ID")
+    animal_id: Optional[str] = Field(None, description="관련 동물 ID")
     is_all_access: Optional[bool] = Field(True, description="전체 공개 여부")
 
 

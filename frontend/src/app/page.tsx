@@ -20,10 +20,6 @@ export default function Home() {
   const [selectedLocation, setSelectedLocation] = useState<string>("");
   const { aiMatchingResult } = useMatchingStepStore();
 
-  console.log("=== Home 페이지 렌더링 ===");
-  console.log("isAuthenticated:", isAuthenticated);
-  console.log("aiMatchingResult:", aiMatchingResult);
-
   const {
     data: animalsData,
     isLoading,

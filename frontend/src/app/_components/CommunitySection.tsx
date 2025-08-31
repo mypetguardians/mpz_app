@@ -4,7 +4,6 @@ import { MiniButton } from "@/components/ui/MiniButton";
 import { CommunityCard } from "@/components/ui/CommunityCard";
 import { MainSection } from "@/components/common/MainSection";
 import { useGetPublicPosts } from "@/hooks/query/useGetPublicPosts";
-import { useAuth } from "@/components/providers/AuthProvider";
 import type { Post } from "@/types/posts";
 import type { User } from "@/types/auth";
 
@@ -14,7 +13,6 @@ interface CommunitySectionProps {
 
 export function CommunitySection({ users = [] }: CommunitySectionProps) {
   const router = useRouter();
-  const { user } = useAuth();
 
   // useGetPosts 훅을 사용하여 최신 게시물 3개를 가져옴
   const {
@@ -24,7 +22,6 @@ export function CommunitySection({ users = [] }: CommunitySectionProps) {
   } = useGetPublicPosts({
     page: 1,
     limit: 3,
-    userType: user?.userType,
   });
 
   const handleMorePosts = () => {
@@ -58,7 +55,7 @@ export function CommunitySection({ users = [] }: CommunitySectionProps) {
   }
 
   // 게시글이 없는 경우
-  if (!postsData?.posts || postsData.posts.length === 0) {
+  if (!postsData?.data || postsData.data.length === 0) {
     return (
       <MainSection title="누군가의 가족이 된 순간들">
         <div className="text-center py-8">
@@ -81,7 +78,7 @@ export function CommunitySection({ users = [] }: CommunitySectionProps) {
   return (
     <MainSection title="누군가의 가족이 된 순간들">
       <div className="flex flex-col gap-4">
-        {postsData.posts.slice(0, 3).map((item: Post) => (
+        {postsData.data.slice(0, 3).map((item: Post) => (
           <div
             key={item.id}
             className="cursor-pointer"

@@ -8,8 +8,12 @@ export { useGetAnimalAdoptions } from "./query/useGetAdoptions";
 
 export { useGetComments } from "./query/useGetComments";
 export { useGetNotifications } from "./query/useGetNotifications";
-export { useGetPublicPosts } from "./query/useGetPublicPosts";
-export { useGetPublicPostDetail } from "./query/useGetPublicPosts";
+export {
+  useGetPublicPosts,
+  useGetPublicPostDetail,
+  useGetCenterPosts,
+  useGetCenterPostDetail,
+} from "./query/useGetPublicPosts";
 export { useGetUserProfile } from "./query/useGetUserProfile";
 export { useGetMyProfile } from "./query/useGetMyProfile";
 export { useGetMyCenter, invalidateMyCenter } from "./query/useGetMyCenter";

@@ -12,7 +12,10 @@ import { CommunityCard, CommunityCardSkeleton } from "@/components/ui";
 import { TabButton } from "@/components/ui/TabButton";
 import { BigButton } from "@/components/ui/BigButton";
 import { IconButton } from "@/components/ui/IconButton";
-import { useGetPublicPosts } from "@/hooks/query/useGetPublicPosts";
+import {
+  useGetPublicPosts,
+  useGetCenterPosts,
+} from "@/hooks/query/useGetPublicPosts";
 import { useGetSystemTags } from "@/hooks/query/useGetPublicPosts";
 import { useDeletePost } from "@/hooks/mutation/useDeletePost";
 import { useQueryClient } from "@tanstack/react-query";
@@ -93,16 +96,43 @@ export default function CommunityPage() {
     }
   }, [systemTags, activeTab]);
 
-  // 실제 posts 데이터 가져오기
+  // 사용자 권한에 따라 적절한 API 호출
+  const isCenterUser =
+    user?.userType === "센터관리자" ||
+    user?.userType === "훈련사" ||
+    user?.userType === "센터최고관리자";
+
+  // 센터권한자용 게시글 조회
   const {
-    data: postsData,
-    isLoading,
-    error,
+    data: centerPostsData,
+    isLoading: centerPostsLoading,
+    error: centerPostsError,
+  } = useGetCenterPosts({
+    tags: activeTab !== "latest" ? [activeTab] : undefined,
+  });
+
+  // 일반 사용자용 게시글 조회
+  const {
+    data: publicPostsData,
+    isLoading: publicPostsLoading,
+    error: publicPostsError,
   } = useGetPublicPosts({
     tags: activeTab !== "latest" ? [activeTab] : undefined,
-    userType: user?.userType,
-    // 센터공개, 전체공개 옵션
   });
+
+  // 권한에 따라 적절한 데이터 선택 및 필터링
+  let postsData = isCenterUser ? centerPostsData : publicPostsData;
+
+  // 일반 사용자인 경우 전체공개 게시글만 필터링
+  if (!isCenterUser && publicPostsData?.data) {
+    postsData = {
+      ...publicPostsData,
+      data: publicPostsData.data.filter((post) => post.isAllAccess),
+    };
+  }
+
+  const isLoading = isCenterUser ? centerPostsLoading : publicPostsLoading;
+  const error = isCenterUser ? centerPostsError : publicPostsError;
 
   // 게시글 삭제 훅
   const deletePostMutation = useDeletePost();

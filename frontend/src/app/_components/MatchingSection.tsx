@@ -42,7 +42,6 @@ export function MatchingSection({
   const testId = userAITestInfo?.tests?.[0]?.test_id;
   const { data: userAIMatchingResult, isLoading: aiLoading } =
     useGetAIPersonalityTest(testId || "");
-  console.log("userAIMatchingResult", userAIMatchingResult);
 
   const finalAIMatchingResult = aiMatchingResult || userAIMatchingResult;
 

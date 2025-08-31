@@ -63,10 +63,19 @@ class Animal(BaseModel):
     basic_training = models.PositiveIntegerField(default=0, help_text="기본 훈련 상태")
     trainer_comment = models.TextField(blank=True, null=True, help_text="훈련사 코멘트")
     
+    # 공공데이터 관련 필드 (최소한만 유지)
+    is_public_data = models.BooleanField(default=False, help_text="공공데이터 여부")
+    public_notice_number = models.CharField(max_length=50, blank=True, null=True, unique=True, help_text="공공데이터 공고번호 (unique)")
+    comment = models.TextField(blank=True, null=True, help_text="공공데이터 특이사항 코멘트")
+    
     class Meta:
         db_table = 'animals'
         verbose_name = '동물'
         verbose_name_plural = '동물들'
+        indexes = [
+            models.Index(fields=['public_notice_number']),  # 공고번호 인덱스
+            models.Index(fields=['is_public_data']),       # 공공데이터 여부 인덱스
+        ]
     
     def __str__(self):
         center_name = self.center.name if self.center else "Unknown Center"
@@ -74,6 +83,20 @@ class Animal(BaseModel):
         status = self.get_status_display() if self.status else "Unknown Status"
         return f"{center_name} - {animal_name} ({status})"
     
+    @property
+    def display_notice_number(self):
+        """공고번호 표시 (announce_number가 없으면 public_notice_number 사용)"""
+        if self.announce_number:
+            return self.announce_number
+        elif self.public_notice_number:
+            return self.public_notice_number
+        else:
+            return "공고번호 없음"
+    
+    @property
+    def is_public_data_animal(self):
+        """공공데이터 동물 여부 확인"""
+        return self.is_public_data and self.public_notice_number
 
 
 

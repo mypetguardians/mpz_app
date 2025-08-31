@@ -33,6 +33,7 @@ class AnimalOut(Schema):
     basic_training: Optional[int] = Field(None, description="기본 훈련 상태")
     trainer_comment: Optional[str] = Field(None, description="훈련사 코멘트")
     announce_number: Optional[str] = Field(None, description="공고번호")
+    display_notice_number: str = Field(..., description="표시용 공고번호 (announce_number 또는 public_notice_number)")
     announcement_date: Optional[str] = Field(None, description="공고일 (ISO 형식)")
     found_location: Optional[str] = Field(None, description="발견 장소")
     admission_date: Optional[str] = Field(None, description="센터 입소일 (ISO 형식)")
@@ -43,6 +44,11 @@ class AnimalOut(Schema):
     animal_images: List[AnimalImageOut] = Field(default_factory=list, description="동물 이미지 목록")
     created_at: str = Field(..., description="생성일시 (ISO 형식)")
     updated_at: str = Field(..., description="수정일시 (ISO 형식)")
+    
+    # 공공데이터 관련 필드
+    is_public_data: bool = Field(False, description="공공데이터 여부")
+    public_notice_number: Optional[str] = Field(None, description="공공데이터 공고번호")
+    comment: Optional[str] = Field(None, description="공공데이터 특이사항 코멘트")
 
 
 class AnimalListOut(Schema):

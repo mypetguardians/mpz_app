@@ -26,6 +26,7 @@ class AnimalCreateIn(Schema):
     announcement_date: Optional[date] = Field(None, description="공고일")
     found_location: Optional[str] = Field(None, max_length=200, description="발견 장소")
     personality: Optional[str] = Field(None, max_length=500, description="성격")
+    comment: Optional[str] = Field(None, max_length=1000, description="공공데이터 특이사항 코멘트")
 
 
 class AnimalUpdateIn(Schema):

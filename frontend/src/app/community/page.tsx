@@ -100,6 +100,7 @@ export default function CommunityPage() {
     error,
   } = useGetPublicPosts({
     tags: activeTab !== "latest" ? [activeTab] : undefined,
+    userType: user?.userType,
     // 센터공개, 전체공개 옵션
   });
 

@@ -27,3 +27,5 @@ export { useGetCenterAdoptions } from "./useGetCenterAdoptions";
 export { useGetMonitoringStatus } from "./useGetMonitoringStatus";
 export { useGetAdopterDetail } from "./useGetAdopterDetail";
 export { useGetBanners } from "./useGetBanners";
+export { useGetAIPersonalityTest } from "./useGetAIPersonalityTest";
+export { useGetUserAIPersonalityTest } from "./useGetUserAIPersonalityTest";

@@ -4,6 +4,7 @@ import { MiniButton } from "@/components/ui/MiniButton";
 import { CommunityCard } from "@/components/ui/CommunityCard";
 import { MainSection } from "@/components/common/MainSection";
 import { useGetPublicPosts } from "@/hooks/query/useGetPublicPosts";
+import { useAuth } from "@/components/providers/AuthProvider";
 import type { Post } from "@/types/posts";
 import type { User } from "@/types/auth";
 
@@ -13,6 +14,7 @@ interface CommunitySectionProps {
 
 export function CommunitySection({ users = [] }: CommunitySectionProps) {
   const router = useRouter();
+  const { user } = useAuth();
 
   // useGetPosts 훅을 사용하여 최신 게시물 3개를 가져옴
   const {
@@ -22,6 +24,7 @@ export function CommunitySection({ users = [] }: CommunitySectionProps) {
   } = useGetPublicPosts({
     page: 1,
     limit: 3,
+    userType: user?.userType,
   });
 
   const handleMorePosts = () => {

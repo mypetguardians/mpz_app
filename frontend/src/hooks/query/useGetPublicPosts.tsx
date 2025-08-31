@@ -20,6 +20,7 @@ const transformRawPostToPost = (raw: ApiPostResponse): Post => {
     contentTags: raw.content_tags,
     likeCount: raw.like_count,
     commentCount: raw.comment_count,
+    isAllAccess: raw.is_all_access,
     createdAt: raw.created_at,
     updatedAt: raw.updated_at,
     userNickname: raw.user_nickname,
@@ -105,12 +106,19 @@ const getSystemTags = async (): Promise<SystemTag[]> => {
   return response.data;
 };
 
-export const useGetPublicPosts = (params?: GetPostsParams) => {
+export const useGetPublicPosts = (
+  params?: GetPostsParams & { userType?: string }
+) => {
   return useQuery({
     queryKey: ["posts", params],
     queryFn: () => getPublicPosts(params),
     select: (data: ApiPostsResponse) => {
-      const transformedPosts = data.data.map(transformRawPostToPost);
+      let transformedPosts = data.data.map(transformRawPostToPost);
+
+      // 일반 사용자인 경우 is_all_access가 true인 게시글만 표시
+      if (params?.userType === "일반사용자") {
+        transformedPosts = transformedPosts.filter((post) => post.isAllAccess);
+      }
 
       return {
         posts: transformedPosts,

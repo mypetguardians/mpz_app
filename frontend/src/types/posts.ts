@@ -9,6 +9,8 @@ export interface ApiPostResponse {
   content_tags: Record<string, unknown>;
   like_count: number;
   comment_count: number;
+  is_liked: boolean;
+  is_all_access: boolean;
   created_at: string;
   updated_at: string;
   user_nickname: string;
@@ -50,6 +52,7 @@ export interface Post {
   contentTags: Record<string, unknown> | null;
   likeCount: number;
   commentCount: number;
+  isAllAccess: boolean;
   createdAt: string;
   updatedAt: string;
   userNickname: string;

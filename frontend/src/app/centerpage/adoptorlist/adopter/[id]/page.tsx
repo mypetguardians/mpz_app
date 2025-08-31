@@ -71,9 +71,9 @@ export default function AdoptorlistDetailPage({
   // 로딩 상태 처리
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-bg flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-screen bg-bg">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <div className="w-12 h-12 mx-auto mb-4 border-b-2 rounded-full animate-spin border-primary"></div>
           <p className="text-gr">데이터를 불러오는 중...</p>
         </div>
       </div>
@@ -83,12 +83,12 @@ export default function AdoptorlistDetailPage({
   // 에러 상태 처리
   if (error || !adopterDetail) {
     return (
-      <div className="min-h-screen bg-bg flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-screen bg-bg">
         <div className="text-center">
-          <p className="text-red mb-4">데이터를 불러올 수 없습니다.</p>
+          <p className="mb-4 text-red">데이터를 불러올 수 없습니다.</p>
           <button
             onClick={handleBack}
-            className="px-4 py-2 bg-primary text-white rounded-lg"
+            className="px-4 py-2 text-white rounded-lg bg-primary"
           >
             뒤로 가기
           </button>
@@ -138,10 +138,10 @@ export default function AdoptorlistDetailPage({
         />
 
         {/* Main Content */}
-        <div className="flex-1 bg-white rounded-t-3xl -mt-4 relative z-10">
+        <div className="relative z-10 flex-1 -mt-4 bg-white rounded-t-3xl">
           <div className="p-4">
             <div className="py-7">
-              <h2 className="text-bk mb-2">모니터링 현황</h2>
+              <h2 className="mb-2 text-bk">모니터링 현황</h2>
               <div className="flex items-center gap-2 text-sm">
                 {adopterDetail.monitoringStatus.isDelayed ? (
                   <h6 className="text-red">
@@ -163,7 +163,7 @@ export default function AdoptorlistDetailPage({
 
             {/* Pet Info */}
             <SectionLine>
-              <h3 className="text-bk mb-3">입양 신청 동물</h3>
+              <h3 className="mb-3 text-bk">입양 신청 동물</h3>
               <PetCard pet={petCardData} variant="variant4" />
             </SectionLine>
 
@@ -177,10 +177,14 @@ export default function AdoptorlistDetailPage({
                 status: adopterDetail.animal.status as
                   | "보호중"
                   | "입양완료"
-                  | "무지개다리"
                   | "임시보호중"
                   | "반환"
-                  | "방사",
+                  | "방사"
+                  | "자연사"
+                  | "안락사"
+                  | "입양대기"
+                  | "취소"
+                  | "입양진행중",
                 age: adopterDetail.animal.age,
                 weight: adopterDetail.animal.weight,
                 color: adopterDetail.animal.color,
@@ -220,16 +224,16 @@ export default function AdoptorlistDetailPage({
             <SectionLine>
               {/* My Information */}
               <div className="mb-6">
-                <h3 className="text-bk mb-3">입양 신청자 정보</h3>
-                <div className="bg-white rounded-lg p-4">
+                <h3 className="mb-3 text-bk">입양 신청자 정보</h3>
+                <div className="p-4 bg-white rounded-lg">
                   <table className="w-full">
                     <tbody className="space-y-1">
                       <tr>
-                        <td className="text-gr h5 py-1 pr-3 align-top w-20">
+                        <td className="w-20 py-1 pr-3 align-top text-gr h5">
                           이름
                         </td>
-                        <td className="text-sm py-1">
-                          <div className="py-1 px-3">
+                        <td className="py-1 text-sm">
+                          <div className="px-3 py-1">
                             {adopterDetail.user.nickname ||
                               adopterDetail.user.name ||
                               "정보 없음"}
@@ -237,31 +241,31 @@ export default function AdoptorlistDetailPage({
                         </td>
                       </tr>
                       <tr>
-                        <td className="text-gr h5 py-1 pr-3 align-top w-20">
+                        <td className="w-20 py-1 pr-3 align-top text-gr h5">
                           전화번호
                         </td>
-                        <td className="text-sm py-1">
-                          <div className="py-1 px-3">
+                        <td className="py-1 text-sm">
+                          <div className="px-3 py-1">
                             {adopterDetail.user.phoneNumber || "정보 없음"}
                           </div>
                         </td>
                       </tr>
                       <tr>
-                        <td className="text-gr h5 py-1 pr-3 align-top w-20">
+                        <td className="w-20 py-1 pr-3 align-top text-gr h5">
                           입양상태
                         </td>
-                        <td className="text-sm py-1">
-                          <div className="py-1 px-3">
+                        <td className="py-1 text-sm">
+                          <div className="px-3 py-1">
                             {adopterDetail.adoption.status}
                           </div>
                         </td>
                       </tr>
                       <tr>
-                        <td className="text-gr h5 py-1 pr-3 align-top w-20">
+                        <td className="w-20 py-1 pr-3 align-top text-gr h5">
                           신청일
                         </td>
-                        <td className="text-sm py-1">
-                          <div className="py-1 px-3">
+                        <td className="py-1 text-sm">
+                          <div className="px-3 py-1">
                             {new Date(
                               adopterDetail.adoption.createdAt
                             ).toLocaleDateString()}
@@ -276,7 +280,7 @@ export default function AdoptorlistDetailPage({
 
             {/* My Responses */}
             <SectionLine>
-              <h3 className="text-bk mb-3">폼 응답</h3>
+              <h3 className="mb-3 text-bk">폼 응답</h3>
               <div className="flex flex-col">
                 {adopterDetail.questionResponses.length > 0 ? (
                   adopterDetail.questionResponses.map((response, index) => (
@@ -289,7 +293,7 @@ export default function AdoptorlistDetailPage({
                     </div>
                   ))
                 ) : (
-                  <p className="text-gr py-4 text-center">
+                  <p className="py-4 text-center text-gr">
                     응답된 질문이 없습니다.
                   </p>
                 )}
@@ -297,7 +301,7 @@ export default function AdoptorlistDetailPage({
             </SectionLine>
 
             {/* Action Buttons */}
-            <div className="space-y-3 pb-6">
+            <div className="pb-6 space-y-3">
               <BigButton
                 variant="variant5"
                 onClick={handleViewConsent}

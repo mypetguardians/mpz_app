@@ -7,6 +7,7 @@ import { useCheckCenterFavorite } from "@/hooks/query/useCheckCenterFavorite";
 import { useToggleCenterFavorite } from "@/hooks/mutation/useToggleCenterFavorite";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { Center, transformRawCenterToCenter } from "@/types/center";
+import { CenterCardSkeleton } from "@/components/ui/CenterCardSkeleton";
 
 function CenterTab() {
   const [centers, setCenters] = useState<Center[]>([]);
@@ -24,9 +25,7 @@ function CenterTab() {
 
   useEffect(() => {
     if (centersData) {
-      // 새로운 API 응답 구조에 맞게 data 필드 사용
       const rawCenters = centersData.data || [];
-
       if (rawCenters) {
         const transformedCenters = rawCenters.map(transformRawCenterToCenter);
         setCenters(transformedCenters);
@@ -82,8 +81,10 @@ function CenterTab() {
   // 로딩 상태 처리
   if (isApiLoading && (!centers || centers.length === 0)) {
     return (
-      <div className="text-center py-8">
-        <div className="text-gray-500">로딩 중...</div>
+      <div className="flex flex-col gap-4 px-4">
+        {[...Array(5)].map((_, index) => (
+          <CenterCardSkeleton key={index} />
+        ))}
       </div>
     );
   }
@@ -107,18 +108,16 @@ function CenterTab() {
   }
 
   return (
-    <div>
-      <div className="flex flex-col gap-4 px-4">
-        {centers?.map((center, idx) => (
-          <CenterCardWithFavorite
-            key={center.id ?? idx}
-            center={center}
-            isAuthenticated={isAuthenticated}
-            onLikeToggle={handleLikeToggle}
-            localFavorite={localFavorites[center.id]}
-          />
-        ))}
-      </div>
+    <div className="flex flex-col gap-4 px-4">
+      {centers?.map((center, idx) => (
+        <CenterCardWithFavorite
+          key={center.id ?? idx}
+          center={center}
+          isAuthenticated={isAuthenticated}
+          onLikeToggle={handleLikeToggle}
+          localFavorite={localFavorites[center.id]}
+        />
+      ))}
     </div>
   );
 }

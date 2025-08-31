@@ -208,15 +208,25 @@ export default function AdoptionPage() {
                     isFemale: adoption.animal_is_female,
                     breed: adoption.animal_breed || "종 미등록",
                     status: (() => {
-                      const status = adoption.animal_status || "보호중";
-                      if (status === "자연사") return "보호중";
-                      return status as
-                        | "보호중"
-                        | "입양완료"
-                        | "무지개다리"
-                        | "임시보호중"
-                        | "반환"
-                        | "방사";
+                      // 입양 신청 상태에 따라 동물 상태를 결정
+                      const adoptionStatus = adoption.status;
+                      if (adoptionStatus === "취소") {
+                        return "취소";
+                      } else if (adoptionStatus === "입양완료") {
+                        return "입양완료";
+                      } else {
+                        // 그 외의 경우 동물의 원래 상태를 사용
+                        const status = adoption.animal_status || "보호중";
+                        return status as
+                          | "보호중"
+                          | "입양완료"
+                          | "임시보호중"
+                          | "입양대기"
+                          | "입양진행중"
+                          | "방사"
+                          | "반환"
+                          | "취소";
+                      }
                     })(),
                     centerId: adoption.center_id,
                     animalImages: adoption.animal_image

@@ -47,13 +47,13 @@ export const useGetCenterByLocation = (params?: {
   });
 };
 
-// 보호소 ID로 특정 보호소 조회 훅
+// 보호센터 ID로 특정 보호센터 조회 훅
 export const useGetCenterById = (centerId?: string) => {
   return useQuery({
     queryKey: ["center", centerId],
     queryFn: async () => {
       if (!centerId) {
-        throw new Error("보호소 ID가 필요합니다");
+        throw new Error("보호센터 ID가 필요합니다");
       }
 
       const response = await instance.get(`/centers/${centerId}`);

@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Bell, Plus } from "@phosphor-icons/react";
 
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
 import { NavBar } from "@/components/common/NavBar";
-import { CommunityCard } from "@/components/ui/CommunityCard";
+import { CommunityCard, CommunityCardSkeleton } from "@/components/ui";
 import { TabButton } from "@/components/ui/TabButton";
 import { BigButton } from "@/components/ui/BigButton";
 import { IconButton } from "@/components/ui/IconButton";
@@ -18,6 +19,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { CustomModal } from "@/components/ui/CustomModal";
 import { Toast } from "@/components/ui/Toast";
+import { useGetBanners } from "@/hooks/query/useGetBanners";
 
 export default function CommunityPage() {
   const router = useRouter();
@@ -27,8 +29,42 @@ export default function CommunityPage() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
+  // TODO 배너 종류 구분
+  const { data: banners, isLoading: bannersLoading } = useGetBanners({
+    type: "main",
+  });
+
   // 시스템 태그 가져오기
   const { data: systemTags, isLoading: tagsLoading } = useGetSystemTags();
+
+  // 배너 섹션 컴포넌트
+  const BannerSection = () => {
+    // 로딩 중이거나 배너가 없으면 섹션 자체를 렌더링하지 않음
+    if (bannersLoading || !banners?.data || banners.data.length === 0) {
+      return null;
+    }
+
+    return (
+      <div className="py-5 px-0 border-b border-bg">
+        <div className="flex py-[27px] px-5 justify-between items-center rounded-lg">
+          <div className="flex gap-2">
+            {banners.data.slice(0, 3).map((banner) => (
+              <div key={banner.id} className="flex items-center gap-2">
+                <Image
+                  src={banner.image_url}
+                  alt={banner.alt}
+                  width={32}
+                  height={32}
+                  className="w-8 h-8 rounded object-fill"
+                />
+                <span className="text-sm text-brand">{banner.title}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // 기본 탭과 시스템 태그를 조합하여 탭 옵션 생성
   const tabs = useMemo(() => {
@@ -131,8 +167,26 @@ export default function CommunityPage() {
             />
           }
         />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <div className="w-full overflow-x-auto scrollbar-hide">
+          {/* 탭 스켈레톤 */}
+          <div className="flex gap-2 px-4 py-3">
+            <div className="w-20 h-10 bg-gray-200 rounded-lg animate-pulse" />
+            <div className="w-24 h-10 bg-gray-200 rounded-lg animate-pulse" />
+            <div className="w-20 h-10 bg-gray-200 rounded-lg animate-pulse" />
+          </div>
+        </div>
+        <div className="mx-4 flex-1 overflow-y-auto">
+          {/* 게시글 스켈레톤 */}
+          <div className="space-y-4">
+            {[...Array(5)].map((_, index) => (
+              <div key={index}>
+                {(index === 0 || (index + 1) % 3 === 0) && <BannerSection />}
+                <div className="pt-4">
+                  <CommunityCardSkeleton />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
         <NavBar />
       </Container>
@@ -190,13 +244,24 @@ export default function CommunityPage() {
           tabs={tabs}
           variant="primary"
         />
-        {/* 디버깅용: tabs 배열 확인 */}
         {(() => {
           return null;
         })()}
       </div>
       <div className="mx-4 flex-1 overflow-y-auto">
-        {posts.length === 0 ? (
+        {isLoading ? (
+          // 로딩 중일 때 스켈레톤 표시
+          <div className="space-y-4">
+            {[...Array(5)].map((_, index) => (
+              <div key={index}>
+                {(index === 0 || (index + 1) % 3 === 0) && <BannerSection />}
+                <div className="pt-4">
+                  <CommunityCardSkeleton />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : posts.length === 0 ? (
           <div className="flex flex-col h-full items-center justify-center">
             <h5 className="text-lg text-sm text-center">
               아직 업로드된 게시글이 없어요.
@@ -207,13 +272,7 @@ export default function CommunityPage() {
           <div className="cursor-pointer">
             {posts.map((post, index) => (
               <div key={post.id}>
-                {(index === 0 || (index + 1) % 3 === 0) && (
-                  <div className="py-5 px-0 border-b border-bg">
-                    <div className="flex bg-brand-light/50 py-[27px] px-5 justify-between items-center rounded-lg">
-                      <h5 className="text-wh">쇼핑몰 연계 배너</h5>
-                    </div>
-                  </div>
-                )}
+                {(index === 0 || (index + 1) % 3 === 0) && <BannerSection />}
                 <div className="pt-4">
                   <a href={`/community/${post.id}`} className="block">
                     <CommunityCard
@@ -271,12 +330,10 @@ export default function CommunityPage() {
         variant="variant2"
         onCtaClick={() => {
           setIsLoginModalOpen(false);
-          // 로그인 성공 후 글쓰기 페이지로 이동
           router.push("/login");
         }}
         onSubLinkClick={() => {
           setIsLoginModalOpen(false);
-          // 센터 계정 로그인 성공 후 글쓰기 페이지로 이동
           router.push("/login");
         }}
       />

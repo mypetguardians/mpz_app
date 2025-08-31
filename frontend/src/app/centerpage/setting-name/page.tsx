@@ -64,12 +64,12 @@ export default function CenterSettingName() {
 
     // 필수 필드 검증
     if (!centerName.trim()) {
-      showToastMessage("보호소 이름을 입력해주세요.");
+      showToastMessage("보호센터 이름을 입력해주세요.");
       return;
     }
 
     if (!address.trim()) {
-      showToastMessage("보호소 주소를 입력해주세요.");
+      showToastMessage("보호센터 주소를 입력해주세요.");
       return;
     }
 
@@ -155,7 +155,7 @@ export default function CenterSettingName() {
           }
         />
         <div className="w-full flex items-center justify-center min-h-[400px]">
-          <div className="text-dg">보호소를 찾을 수 없습니다.</div>
+          <div className="text-dg">보호센터를 찾을 수 없습니다.</div>
         </div>
       </Container>
     );
@@ -180,15 +180,15 @@ export default function CenterSettingName() {
         <ImageCard variant="add" />
         <CustomInput
           variant="primary"
-          label="보호소 이름"
-          placeholder="보호소 이름을 입력해주세요."
+          label="보호센터 이름"
+          placeholder="보호센터 이름을 입력해주세요."
           required={true}
           value={centerName}
           onChange={(e) => setCenterName(e.target.value)}
         />
         <CustomInput
           variant="primary"
-          label="보호소 번호"
+          label="보호센터 번호"
           placeholder="000-0000-0000"
           required={false}
           value={centerNumber}
@@ -203,11 +203,11 @@ export default function CenterSettingName() {
         />
         <div className="flex flex-col gap-3">
           <h5 className="text-dg">
-            보호소 주소 <span className="text-brand">*</span>
+            보호센터 주소 <span className="text-brand">*</span>
           </h5>
           <CustomInput
             variant="primary"
-            placeholder="보호소 주소를 입력해주세요."
+            placeholder="보호센터 주소를 입력해주세요."
             required={true}
             value={address}
             onChange={(e) => setAddress(e.target.value)}

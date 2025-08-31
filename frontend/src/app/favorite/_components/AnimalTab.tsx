@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { PetCard } from "@/components/ui/PetCard";
+import { PetCard, PetCardSkeleton } from "@/components/ui";
 import { useGetAnimalFavorites } from "@/hooks";
 
 const ITEMS_PER_PAGE = 10;
@@ -44,13 +44,13 @@ function AnimalTab() {
   // 에러 상태
   if (error) {
     return (
-      <div className="text-center py-8">
-        <div className="text-red-500 mb-2">
+      <div className="py-8 text-center">
+        <div className="mb-2 text-red-500">
           찜한 동물을 불러오는데 실패했습니다.
         </div>
         <button
           onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          className="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
         >
           다시 시도
         </button>
@@ -61,7 +61,7 @@ function AnimalTab() {
   // 데이터가 없고 로딩 중이 아닌 경우
   if (pets.length === 0 && !isLoading) {
     return (
-      <div className="text-center py-8">
+      <div className="py-8 text-center">
         <div className="text-gray-500">찜한 동물이 없습니다</div>
       </div>
     );
@@ -82,7 +82,17 @@ function AnimalTab() {
                 name: pet.name,
                 breed: pet.breed,
                 isFemale: pet.isFemale,
-                status: pet.status,
+                status: pet.status as
+                  | "보호중"
+                  | "입양완료"
+                  | "반환"
+                  | "방사"
+                  | "임시보호중"
+                  | "자연사"
+                  | "안락사"
+                  | "입양대기"
+                  | "취소"
+                  | "입양진행중",
                 animalImages: [],
                 centerId: pet.centerId,
                 foundLocation: pet.centerName || "",
@@ -97,17 +107,25 @@ function AnimalTab() {
 
       {/* 로딩 상태 */}
       {(isLoading || isFetching) && (
-        <div className="text-center py-4">
-          <div className="text-gray-500">로딩 중...</div>
+        <div className="flex flex-wrap justify-start gap-2 px-4">
+          {[...Array(4)].map((_, index) => (
+            <div key={index} className="w-[calc(50%-4px)]">
+              <PetCardSkeleton
+                variant="primary"
+                imageSize="full"
+                className="w-full"
+              />
+            </div>
+          ))}
         </div>
       )}
 
       {/* 더 보기 버튼 */}
       {hasMore && !isFetching && (
-        <div className="text-center py-4">
+        <div className="py-4 text-center">
           <button
             onClick={loadMorePets}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+            className="px-4 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
           >
             더 보기
           </button>
@@ -116,7 +134,7 @@ function AnimalTab() {
 
       {/* 전체 개수 표시 */}
       {total > 0 && (
-        <div className="text-center py-2 text-sm text-gray-500">
+        <div className="py-2 text-sm text-center text-gray-500">
           총 {total}개의 찜한 동물
         </div>
       )}

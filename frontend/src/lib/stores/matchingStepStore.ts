@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { AIRecommendResponse } from "@/types/ai-matching";
 
 // 각 단계별 답변 타입 정의
 type StepAnswer =
@@ -18,9 +19,12 @@ interface MatchingStepStore {
   currentStep: number;
   completedSteps: number[];
   answers: Record<number, StepAnswer>;
+  aiMatchingResult: AIRecommendResponse | null; // AI 매칭 결과 저장
+
   setCurrentStep: (step: number) => void;
   setStepAnswer: (step: number, answer: StepAnswer) => void;
   markStepCompleted: (step: number) => void;
+  setAIMatchingResult: (result: AIRecommendResponse) => void; // AI 매칭 결과 설정
   resetSteps: () => void;
   goToNextStep: () => void;
   goToPreviousStep: () => void;
@@ -33,6 +37,7 @@ export const useMatchingStepStore = create<MatchingStepStore>()(
       currentStep: 1,
       completedSteps: [],
       answers: {},
+      aiMatchingResult: null,
 
       setCurrentStep: (step: number) => set({ currentStep: step }),
 
@@ -48,11 +53,15 @@ export const useMatchingStepStore = create<MatchingStepStore>()(
             : [...state.completedSteps, step],
         })),
 
+      setAIMatchingResult: (result: AIRecommendResponse) =>
+        set({ aiMatchingResult: result }),
+
       resetSteps: () =>
         set({
           currentStep: 1,
           completedSteps: [],
           answers: {},
+          aiMatchingResult: null,
         }),
 
       goToNextStep: () => {
@@ -85,6 +94,7 @@ export const useMatchingStepStore = create<MatchingStepStore>()(
         currentStep: state.currentStep,
         completedSteps: state.completedSteps,
         answers: state.answers,
+        aiMatchingResult: state.aiMatchingResult,
       }),
     }
   )

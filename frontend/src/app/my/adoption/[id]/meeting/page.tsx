@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, X } from "@phosphor-icons/react";
 import { useGetUserAdoptionDetail } from "@/hooks/query/useGetUserAdoptionDetail";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { useWithdrawAdoption } from "@/hooks/mutation";
 
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
@@ -30,6 +31,10 @@ export default function MeetingPage({
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
+  // 입양 신청 철회 훅
+  const { mutate: withdrawAdoption, isPending: isWithdrawing } =
+    useWithdrawAdoption();
+
   const {
     data: adoptionDetail,
     isLoading,
@@ -48,12 +53,27 @@ export default function MeetingPage({
 
   const handleWithdrawConfirm = () => {
     setShowWithdrawModal(false);
-    setShowToast(true);
-    // 3초 후 토스트 숨기기
-    setTimeout(() => {
-      setShowToast(false);
-      router.back();
-    }, 3000);
+
+    // 입양 신청 철회 API 호출
+    withdrawAdoption(id, {
+      onSuccess: (data) => {
+        console.log("철회 완료:", data.message);
+        setShowToast(true);
+        // 3초 후 토스트 숨기기
+        setTimeout(() => {
+          setShowToast(false);
+          router.back();
+        }, 3000);
+      },
+      onError: (error) => {
+        console.error("철회 실패:", error);
+        // 에러 토스트 표시
+        setShowToast(true);
+        setTimeout(() => {
+          setShowToast(false);
+        }, 3000);
+      },
+    });
   };
 
   const handleWithdrawCancel = () => {
@@ -282,10 +302,11 @@ export default function MeetingPage({
                 동의서 보기
               </BigButton>
               <MiniButton
-                text="입양 신청 철회하기"
+                text={isWithdrawing ? "철회 중..." : "입양 신청 철회하기"}
                 variant="primary"
                 leftIcon={<X size={16} />}
                 onClick={handleWithdrawClick}
+                disabled={isWithdrawing}
                 className="w-full"
               />
             </div>
@@ -302,9 +323,9 @@ export default function MeetingPage({
             user?.nickname || "사용자"
           }님의 신중하고 현명한 결정을 존중해요.`}
           leftButtonText="아니요"
-          rightButtonText="네, 철회할래요"
+          rightButtonText={isWithdrawing ? "철회 중..." : "네, 철회할래요"}
           onLeftClick={handleWithdrawCancel}
-          onRightClick={handleWithdrawConfirm}
+          onRightClick={isWithdrawing ? undefined : handleWithdrawConfirm}
         />
 
         {/* Toast */}

@@ -35,6 +35,28 @@ export default function AnimalBasicInfo({
   const validImageUrls = imageUrls.filter((url) => url && url.trim() !== "");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
+  // 상태에 따른 색상 클래스 반환
+  const getStatusColorClass = (status?: string) => {
+    switch (status) {
+      case "자연사":
+      case "안락사":
+        return "bg-orange-100/10";
+      case "입양대기":
+      case "입양진행중":
+      case "보호중":
+        return "bg-green/10 text-green";
+      case "입양완료":
+        return "bg-brand/10 text-brand";
+      case "임시보호중":
+        return "bg-yellow/10 text-yellow";
+      case "방사":
+      case "반환":
+        return "bg-gr/10 text-gr";
+      default:
+        return "bg-gray-300/10 text-gray-600";
+    }
+  };
+
   const nextImage = () => {
     if (validImageUrls.length <= 1) return;
     setCurrentImageIndex((prev) =>
@@ -93,7 +115,19 @@ export default function AnimalBasicInfo({
       {/* 기본 정보 섹션 */}
       <div className="mx-4 py-4 border-b border-lg">
         <div className="flex items-center gap-2 mb-3">
-          <Chip className="bg-green/10 text-green">{tag}</Chip>
+          <Chip className={getStatusColorClass(tag)}>
+            {[
+              "보호중",
+              "입양완료",
+              "임시보호중",
+              "입양대기",
+              "입양진행중",
+              "방사",
+              "반환",
+            ].includes(tag)
+              ? tag
+              : "🌈"}
+          </Chip>
           <h3 className="text-bk">{breed}</h3>
           {isFemale ? (
             <span className="text-red">

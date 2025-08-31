@@ -22,7 +22,7 @@ export function FavoriteLayout({ children }: FavoriteLayoutProps) {
 
   const tabs = [
     { label: "동물", value: "animal", href: "/favorite/animal" },
-    { label: "보호소", value: "center", href: "/favorite/center" },
+    { label: "보호센터", value: "center", href: "/favorite/center" },
   ];
 
   return (

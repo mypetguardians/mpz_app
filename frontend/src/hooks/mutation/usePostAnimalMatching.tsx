@@ -7,7 +7,14 @@ import type {
   AIRecommendResponse,
 } from "@/types/ai-matching";
 
-export const usePostAnimalMatching = () => {
+interface UsePostAnimalMatchingOptions {
+  onSuccess?: (data: AIRecommendResponse) => void;
+  onError?: (error: Error) => void;
+}
+
+export const usePostAnimalMatching = (
+  options?: UsePostAnimalMatchingOptions
+) => {
   const queryClient = useQueryClient();
 
   return useMutation<AIRecommendResponse, Error, AIRecommendRequest>({
@@ -18,7 +25,7 @@ export const usePostAnimalMatching = () => {
       );
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       // AI 매칭 결과 관련 쿼리 무효화
       queryClient.invalidateQueries({
         queryKey: ["ai-recommendations"],
@@ -27,6 +34,17 @@ export const usePostAnimalMatching = () => {
       queryClient.invalidateQueries({
         queryKey: ["user-matching-results"],
       });
+
+      // 성공 콜백 실행
+      if (options?.onSuccess) {
+        options.onSuccess(data);
+      }
+    },
+    onError: (error) => {
+      // 에러 콜백 실행
+      if (options?.onError) {
+        options.onError(error);
+      }
     },
   });
 };

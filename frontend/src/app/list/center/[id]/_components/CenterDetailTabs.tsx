@@ -21,7 +21,7 @@ export function CenterDetailTabs({
   animalsLoading,
 }: CenterDetailTabsProps) {
   const tabs = [
-    { label: "보호소 정보", value: "info" as TabType },
+    { label: "보호센터 정보", value: "info" as TabType },
     { label: "보호 동물", value: "animals" as TabType },
   ];
 

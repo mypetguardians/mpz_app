@@ -110,7 +110,7 @@ export interface CreatePostRequest {
   content: string;
   tags: string[];
   images: string[];
-  adoption_id?: string;
+  animal_id?: string;
   is_all_access: boolean;
 }
 
@@ -134,7 +134,6 @@ export interface UpdatePostRequest {
   title?: string;
   content?: string;
   animalId?: string;
-  adoptionId?: string;
   contentTags?: Record<string, unknown>;
   tags?: string[];
   images?: string[];

@@ -132,7 +132,6 @@ class QuestionFormDeleteOut(Schema):
 class CenterNoticeOut(Schema):
     """센터 공지사항 출력 스키마"""
     id: str = Field(..., description="공지사항 ID")
-    title: str = Field(..., description="공지사항 제목")
     content: str = Field(..., description="공지사항 내용")
     is_important: bool = Field(..., description="중요 공지사항 여부")
     created_at: str = Field(..., description="생성일시 (ISO 형식)")

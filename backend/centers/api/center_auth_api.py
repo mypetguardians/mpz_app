@@ -74,9 +74,9 @@ async def get_my_center(request: HttpRequest):
         
         @sync_to_async
         def get_my_center_info():
-            # 센터 관리자 권한 확인
-            if current_user.user_type != "센터관리자":
-                raise HttpError(403, "센터 관리자 권한이 필요합니다")
+            # 센터 관리자, 최고 관리자, 훈련사 권한 확인
+            if current_user.user_type not in ["센터관리자", "센터최고관리자", "훈련사"]:
+                raise HttpError(403, "센터 관리자, 최고 관리자, 훈련사 권한이 필요합니다")
             
             # 사용자의 센터 조회
             try:

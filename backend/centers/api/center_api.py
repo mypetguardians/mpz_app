@@ -148,7 +148,6 @@ async def get_center_notices(request: HttpRequest, center_id: str):
             notices_response = [
                 CenterNoticeOut(
                     id=str(notice.id),
-                    title=notice.title,
                     content=notice.content,
                     is_important=notice.notice_type in ['important', 'urgent'],
                     created_at=notice.created_at.isoformat(),

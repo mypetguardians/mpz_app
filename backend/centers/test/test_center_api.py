@@ -9,6 +9,7 @@ from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
+from ninja.errors import HttpError
 
 
 @override_settings(DJANGO_ENV_NAME="local")
@@ -226,6 +227,108 @@ class TestCenterAPI(TestCase):
         # 403 Forbidden
         self.assertEqual(response.status_code, 403)
 
+    async def test_get_my_center_super_admin_success(self):
+        """최고 관리자 센터 정보 조회 성공 테스트"""
+        # 최고 관리자 사용자 생성
+        @sync_to_async
+        def create_super_admin():
+            super_admin = User.objects.create_user(
+                username="super_admin",
+                password="password1234!",
+                email="super@example.com",
+                user_type=User.UserTypeChoice.center_super_admin,
+                terms_of_service=True,
+                privacy_policy_agreement=True,
+                center=self.center,
+                phone_number="010-1111-1111",
+                is_phone_verified=True,
+                phone_verified_at=timezone.now(),
+                nickname="최고관리자",
+                birth="1990-01-01",
+                address="서울시 강남구",
+                address_is_public=False
+            )
+            return super_admin
+        
+        super_admin = await create_super_admin()
+        
+        # 센터의 owner를 최고 관리자로 설정
+        @sync_to_async
+        def update_center_owner():
+            self.center.owner = super_admin
+            self.center.save()
+        
+        await update_center_owner()
+        
+        # 간단한 인증 방식 사용
+        from centers.api.center_auth_api import get_my_center
+        from django.http import HttpRequest
+        
+        # Mock request 객체 생성
+        request = HttpRequest()
+        request.auth = super_admin
+        
+        # 직접 함수 호출
+        response = await get_my_center(request)
+        
+        # 응답 데이터 구조 확인
+        center = response  # 직접 CenterOut 객체 반환
+        self.assertEqual(center.id, str(self.center.id))
+        self.assertEqual(center.name, self.center.name)
+        self.assertEqual(center.location, self.center.location)  # 자신의 센터이므로 위치 노출
+        self.assertIn("user_id", center.dict())
+
+    async def test_get_my_center_trainer_success(self):
+        """훈련사 센터 정보 조회 성공 테스트"""
+        # 훈련사 사용자 생성
+        @sync_to_async
+        def create_trainer():
+            trainer = User.objects.create_user(
+                username="trainer",
+                password="password1234!",
+                email="trainer@example.com",
+                user_type=User.UserTypeChoice.trainer,
+                terms_of_service=True,
+                privacy_policy_agreement=True,
+                center=self.center,
+                phone_number="010-2222-2222",
+                is_phone_verified=True,
+                phone_verified_at=timezone.now(),
+                nickname="훈련사",
+                birth="1992-01-01",
+                address="서울시 서초구",
+                address_is_public=False
+            )
+            return trainer
+        
+        trainer = await create_trainer()
+        
+        # 센터의 owner를 훈련사로 설정
+        @sync_to_async
+        def update_center_owner():
+            self.center.owner = trainer
+            self.center.save()
+        
+        await update_center_owner()
+        
+        # 간단한 인증 방식 사용
+        from centers.api.center_auth_api import get_my_center
+        from django.http import HttpRequest
+        
+        # Mock request 객체 생성
+        request = HttpRequest()
+        request.auth = trainer
+        
+        # 직접 함수 호출
+        response = await get_my_center(request)
+        
+        # 응답 데이터 구조 확인
+        center = response  # 직접 CenterOut 객체 반환
+        self.assertEqual(center.id, str(self.center.id))
+        self.assertEqual(center.name, self.center.name)
+        self.assertEqual(center.location, self.center.location)  # 자신의 센터이므로 위치 노출
+        self.assertIn("user_id", center.dict())
+
     async def test_update_center_settings_success(self):
         """센터 설정 수정 성공 테스트"""
         headers = await self.authenticate()
@@ -367,13 +470,12 @@ class TestCenterAPI(TestCase):
         self.assertEqual(len(response_data["notices"]), 2)
         
         # 공지사항 순서 확인 (최신순)
-        self.assertEqual(response_data["notices"][0]["title"], "일반 공지사항")
-        self.assertEqual(response_data["notices"][1]["title"], "중요 공지사항")
+        self.assertEqual(response_data["notices"][0]["content"], "이것은 일반적인 공지사항입니다.")
+        self.assertEqual(response_data["notices"][1]["content"], "이것은 중요한 공지사항입니다.")
         
         # 공지사항 내용 검증
         first_notice = response_data["notices"][0]
         self.assertIn("id", first_notice)
-        self.assertIn("title", first_notice)
         self.assertIn("content", first_notice)
         self.assertIn("is_important", first_notice)
         self.assertIn("created_at", first_notice)
@@ -434,4 +536,4 @@ class TestCenterAPI(TestCase):
         response_data = response.json()
         self.assertEqual(response_data["total"], 1)
         self.assertEqual(len(response_data["notices"]), 1)
-        self.assertEqual(response_data["notices"][0]["title"], "활성 공지사항")
+        self.assertEqual(response_data["notices"][0]["content"], "이것은 활성화된 공지사항입니다.")

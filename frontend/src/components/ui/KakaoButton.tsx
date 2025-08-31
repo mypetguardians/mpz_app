@@ -24,7 +24,7 @@ export function KakaoButton({
       setIsLoading(true);
 
       // 클라이언트 사이드에서 카카오 인증 URL 구성
-      const clientId = process.env.KAKAO_CLIENT_ID;
+      const clientId = "0ac4fb684d8e1e469976ec2b35f73857";
       const redirectUri =
         "https://mpz-fullstack.vercel.app/v1/kakao/login/callback";
 

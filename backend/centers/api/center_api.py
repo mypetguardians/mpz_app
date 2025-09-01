@@ -7,12 +7,14 @@ from typing import List
 from centers.models import Center
 from centers.schemas.inbound import (
     CenterListQueryIn,
+    CenterSubscriptionUpdateIn,
 )
 from centers.schemas.outbound import (
     CenterOut,
     ErrorOut,
     CenterNoticeListOut,
     CenterNoticeOut,
+    CenterSubscriptionOut,
 )
 
 router = Router(tags=["Centers"])
@@ -38,6 +40,7 @@ def _build_center_response(center, show_private_location=False):
         is_public=center.is_public,
         adoption_price=center.adoption_price,
         image_url=center.image_url,
+        is_subscribed=center.is_subscribed,
         created_at=center.created_at.isoformat(),
         updated_at=center.updated_at.isoformat(),
     )
@@ -167,3 +170,89 @@ async def get_center_notices(request: HttpRequest, center_id: str):
         raise
     except Exception as e:
         raise HttpError(500, f"센터 공지사항 조회 중 오류가 발생했습니다: {str(e)}")
+
+
+@router.patch(
+    "/{center_id}/subscription",
+    summary="[U] 센터 구독 상태 변경",
+    description="특정 센터의 구독 상태를 변경합니다.",
+    response={
+        200: CenterSubscriptionOut,
+        404: ErrorOut,
+        500: ErrorOut,
+    },
+)
+async def update_center_subscription(request: HttpRequest, center_id: str, payload: CenterSubscriptionUpdateIn):
+    """센터 구독 상태를 변경합니다."""
+    try:
+        @sync_to_async
+        def update_subscription():
+            try:
+                center = Center.objects.get(id=center_id)
+            except Center.DoesNotExist:
+                raise HttpError(404, "보호소를 찾을 수 없습니다")
+            
+            # 구독 상태 업데이트
+            center.is_subscribed = payload.is_subscribed
+            center.save()
+            
+            # 성공 메시지 생성
+            action = "구독" if payload.is_subscribed else "구독 해제"
+            message = f"{center.name} 센터가 {action}되었습니다."
+            
+            return CenterSubscriptionOut(
+                message=message,
+                is_subscribed=center.is_subscribed,
+                center_id=str(center.id),
+                center_name=center.name
+            )
+        
+        return await update_subscription()
+        
+    except HttpError:
+        raise
+    except Exception as e:
+        raise HttpError(500, f"센터 구독 상태 변경 중 오류가 발생했습니다: {str(e)}")
+
+
+@router.get(
+    "/subscribed",
+    summary="[R] 구독된 센터 목록 조회",
+    description="구독된 센터 목록을 조회합니다.",
+    response={
+        200: List[CenterOut],
+        500: ErrorOut,
+    },
+)
+@paginate
+async def get_subscribed_centers(request: HttpRequest, filters: CenterListQueryIn = Query(CenterListQueryIn())):
+    """구독된 센터 목록을 조회합니다. 혹시몰라서 일단 추가! """
+    try:
+        @sync_to_async
+        def get_subscribed_centers_list():
+            # 구독된 센터만 조회
+            queryset = Center.objects.filter(is_subscribed=True, is_public=True).select_related('owner')
+            
+            # 지역별 필터링
+            if filters.location:
+                queryset = queryset.filter(location__icontains=filters.location)
+            
+            # 지역별 필터링
+            if filters.region:
+                queryset = queryset.filter(region__icontains=filters.region)
+            
+            # 최신순 정렬
+            queryset = queryset.order_by('-created_at')
+            
+            # 응답 데이터 변환
+            centers_response = [
+                _build_center_response(center, show_private_location=False)
+                for center in queryset
+            ]
+            
+            return centers_response
+        
+        return await get_subscribed_centers_list()
+        
+    except Exception as e:
+        raise HttpError(500, f"구독된 센터 목록 조회 중 오류가 발생했습니다: {str(e)}")

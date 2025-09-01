@@ -12,7 +12,6 @@ class Post(BaseModel):
     animal = models.ForeignKey('animals.Animal', on_delete=models.SET_NULL, null=True, blank=True, help_text="관련 동물")
     content_tags = models.JSONField(null=True, blank=True, help_text="콘텐츠 태그")
     like_count = models.IntegerField(default=0, help_text="좋아요 수")
-    comment_count = models.IntegerField(default=0, help_text="댓글 수")
     is_all_access = models.BooleanField(default=True, help_text="전체 공개 여부 (False인 경우 센터 권한자만 접근 가능)")
     
     class Meta:

@@ -25,8 +25,13 @@ from django.db import models
 router = Router(tags=["Posts"])
 
 
-def _build_post_response(post, tags=None, images=None, user_nickname=None, user_image=None):
+def _build_post_response(post, tags=None, images=None, user_nickname=None, user_image=None, comment_count=None):
     """포스트 응답 데이터 구성"""
+    # comment_count가 제공되지 않으면 동적으로 계산
+    if comment_count is None:
+        from comments.models import Comment
+        comment_count = Comment.objects.filter(post=post).count()
+    
     return {
         "id": str(post.id),
         "title": post.title,
@@ -35,7 +40,7 @@ def _build_post_response(post, tags=None, images=None, user_nickname=None, user_
         "animal_id": str(post.animal.id) if post.animal else None,
         "content_tags": getattr(post, 'content_tags', None),
         "like_count": getattr(post, 'like_count', 0),
-        "comment_count": getattr(post, 'comment_count', 0),
+        "comment_count": comment_count,
         "is_liked": False,  # 기본값, 필요시 별도 로직으로 설정
         "is_all_access": getattr(post, 'is_all_access', True),
         "created_at": post.created_at,
@@ -77,7 +82,8 @@ def _build_image_response(image):
         500: dict,
     },
 )
-async def get_all_public_posts(request: HttpRequest, user_id: str = None, system_tags: list[str] = None, is_all_access: bool = None, sort_by: str = "latest"):
+@paginate
+async def get_all_public_posts(request: HttpRequest, user_id: str = None, tags: list[str] = None, is_all_access: bool = None, sort_by: str = "latest"):
     """전체 공개 게시글 목록을 조회합니다."""
     try:
         @sync_to_async
@@ -89,11 +95,11 @@ async def get_all_public_posts(request: HttpRequest, user_id: str = None, system
                 posts_query = posts_query.filter(user_id=user_id)
             
             # 시스템 태그 필터링 적용
-            if system_tags:
+            if tags:
                 try:
                     from posts.models import SystemTag
                     
-                    system_tag_names = [tag.strip().lower() for tag in system_tags if tag.strip()]
+                    system_tag_names = [tag.strip().lower() for tag in tags if tag.strip()]
                     
                     if system_tag_names:
                         # 정규식 기반 매칭 시도
@@ -130,7 +136,7 @@ async def get_all_public_posts(request: HttpRequest, user_id: str = None, system
             posts_response = []
             for post in posts:
                 # 태그 정보 가져오기
-                tags = [_build_tag_response(tag) for tag in PostTag.objects.filter(post=post)]
+                post_tags = [_build_tag_response(tag) for tag in PostTag.objects.filter(post=post)]
                 
                 # 이미지 정보 가져오기
                 images = [_build_image_response(img) for img in PostImage.objects.filter(post=post).order_by('order_index')]
@@ -139,7 +145,7 @@ async def get_all_public_posts(request: HttpRequest, user_id: str = None, system
                 user_nickname = getattr(post.user, 'nickname', post.user.username)
                 user_image = getattr(post.user, 'image', None)
                 
-                post_response = _build_post_response(post, tags, images, user_nickname, user_image)
+                post_response = _build_post_response(post, post_tags, images, user_nickname, user_image)
                 posts_response.append(post_response)
             
             return posts_response
@@ -165,7 +171,7 @@ async def get_all_public_posts(request: HttpRequest, user_id: str = None, system
         500: dict,
     },
 )
-async def get_mixed_access_posts(request: HttpRequest, query: Query[PostListQueryIn]):
+async def get_mixed_access_posts(request: HttpRequest, user_id: str = None, tags: list[str] = None, is_all_access: bool = None, sort_by: str = "latest"):
     """전체 공개와 제한 공개 게시글 목록을 한꺼번에 조회합니다. 제한 공개 게시글은 센터 권한자만 볼 수 있습니다."""
     try:
         current_user = request.auth
@@ -175,18 +181,18 @@ async def get_mixed_access_posts(request: HttpRequest, query: Query[PostListQuer
         @sync_to_async
         def get_mixed_posts():
             # 전체 공개 게시글 조회
-            public_posts_query = Post.objects.filter(is_all_access=True).select_related('user').prefetch_related('posttag_set', 'postimage_set')
+            public_posts_query = Post.objects.filter(is_all_access=True).select_related('user')
             
             # 제한 공개 게시글 조회 (센터 권한자만)
-            private_posts_query = Post.objects.filter(is_all_access=False).select_related('user').prefetch_related('posttag_set', 'postimage_set')
+            private_posts_query = Post.objects.filter(is_all_access=False).select_related('user')
             
             # 필터링 적용 (전체 공개)
-            if query.user_id:
-                public_posts_query = public_posts_query.filter(user_id=query.user_id)
+            if user_id:
+                public_posts_query = public_posts_query.filter(user_id=user_id)
             
             # 필터링 적용 (제한 공개) - 센터 권한자만
-            if query.user_id:
-                private_posts_query = private_posts_query.filter(user_id=query.user_id)
+            if user_id:
+                private_posts_query = private_posts_query.filter(user_id=user_id)
             
             # 센터 권한 체크
             has_center_permission = False
@@ -198,11 +204,11 @@ async def get_mixed_access_posts(request: HttpRequest, query: Query[PostListQuer
                 private_posts_query = Post.objects.none()
             
             # 시스템 태그 필터링 적용 (전체 공개)
-            if query.system_tags:
+            if tags:
                 try:
                     from posts.models import SystemTag
                     
-                    system_tag_names = [tag.strip().lower() for tag in query.system_tags if tag.strip()]
+                    system_tag_names = [tag.strip().lower() for tag in tags if tag.strip()]
                     
                     if system_tag_names:
                         # 정규식 기반 매칭 시도
@@ -235,7 +241,7 @@ async def get_mixed_access_posts(request: HttpRequest, query: Query[PostListQuer
                 posts_response = []
                 for post in posts:
                     # 태그 정보 가져오기
-                    tags = [_build_tag_response(tag) for tag in PostTag.objects.filter(post=post)]
+                    post_tags = [_build_tag_response(tag) for tag in PostTag.objects.filter(post=post)]
                     
                     # 이미지 정보 가져오기
                     images = [_build_image_response(img) for img in PostImage.objects.filter(post=post).order_by('order_index')]
@@ -244,7 +250,7 @@ async def get_mixed_access_posts(request: HttpRequest, query: Query[PostListQuer
                     user_nickname = getattr(post.user, 'nickname', post.user.username)
                     user_image = getattr(post.user, 'image', None)
                     
-                    post_response = _build_post_response(post, tags, images, user_nickname, user_image)
+                    post_response = _build_post_response(post, post_tags, images, user_nickname, user_image)
                     posts_response.append(post_response)
                 
                 return posts_response
@@ -344,7 +350,7 @@ async def get_all_public_post_detail(request: HttpRequest, post_id: str):
     auth=jwt_auth,
 )
 @paginate
-async def get_center_posts(request: HttpRequest, query: Query[PostListQueryIn]):
+async def get_center_posts(request: HttpRequest, user_id: str = None, tags: list[str] = None, is_all_access: bool = None, sort_by: str = "latest"):
     """센터 권한자용 게시글 목록을 조회합니다."""
     try:
         current_user = request.auth
@@ -354,26 +360,26 @@ async def get_center_posts(request: HttpRequest, query: Query[PostListQueryIn]):
         @sync_to_async
         def get_center_posts_list():
             # 센터 권한자와 본인 게시글 조회
-            posts_query = Post.objects.select_related('user').prefetch_related('posttag_set', 'postimage_set').filter(
+            posts_query = Post.objects.select_related('user').filter(
                 models.Q(is_all_access=True) |  # 전체 공개
                 models.Q(user=current_user) |   # 본인 글
                 models.Q(user__user_type__in=['센터관리자', '최고관리자'])  # 센터 권한자 글
             )
             
             # 필터링 적용
-            if query.user_id:
-                posts_query = posts_query.filter(user_id=query.user_id)
+            if user_id:
+                posts_query = posts_query.filter(user_id=user_id)
             
             # is_all_access 필터 적용
-            if query.is_all_access is not None:
-                posts_query = posts_query.filter(is_all_access=query.is_all_access)
+            if is_all_access is not None:
+                posts_query = posts_query.filter(is_all_access=is_all_access)
             
             # 시스템 태그 필터링 적용
-            if query.system_tags:
+            if tags:
                 try:
                     from posts.models import SystemTag
                     
-                    system_tag_names = [tag.strip().lower() for tag in query.system_tags if tag.strip()]
+                    system_tag_names = [tag.strip().lower() for tag in tags if tag.strip()]
                     
                     if system_tag_names:
                         try:
@@ -450,18 +456,18 @@ async def get_center_posts(request: HttpRequest, query: Query[PostListQueryIn]):
             
             posts_with_data = []
             for post in posts:
-                tags = tags_by_post.get(post.id, [])
+                post_tags = tags_by_post.get(post.id, [])
                 images = images_by_post.get(post.id, [])
                 comment_count = comment_count_by_post.get(post.id, 0)
                 
                 post_data = _build_post_response(
                     post,
-                    tags=[_build_tag_response(tag) for tag in tags],
+                    tags=[_build_tag_response(tag) for tag in post_tags],
                     images=[_build_image_response(img) for img in images],
                     user_nickname=getattr(post.user, 'nickname', post.user.username),
-                    user_image=getattr(post.user, 'image', None)
+                    user_image=getattr(post.user, 'image', None),
+                    comment_count=comment_count
                 )
-                post_data['comment_count'] = comment_count
                 post_data['is_liked'] = str(post.id) in user_likes
                 post_data['is_all_access'] = post.is_all_access
                 posts_with_data.append(post_data)

@@ -209,58 +209,58 @@ export default function MyPage() {
                 </div>
               </div>
             ) : adoptionsData?.data && adoptionsData.data.length > 0 ? (
-              adoptionsData.data.map((adoption) => (
-                <div
-                  key={adoption.id}
-                  className="p-4 bg-white border border-gray-200 rounded-lg cursor-pointer"
-                  onClick={() => {
-                    // 입양 상태에 따라 해당 스텝 페이지로 이동
-                    const status = adoption.status;
-                    if (status === "신청") {
-                      router.push(`/my/adoption/${adoption.id}/request`);
-                    } else if (status === "미팅") {
-                      router.push(`/my/adoption/${adoption.id}/meeting`);
-                    } else if (status === "계약서작성") {
-                      router.push(`/my/adoption/${adoption.id}/writing`);
-                    } else if (status === "입양완료") {
-                      router.push(`/my/adoption/${adoption.id}/complete`);
-                    } else if (status === "모니터링") {
-                      router.push(`/my/adoption/${adoption.id}/monitoring`);
-                    } else if (status === "취소") {
-                      router.push(`/my/adoption/${adoption.id}/refuse`);
-                    } else {
-                      router.push(`/my/adoption/${adoption.id}/request`);
-                    }
-                  }}
-                >
-                  <div className="flex items-center gap-3 mb-4">
-                    {/* 동물 이미지 */}
-                    <div className="relative overflow-hidden w-18 h-18">
-                      <Image
-                        src={adoption.animal_image || "/img/dummyImg.png"}
-                        alt={adoption.animal_name}
-                        fill
-                        className="object-cover"
-                      />
+              adoptionsData.data
+                .filter((adoption) => adoption.status !== "취소")
+                .map((adoption) => (
+                  <div
+                    key={adoption.id}
+                    className="p-4 bg-white border border-gray-200 rounded-lg cursor-pointer"
+                    onClick={() => {
+                      // 입양 상태에 따라 해당 스텝 페이지로 이동
+                      const status = adoption.status;
+                      if (status === "신청") {
+                        router.push(`/my/adoption/${adoption.id}/request`);
+                      } else if (status === "미팅") {
+                        router.push(`/my/adoption/${adoption.id}/meeting`);
+                      } else if (status === "계약서작성") {
+                        router.push(`/my/adoption/${adoption.id}/writing`);
+                      } else if (status === "입양완료") {
+                        router.push(`/my/adoption/${adoption.id}/complete`);
+                      } else if (status === "모니터링") {
+                        router.push(`/my/adoption/${adoption.id}/monitoring`);
+                      } else if (status === "취소") {
+                        router.push(`/my/adoption/${adoption.id}/refuse`);
+                      } else {
+                        router.push(`/my/adoption/${adoption.id}/request`);
+                      }
+                    }}
+                  >
+                    <div className="flex items-center gap-3 mb-4">
+                      {/* 동물 이미지 */}
+                      <div className="relative overflow-hidden w-18 h-18">
+                        <Image
+                          src={adoption.animal_image || "/img/dummyImg.png"}
+                          alt={adoption.animal_name}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                      {/* 텍스트와 화살표 */}
+                      <div className="flex items-center gap-8">
+                        <p className="text-sm text-black">
+                          {adoption.user_nickname ||
+                            adoption.user_name ||
+                            "사용자"}
+                          님과의 만남을 기다리고 있어요!
+                        </p>
+                        <CaretRight className="w-5 h-5 text-gray-400" />
+                      </div>
                     </div>
-                    {/* 텍스트와 화살표 */}
-                    <div className="flex items-center gap-8">
-                      <p className="text-sm text-black">
-                        {adoption.user_nickname ||
-                          adoption.user_name ||
-                          "사용자"}
-                        님과의 만남을 기다리고 있어요!
-                      </p>
-                      <CaretRight className="w-5 h-5 text-gray-400" />
-                    </div>
+                    <DotProgressBar
+                      currentStep={getAdoptionStep(adoption.status)}
+                    />
                   </div>
-
-                  {/* 진행 상태 */}
-                  <DotProgressBar
-                    currentStep={getAdoptionStep(adoption.status)}
-                  />
-                </div>
-              ))
+                ))
             ) : (
               <div className="p-4 bg-white border border-gray-200 rounded-lg">
                 <div className="text-center text-gray-500">

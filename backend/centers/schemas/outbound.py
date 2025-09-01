@@ -56,6 +56,7 @@ class CenterOut(Schema):
     is_public: Optional[bool] = Field(None, description="공개 센터 여부")
     adoption_price: Optional[int] = Field(None, description="입양비 (원)")
     image_url: Optional[str] = Field(None, description="센터 이미지 URL")
+    is_subscribed: Optional[bool] = Field(None, description="구독 여부")
     created_at: str = Field(..., description="생성일시 (ISO 형식)")
     updated_at: str = Field(..., description="수정일시 (ISO 형식)")
 
@@ -143,3 +144,11 @@ class CenterNoticeListOut(Schema):
     """센터 공지사항 목록 출력 스키마"""
     notices: List[CenterNoticeOut] = Field(..., description="공지사항 목록")
     total: int = Field(..., description="전체 공지사항 수")
+
+
+class CenterSubscriptionOut(Schema):
+    """센터 구독 상태 변경 출력 스키마"""
+    message: str = Field(..., description="구독 상태 변경 완료 메시지")
+    is_subscribed: bool = Field(..., description="변경된 구독 상태")
+    center_id: str = Field(..., description="센터 ID")
+    center_name: str = Field(..., description="센터명")

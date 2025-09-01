@@ -5,7 +5,7 @@ from datetime import datetime
 
 class FileUploadIn(Schema):
     """파일 업로드 입력 스키마"""
-    file: bytes
+    file: str  # Base64 문자열 또는 dataURL
     filename: str
     content_type: Optional[str] = "application/octet-stream"
     folder: Optional[str] = "uploads"  # 폴더 경로 지정 가능

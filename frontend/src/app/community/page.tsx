@@ -298,7 +298,7 @@ export default function CommunityPage() {
             </h5>
           </div>
         ) : (
-          <div className="cursor-pointer">
+          <div className="cursor-pointer border">
             {posts.map((post, index) => (
               <div key={post.id}>
                 {(index === 0 || (index + 1) % 3 === 0) && <BannerSection />}

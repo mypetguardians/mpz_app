@@ -77,7 +77,7 @@ export function PetCard({
 
   // 이미지 URL 추출 헬퍼 함수
   const getImageUrl = () => {
-    if (!animalImages || animalImages.length === 0) return "/img/dummyImg.jpeg";
+    if (!animalImages || animalImages.length === 0) return "/img/dummyImg.png";
     const firstImage = animalImages[0];
     return typeof firstImage === "string" ? firstImage : firstImage.imageUrl;
   };

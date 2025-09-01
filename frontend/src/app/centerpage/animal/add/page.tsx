@@ -131,10 +131,10 @@ export default function AddAnimal() {
           | "임시보호중"
           | "반환"
           | "방사",
-        activity_level: detailInfo.personality.activity,
-        sensitivity: detailInfo.personality.sensitivity,
-        sociability: detailInfo.personality.sociability,
-        separation_anxiety: detailInfo.personality.separationAnxiety,
+        activity_level: String(detailInfo.personality.activity),
+        sensitivity: String(detailInfo.personality.sensitivity),
+        sociability: String(detailInfo.personality.sociability),
+        separation_anxiety: String(detailInfo.personality.separationAnxiety),
         special_notes: basicInfo.specialNotes || "",
         health_notes: basicInfo.healthNotes || "",
         basic_training: "",

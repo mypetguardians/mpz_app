@@ -43,7 +43,7 @@ export default function AdoptionMeetingPage({
     error: adoptionError,
   } = useGetCenterAdoptions({
     page: 1,
-    limit: 100, // 충분한 데이터를 가져오기 위해 큰 값 설정
+    limit: 100,
   });
 
   // 현재 입양 신청 찾기

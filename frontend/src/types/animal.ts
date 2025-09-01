@@ -282,3 +282,44 @@ export function transformRawAnimalToExtendedPetCard(
   // 기존 호환성을 위해 기존 함수 사용
   return transformRawAnimalToPetCard(raw);
 }
+
+// 거리 기반 관련 동물 조회 API 응답 타입
+export interface RelatedAnimalsResponse {
+  id: string;
+  name: string;
+  is_female: boolean;
+  age: number;
+  weight: number;
+  color: string;
+  breed: string;
+  description: string;
+  status: string;
+  waiting_days: number;
+  activity_level: number;
+  sensitivity: number;
+  sociability: number;
+  separation_anxiety: number;
+  special_notes: string;
+  health_notes: string;
+  basic_training: number;
+  trainer_comment: string;
+  announce_number: string;
+  display_notice_number: string;
+  announcement_date: string;
+  found_location: string;
+  admission_date: string;
+  personality: string;
+  megaphone_count: number;
+  is_megaphoned: boolean;
+  center_id: string;
+  animal_images: Array<{
+    id: string;
+    image_url: string;
+    order_index: number;
+  }>;
+  created_at: string;
+  updated_at: string;
+  is_public_data: boolean;
+  public_notice_number: string;
+  comment: string;
+}

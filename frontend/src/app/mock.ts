@@ -24,7 +24,7 @@ export const user: User[] = [
   {
     id: "1",
     nickname: "user1",
-    profileImg: "/img/dummyImg.jpeg",
+    profileImg: "/img/dummyImg.png",
     birthDate: "1990 / 01 / 01",
     gender: "남성",
     address: "경상남도 상주시 어디로 어디로 123",
@@ -34,7 +34,7 @@ export const user: User[] = [
   {
     id: "2",
     nickname: "user2",
-    profileImg: "/img/dummyImg.jpeg",
+    profileImg: "/img/dummyImg.png",
     birthDate: "1995 / 05 / 15",
     gender: "여성",
     address: "서울시 강남구 테헤란로 123",
@@ -84,11 +84,11 @@ export const mainPetInfo: PetInfo[] = [
   {
     id: "1",
     imageUrls: [
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
     ],
     waitingDays: 8,
     tag: "보호중",
@@ -120,7 +120,7 @@ export const mainPetInfo: PetInfo[] = [
     subscriberPosts: [
       {
         id: "1",
-        imageUrl: "/img/dummyImg.jpeg",
+        imageUrl: "/img/dummyImg.png",
         ownerName: "군밤이주인",
         content: "안녕 저는 군밤이에요",
         timeAgo: "3일 전",
@@ -129,7 +129,7 @@ export const mainPetInfo: PetInfo[] = [
       },
       {
         id: "2",
-        imageUrl: "/img/dummyImg.jpeg",
+        imageUrl: "/img/dummyImg.png",
         ownerName: "군밤이주인",
         content: "안녕 저는 군밤이에요",
         timeAgo: "3일 전",
@@ -141,11 +141,11 @@ export const mainPetInfo: PetInfo[] = [
   {
     id: "2",
     imageUrls: [
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
     ],
     waitingDays: 20,
     tag: "보호중",
@@ -167,11 +167,11 @@ export const mainPetInfo: PetInfo[] = [
   {
     id: "3",
     imageUrls: [
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
     ],
     waitingDays: 18,
     tag: "보호중",
@@ -193,11 +193,11 @@ export const mainPetInfo: PetInfo[] = [
   {
     id: "4",
     imageUrls: [
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
     ],
     waitingDays: 18,
     tag: "무지개다리",
@@ -219,11 +219,11 @@ export const mainPetInfo: PetInfo[] = [
   {
     id: "5",
     imageUrls: [
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
     ],
     waitingDays: 18,
     tag: "입양완료",
@@ -245,11 +245,11 @@ export const mainPetInfo: PetInfo[] = [
   {
     id: "6",
     imageUrls: [
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
     ],
     waitingDays: 18,
     tag: "임시보호중",
@@ -287,7 +287,7 @@ export const feedItems: FeedItem[] = [
   {
     id: "1",
     nickname: "군밤이주인",
-    imageUrls: ["/img/dummyImg.jpeg"],
+    imageUrls: ["/img/dummyImg.png"],
     title: "안녕 저는 군밤이에요",
     content:
       "사랑이 많은 아이에요 사랑이 많은 아이에요 사랑이 많은 아이에요 사랑이 많은 아이에요",
@@ -300,7 +300,7 @@ export const feedItems: FeedItem[] = [
   {
     id: "2",
     nickname: "군밤이주인",
-    imageUrls: ["/img/dummyImg.jpeg"],
+    imageUrls: ["/img/dummyImg.png"],
     title: "안녕 저는 군밤이에요",
     content:
       "사랑이 많은 아이에요 사랑이 많은 아이에요 사랑이 많은 아이에요 사랑이 많은 아이에요",
@@ -314,10 +314,10 @@ export const feedItems: FeedItem[] = [
     id: "3",
     nickname: "밤이주인",
     imageUrls: [
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
     ],
     title: "안녕 저는 군밤이에요",
     content:
@@ -332,10 +332,10 @@ export const feedItems: FeedItem[] = [
     id: "4",
     nickname: "콩이주인",
     imageUrls: [
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
     ],
     title: "안녕 저는 군밤이에요",
     content:
@@ -350,10 +350,10 @@ export const feedItems: FeedItem[] = [
     id: "5",
     nickname: "흰둥이이주인",
     imageUrls: [
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
-      "/img/dummyImg.jpeg",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
+      "/img/dummyImg.png",
     ],
     title: "안녕 저는 군밤이에요",
     content:
@@ -412,7 +412,7 @@ export const comments: Comment[] = [
     postId: "1",
     userId: "1",
     nickname: "강아지사랑",
-    profileImg: "/img/dummyImg.jpeg",
+    profileImg: "/img/dummyImg.png",
     content: "정말 귀여운 강아지네요! 입양 후기 기대하고 있어요 😊",
     date: "2시간 전",
     like: 3,
@@ -422,7 +422,7 @@ export const comments: Comment[] = [
     postId: "1",
     userId: "2",
     nickname: "반려동물맘",
-    profileImg: "/img/dummyImg.jpeg",
+    profileImg: "/img/dummyImg.png",
     content: "군밤이 너무 사랑스러워요! 어떤 강아지인지 더 자세히 알려주세요",
     date: "1시간 전",
     like: 1,
@@ -432,7 +432,7 @@ export const comments: Comment[] = [
         postId: "1",
         userId: "1",
         nickname: "군밤이주인",
-        profileImg: "/img/dummyImg.jpeg",
+        profileImg: "/img/dummyImg.png",
         content:
           "군밤이는 3살 된 말티즈예요! 정말 활발하고 사교적인 아이에요 🐕",
         date: "30분 전",
@@ -445,7 +445,7 @@ export const comments: Comment[] = [
     postId: "1",
     userId: "1",
     nickname: "입양준비중",
-    profileImg: "/img/dummyImg.jpeg",
+    profileImg: "/img/dummyImg.png",
     content: "입양을 고려하고 있는데, 어떤 준비가 필요한지 조언해주세요",
     date: "30분 전",
     like: 0,
@@ -455,7 +455,7 @@ export const comments: Comment[] = [
     postId: "1",
     userId: "2",
     nickname: "펫시터",
-    profileImg: "/img/dummyImg.jpeg",
+    profileImg: "/img/dummyImg.png",
     content: "정말 잘 키우고 계시네요! 군밤이가 행복해 보여요 💕",
     date: "15분 전",
     like: 5,
@@ -477,7 +477,7 @@ export const CenterInfo: Center[] = [
   {
     id: "1",
     name: "center1",
-    imgUrl: "/img/dummyImg.jpeg",
+    imgUrl: "/img/dummyImg.png",
     location: "서울시 동작구",
     verified: true,
     phoneNumber: "010-1234-5678",
@@ -486,7 +486,7 @@ export const CenterInfo: Center[] = [
   {
     id: "2",
     name: "center2",
-    imgUrl: "/img/dummyImg.jpeg",
+    imgUrl: "/img/dummyImg.png",
     location: "서울시 동작구",
     verified: false,
     phoneNumber: "010-1234-5678",
@@ -495,7 +495,7 @@ export const CenterInfo: Center[] = [
   {
     id: "3",
     name: "center3",
-    imgUrl: "/img/dummyImg.jpeg",
+    imgUrl: "/img/dummyImg.png",
     location: "서울시 동작구",
     verified: true,
     phoneNumber: "010-1234-5678",
@@ -504,7 +504,7 @@ export const CenterInfo: Center[] = [
   {
     id: "4",
     name: "center4",
-    imgUrl: "/img/dummyImg.jpeg",
+    imgUrl: "/img/dummyImg.png",
     location: "서울시 동작구",
     verified: false,
     phoneNumber: "010-1234-5678",

@@ -178,7 +178,7 @@ export function MatchingSection({
                       animalImages: [
                         {
                           id: "0",
-                          imageUrl: "/img/dummyImg.jpeg", // AI 매칭 결과에는 이미지가 없으므로 기본 이미지 사용
+                          imageUrl: "/img/dummyImg.png", // AI 매칭 결과에는 이미지가 없으므로 기본 이미지 사용
                           orderIndex: 0,
                         },
                       ],
@@ -204,7 +204,7 @@ export function MatchingSection({
                       animalImages: [
                         {
                           id: "0",
-                          imageUrl: "/img/dummyImg.jpeg",
+                          imageUrl: "/img/dummyImg.png",
                           orderIndex: 0,
                         },
                       ],

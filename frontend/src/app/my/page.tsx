@@ -237,7 +237,7 @@ export default function MyPage() {
                     {/* 동물 이미지 */}
                     <div className="relative overflow-hidden w-18 h-18">
                       <Image
-                        src={adoption.animal_image || "/img/dummyImg.jpeg"}
+                        src={adoption.animal_image || "/img/dummyImg.png"}
                         alt={adoption.animal_name}
                         fill
                         className="object-cover"

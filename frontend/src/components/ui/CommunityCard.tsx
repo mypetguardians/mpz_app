@@ -53,7 +53,7 @@ export function CommunityCard({
     const [hasError, setHasError] = useState(false);
     return (
       <Image
-        src={hasError ? "/img/dummyImg.jpeg" : src}
+        src={hasError ? "/img/dummyImg.png" : src}
         alt={alt}
         className={className}
         {...(fill ? { fill: true } : {})}

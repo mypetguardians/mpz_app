@@ -61,3 +61,4 @@ export { useGetMonitoringStatus } from "./query/useGetMonitoringStatus";
 export { useUpdateAdoptionStatus } from "./mutation/useUpdateAdoptionStatus";
 export { useSendContract } from "./mutation/useSendContract";
 export { useRunManualMonitoringCheck } from "./mutation/useRunManualMonitoringCheck";
+export { useGeolocation } from "./useGeolocation";

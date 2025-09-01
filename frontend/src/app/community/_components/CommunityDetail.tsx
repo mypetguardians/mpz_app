@@ -169,7 +169,7 @@ export function CommunityDetail({
         >
           <div className="relative w-10 h-10 rounded-full overflow-hidden">
             <Image
-              src={profileImage || "/img/dummyImg.jpeg"}
+              src={profileImage || "/img/dummyImg.png"}
               alt={author}
               fill
               className="object-cover"

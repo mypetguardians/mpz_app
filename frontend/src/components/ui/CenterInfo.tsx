@@ -34,7 +34,7 @@ export function CenterInfo({
   // 찜 상태 확인
   const { data: favoriteData, isLoading: isCheckingFavorite } =
     useCheckCenterFavorite(centerId);
-  const isFavorite = favoriteData?.isFavorited || false;
+  const isFavorite = favoriteData?.is_favorited || false;
 
   // 찜 토글 뮤테이션
   const toggleCenterFavorite = useToggleCenterFavorite();

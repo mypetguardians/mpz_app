@@ -1,4 +1,4 @@
-import { CaretDown } from "@phosphor-icons/react";
+import { CaretDown, MapPin } from "@phosphor-icons/react";
 import { MiniButton } from "@/components/ui/MiniButton";
 import { PetCard } from "@/components/ui/PetCard";
 import { PetCardSkeleton } from "@/components/ui/PetCardSkeleton";
@@ -6,6 +6,9 @@ import { MainSection } from "@/components/common/MainSection";
 import { PetSectionError } from "@/components/ui/PetSectionError";
 import { RawAnimalResponse, transformRawAnimalToPetCard } from "@/types/animal";
 import { PetCardVariant } from "@/types/petcard";
+import { useGeolocation } from "@/hooks/useGeolocation";
+import { getLocationBasedRegion, isValidLocation } from "@/lib/location-utils";
+import { useEffect, useState } from "react";
 
 interface PetSectionProps {
   title: string;
@@ -34,6 +37,49 @@ export function TopPetSection({
   selectedLocation,
   onLocationSelect,
 }: PetSectionProps) {
+  const {
+    latitude,
+    longitude,
+    error: locationError,
+    isLoading: locationLoading,
+    requestLocation,
+  } = useGeolocation();
+  const [userLocation, setUserLocation] = useState<string>("");
+
+  // 위치정보가 변경될 때마다 사용자 위치 기반 지역을 계산
+  useEffect(() => {
+    if (latitude && longitude && isValidLocation(latitude, longitude)) {
+      const region = getLocationBasedRegion(latitude, longitude);
+      setUserLocation(region);
+      console.log("사용자 위치 기반 지역:", region);
+      // 위치정보가 성공적으로 가져와졌고, 현재 "내 주변"이 선택되어 있다면 자동으로 필터 적용
+      if (selectedLocation === "내 주변") {
+        onLocationSelect?.(region);
+      }
+    }
+  }, [latitude, longitude, selectedLocation, onLocationSelect]);
+
+  // "내 주변" 버튼 클릭 시 위치정보 요청
+  const handleNearbyClick = () => {
+    if (userLocation) {
+      onLocationSelect?.(userLocation);
+    } else {
+      // 위치정보가 아직 없는 경우 "내 주변" 상태로 설정하고 위치정보 요청
+      onLocationSelect?.("내 주변");
+      requestLocation();
+    }
+  };
+
+  // 위치정보 에러가 있는 경우 처리
+  useEffect(() => {
+    if (locationError) {
+      console.error("위치정보 에러:", locationError);
+      // 에러 발생 시 사용자에게 알림 (실제 앱에서는 토스트나 모달로 표시)
+      alert(
+        "위치정보를 가져올 수 없습니다. 브라우저 설정에서 위치정보 접근을 허용해주세요."
+      );
+    }
+  }, [locationError]);
   // ExpertAnalysis 모드일 때
   if (isExpertAnalysis) {
     if (isLoading) {
@@ -138,6 +184,11 @@ export function TopPetSection({
   if (selectedLocation && selectedLocation !== "") {
     filteredAnimals = limitedAnimals.filter((animal) => {
       const animalLocation = animal.found_location || "";
+      // "내 주변" 또는 사용자 위치 기반 필터링인 경우
+      if (selectedLocation === "내 주변" || selectedLocation === userLocation) {
+        return userLocation ? animalLocation.includes(userLocation) : false;
+      }
+      // 일반 지역 필터링
       return animalLocation.includes(selectedLocation);
     });
   }
@@ -153,6 +204,19 @@ export function TopPetSection({
       {/* 지역 필터 */}
       {showLocationFilter && (
         <div className="flex items-center overflow-x-auto gap-[6px] -mx-4 px-4">
+          <MiniButton
+            key="location"
+            leftIcon={<MapPin size={16} />}
+            text={locationLoading ? "위치 확인 중..." : "내 주변"}
+            variant={
+              selectedLocation === "내 주변" ||
+              selectedLocation === userLocation
+                ? "filterOn"
+                : "filterOff"
+            }
+            onClick={handleNearbyClick}
+            disabled={locationLoading}
+          />
           {locations.map((loc) => (
             <MiniButton
               key={loc}

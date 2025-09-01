@@ -4,6 +4,7 @@ import {
   GetAnimalsParams,
   RawAnimalResponse,
   ActualGetAnimalsResponse,
+  RelatedAnimalsResponse,
 } from "@/types/animal";
 
 const getAnimals = async (
@@ -43,8 +44,6 @@ export const useGetAnimals = (params?: GetAnimalsParams) => {
   });
 };
 
-/** @TODO pet image GET query 추가 */
-
 export const useGetBreeds = () => {
   return useQuery({
     queryKey: ["breeds"],
@@ -74,15 +73,25 @@ export const useGetAnimalById = (animalId: string) => {
 };
 
 // 거리 기반 관련 동물 조회 훅
-export const useGetRelatedAnimalsByDistance = (animalId?: string) => {
-  return useQuery({
-    queryKey: ["relatedAnimals", animalId],
+export const useGetRelatedAnimalsByDistance = (
+  animalId?: string,
+  limit: number = 6
+) => {
+  return useQuery<RelatedAnimalsResponse[]>({
+    queryKey: ["relatedAnimals", animalId, limit],
     queryFn: async () => {
       if (!animalId) {
         throw new Error("동물 ID가 필요합니다");
       }
 
-      return instance.get(`/animals/${animalId}/related`);
+      const searchParams = new URLSearchParams();
+      if (limit) {
+        searchParams.append("limit", limit.toString());
+      }
+
+      const endpoint = `/animals/${animalId}/related?${searchParams.toString()}`;
+      const response = await instance.get<RelatedAnimalsResponse[]>(endpoint);
+      return response.data;
     },
     staleTime: 5 * 60 * 1000, // 5분
     gcTime: 10 * 60 * 1000, // 10분

@@ -43,7 +43,7 @@ export default function Home() {
   };
 
   return (
-    <Container className="pb-20">
+    <Container className="pb-[65px]">
       <HomeHeader isLoggedIn={isAuthenticated} />
 
       <TopPetSection

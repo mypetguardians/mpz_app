@@ -31,7 +31,7 @@ function CenterTab() {
     const currentFavorite =
       localFavorites[centerId] !== undefined
         ? localFavorites[centerId]
-        : centers.find((c) => c.id === centerId)?.isFavorited || false;
+        : centers.find((c) => c.id === centerId)?.is_fav || false;
 
     // 즉시 로컬 상태 업데이트 (optimistic update) - 현재 상태의 반대
     setLocalFavorites((prev) => ({
@@ -44,10 +44,7 @@ function CenterTab() {
       {
         onSuccess: (data) => {
           // 성공 시 로컬 상태를 서버 응답으로 업데이트
-          const isFavorited =
-            data.isFavorited !== undefined
-              ? data.isFavorited
-              : data.is_favorited ?? false;
+          const isFavorited = data.is_favorited ?? false;
           setLocalFavorites((prev) => ({
             ...prev,
             [centerId]: isFavorited,
@@ -119,12 +116,12 @@ function CenterTab() {
           const isLiked =
             localFavorites[center.id] !== undefined
               ? localFavorites[center.id]
-              : center.isFavorited;
+              : center.is_fav;
 
           return (
             <div key={center.id}>
               <CenterCard
-                imageUrl={center.imageUrl || "/img/dummyImg.jpeg"} // 실제 이미지 URL 사용, 없으면 더미 이미지
+                imageUrl={center.imageUrl || "/img/dummyImg.png"} // 실제 이미지 URL 사용, 없으면 더미 이미지
                 name={center.name}
                 location={center.location || center.region || "위치 정보 없음"}
                 verified={false} // 임시

@@ -375,7 +375,7 @@ export default function CommunityDetailPage() {
               {
                 id: post.userId,
                 nickname: post.userNickname || "사용자",
-                profileImg: post.userImage || "/img/dummyImg.jpeg",
+                profileImg: post.userImage || "/img/dummyImg.png",
               },
             ]}
             isMyPost={isMyPost || false}

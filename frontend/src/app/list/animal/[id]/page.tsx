@@ -277,32 +277,25 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
     }
   }, [showToast]);
 
-  // 초기 찜하기 상태 동기화
+  // 초기 찜하기 상태 동기화 - 서버 데이터가 로드되면 즉시 반영
   useEffect(() => {
-    if (favoriteData?.isFavorited !== undefined) {
-      setLocalIsFavorited(favoriteData.isFavorited);
+    if (!favoriteLoading && favoriteData?.is_favorited !== undefined) {
+      setLocalIsFavorited(favoriteData.is_favorited);
     }
-  }, [favoriteData?.isFavorited]);
+  }, [favoriteLoading, favoriteData?.is_favorited]);
 
-  // 로딩 중이 아닐 때만 초기 상태 설정
+  // 초기 추천하기 상태 동기화 - 서버 데이터가 로드되면 즉시 반영
   useEffect(() => {
-    if (!favoriteLoading && favoriteData?.isFavorited !== undefined) {
-      setLocalIsFavorited(favoriteData.isFavorited);
-    }
-  }, [favoriteLoading, favoriteData?.isFavorited]);
-
-  // 초기 추천하기 상태 동기화
-  useEffect(() => {
-    if (animal?.is_megaphoned !== undefined) {
+    if (animal && animal.is_megaphoned !== undefined) {
       setIsMegaphoned(animal.is_megaphoned);
     }
-  }, [animal?.is_megaphoned]);
+  }, [animal?.is_megaphoned, animal]);
 
   // 거리 기반 관련 동물 데이터 가져오기
   const { data: relatedAnimalsData, isLoading: relatedAnimalsLoading } =
     useGetRelatedAnimalsByDistance(animal?.id);
 
-  if (isLoading || centerLoading || relatedAnimalsLoading || favoriteLoading) {
+  if (isLoading || centerLoading || relatedAnimalsLoading) {
     return (
       <Container>
         <div className="min-h-screen bg-gray-50">

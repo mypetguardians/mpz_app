@@ -91,7 +91,7 @@ export const useGetAdopterDetail = (adoptionId: string) => {
             name: "김철수",
             nickname: "철수",
             phoneNumber: "010-1234-5678",
-            image: "/img/dummyImg.jpeg",
+            image: "/img/dummyImg.png",
           },
           animal: {
             id: "animal-1",
@@ -107,7 +107,7 @@ export const useGetAdopterDetail = (adoptionId: string) => {
             activityLevel: 4,
             sensitivity: 3,
             sociability: 5,
-            imageUrls: ["/img/dummyImg.jpeg", "/img/dummyImg.jpeg"],
+            imageUrls: ["/img/dummyImg.png", "/img/dummyImg.png"],
           },
           questionResponses: [
             {

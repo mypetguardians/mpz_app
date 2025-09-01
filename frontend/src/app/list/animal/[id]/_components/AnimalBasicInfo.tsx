@@ -73,7 +73,7 @@ export default function AnimalBasicInfo({
 
   // 현재 이미지 URL (유효하지 않으면 기본 이미지 사용)
   const currentImageUrl =
-    validImageUrls[currentImageIndex] || "/img/dummyImg.jpeg";
+    validImageUrls[currentImageIndex] || "/img/dummyImg.png";
 
   return (
     <div className="bg-white rounded-lg">

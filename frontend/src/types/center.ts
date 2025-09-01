@@ -144,12 +144,9 @@ export interface ToggleCenterFavoriteParams {
 }
 
 export interface ToggleCenterFavoriteResponse {
-  isFavorited: boolean;
-  message: string;
-  totalFavorites: number;
-  // 서버 응답 구조에 맞는 필드 추가
-  is_favorited?: boolean;
-  total_favorites?: number;
+  is_favorited: boolean;
+  total_favorites: number;
+  message?: string;
 }
 
 export interface CheckCenterFavoriteParams {
@@ -157,11 +154,8 @@ export interface CheckCenterFavoriteParams {
 }
 
 export interface CheckCenterFavoriteResponse {
-  isFavorited: boolean;
-  totalFavorites: number;
-  // 서버 응답 구조에 맞는 필드 추가
-  is_favorited?: boolean;
-  total_favorites?: number;
+  is_favorited: boolean;
+  total_favorites: number;
 }
 
 // 센터 설정 관련 타입들

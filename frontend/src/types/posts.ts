@@ -99,7 +99,7 @@ export interface PostDetailResponse {
 // 게시글 목록 조회 파라미터
 export interface GetPostsParams {
   page?: number;
-  limit?: number;
+  page_size?: number;
   search?: string;
   tags?: string[];
   userId?: string;

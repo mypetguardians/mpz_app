@@ -22,7 +22,7 @@ export default function RelatedPosts({ currentPet, title }: RelatedPostsProps) {
     error,
   } = useGetPublicPosts({
     animalId: currentPet.id,
-    limit: 6,
+    page_size: 6,
   });
 
   // 현재 동물과 관련된 게시물

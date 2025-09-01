@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowLeft, Camera } from "@phosphor-icons/react";
+import { ArrowLeft } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 
 import { TopBar } from "@/components/common/TopBar";
 import { Container } from "@/components/common/Container";
@@ -12,7 +11,9 @@ import { CustomInput } from "@/components/ui/CustomInput";
 import { IconButton } from "@/components/ui/IconButton";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useUpdateProfile } from "@/hooks/mutation/useUpdateProfile";
-import { NotificationToast } from "@/components/ui/NotificationToast";
+import { useUploadProfileImage } from "@/hooks/mutation/useUploadProfileImage";
+import { ImageCard } from "@/components/ui/ImageCard";
+import { Toast } from "@/components/ui/Toast";
 
 export default function ProfileEditPage() {
   const router = useRouter();
@@ -21,8 +22,10 @@ export default function ProfileEditPage() {
     isAuthenticated,
     isLoading: authLoading,
     updateUser,
+    setUserFromToken,
   } = useAuth();
   const updateProfileMutation = useUpdateProfile();
+  const uploadProfileImageMutation = useUploadProfileImage();
 
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [nickname, setNickname] = useState("");
@@ -30,7 +33,6 @@ export default function ProfileEditPage() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
-  const [toastType, setToastType] = useState<"success" | "error">("success");
 
   // 인증되지 않은 경우 로그인 페이지로 리다이렉트
   useEffect(() => {
@@ -49,69 +51,54 @@ export default function ProfileEditPage() {
     }
   }, [authUser]);
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const handleImageUpload = async (files: File[]) => {
+    const file = files[0];
     if (file) {
-      // 파일 크기 제한 (1MB)
-      if (file.size > 1024 * 1024) {
-        setToastMessage("이미지 크기는 1MB 이하여야 합니다");
-        setToastType("error");
+      const localPreview = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          resolve(result);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      setProfileImage(localPreview);
+
+      try {
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = reader.result as string;
+            const base64Data = result.split(",")[1];
+            resolve(base64Data);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+
+        // 서버에 이미지 업로드
+        const result = await uploadProfileImageMutation.mutateAsync({
+          file: base64,
+          filename: `profile_${Date.now()}.jpg`,
+          content_type: file.type,
+          folder: "profiles",
+        });
+
+        // 업로드 성공 시 서버 URL로 교체
+        setProfileImage(result.file_url);
+        setToastMessage("이미지가 성공적으로 업로드되었습니다");
         setShowToast(true);
-        return;
+      } catch (error) {
+        // 업로드 실패 시 미리보기 제거
+        setProfileImage(authUser?.image || null);
+        setToastMessage(
+          error instanceof Error
+            ? error.message
+            : "이미지 업로드에 실패했습니다"
+        );
+        setShowToast(true);
       }
-
-      // 이미지 압축 및 크기 조정
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      const img = new window.Image();
-
-      img.onload = () => {
-        // 최대 크기 설정 (200x200)
-        const maxSize = 200;
-        let { width, height } = img;
-
-        if (width > height) {
-          if (width > maxSize) {
-            height = (height * maxSize) / width;
-            width = maxSize;
-          }
-        } else {
-          if (height > maxSize) {
-            width = (width * maxSize) / height;
-            height = maxSize;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-
-        // 이미지 그리기
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-        }
-
-        // 압축된 이미지를 base64로 변환 (품질 0.7)
-        const compressedImage = canvas.toDataURL("image/jpeg", 0.7);
-
-        // base64 문자열 길이 확인 (500자 제한)
-        if (compressedImage.length > 500) {
-          // 더 강한 압축 시도
-          const moreCompressed = canvas.toDataURL("image/jpeg", 0.5);
-          if (moreCompressed.length > 500) {
-            setToastMessage(
-              "이미지가 너무 큽니다. 더 작은 이미지를 선택해주세요"
-            );
-            setToastType("error");
-            setShowToast(true);
-            return;
-          }
-          setProfileImage(moreCompressed);
-        } else {
-          setProfileImage(compressedImage);
-        }
-      };
-
-      img.src = URL.createObjectURL(file);
     }
   };
 
@@ -132,8 +119,14 @@ export default function ProfileEditPage() {
         image: profileImage || undefined,
       });
 
+      // 서버에서 최신 사용자 정보를 다시 가져오기
+      try {
+        await setUserFromToken();
+      } catch (error) {
+        console.error("사용자 정보 새로고침 실패:", error);
+      }
+
       setToastMessage("프로필이 성공적으로 수정되었습니다");
-      setToastType("success");
       setShowToast(true);
 
       // 2초 후 이전 페이지로 이동
@@ -144,7 +137,6 @@ export default function ProfileEditPage() {
       setToastMessage(
         error instanceof Error ? error.message : "프로필 수정에 실패했습니다"
       );
-      setToastType("error");
       setShowToast(true);
     }
   };
@@ -223,27 +215,23 @@ export default function ProfileEditPage() {
               <h5 className="text-black font-medium">이미지</h5>
               <div className="flex items-center space-x-4">
                 <div className="relative">
-                  <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-200 border">
-                    {profileImage ? (
-                      <Image
-                        src={profileImage}
-                        alt="프로필 이미지"
-                        className="w-full h-full object-cover"
-                        width={80}
-                        height={80}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                        <Camera size={24} className="text-gray-400" />
-                      </div>
-                    )}
-                  </div>
-                  <label className="absolute bottom-0 right-0 bg-brand text-white rounded-full p-1 cursor-pointer">
-                    <Camera size={16} />
+                  <label>
+                    <ImageCard
+                      src={profileImage || undefined}
+                      alt="프로필 이미지"
+                      variant={profileImage ? "primary" : "add"}
+                      onClick={() => {}}
+                      className="w-20 h-20"
+                    />
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={handleImageUpload}
+                      onChange={(e) => {
+                        const files = e.target.files;
+                        if (files) {
+                          handleImageUpload(Array.from(files));
+                        }
+                      }}
                       className="hidden"
                     />
                   </label>
@@ -302,11 +290,12 @@ export default function ProfileEditPage() {
 
       {/* 토스트 메시지 */}
       {showToast && (
-        <NotificationToast
-          message={toastMessage}
-          type={toastType}
-          onClose={() => setShowToast(false)}
-        />
+        <Toast
+          onClick={() => setShowToast(false)}
+          className="fixed bottom-3 left-1/2 transform -translate-x-1/2 z-[9999]"
+        >
+          {toastMessage}
+        </Toast>
       )}
     </>
   );

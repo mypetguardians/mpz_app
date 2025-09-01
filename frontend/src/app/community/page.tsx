@@ -12,11 +12,9 @@ import { CommunityCard, CommunityCardSkeleton } from "@/components/ui";
 import { TabButton } from "@/components/ui/TabButton";
 import { BigButton } from "@/components/ui/BigButton";
 import { IconButton } from "@/components/ui/IconButton";
-import {
-  useGetPublicPosts,
-  useGetCenterPosts,
-} from "@/hooks/query/useGetPublicPosts";
-import { useGetSystemTags } from "@/hooks/query/useGetPublicPosts";
+import { useGetPublicPosts } from "@/hooks/query/useGetPublicPosts";
+import { useGetCenterPosts } from "@/hooks/query/useGetCenterPosts";
+import { useGetSystemTags } from "@/hooks/query/useGetSystemTags";
 import { useDeletePost } from "@/hooks/mutation/useDeletePost";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/components/providers/AuthProvider";

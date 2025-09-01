@@ -15,12 +15,18 @@ const getPublicPosts = async (
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
-        searchParams.append(key, value.toString());
+        if (key === "tags" && Array.isArray(value)) {
+          // tags 배열을 개별 파라미터로 변환
+          value.forEach((tag) => searchParams.append("tags", tag));
+        } else {
+          searchParams.append(key, value.toString());
+        }
       }
     });
   }
 
-  const url = `/posts/all/?${searchParams.toString()}`;
+  const queryString = searchParams.toString();
+  const url = queryString ? `/posts/all/?${queryString}` : `/posts/all/`;
   const response = await instance.get<ApiPostsResponse>(url);
   return response.data;
 };
@@ -47,7 +53,7 @@ const getPublicPostDetail = async (
 
 export const useGetPublicPosts = (params?: GetPostsParams) => {
   return useQuery({
-    queryKey: ["posts", params],
+    queryKey: ["public-posts", params],
     queryFn: () => getPublicPosts(params),
     select: (data: ApiPostsResponse) => {
       const transformedPosts = data.data.map(transformRawPostToPost);
@@ -74,7 +80,7 @@ export const useGetPublicPosts = (params?: GetPostsParams) => {
 
 export const useGetPublicPostDetail = (postId: string) => {
   return useQuery({
-    queryKey: ["posts", postId],
+    queryKey: ["public-posts", postId],
     queryFn: () => getPublicPostDetail(postId),
     enabled: !!postId,
     staleTime: 3 * 60 * 1000, // 3분

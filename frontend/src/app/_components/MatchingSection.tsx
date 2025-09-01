@@ -30,7 +30,7 @@ export function MatchingSection({
   isLoading = false,
   error = null,
   isExpertAnalysis = false,
-  aiMatchingResult = null, // 외부에서 전달받은 AI 매칭 결과
+  aiMatchingResult = null,
 }: MatchingSectionProps) {
   const { user, isAuthenticated } = useAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -87,19 +87,8 @@ export function MatchingSection({
           (() => {
             if (isLoading || aiTestLoading || aiLoading) {
               if (isExpertAnalysis) {
-                return (
-                  <>
-                    <div className="flex items-center justify-center h-32">
-                      <div className="text-lg">동물 정보를 불러오는 중...</div>
-                    </div>
-                    <MiniButton
-                      text="전문가 분석 모아보기"
-                      variant="filterOff"
-                      className="py-4"
-                      rightIcon={<CaretDown size={12} />}
-                    />
-                  </>
-                );
+                // 로딩 상태에서는 아무것도 표시하지 않음
+                return null;
               }
 
               return (
@@ -126,21 +115,8 @@ export function MatchingSection({
 
             if (error) {
               if (isExpertAnalysis) {
-                return (
-                  <>
-                    <div className="flex items-center justify-center h-32">
-                      <div className="text-lg text-red-500">
-                        동물 정보를 불러오는데 실패했습니다.
-                      </div>
-                    </div>
-                    <MiniButton
-                      text="전문가 분석 모아보기"
-                      variant="filterOff"
-                      className="py-4"
-                      rightIcon={<CaretDown size={12} />}
-                    />
-                  </>
-                );
+                // 에러 상태에서는 아무것도 표시하지 않음
+                return null;
               }
 
               return (
@@ -224,6 +200,11 @@ export function MatchingSection({
             // ExpertAnalysis 모드일 때
             if (isExpertAnalysis) {
               const analysisAnimals = transformedAnimals?.slice(0, 3) || [];
+
+              // 결과가 없으면 아무것도 표시하지 않음
+              if (analysisAnimals.length === 0) {
+                return null;
+              }
 
               return (
                 <>

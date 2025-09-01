@@ -92,3 +92,8 @@ class QuestionFormUpdateIn(Schema):
 class QuestionSequenceUpdateIn(Schema):
     """질문 순서 변경 입력 스키마"""
     sequence: int = Field(..., ge=1, description="새로운 질문 순서")
+
+
+class CenterSubscriptionUpdateIn(Schema):
+    """센터 구독 상태 변경 입력 스키마"""
+    is_subscribed: bool = Field(..., description="구독 여부 (true: 구독, false: 구독 해제)")

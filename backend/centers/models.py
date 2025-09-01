@@ -51,6 +51,7 @@ class Center(BaseModel):
     is_public = models.BooleanField(default=False, help_text="공개 여부")
     adoption_price = models.IntegerField(default=0, help_text="입양 가격")
     image_url = models.CharField(max_length=500, blank=True, null=True, help_text="센터 이미지 URL")
+    is_subscribed = models.BooleanField(default=False, help_text="구독 여부")
     
     # 공공데이터 관련 필드 (최소한만 유지)
     public_reg_no = models.CharField(max_length=50, blank=True, null=True, help_text="공공데이터 보호소번호", unique=True)

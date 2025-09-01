@@ -77,24 +77,23 @@ def _build_image_response(image):
         500: dict,
     },
 )
-@paginate
-async def get_all_public_posts(request: HttpRequest, query: Query[PostListQueryIn]):
+async def get_all_public_posts(request: HttpRequest, user_id: str = None, system_tags: list[str] = None, is_all_access: bool = None, sort_by: str = "latest"):
     """전체 공개 게시글 목록을 조회합니다."""
     try:
         @sync_to_async
         def get_public_posts():
-            posts_query = Post.objects.filter(is_all_access=True).select_related('user').prefetch_related('posttag_set', 'postimage_set')
+            posts_query = Post.objects.filter(is_all_access=True).select_related('user')
             
             # 필터링 적용
-            if query.user_id:
-                posts_query = posts_query.filter(user_id=query.user_id)
+            if user_id:
+                posts_query = posts_query.filter(user_id=user_id)
             
             # 시스템 태그 필터링 적용
-            if query.system_tags:
+            if system_tags:
                 try:
                     from posts.models import SystemTag
                     
-                    system_tag_names = [tag.strip().lower() for tag in query.system_tags if tag.strip()]
+                    system_tag_names = [tag.strip().lower() for tag in system_tags if tag.strip()]
                     
                     if system_tag_names:
                         # 정규식 기반 매칭 시도
@@ -114,13 +113,13 @@ async def get_all_public_posts(request: HttpRequest, query: Query[PostListQueryI
                     # 오류 발생 시 필터링 없이 진행
             
             # 정렬 적용
-            if query.sort_by == "latest":
+            if sort_by == "latest":
                 posts_query = posts_query.order_by('-created_at')
-            elif query.sort_by == "oldest":
+            elif sort_by == "oldest":
                 posts_query = posts_query.order_by('created_at')
-            elif query.sort_by == "most_liked":
+            elif sort_by == "most_liked":
                 posts_query = posts_query.order_by('-like_count', '-created_at')
-            elif query.sort_by == "most_commented":
+            elif sort_by == "most_commented":
                 posts_query = posts_query.order_by('-comment_count', '-created_at')
             else:
                 posts_query = posts_query.order_by('-created_at')  # 기본값
@@ -131,10 +130,10 @@ async def get_all_public_posts(request: HttpRequest, query: Query[PostListQueryI
             posts_response = []
             for post in posts:
                 # 태그 정보 가져오기
-                tags = [_build_tag_response(tag) for tag in post.posttag_set.all()]
+                tags = [_build_tag_response(tag) for tag in PostTag.objects.filter(post=post)]
                 
                 # 이미지 정보 가져오기
-                images = [_build_image_response(img) for img in post.postimage_set.all().order_by('order_index')]
+                images = [_build_image_response(img) for img in PostImage.objects.filter(post=post).order_by('order_index')]
                 
                 # 사용자 정보 가져오기
                 user_nickname = getattr(post.user, 'nickname', post.user.username)
@@ -148,8 +147,13 @@ async def get_all_public_posts(request: HttpRequest, query: Query[PostListQueryI
         return await get_public_posts()
         
     except Exception as e:
-        print(f"Get all public posts error: {e}")
-        raise HttpError(500, "게시글 목록 조회 중 오류가 발생했습니다")
+        import traceback
+        import logging
+        logger = logging.getLogger(__name__)
+        error_detail = f"Get all public posts error: {str(e)}\nTraceback: {traceback.format_exc()}"
+        print(error_detail)
+        logger.error(error_detail)
+        raise HttpError(500, f"게시글 목록 조회 중 오류가 발생했습니다: {str(e)}")
 
 
 @router.get(
@@ -231,10 +235,10 @@ async def get_mixed_access_posts(request: HttpRequest, query: Query[PostListQuer
                 posts_response = []
                 for post in posts:
                     # 태그 정보 가져오기
-                    tags = [_build_tag_response(tag) for tag in post.posttag_set.all()]
+                    tags = [_build_tag_response(tag) for tag in PostTag.objects.filter(post=post)]
                     
                     # 이미지 정보 가져오기
-                    images = [_build_image_response(img) for img in post.postimage_set.all().order_by('order_index')]
+                    images = [_build_image_response(img) for img in PostImage.objects.filter(post=post).order_by('order_index')]
                     
                     # 사용자 정보 가져오기
                     user_nickname = getattr(post.user, 'nickname', post.user.username)

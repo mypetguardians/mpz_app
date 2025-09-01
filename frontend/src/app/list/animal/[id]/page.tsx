@@ -28,7 +28,6 @@ import { RawAnimalResponse } from "@/types/animal";
 import { useGetCenterById } from "@/hooks/query/useGetCenters";
 import {
   useCheckAnimalFavorite,
-  useGetMyCenter,
   useToggleAnimalFavorite,
   useToggleAnimalRecommend,
 } from "@/hooks";
@@ -91,13 +90,14 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
     isLoading: boolean;
     error: Error | null;
   };
-  const { data: myCenter } = useGetMyCenter();
-  const subscriber = myCenter?.isSubscriber === true;
 
   // 동물의 보호센터 정보 가져오기
   const { data: center, isLoading: centerLoading } = useGetCenterById(
     animal?.center_id
   );
+
+  // 구독자 여부 확인
+  const isSubscriber = center?.isSubscriber === true;
 
   // 찜하기 관련
   const { data: favoriteData, isLoading: favoriteLoading } =
@@ -130,9 +130,6 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
   const [shareToastType, setShareToastType] = useState<"success" | "error">(
     "success"
   );
-
-  // 구독자 여부 확인
-  const isSubscriber = subscriber;
 
   // 찜하기 토글 핸들러
   const handleFavoriteToggle = () => {
@@ -388,7 +385,7 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
           announcementDate={animal.announcement_date || ""}
           description={animal.description || ""}
           foundLocation={animal.found_location || ""}
-          center={center?.name}
+          center={center?.name || "보호센터 정보 없음"}
           isSubscriber={isSubscriber}
           specialNotes={animal.special_notes || undefined}
         />

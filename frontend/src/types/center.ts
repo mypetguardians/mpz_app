@@ -96,6 +96,7 @@ export interface RawCenterResponse {
   created_at: string;
   updated_at: string;
   is_fav?: boolean; // 찜하기 상태 추가
+  is_subscribed?: boolean; // 구독자 여부 추가
 }
 
 // 센터 목록 API 응답 구조 (새로운 스키마 기반)
@@ -130,7 +131,7 @@ export function transformRawCenterToCenter(raw: RawCenterResponse): Center {
     isPublic: raw.is_public,
     adoptionPrice: raw.adoption_price,
     imageUrl: raw.image_url,
-    isSubscriber: false, // 기본값 설정
+    isSubscriber: raw.is_subscribed || false, // is_subscribed를 isSubscriber로 변환
     createdAt: raw.created_at,
     updatedAt: raw.updated_at,
     isFavorited: raw.is_fav || false, // is_fav를 isFavorited로 변환

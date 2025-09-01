@@ -11,9 +11,12 @@ export { useGetNotifications } from "./query/useGetNotifications";
 export {
   useGetPublicPosts,
   useGetPublicPostDetail,
+} from "./query/useGetPublicPosts";
+export {
   useGetCenterPosts,
   useGetCenterPostDetail,
-} from "./query/useGetPublicPosts";
+} from "./query/useGetCenterPosts";
+export { useGetSystemTags } from "./query/useGetSystemTags";
 export { useGetUserProfile } from "./query/useGetUserProfile";
 export { useGetMyProfile } from "./query/useGetMyProfile";
 export { useGetMyCenter, invalidateMyCenter } from "./query/useGetMyCenter";

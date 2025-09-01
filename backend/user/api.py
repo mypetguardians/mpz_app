@@ -36,7 +36,7 @@ async def signup(request, data: UserSignupIn):
         raise HttpError(400, "개인정보 수집 및 이용 동의에 동의해주세요.")
 
     # 아이디 중복 체크
-    if await User.objects.filter(username=data.username).aexists():
+    if await sync_to_async(User.objects.filter(username=data.username).exists)():
         raise HttpError(400, "이미 사용중인 아이디입니다.")
 
     try:
@@ -54,7 +54,7 @@ async def signup(request, data: UserSignupIn):
         )
 
         # 생성된 사용자 정보 반환
-        created_user = await User.objects.aget(id=user.id)
+        created_user = await sync_to_async(User.objects.get)(id=user.id)
         return UserMeOut.from_user(created_user)
         
     except Exception as e:
@@ -78,7 +78,7 @@ async def login(request, data: UserLoginIn):
 
     try:
         # 사용자 조회
-        user = await User.objects.aget(username=data.username)
+        user = await sync_to_async(User.objects.get)(username=data.username)
     except User.DoesNotExist:
         raise HttpError(400, "해당 아이디로 등록된 사용자가 없습니다.")
 
@@ -87,14 +87,14 @@ async def login(request, data: UserLoginIn):
         raise HttpError(400, "비밀번호가 일치하지 않습니다.")
 
     # 기존 JWT 토큰 삭제 (보안 강화)
-    await Jwt.objects.filter(user_id=user.id).adelete()
+    await sync_to_async(Jwt.objects.filter(user_id=user.id).delete)()
 
     # 새로운 JWT 토큰 생성
     access, access_exp = utils.get_access_token({"user_id": user.id})
     refresh, refresh_exp = utils.get_refresh_token()
 
     # JWT 토큰 저장
-    await Jwt.objects.acreate(
+    await sync_to_async(Jwt.objects.create)(
         user_id=user.id,
         access=access,
         refresh=refresh,
@@ -129,7 +129,7 @@ async def logout(request):
     user = request.auth
     
     # 사용자의 모든 JWT 토큰 삭제
-    await Jwt.objects.filter(user_id=user.id).adelete()
+    await sync_to_async(Jwt.objects.filter(user_id=user.id).delete)()
     
     return {"detail": "로그아웃 되었습니다."}
 
@@ -148,7 +148,7 @@ async def refresh_token(request, data: RefreshTokenIn):
         await utils.validate_refresh_token(data.refresh_token)
 
         # Refresh Token을 통해 DB에서 JWT Entry를 가져옴
-        jwt_entry = await Jwt.objects.select_related("user").aget(
+        jwt_entry = await sync_to_async(Jwt.objects.select_related("user").get)(
             refresh=data.refresh_token
         )
 
@@ -161,7 +161,7 @@ async def refresh_token(request, data: RefreshTokenIn):
         refresh, refresh_exp = utils.get_refresh_token()
 
         # 기존 JWT 토큰 업데이트
-        await Jwt.objects.aupdate_or_create(
+        await sync_to_async(Jwt.objects.update_or_create)(
             user_id=user.id,
             defaults={"access": access, "refresh": refresh},
         )
@@ -197,7 +197,7 @@ async def refresh_token(request, data: RefreshTokenIn):
 async def get_me(request):
     try:
         # 사용자 정보 조회 (불필요한 region, district__region 제거)
-        user = await User.objects.aget(id=request.auth.id)
+        user = await sync_to_async(User.objects.get)(id=request.auth.id)
         
         # 스키마에 맞는 응답 반환
         return UserMeOut.from_user(user)
@@ -218,13 +218,37 @@ async def update_me(request, data: UserUpdateIn):
     user = request.auth
     try:
         # 사용자 정보 업데이트
-        await User.objects.aupdate(id=user.id, **data.dict())
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        # Pydantic 모델을 딕셔너리로 변환
+        try:
+            data_dict = data.model_dump(exclude_none=True)
+        except AttributeError:
+            # 이전 버전의 pydantic이면 dict() 사용
+            data_dict = data.dict(exclude_none=True)
+        
+        logger.info(f"Updating user {user.id} with data: {data_dict}")
+        
+        # 빈 값들을 필터링해서 업데이트
+        update_data = {k: v for k, v in data_dict.items() if v is not None and v != ""}
+        logger.info(f"Filtered update data: {update_data}")
+        
+        if update_data:
+            # sync_to_async를 사용하여 업데이트
+            await sync_to_async(User.objects.filter(id=user.id).update)(**update_data)
         
         # 업데이트된 사용자 정보 반환
-        updated_user = await User.objects.aget(id=user.id)
+        updated_user = await sync_to_async(User.objects.get)(id=user.id)
         return UserMeOut.from_user(updated_user)
         
     except User.DoesNotExist:
         raise HttpError(404, "사용자를 찾을 수 없습니다.")
     except Exception as e:
-        raise HttpError(500, "사용자 정보 수정 중 오류가 발생했습니다.")
+        import traceback
+        import logging
+        logger = logging.getLogger(__name__)
+        error_detail = f"User update error: {str(e)}\nTraceback: {traceback.format_exc()}"
+        logger.error(error_detail)
+        print(error_detail)  # 콘솔에도 출력
+        raise HttpError(500, f"사용자 정보 수정 중 오류가 발생했습니다: {str(e)}")

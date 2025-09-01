@@ -14,11 +14,13 @@ import { InfoCard } from "@/components/ui/InfoCard";
 import { Toast } from "@/components/ui/Toast";
 import { useGetMyCenter } from "@/hooks/query/useGetMyCenter";
 import { useUpdateCenterSettings } from "@/hooks/mutation/useUpdateCenterSettings";
+import { useUploadSingleImage } from "@/hooks/mutation/useUploadSingleImage";
 
 export default function CenterSettingName() {
   const router = useRouter();
   const { data: myCenter, isLoading } = useGetMyCenter();
   const updateCenterSettings = useUpdateCenterSettings();
+  const uploadSingleImage = useUploadSingleImage();
 
   // 폼 상태
   const [centerName, setCenterName] = useState("");
@@ -27,6 +29,8 @@ export default function CenterSettingName() {
   const [address, setAddress] = useState("");
   const [isPublicAddress, setIsPublicAddress] = useState("모두에게 공개");
   const [adoptionPrice, setAdoptionPrice] = useState("");
+  const [centerImage, setCenterImage] = useState<string>("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   // 토스트 상태
   const [showToast, setShowToast] = useState(false);
@@ -52,11 +56,37 @@ export default function CenterSettingName() {
         myCenter.isPublic ? "모두에게 공개" : "입양자에게만 공개"
       );
       setAdoptionPrice(myCenter.adoptionPrice?.toString() || "");
+      setCenterImage(myCenter.imageUrl || "");
     }
   }, [myCenter]);
 
   const handleBack = () => {
     router.back();
+  };
+
+  const handleImageSelect = (file: File) => {
+    setSelectedFile(file);
+    // 미리보기용 URL 생성
+    const previewUrl = URL.createObjectURL(file);
+    setCenterImage(previewUrl);
+  };
+
+  const handleImageClick = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        handleImageSelect(file);
+      }
+    };
+    input.click();
+  };
+
+  const handleImageRemove = () => {
+    setCenterImage("");
+    setSelectedFile(null);
   };
 
   const handleSave = async () => {
@@ -79,6 +109,14 @@ export default function CenterSettingName() {
     }
 
     try {
+      let imageUrl = centerImage;
+
+      // 새로운 이미지가 선택된 경우 업로드
+      if (selectedFile) {
+        showToastMessage("이미지를 업로드하는 중...");
+        imageUrl = await uploadSingleImage.mutateAsync(selectedFile);
+      }
+
       await updateCenterSettings.mutateAsync({
         name: centerName.trim(),
         centerNumber: centerNumber.trim() || undefined,
@@ -87,6 +125,7 @@ export default function CenterSettingName() {
           isPublicNumber === "모두에게 공개" &&
           isPublicAddress === "모두에게 공개",
         adoptionPrice: parseInt(adoptionPrice.replace(/,/g, ""), 10),
+        imageUrl: imageUrl || undefined,
       });
 
       showToastMessage("센터 정보가 성공적으로 업데이트되었습니다.");
@@ -177,7 +216,13 @@ export default function CenterSettingName() {
         }
       />
       <div className="w-full flex flex-col pb-3 px-4 gap-4 min-h-[100px]">
-        <ImageCard variant="add" />
+        <ImageCard
+          variant={centerImage ? "primary" : "add"}
+          src={centerImage}
+          alt="센터 이미지"
+          onClick={handleImageClick}
+          onRemove={centerImage ? handleImageRemove : undefined}
+        />
         <CustomInput
           variant="primary"
           label="보호센터 이름"
@@ -234,9 +279,15 @@ export default function CenterSettingName() {
         <BigButton
           className="w-full"
           onClick={handleSave}
-          disabled={updateCenterSettings.isPending}
+          disabled={
+            updateCenterSettings.isPending || uploadSingleImage.isPending
+          }
         >
-          {updateCenterSettings.isPending ? "저장 중..." : "저장하기"}
+          {uploadSingleImage.isPending
+            ? "이미지 업로드 중..."
+            : updateCenterSettings.isPending
+            ? "저장 중..."
+            : "저장하기"}
         </BigButton>
       </div>
 

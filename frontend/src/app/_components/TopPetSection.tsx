@@ -9,6 +9,7 @@ import { PetCardVariant } from "@/types/petcard";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { getLocationBasedRegion, isValidLocation } from "@/lib/location-utils";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface PetSectionProps {
   title: string;
@@ -37,6 +38,7 @@ export function TopPetSection({
   selectedLocation,
   onLocationSelect,
 }: PetSectionProps) {
+  const router = useRouter();
   const {
     latitude,
     longitude,
@@ -200,7 +202,11 @@ export function TopPetSection({
       : filteredAnimals.slice(0, 10);
 
   return (
-    <MainSection title={title} rightSlot={rightSlot}>
+    <MainSection
+      title={title}
+      rightSlot={rightSlot}
+      onRightClick={() => router.push("/list/animal")}
+    >
       {/* 지역 필터 */}
       {showLocationFilter && (
         <div className="flex items-center overflow-x-auto gap-[6px] -mx-4 px-4">

@@ -37,7 +37,7 @@ export default function CenterDetailPage() {
 
   // 데이터 준비
   const animals = animalsData?.pages?.[0]?.animals || [];
-  const isFavorite = favoriteStatus?.isFavorited || false;
+  const isFavorite = favoriteStatus?.is_favorited || false;
 
   // 이벤트 핸들러
   const handleFavoriteToggle = () => {

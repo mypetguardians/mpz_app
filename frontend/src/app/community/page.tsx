@@ -242,7 +242,7 @@ export default function CommunityPage() {
             <div className="w-20 h-10 bg-gray-200 rounded-lg animate-pulse" />
           </div>
         </div>
-        <div className="flex-1 mx-4 overflow-y-auto">
+        <div className="flex-1 mx-4 overflow-y-auto scrollbar-hide">
           {/* 게시글 스켈레톤 */}
           <div className="space-y-4">
             {[...Array(5)].map((_, index) => (
@@ -315,7 +315,7 @@ export default function CommunityPage() {
           return null;
         })()}
       </div>
-      <div className="flex-1 mx-4 overflow-y-auto">
+      <div className="flex-1 mx-4 overflow-y-auto scrollbar-hide">
         {isLoading ? (
           // 로딩 중일 때 스켈레톤 표시
           <div className="space-y-4">

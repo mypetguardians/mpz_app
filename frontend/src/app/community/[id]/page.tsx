@@ -217,7 +217,7 @@ export default function CommunityDetailPage() {
           }
         />
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto scrollbar-hide">
           {/* 게시글 내용 스켈레톤 */}
           <div className="py-3">
             <CommunityDetailSkeleton />
@@ -366,7 +366,7 @@ export default function CommunityDetailPage() {
         }
       />
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto scrollbar-hide">
         {/* 게시글 내용 */}
         <div className="py-3">
           <CommunityDetail

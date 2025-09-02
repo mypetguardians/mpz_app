@@ -470,7 +470,7 @@ export default function CommunityUploadPage() {
         activeTab={activeTab}
         onTabChange={setActiveTab}
       >
-        <div className="h-[480px] overflow-y-auto">
+        <div className="h-[480px] overflow-y-auto scrollbar-hide">
           {animals.length > 0 ? (
             <>
               <div className="flex flex-wrap justify-start gap-2 px-4">

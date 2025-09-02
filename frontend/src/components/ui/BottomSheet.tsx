@@ -169,7 +169,9 @@ export function BottomSheet<T = string>({
           )}
 
           {/* 컨텐츠 */}
-          <div className="flex-1 overflow-y-auto py-4">{children}</div>
+          <div className="flex-1 overflow-y-auto scrollbar-hide py-4">
+            {children}
+          </div>
         </div>
       );
     }

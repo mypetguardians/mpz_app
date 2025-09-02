@@ -268,7 +268,7 @@ export default function BasicInfo({
             value={breedSearchTerm}
             onChange={(e) => setBreedSearchTerm(e.target.value)}
           />
-          <div className="max-h-60 overflow-y-auto">
+          <div className="max-h-60 overflow-y-auto scrollbar-hide">
             {filteredBreeds.length > 0 ? (
               <div className="flex flex-col">
                 {filteredBreeds.map((breedItem, index) => (

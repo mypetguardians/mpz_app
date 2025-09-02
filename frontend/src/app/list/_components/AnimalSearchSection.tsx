@@ -360,7 +360,7 @@ export function AnimalSearchSection({
             value={breedSearchTerm}
             onChange={(e) => setBreedSearchTerm(e.target.value)}
           />
-          <div className="max-h-60 overflow-y-auto">
+          <div className="max-h-60 overflow-y-auto scrollbar-hide">
             {isBreedSearchLoading ? (
               <div className="text-center py-4">
                 <div className="text-gray-500">검색 중...</div>

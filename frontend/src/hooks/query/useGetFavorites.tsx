@@ -87,8 +87,10 @@ export const useGetAnimalFavorites = (page?: number, limit?: number) => {
     queryKey: ["animalFavorites", page, limit],
     queryFn: () => fetchAnimalFavorites(page, limit),
     select: transformAnimalFavorites,
-    staleTime: 5 * 60 * 1000, // 5분
+    staleTime: 1 * 60 * 1000, // 1분으로 단축 (더 자주 업데이트)
     gcTime: 10 * 60 * 1000, // 10분
+    refetchOnWindowFocus: true, // 윈도우 포커스 시 refetch
+    refetchOnMount: true, // 마운트 시 refetch
   });
 };
 

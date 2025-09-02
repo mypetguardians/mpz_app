@@ -28,8 +28,13 @@ export default function RelatedPosts({ currentPet }: RelatedPostsProps) {
   // 현재 동물과 관련된 게시물
   const relatedPosts = postsData?.posts || [];
 
+  // 실제로 현재 동물과 연관된 게시물만 필터링
+  const filteredPosts = relatedPosts.filter(
+    (post) => post.animalId === currentPet.id
+  );
+
   // 표시할 게시물 결정
-  const displayPosts = relatedPosts;
+  const displayPosts = filteredPosts;
 
   if (isLoading) {
     return (
@@ -64,18 +69,21 @@ export default function RelatedPosts({ currentPet }: RelatedPostsProps) {
             ))}
           </div>
         ) : (
-          <div className="text-center py-4 text-gray-500">
-            관련 게시물이 없습니다
+          <div className="text-center py-8 text-gray-500">
+            <p>아직 이 아이에 대한 게시물이 없어요</p>
+            <p className="text-sm mt-1">첫 번째 게시물을 작성해보세요!</p>
           </div>
         )}
       </div>
-      <MiniButton
-        text="더보기"
-        variant="filterOff"
-        className="py-4 w-full"
-        rightIcon={<CaretDown size={12} />}
-        onClick={() => router.push(`/community`)}
-      />
+      {displayPosts.length > 0 && (
+        <MiniButton
+          text="더보기"
+          variant="filterOff"
+          className="py-4 w-full"
+          rightIcon={<CaretDown size={12} />}
+          onClick={() => router.push(`/community?animalId=${currentPet.id}`)}
+        />
+      )}
     </div>
   );
 }

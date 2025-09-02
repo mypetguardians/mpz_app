@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 
 import { Container } from "@/components/common/Container";
@@ -20,6 +20,10 @@ import { RawAnimalResponse } from "@/types/animal";
 export default function Home() {
   const { isAuthenticated } = useAuth();
   const [selectedLocation, setSelectedLocation] = useState<string>("");
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const { aiMatchingResult } = useMatchingStepStore();
   const { data: banners, isLoading: bannerLoading } = useGetBanners({
     type: "main",
@@ -35,7 +39,6 @@ export default function Home() {
     sortOrder: "desc",
   });
 
-  // page.data를 사용하여 데이터 추출 (실제 API 응답 구조)
   const animals: RawAnimalResponse[] =
     animalsData?.pages?.flatMap((page) => {
       return (page as { data?: RawAnimalResponse[] }).data || [];
@@ -47,6 +50,65 @@ export default function Home() {
     setSelectedLocation(location);
   };
 
+  // 자동 슬라이드 기능
+  useEffect(() => {
+    if (!banners || banners.data.length <= 1 || !isAutoPlaying) return;
+
+    const interval = setInterval(() => {
+      setCurrentBannerIndex(
+        (prevIndex) => (prevIndex + 1) % banners.data.length
+      );
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [banners, isAutoPlaying]);
+
+  // 배너 클릭 핸들러
+  const handleBannerClick = () => {
+    if (banners && banners.data[currentBannerIndex]?.link_url) {
+      window.open(banners.data[currentBannerIndex].link_url, "_blank");
+    }
+  };
+
+  // 인디케이터 클릭 핸들러
+  const handleIndicatorClick = (index: number) => {
+    setCurrentBannerIndex(index);
+  };
+
+  // 터치/스와이프 핸들러
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (!banners || banners.data.length <= 1) return;
+
+    if (isLeftSwipe) {
+      // 왼쪽 스와이프 - 다음 슬라이드
+      setCurrentBannerIndex(
+        (prevIndex) => (prevIndex + 1) % banners.data.length
+      );
+    } else if (isRightSwipe) {
+      // 오른쪽 스와이프 - 이전 슬라이드
+      setCurrentBannerIndex((prevIndex) =>
+        prevIndex === 0 ? banners.data.length - 1 : prevIndex - 1
+      );
+    }
+  };
+
   return (
     <Container>
       <HomeHeader isLoggedIn={isAuthenticated} />
@@ -56,21 +118,58 @@ export default function Home() {
         )}
         {!bannerLoading && banners && banners.data.length > 0 && (
           <div
-            className="relative w-full h-[232px] cursor-pointer overflow-hidden"
-            onClick={() => {
-              if (banners.data[0].link_url) {
-                window.open(banners.data[0].link_url, "_blank");
-              }
-            }}
+            className="relative w-full h-[232px] overflow-hidden"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+            onMouseEnter={() => setIsAutoPlaying(false)}
+            onMouseLeave={() => setIsAutoPlaying(true)}
           >
-            <Image
-              src={banners.data[0].image_url}
-              alt={banners.data[0].alt}
-              fill
-              className="object-cover"
-              sizes="100vw"
-              priority
-            />
+            {/* 캐러셀 컨테이너 */}
+            <div
+              className="flex transition-transform duration-500 ease-in-out h-full"
+              style={{
+                transform: `translateX(-${currentBannerIndex * 100}%)`,
+              }}
+            >
+              {banners.data.map((banner, index) => (
+                <div
+                  key={banner.id || index}
+                  className="relative min-w-full h-full cursor-pointer flex-shrink-0"
+                  onClick={handleBannerClick}
+                >
+                  <Image
+                    src={banner.image_url}
+                    alt={banner.alt}
+                    fill
+                    className="object-cover"
+                    sizes="100vw"
+                    priority={index === 0}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* 인디케이터 */}
+            {banners.data.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                {banners.data.map((_, index) => (
+                  <button
+                    key={index}
+                    className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                      index === currentBannerIndex
+                        ? "bg-white scale-125"
+                        : "bg-white/50 hover:bg-white/70"
+                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleIndicatorClick(index);
+                    }}
+                    aria-label={`배너 ${index + 1}로 이동`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -55,6 +55,7 @@ export default function CommunityEditPage({
 
   const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [deletedImageUrls, setDeletedImageUrls] = useState<string[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [showPetSelection, setShowPetSelection] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
@@ -62,7 +63,11 @@ export default function CommunityEditPage({
   const [activeTab, setActiveTab] = useState("adoption");
   const [publicType, setPublicType] = useState<PublicType>("center");
 
-  const { data: postData } = useGetPublicPostDetail(postId);
+  const {
+    data: postData,
+    isLoading: isLoadingPost,
+    error: postError,
+  } = useGetPublicPostDetail(postId);
 
   const { mutate: updatePost } = useUpdatePost();
   const { mutate: uploadImages } = useUploadImages();
@@ -76,40 +81,38 @@ export default function CommunityEditPage({
       setTitle(postData.post.title || "");
       setContent(postData.post.content || "");
 
-      // 기존 태그를 tagName 또는 tag_name 필드에서 추출
+      // 기존 태그를 tagName 필드에서 추출 (API 응답 구조에 맞게 수정)
       const existingTags =
-        postData.post.tags
-          ?.map(
-            (tag: { tagName?: string; tag_name?: string }) =>
-              tag.tagName || tag.tag_name || ""
-          )
-          .filter(Boolean) || [];
+        postData.post.tags?.map((tag) => tag.tagName).filter(Boolean) || [];
 
       setTags(existingTags);
-      setPublicType(postData.post.adoptionId ? "center" : "public");
+
+      // adoptionId가 있으면 center, 없으면 public
+      const newPublicType = postData.post.adoptionId ? "center" : "public";
+      setPublicType(newPublicType);
 
       // 기존 이미지가 있다면 설정
       if (postData.post.images && postData.post.images.length > 0) {
-        setUploadedImageUrls(postData.post.images.map((img) => img.imageUrl));
+        const imageUrls = postData.post.images.map((img) => img.imageUrl);
+        setUploadedImageUrls(imageUrls);
       }
 
       // 기존 adoption_id가 있다면 설정
       if (postData.post.adoptionId) {
         setSelectedAdoptionId(postData.post.adoptionId);
-        // adoptionAnimals에서 해당 동물 찾기
-        // 이 부분은 adoptionAnimals가 로드된 후에 처리해야 함
       }
     }
   }, [postData]);
 
-  // 사용자 타입에 따라 초기 공개 범위를 지정
+  // 사용자 타입에 따라 초기 공개 범위를 지정 (새 포스트일 때만)
   useEffect(() => {
     if (!user) return;
-    if (!postData) {
-      // 기존 데이터가 없을 때만 설정
-      setPublicType(isAdmin ? "center" : "public");
+    // 기존 포스트 데이터가 없고, 아직 publicType이 초기값일 때만 설정
+    if (!postData && publicType === "center") {
+      const initialPublicType = isAdmin ? "center" : "public";
+      setPublicType(initialPublicType);
     }
-  }, [isAdmin, user, postData]);
+  }, [isAdmin, user, postData, publicType]);
 
   const { data: adoptionsData } = useGetUserAdoptions({
     filters: {
@@ -207,8 +210,28 @@ export default function CommunityEditPage({
   };
 
   const removeImage = (index: number) => {
+    const imageToRemove = uploadedImageUrls[index];
+
+    // 기존 이미지인지 새로 업로드된 이미지인지 확인
+    const isExistingImage = postData?.post?.images?.some(
+      (img) => img.imageUrl === imageToRemove
+    );
+
+    if (isExistingImage) {
+      // 기존 이미지라면 삭제 목록에 추가
+      setDeletedImageUrls((prev) => [...prev, imageToRemove]);
+    } else {
+      // 새로 업로드된 파일이라면 파일 목록에서도 제거
+      // 기존 이미지 개수를 고려하여 파일 인덱스 계산
+      const existingImageCount = postData?.post?.images?.length || 0;
+      const fileIndex = index - existingImageCount;
+      if (fileIndex >= 0) {
+        setUploadedFiles((prev) => prev.filter((_, i) => i !== fileIndex));
+      }
+    }
+
+    // UI에서 이미지 제거
     setUploadedImageUrls((prev) => prev.filter((_, i) => i !== index));
-    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const removePet = () => {
@@ -265,24 +288,20 @@ export default function CommunityEditPage({
     const newContent = e.target.value;
     setContent(newContent);
 
-    // 기존 태그와 새로 추출된 태그를 합침
+    // 새로 추출된 태그만 설정 (기존 태그는 이미 초기화 시에 설정됨)
     const extractedTags = extractTags(newContent);
-    const existingTags =
-      postData?.post?.tags
-        ?.map(
-          (tag: { tagName?: string; tag_name?: string }) =>
-            tag.tagName || tag.tag_name || ""
-        )
-        .filter(Boolean) || [];
 
-    // 기존 태그와 새로 입력한 태그를 모두 포함, 유효한 문자열만 필터링
-    const allTags = [...new Set([...existingTags, ...extractedTags])].filter(
-      (tag) => typeof tag === "string" && tag.length > 0
-    );
-    setTags(allTags);
+    setTags(extractedTags);
   };
 
   const handleConfirmSave = () => {
+    // 최종 이미지 목록 계산 (기존 이미지 - 삭제된 이미지)
+    const existingImageUrls =
+      postData?.post?.images?.map((img) => img.imageUrl) || [];
+    const finalImageUrls = existingImageUrls.filter(
+      (url) => !deletedImageUrls.includes(url)
+    );
+
     // 먼저 포스트를 수정
     updatePost(
       {
@@ -291,13 +310,12 @@ export default function CommunityEditPage({
           title,
           content,
           tags,
-          images: [],
+          images: finalImageUrls,
         },
       },
       {
         onSuccess: (response) => {
           console.log("포스트 수정 성공:", response);
-          // 포스트 수정 성공 후 새로 업로드된 이미지가 있으면 업로드
           if (uploadedFiles.length > 0) {
             uploadImages(
               {
@@ -315,7 +333,6 @@ export default function CommunityEditPage({
               }
             );
           } else {
-            // 새로 업로드된 이미지가 없으면 바로 뒤로가기
             setShowSaveModal(false);
             router.back();
           }
@@ -332,6 +349,72 @@ export default function CommunityEditPage({
     setShowBackConfirmSheet(false);
     router.back();
   };
+
+  // postId가 없을 때 처리
+  if (!postId) {
+    router.push("/community");
+    return null;
+  }
+
+  // 로딩 중이거나 에러가 있을 때 처리
+  if (isLoadingPost) {
+    return (
+      <Container className="min-h-screen bg-white">
+        <TopBar
+          variant="variant4"
+          left={
+            <div className="flex items-center gap-2">
+              <IconButton
+                icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
+                size="iconM"
+                onClick={handleBack}
+              />
+              <h3>글 수정하기</h3>
+            </div>
+          }
+        />
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand mx-auto mb-4"></div>
+            <p className="text-gr">글을 불러오는 중...</p>
+          </div>
+        </div>
+      </Container>
+    );
+  }
+
+  if (postError) {
+    return (
+      <Container className="min-h-screen bg-white">
+        <TopBar
+          variant="variant4"
+          left={
+            <div className="flex items-center gap-2">
+              <IconButton
+                icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
+                size="iconM"
+                onClick={handleBack}
+              />
+              <h3>글 수정하기</h3>
+            </div>
+          }
+        />
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <p className="text-red-500 mb-4">
+              글을 불러오는 중 오류가 발생했습니다.
+            </p>
+            <button
+              onClick={() => router.back()}
+              className="px-4 py-2 bg-brand text-white rounded-md"
+            >
+              돌아가기
+            </button>
+          </div>
+        </div>
+      </Container>
+    );
+  }
 
   return (
     <Container className="min-h-screen bg-white">
@@ -481,16 +564,18 @@ export default function CommunityEditPage({
         <div className="h-[480px] overflow-y-auto scrollbar-hide">
           {animals.length > 0 ? (
             <>
-              <div className="flex flex-wrap justify-start gap-2 px-4">
+              <div className="flex flex-wrap justify-start gap-2">
                 {animals.map((pet: PetCardAnimal) => (
                   <div
                     key={pet.id}
-                    onClick={() =>
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
                       handlePetSelect(
                         pet,
                         (pet as ExtendedPetCardAnimal).adoptionId || ""
-                      )
-                    }
+                      );
+                    }}
                     className="cursor-pointer w-[calc(50%-4px)]"
                   >
                     <PetCard
@@ -498,6 +583,7 @@ export default function CommunityEditPage({
                       variant="primary"
                       imageSize="full"
                       className="w-full"
+                      disableNavigation={true}
                     />
                   </div>
                 ))}

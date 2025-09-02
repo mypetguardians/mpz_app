@@ -473,7 +473,7 @@ export default function CommunityUploadPage() {
         <div className="h-[480px] overflow-y-auto scrollbar-hide">
           {animals.length > 0 ? (
             <>
-              <div className="flex flex-wrap justify-start gap-2 px-4">
+              <div className="flex flex-wrap justify-start gap-2">
                 {animals.map((pet: PetCardAnimal) => (
                   <div
                     key={pet.id}

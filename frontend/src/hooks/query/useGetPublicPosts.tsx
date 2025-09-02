@@ -34,21 +34,42 @@ const getPublicPosts = async (
 const getPublicPostDetail = async (
   postId: string
 ): Promise<PostDetailResponse> => {
-  const response = await instance.get<ApiPostDetailResponse>(
-    `/posts/all/${postId}`
-  );
+  // 먼저 전체공개 글에서 시도
+  try {
+    const response = await instance.get<ApiPostDetailResponse>(
+      `/posts/all/${postId}`
+    );
 
-  // API 응답을 Post 타입으로 변환
-  const transformedPost = transformRawPostToPost(response.data.post);
+    // API 응답을 Post 타입으로 변환
+    const transformedPost = transformRawPostToPost(response.data.post);
 
-  return {
-    post: {
-      ...transformedPost,
-      tags: response.data.post.tags,
-      images: response.data.post.images,
-      postLikes: response.data.post.postLikes,
-    },
-  };
+    return {
+      post: {
+        ...transformedPost,
+        tags: response.data.post.tags,
+        images: response.data.post.images,
+        postLikes: response.data.post.postLikes,
+      },
+    };
+  } catch (error) {
+    // 전체공개에서 찾을 수 없으면 센터공개에서 시도
+    console.log("전체공개에서 찾을 수 없음, 센터공개에서 시도:", error);
+    const response = await instance.get<ApiPostDetailResponse>(
+      `/posts/center/${postId}`
+    );
+
+    // API 응답을 Post 타입으로 변환
+    const transformedPost = transformRawPostToPost(response.data.post);
+
+    return {
+      post: {
+        ...transformedPost,
+        tags: response.data.post.tags,
+        images: response.data.post.images,
+        postLikes: response.data.post.postLikes,
+      },
+    };
+  }
 };
 
 export const useGetPublicPosts = (params?: GetPostsParams) => {

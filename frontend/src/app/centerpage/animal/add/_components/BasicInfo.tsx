@@ -7,7 +7,6 @@ import { SearchInput } from "@/components/ui/SearchInput";
 import { AddButton } from "@/components/ui/AddButton";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { breed } from "@/app/mock";
-import { MiniButton } from "@/components/ui";
 
 interface BasicInfoData {
   status: string;
@@ -38,20 +37,13 @@ export default function BasicInfo({
   onImagesChange,
 }: BasicInfoProps) {
   const [isBreedSheetOpen, setIsBreedSheetOpen] = useState(false);
-  const [isDateSheetOpen, setIsDateSheetOpen] = useState(false);
   const [breedSearchTerm, setBreedSearchTerm] = useState("");
   const [tempSelectedBreed, setTempSelectedBreed] = useState("");
-  const [tempSelectedDate, setTempSelectedDate] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleBreedSearchClick = () => {
     setTempSelectedBreed(data.breed);
     setIsBreedSheetOpen(true);
-  };
-
-  const handleDateSelectClick = () => {
-    setTempSelectedDate(data.centerEntryDate);
-    setIsDateSheetOpen(true);
   };
 
   const handleBreedSelect = (breed: string) => {
@@ -62,11 +54,6 @@ export default function BasicInfo({
     onChange({ breed });
     setIsBreedSheetOpen(false);
     setBreedSearchTerm("");
-  };
-
-  const handleDateApply = (date: string) => {
-    onChange({ centerEntryDate: date });
-    setIsDateSheetOpen(false);
   };
 
   const filteredBreeds = breed.filter((b) =>
@@ -98,23 +85,6 @@ export default function BasicInfo({
   const getImagePreview = (file: File): string => {
     return URL.createObjectURL(file);
   };
-
-  // 날짜 포맷팅 함수
-  const formatDate = (dateString: string): string => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("ko-KR", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  // 현재 년도 기준으로 년도 배열 생성
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 30 }, (_, i) => currentYear - i);
-  const months = Array.from({ length: 12 }, (_, i) => i + 1);
-  const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
   return (
     <>
@@ -238,21 +208,16 @@ export default function BasicInfo({
         />
         <AddButton>특징 추가</AddButton>
 
-        {/* 센터 입소일 - 날짜 선택 */}
-        <div className="flex flex-col gap-2">
-          <h5 className="text-dg">
-            센터 입소일 <span className="text-brand">*</span>
-          </h5>
-          <div onClick={handleDateSelectClick} className="cursor-pointer">
-            <div className="flex w-full rounded-md border border-input bg-background px-4 py-3 h5 ring-offset-background focus-visible:outline-none focus-visible:border-brand">
-              <span className={data.centerEntryDate ? "text-bk" : "text-gr"}>
-                {data.centerEntryDate
-                  ? formatDate(data.centerEntryDate)
-                  : "센터에 들어온 날을 선택해주세요."}
-              </span>
-            </div>
-          </div>
-        </div>
+        {/* 센터 입소일 - CustomInput 사용 */}
+        <CustomInput
+          variant="primary"
+          label="센터 입소일"
+          type="date"
+          placeholder="센터에 들어온 날을 선택해주세요"
+          value={data.centerEntryDate}
+          onChange={(e) => onChange({ centerEntryDate: e.target.value })}
+          required={true}
+        />
       </div>
 
       {/* 견종 선택 BottomSheet */}
@@ -295,118 +260,6 @@ export default function BasicInfo({
               </p>
             )}
           </div>
-        </div>
-      </BottomSheet>
-
-      {/* 날짜 선택 BottomSheet */}
-      <BottomSheet
-        open={isDateSheetOpen}
-        onClose={() => setIsDateSheetOpen(false)}
-        variant="selectMenu"
-        showApplyButton={true}
-        applyButtonText="적용하기"
-        onApply={handleDateApply}
-        selectedValue={tempSelectedDate}
-      >
-        <div className="flex flex-col gap-4">
-          <h5 className="text-center text-lg font-medium mt-3">
-            센터 입소일 선택
-          </h5>
-
-          {/* 년도 선택 */}
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-gray-700">년도</label>
-            <div className="grid grid-cols-3 gap-2 max-h-32 overflow-y-auto">
-              {years.map((year) => (
-                <MiniButton
-                  key={year}
-                  text={`${year}년`}
-                  variant={
-                    tempSelectedDate &&
-                    new Date(tempSelectedDate).getFullYear() === year
-                      ? "filterOn"
-                      : "filterOff"
-                  }
-                  onClick={() => {
-                    if (tempSelectedDate) {
-                      const date = new Date(tempSelectedDate);
-                      date.setFullYear(year);
-                      setTempSelectedDate(date.toISOString().split("T")[0]);
-                    } else {
-                      const date = new Date(year, 0, 1);
-                      setTempSelectedDate(date.toISOString().split("T")[0]);
-                    }
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* 월 선택 */}
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-gray-700">월</label>
-            <div className="grid grid-cols-3 gap-2">
-              {months.map((month) => (
-                <MiniButton
-                  key={month}
-                  text={`${month}월`}
-                  variant={
-                    tempSelectedDate &&
-                    new Date(tempSelectedDate).getMonth() + 1 === month
-                      ? "filterOn"
-                      : "filterOff"
-                  }
-                  onClick={() => {
-                    if (tempSelectedDate) {
-                      const date = new Date(tempSelectedDate);
-                      date.setMonth(month - 1);
-                      setTempSelectedDate(date.toISOString().split("T")[0]);
-                    } else {
-                      const date = new Date(currentYear, month - 1, 1);
-                      setTempSelectedDate(date.toISOString().split("T")[0]);
-                    }
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* 일 선택 */}
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-gray-700">일</label>
-            <div className="grid grid-cols-7 gap-1 max-h-32 overflow-y-auto">
-              {days.map((day) => (
-                <MiniButton
-                  key={day}
-                  text={`${day}일`}
-                  variant={
-                    tempSelectedDate &&
-                    new Date(tempSelectedDate).getDate() === day
-                      ? "filterOn"
-                      : "filterOff"
-                  }
-                  onClick={() => {
-                    if (tempSelectedDate) {
-                      const date = new Date(tempSelectedDate);
-                      date.setDate(day);
-                      setTempSelectedDate(date.toISOString().split("T")[0]);
-                    } else {
-                      const date = new Date(currentYear, 0, day);
-                      setTempSelectedDate(date.toISOString().split("T")[0]);
-                    }
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* 선택된 날짜 표시 */}
-          {tempSelectedDate && (
-            <div className="text-center p-3 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600">선택된 날짜</p>
-              <p className="font-medium">{formatDate(tempSelectedDate)}</p>
-            </div>
-          )}
         </div>
       </BottomSheet>
     </>

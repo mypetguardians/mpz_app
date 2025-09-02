@@ -3,14 +3,14 @@ import { useRouter } from "next/navigation";
 import instance from "@/lib/axios-instance";
 
 interface CreateAnimalData {
-  name: string;
-  is_female: boolean;
-  age?: number | null;
-  weight?: number | string | null;
+  name: string; // required, 1-50 characters
+  is_female: boolean; // required
+  age?: number | null; // 0-300 months
+  weight?: number | null; // 0.01-999.99 kg
   color?: string | null;
   breed?: string | null;
   description?: string | null;
-  status?: string | null;
+  status?: string | null; // default: "보호중"
   activity_level?: string | null;
   sensitivity?: string | null;
   sociability?: string | null;
@@ -23,35 +23,35 @@ interface CreateAnimalData {
   announcement_date?: string | null;
   found_location?: string | null;
   personality?: string | null;
-  comment?: string | null;
+  comment?: string | null; // 공공데이터 특이사항 코멘트
 }
 
 interface CreateAnimalResponse {
   id: string;
   name: string;
-  isFemale: boolean;
-  age: number;
+  is_female: boolean;
+  age: number | null;
   weight: number | null;
   color: string | null;
   breed: string | null;
   description: string | null;
   status: string;
-  waitingDays: number | null;
-  activityLevel: number | null;
-  sensitivity: number | null;
-  sociability: number | null;
-  separationAnxiety: number | null;
-  specialNotes: string | null;
-  healthNotes: string | null;
-  basicTraining: string | null;
-  trainerComment: string | null;
-  announceNumber: string | null;
-  announcementDate: string | null;
-  foundLocation: string | null;
+  activity_level: string | null;
+  sensitivity: string | null;
+  sociability: string | null;
+  separation_anxiety: string | null;
+  special_notes: string | null;
+  health_notes: string | null;
+  basic_training: string | null;
+  trainer_comment: string | null;
+  announce_number: string | null;
+  announcement_date: string | null;
+  found_location: string | null;
   personality: string | null;
-  centerId: string;
-  createdAt: string;
-  updatedAt: string;
+  comment: string | null;
+  center_id: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export const useCreateAnimal = () => {

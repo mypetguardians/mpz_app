@@ -3,29 +3,39 @@
 import { useMutation } from "@tanstack/react-query";
 import instance from "@/lib/axios-instance";
 
-const uploadSingleImage = async (file: File): Promise<string> => {
-  const fd = new FormData();
-  fd.append("file", file);
-  fd.append("folder", "uploads");
+interface UploadSingleImageParams {
+  file: string;
+  filename: string;
+  content_type?: string;
+  folder?: string;
+}
 
-  const res = await instance.post(`/cloudflare/upload-multipart`, fd, {
-    headers: { "Content-Type": "multipart/form-data" },
-    maxBodyLength: Infinity,
-    maxContentLength: Infinity,
+interface UploadSingleImageResponse {
+  success: boolean;
+  message: string;
+  file_url: string;
+  file_key: string;
+  uploaded_at: string;
+}
+
+const uploadSingleImage = async (
+  data: UploadSingleImageParams
+): Promise<UploadSingleImageResponse> => {
+  const res = await instance.post("/cloudflare/upload", {
+    file: data.file,
+    filename: data.filename,
+    content_type: data.content_type || "image/jpeg",
+    folder: data.folder || "profiles",
   });
 
   if (!res.data?.success) {
-    throw new Error(res.data?.message || "업로드 실패");
+    throw new Error(res.data?.message || "프로필 이미지 업로드에 실패했습니다");
   }
 
-  return res.data.file_url;
+  return res.data;
 };
 
-export const useUploadSingleImage = () => {
-  return useMutation({
+export const useUploadSingleImage = () =>
+  useMutation({
     mutationFn: uploadSingleImage,
-    onError: (error) => {
-      console.error("이미지 업로드 실패:", error);
-    },
   });
-};

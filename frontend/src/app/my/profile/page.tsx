@@ -208,11 +208,11 @@ export default function ProfileEditPage() {
           }
         />
 
-        <div className="mx-4 pb-32">
+        <div className="pb-32 mx-4">
           <div className="space-y-6">
             {/* 이미지 섹션 */}
             <div className="space-y-3">
-              <h5 className="text-black font-medium">이미지</h5>
+              <h5 className="font-medium text-black">이미지</h5>
               <div className="flex items-center space-x-4">
                 <div className="relative">
                   <label>
@@ -274,7 +274,7 @@ export default function ProfileEditPage() {
       </Container>
 
       {/* 저장 버튼 */}
-      <div className="fixed bottom-10 left-0 right-0 z-50 px-4">
+      <div className="fixed left-0 right-0 z-50 px-4 bottom-10">
         <div className="max-w-[380px] mx-auto">
           <BigButton
             className="w-full"

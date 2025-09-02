@@ -279,30 +279,35 @@ def retrieve_personality_test_data(test_id: str, current_user_id: str):
 
 @sync_to_async
 def retrieve_user_personality_tests(user_id: str):
-    """사용자의 모든 성격 테스트 데이터 조회"""
+    """사용자의 최신 성격 테스트 데이터 조회"""
     try:
-        # 해당 사용자의 모든 테스트 조회
-        personality_tests = PersonalityTest.objects.filter(
+        # 해당 사용자의 최신 테스트 하나만 조회
+        latest_test = PersonalityTest.objects.filter(
             user_id=user_id
-        ).order_by('-completed_at')
+        ).order_by('-completed_at').first()
         
-        tests_list = []
-        for test in personality_tests:
+        if latest_test:
             test_summary = {
-                "test_id": str(test.id),
-                "test_type": test.test_type,
-                "completed_at": test.completed_at.isoformat(),
-                "total_questions": len(test.answers) if test.answers else 0,
-                "test_name": test.test_type  # test_type이 test_name과 동일
+                "test_id": str(latest_test.id),
+                "test_type": latest_test.test_type,
+                "completed_at": latest_test.completed_at.isoformat(),
+                "total_questions": len(latest_test.answers) if latest_test.answers else 0,
+                "test_name": latest_test.test_type,
+                "test_result": latest_test.result if latest_test.result else None
             }
-            tests_list.append(test_summary)
-        
-        return {
-            "success": True,
-            "user_id": user_id,
-            "total_tests": len(tests_list),
-            "tests": tests_list
-        }
+            
+            return {
+                "success": True,
+                "user_id": user_id,
+                "test": test_summary
+            }
+        else:
+            return {
+                "success": True,
+                "user_id": user_id,
+                "test": None,
+                "message": "성격 테스트 데이터가 없습니다."
+            }
         
     except Exception as e:
         return {

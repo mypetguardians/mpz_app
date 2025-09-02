@@ -18,6 +18,13 @@ from animals.schemas.outbound import (
 )
 from api.security import jwt_auth
 from centers.models import Center
+from animals.services import PublicDataService
+from django.conf import settings
+from animals.schemas.public_data import (
+    PublicDataSyncResponseOut, PublicDataStatusOut, PublicDataErrorOut,
+    PublicDataSyncResultOut
+)
+from datetime import timedelta
 
 router = Router(tags=["Animals"])
 
@@ -72,6 +79,7 @@ async def create_animal(request: HttpRequest, data: AnimalCreateIn):
             "announce_number": data.announce_number,
             "found_location": data.found_location,
             "admission_date": data.announcement_date,  # announcement_date를 admission_date로 매핑
+            "comment": data.comment,  # comment 필드 매핑
         }
         
         # DB에 동물 정보 삽입
@@ -98,6 +106,7 @@ async def create_animal(request: HttpRequest, data: AnimalCreateIn):
             basic_training=animal.basic_training,
             trainer_comment=animal.trainer_comment,
             announce_number=animal.announce_number,
+            display_notice_number=animal.display_notice_number,  # 표시용 공고번호
             announcement_date=animal.announcement_date,
             found_location=animal.found_location,
             admission_date=animal.admission_date.isoformat() if animal.admission_date else None,
@@ -108,6 +117,11 @@ async def create_animal(request: HttpRequest, data: AnimalCreateIn):
             animal_images=[],
             created_at=animal.created_at.isoformat(),
             updated_at=animal.updated_at.isoformat(),
+            
+            # 공공데이터 관련 필드
+            is_public_data=animal.is_public_data,
+            public_notice_number=animal.public_notice_number,
+            comment=animal.comment,  # 공공데이터 특이사항 코멘트
         )
         
         # 임시보호 등록 알림 전송
@@ -222,6 +236,7 @@ async def get_animals(request: HttpRequest, filters: AnimalListQueryIn = Query(A
                 basic_training=None,  # Animal 모델에 없는 필드
                 trainer_comment=None,  # Animal 모델에 없는 필드
                 announce_number=animal.announce_number,
+                display_notice_number=animal.display_notice_number,  # 표시용 공고번호
                 announcement_date=None,  # Animal 모델에 없는 필드
                 found_location=animal.found_location,
                 admission_date=animal.admission_date.isoformat() if animal.admission_date else None,
@@ -240,6 +255,11 @@ async def get_animals(request: HttpRequest, filters: AnimalListQueryIn = Query(A
                 ],
                 created_at=animal.created_at.isoformat(),
                 updated_at=animal.updated_at.isoformat(),
+                
+                # 공공데이터 관련 필드
+                is_public_data=animal.is_public_data,
+                public_notice_number=animal.public_notice_number,
+                comment=animal.comment,  # 공공데이터 특이사항 코멘트
             )
             animals_response.append(animal_data)
         
@@ -333,6 +353,7 @@ async def get_animal_by_id(request: HttpRequest, animal_id: str):
             basic_training=None,  # Animal 모델에 없는 필드
             trainer_comment=None,  # Animal 모델에 없는 필드
             announce_number=animal.announce_number,
+            display_notice_number=animal.display_notice_number,  # 표시용 공고번호
             announcement_date=None,  # Animal 모델에 없는 필드
             found_location=animal.found_location,
             admission_date=animal.admission_date.isoformat() if animal.admission_date else None,
@@ -351,6 +372,11 @@ async def get_animal_by_id(request: HttpRequest, animal_id: str):
             ],
             created_at=animal.created_at.isoformat(),
             updated_at=animal.updated_at.isoformat(),
+            
+            # 공공데이터 관련 필드
+            is_public_data=animal.is_public_data,
+            public_notice_number=animal.public_notice_number,
+            comment=animal.comment,  # 공공데이터 특이사항 코멘트
         )
         
         return response_data
@@ -737,3 +763,152 @@ async def get_related_animals_by_distance(
         raise
     except Exception as e:
         raise HttpError(500, f"관련 동물 조회 중 오류가 발생했습니다: {str(e)}")
+
+
+@router.get(
+    "/public-data/sync",
+    summary="[R] 공공데이터 동기화",
+    description="공공데이터 API에서 유기동물 정보를 가져와서 DB에 동기화합니다. (관리자 전용 또는 qstash 스케줄러용)",
+    response={
+        200: PublicDataSyncResponseOut,
+        400: PublicDataErrorOut,
+        401: PublicDataErrorOut,
+        403: PublicDataErrorOut,
+        500: PublicDataErrorOut,
+    },
+    auth=jwt_auth,
+)
+async def sync_public_data(
+    request: HttpRequest,
+    bgnde: str = Query(None, description="구조날짜 시작 (YYYYMMDD) - 미입력시 어제 날짜 자동 설정"),
+    endde: str = Query(None, description="구조날짜 종료 (YYYYMMDD) - 미입력시 어제 날짜 자동 설정"),
+    upkind: str = Query("417000", description="축종코드 (개: 417000, 고양이: 422400, 기타: 429900)"),
+    state: str = Query(None, description="상태 (notice: 공고중, protect: 보호중)"),
+    page_no: int = Query(1, description="페이지 번호"),
+    num_of_rows: int = Query(1000, description="페이지당 보여줄 개수"),
+    sync_strategy: str = Query("incremental", description="동기화 전략 (incremental: 최근 데이터만, full: 전체 데이터, status_check: 상태 체크만)")
+):
+    """공공데이터 API에서 유기동물 정보를 동기화합니다."""
+    try:
+        # 관리자 권한 확인
+        current_user = request.auth
+        if current_user.user_type not in ["최고관리자", "센터관리자"]:
+            raise HttpError(403, "관리자 권한이 필요합니다")
+        
+        # 서비스 키 확인
+        service_key = getattr(settings, 'PUBLIC_DATA_SERVICE_KEY', None)
+        if not service_key:
+            raise HttpError(500, "공공데이터 서비스 키가 설정되지 않았습니다")
+        
+        # 날짜 자동 설정
+        if not bgnde:
+            yesterday = timezone.now().date() - timedelta(days=1)
+            bgnde = yesterday.strftime('%Y%m%d')
+        if not endde:
+            endde = bgnde
+        
+        # 동기화 전략에 따른 설정
+        is_initial_sync = False
+        if sync_strategy == "full":
+            is_initial_sync = True
+        elif sync_strategy == "status_check":
+            # 상태 체크만: 전체 데이터를 가져와서 상태만 업데이트
+            is_initial_sync = True
+        # incremental은 기본값으로 is_initial_sync = False
+        
+        # 연도별 상태 자동 설정
+        if not state:
+            start_year = int(bgnde[:4])
+            if 2019 <= start_year <= 2022:
+                state = "protect"  # 2019-2022년은 보호중만
+            else:
+                state = "protect"  # 2023년 이후는 기본값
+        
+        print(f"{start_year}년 이후 데이터이므로 모든 상태 허용: {bgnde}, 상태: {state}")
+        
+        # 공공데이터 서비스 초기화
+        public_data_service = PublicDataService(service_key)
+        
+        # 유기동물 데이터 가져오기
+        animals_data = await public_data_service.fetch_abandoned_animals(
+            bgnde=bgnde,
+            endde=endde,
+            upkind=upkind,
+            state=state,
+            page_no=page_no,
+            num_of_rows=num_of_rows,
+            is_initial_sync=is_initial_sync
+        )
+        
+        if not animals_data:
+            return 200, PublicDataSyncResponseOut(
+                message="동기화할 데이터가 없습니다",
+                result=PublicDataSyncResultOut(
+                    created=0,
+                    updated=0,
+                    errors=0,
+                    total=0
+                )
+            )
+        
+        # 동물 데이터 처리
+        result = await public_data_service.process_abandoned_animals(animals_data)
+        
+        # 동기화 전략에 따른 메시지
+        if sync_strategy == "status_check":
+            message = f"상태 체크 완료: {result['updated']}개 동물 상태 업데이트"
+        elif sync_strategy == "full":
+            message = f"전체 동기화 완료: {result['created']}개 생성, {result['updated']}개 업데이트"
+        else:
+            message = f"증분 동기화 완료: {result['created']}개 생성, {result['updated']}개 업데이트"
+        
+        return 200, PublicDataSyncResponseOut(
+            message=message,
+            result=PublicDataSyncResultOut(**result)
+        )
+        
+    except HttpError:
+        raise
+    except Exception as e:
+        print(f"공공데이터 동기화 오류: {e}")
+        raise HttpError(500, f"공공데이터 동기화 중 오류가 발생했습니다: {str(e)}")
+
+
+@router.get(
+    "/public-data/status",
+    summary="[R] 공공데이터 동기화 상태 조회",
+    description="공공데이터로부터 가져온 동물들의 상태를 조회합니다.",
+    response={
+        200: PublicDataStatusOut,
+        500: PublicDataErrorOut,
+    },
+)
+async def get_public_data_status(request: HttpRequest):
+    """공공데이터 동기화 상태를 조회합니다."""
+    try:
+        from django.db.models import Count
+        
+        # 공공데이터 동물 통계
+        total_public_animals = await Animal.objects.filter(is_public_data=True).acount()
+        
+        # 상태별 통계
+        status_stats = await Animal.objects.filter(
+            is_public_data=True
+        ).values('status').annotate(
+            count=Count('id')
+        ).order_by('status')
+        
+        # 최근 업데이트 시간
+        latest_update = await Animal.objects.filter(
+            is_public_data=True
+        ).order_by('-public_update_time').values_list('public_update_time', flat=True).afirst()
+        
+        return 200, PublicDataStatusOut(
+            total_public_animals=total_public_animals,
+            status_distribution=list(status_stats),
+            latest_update=latest_update.isoformat() if latest_update else None
+        )
+        
+    except Exception as e:
+        print(f"공공데이터 상태 조회 오류: {e}")
+        raise HttpError(500, "공공데이터 상태 조회 중 오류가 발생했습니다")

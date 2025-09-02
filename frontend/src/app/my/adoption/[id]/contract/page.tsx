@@ -72,12 +72,12 @@ export default function ContractPage() {
                 size="iconM"
                 onClick={() => router.back()}
               />
-              <h4>계약서</h4>
+              <h4>계약서 보기</h4>
             </div>
           }
         />
         {/* Main Content */}
-        <div className="flex-1 bg-white rounded-t-3xl -mt-4 relative z-10">
+        <div className="flex-1 bg-white rounded-t-3xl relative z-10">
           <div className="p-4">
             {/* Main Title */}
             <div className="flex flex-col gap-2 mb-6">
@@ -86,7 +86,6 @@ export default function ContractPage() {
                 입양 동물과 센터 정보가 포함된 계약서입니다.
               </p>
             </div>
-            {/*  TODO 멘트 수정 */}
 
             {/* Contract Content */}
             <div className="mb-6">

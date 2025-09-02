@@ -129,7 +129,7 @@ export default function UserProfilePage() {
         <div className="flex flex-col items-center gap-3 mx-auto pb-6 border-b border-bg">
           <div className="relative w-[54px] h-[54px] rounded-full overflow-hidden">
             <Image
-              src={userProfile.image || "/img/dummyImg.jpeg"}
+              src={userProfile.image || "/img/dummyImg.png"}
               alt={userProfile.nickname || userProfile.name}
               className="object-cover"
               fill

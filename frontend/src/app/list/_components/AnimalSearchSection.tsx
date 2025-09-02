@@ -324,7 +324,6 @@ export function AnimalSearchSection({
         </div>
       )}
 
-      {/* 필터 옵션 버튼들 - 검색 중이 아닐 때만 */}
       {!showSearchResults && (
         <div className="px-4 pb-4">
           <div className="flex gap-2 overflow-x-auto scrollbar-hide">

@@ -3,7 +3,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const topbarVariants = cva(
-  "flex items-center w-full px-5 h-[54px] justify-between mx-auto",
+  "flex items-center w-full px-4 h-[54px] justify-between mx-auto",
   {
     variants: {
       variant: {

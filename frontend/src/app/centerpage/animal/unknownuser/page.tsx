@@ -95,7 +95,7 @@ function UnknownUserAddContent() {
   const animalImageUrl =
     animal.animal_images && animal.animal_images.length > 0
       ? animal.animal_images[0]
-      : "/img/dummyImg.jpeg";
+      : "/img/dummyImg.png";
 
   return (
     <Container className="min-h-screen">

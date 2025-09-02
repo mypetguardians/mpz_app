@@ -28,7 +28,6 @@ import { RawAnimalResponse } from "@/types/animal";
 import { useGetCenterById } from "@/hooks/query/useGetCenters";
 import {
   useCheckAnimalFavorite,
-  useGetMyCenter,
   useToggleAnimalFavorite,
   useToggleAnimalRecommend,
 } from "@/hooks";
@@ -91,13 +90,14 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
     isLoading: boolean;
     error: Error | null;
   };
-  const { data: myCenter } = useGetMyCenter();
-  const subscriber = myCenter?.isSubscriber === true;
 
   // 동물의 보호센터 정보 가져오기
   const { data: center, isLoading: centerLoading } = useGetCenterById(
     animal?.center_id
   );
+
+  // 센터의 구독 상태 확인 (공고를 올린 센터가 구독자인지)
+  const isCenterSubscriber = center?.isSubscriber === true;
 
   // 찜하기 관련
   const { data: favoriteData, isLoading: favoriteLoading } =
@@ -130,9 +130,6 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
   const [shareToastType, setShareToastType] = useState<"success" | "error">(
     "success"
   );
-
-  // 구독자 여부 확인
-  const isSubscriber = subscriber;
 
   // 찜하기 토글 핸들러
   const handleFavoriteToggle = () => {
@@ -280,32 +277,25 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
     }
   }, [showToast]);
 
-  // 초기 찜하기 상태 동기화
+  // 초기 찜하기 상태 동기화 - 서버 데이터가 로드되면 즉시 반영
   useEffect(() => {
-    if (favoriteData?.isFavorited !== undefined) {
-      setLocalIsFavorited(favoriteData.isFavorited);
+    if (!favoriteLoading && favoriteData?.is_favorited !== undefined) {
+      setLocalIsFavorited(favoriteData.is_favorited);
     }
-  }, [favoriteData?.isFavorited]);
+  }, [favoriteLoading, favoriteData?.is_favorited]);
 
-  // 로딩 중이 아닐 때만 초기 상태 설정
+  // 초기 추천하기 상태 동기화 - 서버 데이터가 로드되면 즉시 반영
   useEffect(() => {
-    if (!favoriteLoading && favoriteData?.isFavorited !== undefined) {
-      setLocalIsFavorited(favoriteData.isFavorited);
-    }
-  }, [favoriteLoading, favoriteData?.isFavorited]);
-
-  // 초기 추천하기 상태 동기화
-  useEffect(() => {
-    if (animal?.is_megaphoned !== undefined) {
+    if (animal && animal.is_megaphoned !== undefined) {
       setIsMegaphoned(animal.is_megaphoned);
     }
-  }, [animal?.is_megaphoned]);
+  }, [animal?.is_megaphoned, animal]);
 
   // 거리 기반 관련 동물 데이터 가져오기
   const { data: relatedAnimalsData, isLoading: relatedAnimalsLoading } =
     useGetRelatedAnimalsByDistance(animal?.id);
 
-  if (isLoading || centerLoading || relatedAnimalsLoading || favoriteLoading) {
+  if (isLoading || centerLoading || relatedAnimalsLoading) {
     return (
       <Container>
         <div className="min-h-screen bg-gray-50">
@@ -341,7 +331,17 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
     );
   }
 
-  const relatedAnimals = relatedAnimalsData?.data?.animals || [];
+  // RelatedAnimalsResponse를 RawAnimalResponse로 변환
+  const relatedAnimals: RawAnimalResponse[] = (relatedAnimalsData || []).map(
+    (item) => ({
+      ...item,
+      status: item.status as RawAnimalResponse["status"],
+      weight: item.weight,
+      color: item.color,
+      breed: item.breed,
+      description: item.description,
+    })
+  );
 
   return (
     <>
@@ -388,13 +388,13 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
           announcementDate={animal.announcement_date || ""}
           description={animal.description || ""}
           foundLocation={animal.found_location || ""}
-          center={center?.name}
-          isSubscriber={isSubscriber}
+          center={center?.name || "보호센터 정보 없음"}
+          isCenterSubscriber={isCenterSubscriber}
           specialNotes={animal.special_notes || undefined}
         />
         <div className="py-3" />
 
-        {isSubscriber && (
+        {isCenterSubscriber && (
           <SubscriberDetails
             activityLevel={animal.activity_level || 3}
             sensitivity={animal.sensitivity || 3}
@@ -439,13 +439,13 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
         />
 
         <CenterInfo
-          variant={isSubscriber ? "subscriber" : "primary"}
+          variant={isCenterSubscriber ? "subscriber" : "primary"}
           centerId={center?.id || ""}
           name={center?.name || "보호센터 정보 없음"}
           location={center?.location || "주소 정보 없음"}
           phoneNumber={center?.phoneNumber || "연락처 정보 없음"}
           adoptionProcedure={
-            isSubscriber && center?.adoptionProcedure
+            isCenterSubscriber && center?.adoptionProcedure
               ? center.adoptionProcedure
               : undefined
           }

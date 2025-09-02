@@ -1,13 +1,18 @@
 import { useQuery, type QueryClient } from "@tanstack/react-query";
 import instance from "@/lib/axios-instance";
-import { Center } from "@/types/center";
+import {
+  Center,
+  transformRawCenterToCenter,
+  RawCenterResponse,
+} from "@/types/center";
 
 export const useGetMyCenter = () => {
   return useQuery({
     queryKey: ["myCenter"],
     queryFn: async (): Promise<Center> => {
       const response = await instance.get("/centers/me");
-      return response.data;
+      const rawData: RawCenterResponse = response.data;
+      return transformRawCenterToCenter(rawData);
     },
   });
 };

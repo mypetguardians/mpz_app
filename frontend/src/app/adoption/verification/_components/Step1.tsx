@@ -54,7 +54,7 @@ export function Step1({ onNext }: StepProps) {
       sessionStorage.setItem("verification.phone", phoneDigits);
     } catch {}
     // TODO: 실제 OTP 발급 API 연동
-    setExpireAt(Date.now() + 3 * 60 * 1000); // 임시 3분 유효
+    setExpireAt(Date.now() + 3 * 60 * 1000);
     setOtp("");
     setStage("otp");
   };

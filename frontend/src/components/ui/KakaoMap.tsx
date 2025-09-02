@@ -108,7 +108,6 @@ export function KakaoMap({
     if (!scriptExist) {
       const script = document.createElement("script");
       script.id = scriptId;
-      // TODO 앱키 에러
       script.src =
         "//dapi.kakao.com/v2/maps/sdk.js?appkey=f6bb9e9986e477c7659509208fe268e6&autoload=false&libraries=services";
       script.async = true;

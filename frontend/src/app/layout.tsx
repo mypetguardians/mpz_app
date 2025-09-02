@@ -9,7 +9,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "마펫즈",
-  description: "Next.js + Hono + Better Auth + React Query + shadcn/ui",
+  description: "컴팩트한 유기동물 입양",
 };
 
 export default function RootLayout({

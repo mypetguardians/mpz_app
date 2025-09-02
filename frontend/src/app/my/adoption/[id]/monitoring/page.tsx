@@ -114,7 +114,7 @@ export default function AdoptionMonitoringPage({
         <div className="flex-1 bg-white rounded-t-3xl -mt-4 relative z-10">
           <div className="p-4">
             {/* Main Title */}
-            <h2 className="flex itemx-center justify-center text-bk mb-6">
+            <h2 className="flex items-center text-center justify-center text-bk mb-6">
               아이와의 일상이 궁금해요!
               <br />
               주기적인 모니터링 부탁드려요
@@ -247,29 +247,6 @@ export default function AdoptionMonitoringPage({
                 </div>
               </div>
             </SectionLine>
-
-            {/* Question Responses */}
-            {adoptionDetail.question_responses &&
-              adoptionDetail.question_responses.length > 0 && (
-                <SectionLine>
-                  <div className="mb-6">
-                    <h3 className="text-bk mb-3">질문 응답</h3>
-                    <div className="space-y-3">
-                      {adoptionDetail.question_responses.map((response) => (
-                        <div
-                          key={response.id}
-                          className="bg-gray-50 p-3 rounded-lg"
-                        >
-                          <div className="font-medium text-gray-700 mb-1">
-                            {response.question_content}
-                          </div>
-                          <div className="text-gray-600">{response.answer}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </SectionLine>
-              )}
 
             {/* Action Buttons */}
             <div className="space-y-3 pb-6">

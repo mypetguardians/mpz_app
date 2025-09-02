@@ -178,7 +178,7 @@ export default function WritingPage({
               {/* My Information */}
               <div className="mb-6">
                 <h3 className="text-bk mb-3">내 정보</h3>
-                <div className="bg-white rounded-lg p-4">
+                <div className="bg-white rounded-lg">
                   <table className="w-full">
                     <tbody className="space-y-1">
                       <tr>
@@ -224,29 +224,6 @@ export default function WritingPage({
                 </div>
               </div>
             </SectionLine>
-
-            {/* Question Responses */}
-            {adoptionDetail.question_responses &&
-              adoptionDetail.question_responses.length > 0 && (
-                <SectionLine>
-                  <div className="mb-6">
-                    <h3 className="text-bk mb-3">질문 응답</h3>
-                    <div className="space-y-3">
-                      {adoptionDetail.question_responses.map((response) => (
-                        <div
-                          key={response.id}
-                          className="bg-gray-50 p-3 rounded-lg"
-                        >
-                          <div className="font-medium text-gray-700 mb-1">
-                            {response.question_content}
-                          </div>
-                          <div className="text-gray-600">{response.answer}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </SectionLine>
-              )}
 
             {/* Action Buttons */}
             <div className="space-y-3 pb-6">

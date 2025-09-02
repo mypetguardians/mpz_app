@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { Bell, Plus } from "@phosphor-icons/react";
 
 import { Container } from "@/components/common/Container";
@@ -12,17 +13,16 @@ import { CommunityCard, CommunityCardSkeleton } from "@/components/ui";
 import { TabButton } from "@/components/ui/TabButton";
 import { BigButton } from "@/components/ui/BigButton";
 import { IconButton } from "@/components/ui/IconButton";
-import {
-  useGetPublicPosts,
-  useGetCenterPosts,
-} from "@/hooks/query/useGetPublicPosts";
-import { useGetSystemTags } from "@/hooks/query/useGetPublicPosts";
+import { useGetPublicPosts } from "@/hooks/query/useGetPublicPosts";
+import { useGetCenterPosts } from "@/hooks/query/useGetCenterPosts";
+import { useGetSystemTags } from "@/hooks/query/useGetSystemTags";
 import { useDeletePost } from "@/hooks/mutation/useDeletePost";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { CustomModal } from "@/components/ui/CustomModal";
 import { Toast } from "@/components/ui/Toast";
 import { useGetBanners } from "@/hooks/query/useGetBanners";
+import { Post } from "@/types/posts";
 
 export default function CommunityPage() {
   const router = useRouter();
@@ -32,9 +32,8 @@ export default function CommunityPage() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
-  // TODO 배너 종류 구분
   const { data: banners, isLoading: bannersLoading } = useGetBanners({
-    type: "main",
+    type: "sub",
   });
 
   // 시스템 태그 가져오기
@@ -47,23 +46,34 @@ export default function CommunityPage() {
       return null;
     }
 
+    const targetBanner = banners.data[0];
+
     return (
-      <div className="px-0 py-5 border-b border-bg">
-        <div className="flex py-[27px] px-5 justify-between items-center rounded-lg">
-          <div className="flex gap-2">
-            {banners.data.slice(0, 3).map((banner) => (
-              <div key={banner.id} className="flex items-center gap-2">
-                <Image
-                  src={banner.image_url}
-                  alt={banner.alt}
-                  width={32}
-                  height={32}
-                  className="object-fill w-8 h-8 rounded"
-                />
-                <span className="text-sm text-brand">{banner.title}</span>
+      <div className="py-5">
+        <div className="relative w-full h-20 rounded-lg overflow-hidden cursor-pointer">
+          {bannersLoading ? (
+            <div className="w-full h-full bg-gray-200 animate-pulse" />
+          ) : (
+            <>
+              <Image
+                // TODO: targetBanner.image_url
+                src="/img/banner.jpg"
+                alt={targetBanner.alt}
+                fill
+                className="object-cover"
+                onClick={() => {
+                  if (targetBanner.link_url) {
+                    window.open(targetBanner.link_url, "_blank");
+                  }
+                }}
+              />
+              <div className="absolute inset-0 flex items-center px-5">
+                <span className="text-sm text-white font-medium">
+                  {targetBanner.title}
+                </span>
               </div>
-            ))}
-          </div>
+            </>
+          )}
         </div>
       </div>
     );
@@ -125,9 +135,13 @@ export default function CommunityPage() {
 
   // 일반 사용자인 경우 전체공개 게시글만 필터링
   if (!isCenterUser && publicPostsData?.data) {
+    const filteredAllAccess = publicPostsData.data.filter(
+      (post) => post.isAllAccess
+    );
     postsData = {
       ...publicPostsData,
-      data: publicPostsData.data.filter((post) => post.isAllAccess),
+      data: filteredAllAccess,
+      posts: filteredAllAccess,
     };
   }
 
@@ -137,7 +151,27 @@ export default function CommunityPage() {
   // 게시글 삭제 훅
   const deletePostMutation = useDeletePost();
 
-  const posts = postsData?.posts || [];
+  const posts: Post[] = useMemo(() => {
+    const list = (postsData?.posts ?? postsData?.data) as Post[] | undefined;
+    return list ?? [];
+  }, [postsData]);
+
+  type TagLike =
+    | string
+    | { tagName?: string; tag_name?: string; name?: string };
+
+  const filteredPosts: Post[] = useMemo(() => {
+    if (activeTab === "latest") return posts;
+    const getTagText = (tag: TagLike): string => {
+      if (!tag) return "";
+      if (typeof tag === "string") return tag;
+      return tag.tagName || tag.tag_name || tag.name || "";
+    };
+    return posts.filter((p: Post) => {
+      const tagList = (p.tags as unknown as TagLike[]) ?? [];
+      return tagList.some((t: TagLike) => getTagText(t) === activeTab);
+    });
+  }, [posts, activeTab]);
 
   const currentUserId = user?.id;
 
@@ -163,12 +197,12 @@ export default function CommunityPage() {
 
       // 삭제 성공 후 관련 쿼리 강제 리패치
       await queryClient.invalidateQueries({
-        queryKey: ["posts"],
+        queryKey: isCenterUser ? ["center-posts"] : ["public-posts"],
       });
 
       // 강제로 리패치 실행
       await queryClient.refetchQueries({
-        queryKey: ["posts"],
+        queryKey: isCenterUser ? ["center-posts"] : ["public-posts"],
       });
 
       setToastMessage("삭제 완료되었습니다.");
@@ -179,7 +213,7 @@ export default function CommunityPage() {
       }, 3000);
     } catch (error) {
       console.error("게시글 삭제 실패:", error);
-      setToastMessage("삭제에 실패했습니다.");
+      setToastMessage("삭제에 실패했습니다!");
       setShowToast(true);
     }
   };
@@ -192,10 +226,12 @@ export default function CommunityPage() {
           variant="variant5"
           left={<h2>커뮤니티</h2>}
           right={
-            <IconButton
-              icon={({ size }) => <Bell size={size} weight="bold" />}
-              size="iconM"
-            />
+            <Link href="/community/notifications">
+              <IconButton
+                icon={({ size }) => <Bell size={size} weight="bold" />}
+                size="iconM"
+              />
+            </Link>
           }
         />
         <div className="w-full overflow-x-auto scrollbar-hide">
@@ -292,16 +328,16 @@ export default function CommunityPage() {
               </div>
             ))}
           </div>
-        ) : posts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full">
-            <h5 className="text-sm text-lg text-center">
+        ) : filteredPosts.length === 0 ? (
+          <div className="flex flex-col h-full items-center justify-center">
+            <h5 className="text-lg text-sm text-center">
               아직 업로드된 게시글이 없어요.
               <br />첫 번째 게시글을 작성해보세요!
             </h5>
           </div>
         ) : (
           <div className="cursor-pointer">
-            {posts.map((post, index) => (
+            {filteredPosts.map((post, index) => (
               <div key={post.id}>
                 {(index === 0 || (index + 1) % 3 === 0) && <BannerSection />}
                 <div className="pt-4">

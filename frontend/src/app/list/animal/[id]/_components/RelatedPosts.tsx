@@ -12,7 +12,7 @@ interface RelatedPostsProps {
   title?: string;
 }
 
-export default function RelatedPosts({ currentPet, title }: RelatedPostsProps) {
+export default function RelatedPosts({ currentPet }: RelatedPostsProps) {
   const router = useRouter();
 
   // 선택된 동물 ID와 관련된 게시물 가져오기
@@ -22,7 +22,7 @@ export default function RelatedPosts({ currentPet, title }: RelatedPostsProps) {
     error,
   } = useGetPublicPosts({
     animalId: currentPet.id,
-    limit: 6,
+    page_size: 6,
   });
 
   // 현재 동물과 관련된 게시물
@@ -54,21 +54,12 @@ export default function RelatedPosts({ currentPet, title }: RelatedPostsProps) {
   return (
     <div className="mx-4 my-3 flex flex-col gap-4">
       <div>
-        <h2 className="text-bk mb-4">
-          {title ||
-            (relatedPosts.length > 0
-              ? `${currentPet.name}에 대해 더 알고싶다면`
-              : "이 아이에 대해 더 알고싶다면")}
-        </h2>
+        <h2 className="text-bk mb-4">이 아이에 대해 더 알고싶다면</h2>
         {displayPosts.length > 0 ? (
           <div className="flex flex-col gap-2.5">
             {displayPosts.slice(0, 3).map((post) => (
-              <div key={post.id} className="flex-shrink-0 w-[200px]">
-                <CommunityCard
-                  item={post}
-                  users={[]} // CommunityCard가 users를 요구하지만 실제로는 사용하지 않음
-                  variant="primary"
-                />
+              <div key={post.id} className="flex-shrink-1 w-full">
+                <CommunityCard item={post} users={[]} variant="primary" />
               </div>
             ))}
           </div>

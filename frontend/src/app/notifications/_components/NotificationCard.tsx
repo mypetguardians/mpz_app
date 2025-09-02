@@ -38,7 +38,6 @@ function NotificationCard({
   const isPressed = variant === "pressed";
 
   // 알림 타입을 한글로 변환하는 함수
-  // TODO 알림 타입 재정리 필요 - 백엔드
   const getNotificationTypeText = (type: string): string => {
     if (type?.includes("monitoring")) {
       return "모니터링";

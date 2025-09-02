@@ -16,10 +16,8 @@ import {
   CommunityDetailSkeleton,
   CommentSectionSkeleton,
 } from "@/components/ui";
-import {
-  useGetPublicPostDetail,
-  useGetCenterPostDetail,
-} from "@/hooks/query/useGetPublicPosts";
+import { useGetPublicPostDetail } from "@/hooks/query/useGetPublicPosts";
+import { useGetCenterPostDetail } from "@/hooks/query/useGetCenterPosts";
 import { useGetComments } from "@/hooks/query/useGetComments";
 import { useDeletePost } from "@/hooks/mutation/useDeletePost";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -377,7 +375,7 @@ export default function CommunityDetailPage() {
               {
                 id: post.userId,
                 nickname: post.userNickname || "사용자",
-                profileImg: post.userImage || "/img/dummyImg.jpeg",
+                profileImg: post.userImage || "/img/dummyImg.png",
               },
             ]}
             isMyPost={isMyPost || false}

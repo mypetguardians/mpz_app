@@ -96,6 +96,7 @@ export interface RawCenterResponse {
   created_at: string;
   updated_at: string;
   is_fav?: boolean; // 찜하기 상태 추가
+  is_subscribed?: boolean; // 구독자 여부 추가
 }
 
 // 센터 목록 API 응답 구조 (새로운 스키마 기반)
@@ -130,7 +131,7 @@ export function transformRawCenterToCenter(raw: RawCenterResponse): Center {
     isPublic: raw.is_public,
     adoptionPrice: raw.adoption_price,
     imageUrl: raw.image_url,
-    isSubscriber: false, // 기본값 설정
+    isSubscriber: raw.is_subscribed || false, // is_subscribed를 isSubscriber로 변환
     createdAt: raw.created_at,
     updatedAt: raw.updated_at,
     isFavorited: raw.is_fav || false, // is_fav를 isFavorited로 변환
@@ -143,12 +144,9 @@ export interface ToggleCenterFavoriteParams {
 }
 
 export interface ToggleCenterFavoriteResponse {
-  isFavorited: boolean;
-  message: string;
-  totalFavorites: number;
-  // 서버 응답 구조에 맞는 필드 추가
-  is_favorited?: boolean;
-  total_favorites?: number;
+  is_favorited: boolean;
+  total_favorites: number;
+  message?: string;
 }
 
 export interface CheckCenterFavoriteParams {
@@ -156,11 +154,8 @@ export interface CheckCenterFavoriteParams {
 }
 
 export interface CheckCenterFavoriteResponse {
-  isFavorited: boolean;
-  totalFavorites: number;
-  // 서버 응답 구조에 맞는 필드 추가
-  is_favorited?: boolean;
-  total_favorites?: number;
+  is_favorited: boolean;
+  total_favorites: number;
 }
 
 // 센터 설정 관련 타입들
@@ -185,40 +180,40 @@ export type CenterRegion =
 
 export interface UpdateCenterSettingsRequest {
   name?: string;
-  centerNumber?: string;
+  center_number?: string;
   description?: string;
   location?: string;
   region?: CenterRegion;
-  phoneNumber?: string;
-  adoptionProcedure?: string;
-  adoptionGuidelines?: string;
-  hasMonitoring?: boolean;
-  monitoringPeriodMonths?: number;
-  monitoringIntervalDays?: number;
-  monitoringDescription?: string;
-  isPublic?: boolean;
-  adoptionPrice?: number;
-  imageUrl?: string;
+  phone_number?: string;
+  adoption_procedure?: string;
+  adoption_guidelines?: string;
+  has_monitoring?: boolean;
+  monitoring_period_months?: number;
+  monitoring_interval_days?: number;
+  monitoring_description?: string;
+  is_public?: boolean;
+  adoption_price?: number;
+  image_url?: string;
 }
 
 export interface UpdateCenterSettingsResponse {
   id: string;
   name: string;
-  centerNumber: string | null;
+  center_number: string | null;
   description: string | null;
   location: string | null;
   region: CenterRegion | null;
-  phoneNumber: string | null;
-  adoptionProcedure: string | null;
-  adoptionGuidelines: string | null;
-  hasMonitoring: boolean;
-  monitoringPeriodMonths: number | null;
-  monitoringIntervalDays: number | null;
-  monitoringDescription: string | null;
+  phone_number: string | null;
+  adoption_procedure: string | null;
+  adoption_guidelines: string | null;
+  has_monitoring: boolean;
+  monitoring_period_months: number | null;
+  monitoring_interval_days: number | null;
+  monitoring_description: string | null;
   verified: boolean;
-  isPublic: boolean;
-  adoptionPrice: number;
-  imageUrl: string | null;
-  createdAt: string;
-  updatedAt: string;
+  is_public: boolean;
+  adoption_price: number;
+  image_url: string | null;
+  created_at: string;
+  updated_at: string;
 }

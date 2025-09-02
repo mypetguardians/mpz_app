@@ -20,30 +20,23 @@ export const useToggleCenterFavorite = () => {
   return useMutation({
     mutationFn: toggleCenterFavorite,
     onSuccess: (data, variables) => {
-      // 찜한 센터 목록 캐시 무효화
       queryClient.invalidateQueries({
         queryKey: ["centerFavorites"],
       });
 
-      // 센터 상세 정보 캐시 무효화
       queryClient.invalidateQueries({
         queryKey: ["center", variables.centerId],
       });
 
-      // 전체 센터 목록 캐시 무효화
       queryClient.invalidateQueries({
         queryKey: ["centers"],
       });
 
-      // 즉시 UI 업데이트를 위한 optimistic update
-      const isFavorited =
-        data.isFavorited !== undefined ? data.isFavorited : data.is_favorited;
       queryClient.setQueryData(["center-favorite-status", variables.centerId], {
-        isFavorited: isFavorited,
-        totalFavorites: data.totalFavorites || data.total_favorites || 0,
+        is_favorited: data.is_favorited,
+        total_favorites: data.total_favorites,
       });
 
-      // 센터 목록에서 해당 센터의 찜하기 상태도 즉시 업데이트
       queryClient.setQueriesData(
         { queryKey: ["centers"] },
         (
@@ -56,7 +49,7 @@ export const useToggleCenterFavorite = () => {
               ...oldData,
               data: oldData.data.map((center) =>
                 center.id === variables.centerId
-                  ? { ...center, is_fav: isFavorited }
+                  ? { ...center, is_fav: data.is_favorited }
                   : center
               ),
             };
@@ -66,7 +59,6 @@ export const useToggleCenterFavorite = () => {
       );
     },
     onError: (error) => {
-      // 에러 처리
       console.error("센터 찜하기 토글 오류:", error);
     },
   });

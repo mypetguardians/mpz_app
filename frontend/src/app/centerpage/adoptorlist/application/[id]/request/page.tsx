@@ -330,7 +330,6 @@ export default function AdoptionRequestPage({
               ) : postsError ? (
                 <div className="text-center py-8 text-gray-500">
                   아직 업로드된 게시글이 없어요.
-                  {/* TODO 권한 확인 */}
                 </div>
               ) : !monitoringPostsData?.data ||
                 monitoringPostsData.data.length === 0 ? (

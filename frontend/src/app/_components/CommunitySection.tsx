@@ -21,7 +21,7 @@ export function CommunitySection({ users = [] }: CommunitySectionProps) {
     error,
   } = useGetPublicPosts({
     page: 1,
-    limit: 3,
+    page_size: 1,
   });
 
   const handleMorePosts = () => {

@@ -131,10 +131,10 @@ export default function EditAnimal() {
           | "임시보호중"
           | "반환"
           | "방사",
-        activity_level: detailInfo.personality.activity,
-        sensitivity: detailInfo.personality.sensitivity,
-        sociability: detailInfo.personality.sociability,
-        separation_anxiety: detailInfo.personality.separationAnxiety,
+        activity_level: detailInfo.personality.activity.toString(),
+        sensitivity: detailInfo.personality.sensitivity.toString(),
+        sociability: detailInfo.personality.sociability.toString(),
+        separation_anxiety: detailInfo.personality.separationAnxiety.toString(),
         special_notes: basicInfo.specialNotes || "",
         health_notes: basicInfo.healthNotes || "",
         basic_training: "",
@@ -157,7 +157,7 @@ export default function EditAnimal() {
       router.push("/centerpage/animal");
     } catch (error) {
       console.error("동물 등록 실패:", error);
-      alert("동물 등록에 실패했습니다. 다시 시도해주세요.");
+      alert("동물 등록에 실패했습니다. 다시 시도해주세22요.");
     }
   };
 

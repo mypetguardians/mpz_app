@@ -201,7 +201,7 @@ export function CenterSearchSection({
               {searchCenters.map((center: Center, idx: number) => (
                 <div key={center.id ?? idx}>
                   <CenterCard
-                    imageUrl="/img/dummyImg.jpeg"
+                    imageUrl="/img/dummyImg.png"
                     name={center.name}
                     location={center.location || "주소 정보 없음"}
                     verified={center.verified || false}

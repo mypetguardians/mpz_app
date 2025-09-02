@@ -17,6 +17,7 @@ import {
   CommentSectionSkeleton,
 } from "@/components/ui";
 import { useGetPublicPostDetail } from "@/hooks/query/useGetPublicPosts";
+import { useGetCenterPostDetail } from "@/hooks/query/useGetCenterPosts";
 import { useGetComments } from "@/hooks/query/useGetComments";
 import { useDeletePost } from "@/hooks/mutation/useDeletePost";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -37,12 +38,34 @@ export default function CommunityDetailPage() {
   const [toastMessage, setToastMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
-  // 실제 API 데이터 가져오기
+  // 사용자 권한에 따라 적절한 API 호출
+  const isCenterUser =
+    user?.userType === "센터관리자" ||
+    user?.userType === "훈련사" ||
+    user?.userType === "센터최고관리자";
+
+  // 센터권한자용 게시글 상세조회
   const {
-    data: postDetailData,
-    isLoading: isPostLoading,
-    error: postError,
+    data: centerPostDetailData,
+    isLoading: isCenterPostLoading,
+    error: centerPostError,
+  } = useGetCenterPostDetail(params.id as string);
+
+  // 일반 사용자용 게시글 상세조회
+  const {
+    data: publicPostDetailData,
+    isLoading: isPublicPostLoading,
+    error: publicPostError,
   } = useGetPublicPostDetail(params.id as string);
+
+  // 권한에 따라 적절한 데이터 선택
+  const postDetailData = isCenterUser
+    ? centerPostDetailData
+    : publicPostDetailData;
+  const isPostLoading = isCenterUser
+    ? isCenterPostLoading
+    : isPublicPostLoading;
+  const postError = isCenterUser ? centerPostError : publicPostError;
 
   const { data: commentsData, isLoading: isCommentsLoading } = useGetComments(
     params.id as string
@@ -352,7 +375,7 @@ export default function CommunityDetailPage() {
               {
                 id: post.userId,
                 nickname: post.userNickname || "사용자",
-                profileImg: post.userImage || "/img/dummyImg.jpeg",
+                profileImg: post.userImage || "/img/dummyImg.png",
               },
             ]}
             isMyPost={isMyPost || false}

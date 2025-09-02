@@ -7,16 +7,13 @@ import { MainSection } from "@/components/common/MainSection";
 import { PetSectionError } from "@/components/ui/PetSectionError";
 import { CustomModal } from "@/components/ui/CustomModal";
 import { useAuth } from "@/components/providers/AuthProvider";
-import {
-  RawAnimalResponse,
-  transformRawAnimalToPetCard,
-  PetCardAnimal,
-} from "@/types/animal";
+import { useGetUserAIPersonalityTest } from "@/hooks/query/useGetUserAIPersonalityTest";
+import { useGetAIPersonalityTest } from "@/hooks/query/useGetAIPersonalityTest";
+import { PetCardAnimal } from "@/types/animal";
 import { PetCardVariant } from "@/types/petcard";
 import { AIRecommendResponse } from "@/types/ai-matching";
 
 interface MatchingSectionProps {
-  animals: RawAnimalResponse[];
   variant: PetCardVariant;
   showLocationFilter?: boolean;
   locations?: string[];
@@ -27,24 +24,31 @@ interface MatchingSectionProps {
 }
 
 export function MatchingSection({
-  animals,
   variant,
   showLocationFilter = false,
   locations = [],
   isLoading = false,
   error = null,
   isExpertAnalysis = false,
-  aiMatchingResult = null, // AI 매칭 결과 추가
+  aiMatchingResult = null,
 }: MatchingSectionProps) {
   const { user, isAuthenticated } = useAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
 
+  // 유저의 test_id
+  const { data: userAITestInfo, isLoading: aiTestLoading } =
+    useGetUserAIPersonalityTest(isAuthenticated ? user?.id || "" : "");
+  // test_id로 매칭결과
+  const testId = userAITestInfo?.tests?.[0]?.test_id;
+  const { data: userAIMatchingResult, isLoading: aiLoading } =
+    useGetAIPersonalityTest(testId || "");
+
+  const finalAIMatchingResult = aiMatchingResult || userAIMatchingResult;
+
   const handleMatchingClick = () => {
     if (isAuthenticated) {
-      // 로그인된 유저는 바로 매칭 페이지로 이동
       window.location.href = "/matching";
     } else {
-      // 미로그인 유저는 로그인 모달 표시
       setShowLoginModal(true);
     }
   };
@@ -80,23 +84,11 @@ export function MatchingSection({
 
         {/* PetSection 섹션 */}
         {isAuthenticated &&
-          user?.matchingSession &&
           (() => {
-            if (isLoading) {
+            if (isLoading || aiTestLoading || aiLoading) {
               if (isExpertAnalysis) {
-                return (
-                  <>
-                    <div className="flex items-center justify-center h-32">
-                      <div className="text-lg">동물 정보를 불러오는 중...</div>
-                    </div>
-                    <MiniButton
-                      text="전문가 분석 모아보기"
-                      variant="filterOff"
-                      className="py-4"
-                      rightIcon={<CaretDown size={12} />}
-                    />
-                  </>
-                );
+                // 로딩 상태에서는 아무것도 표시하지 않음
+                return null;
               }
 
               return (
@@ -121,24 +113,10 @@ export function MatchingSection({
               );
             }
 
-            // 에러가 발생했을 때는 에러 컴포넌트 표시
             if (error) {
               if (isExpertAnalysis) {
-                return (
-                  <>
-                    <div className="flex items-center justify-center h-32">
-                      <div className="text-lg text-red-500">
-                        동물 정보를 불러오는데 실패했습니다.
-                      </div>
-                    </div>
-                    <MiniButton
-                      text="전문가 분석 모아보기"
-                      variant="filterOff"
-                      className="py-4"
-                      rightIcon={<CaretDown size={12} />}
-                    />
-                  </>
-                );
+                // 에러 상태에서는 아무것도 표시하지 않음
+                return null;
               }
 
               return (
@@ -152,36 +130,81 @@ export function MatchingSection({
             }
 
             // AI 매칭 결과가 있으면 해당 데이터를 변환하여 사용
-            let transformedAnimals;
-            if (aiMatchingResult?.data?.animal_recommendations) {
-              transformedAnimals =
-                aiMatchingResult.data.animal_recommendations.map(
-                  (animal: Record<string, unknown>) => ({
-                    id: String(animal.animal_id),
-                    name: String(animal.animal_name),
-                    breed: String(animal.breed || "믹스견"),
-                    isFemale: String(animal.gender) === "암",
-                    status: "보호중" as const,
-                    centerId: String(animal.center_name || "AI 매칭"),
-                    animalImages: [
-                      {
-                        id: "0",
-                        imageUrl: "/img/dummyImg.jpeg", // AI 매칭 결과에는 이미지가 없으므로 기본 이미지 사용
-                        orderIndex: 0,
-                      },
-                    ],
-                    foundLocation: String(
-                      animal.found_location || "AI 매칭 추천"
-                    ),
-                  })
-                );
-            } else {
-              transformedAnimals = animals.map(transformRawAnimalToPetCard);
+            let transformedAnimals: PetCardAnimal[] = [];
+
+            if (finalAIMatchingResult) {
+              // AIPersonalityTestResult 구조인지 확인
+              if (
+                "result" in finalAIMatchingResult &&
+                finalAIMatchingResult.result?.ai_recommendation
+                  ?.animal_recommendations
+              ) {
+                // AIPersonalityTestResult 구조
+                transformedAnimals =
+                  finalAIMatchingResult.result.ai_recommendation.animal_recommendations.map(
+                    (animal) => ({
+                      id: String(animal.animal_id),
+                      name: String(animal.animal_name || "이름 없음"),
+                      breed: String(animal.breed || "믹스견"),
+                      isFemale:
+                        String(animal.gender) === "암" ||
+                        String(animal.gender) === "여성",
+                      status: "보호중" as const,
+                      centerId: String(animal.center_name || "AI 매칭"),
+                      animalImages: [
+                        {
+                          id: "0",
+                          imageUrl: "/img/dummyImg.png", // AI 매칭 결과에는 이미지가 없으므로 기본 이미지 사용
+                          orderIndex: 0,
+                        },
+                      ],
+                      foundLocation: String(
+                        animal.found_location || "AI 매칭 추천"
+                      ),
+                    })
+                  );
+              } else if (
+                "data" in finalAIMatchingResult &&
+                finalAIMatchingResult.data?.animal_recommendations
+              ) {
+                // 기존 AIRecommendResponse 구조도 지원
+                transformedAnimals =
+                  finalAIMatchingResult.data.animal_recommendations.map(
+                    (animal: Record<string, unknown>) => ({
+                      id: String(animal.animal_id),
+                      name: String(animal.animal_name),
+                      breed: String(animal.breed || "믹스견"),
+                      isFemale: String(animal.gender) === "암",
+                      status: "보호중" as const,
+                      centerId: String(animal.center_name || "AI 매칭"),
+                      animalImages: [
+                        {
+                          id: "0",
+                          imageUrl: "/img/dummyImg.png",
+                          orderIndex: 0,
+                        },
+                      ],
+                      foundLocation: String(
+                        animal.found_location || "AI 매칭 추천"
+                      ),
+                    })
+                  );
+              }
+            }
+
+            // AI 매칭 결과가 없으면 빈 배열로 설정
+            if (!transformedAnimals.length) {
+              transformedAnimals = [];
             }
 
             // ExpertAnalysis 모드일 때
             if (isExpertAnalysis) {
-              const analysisAnimals = transformedAnimals.slice(0, 3);
+              const analysisAnimals = transformedAnimals?.slice(0, 3) || [];
+
+              // 결과가 없으면 아무것도 표시하지 않음
+              if (analysisAnimals.length === 0) {
+                return null;
+              }
 
               return (
                 <>
@@ -223,7 +246,7 @@ export function MatchingSection({
                       : ""
                   }`}
                 >
-                  {transformedAnimals.map((animal) => (
+                  {transformedAnimals?.map((animal) => (
                     <PetCard
                       key={animal.id}
                       pet={animal as PetCardAnimal}

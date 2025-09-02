@@ -53,7 +53,7 @@ export function CommunityCard({
     const [hasError, setHasError] = useState(false);
     return (
       <Image
-        src={hasError ? "/img/dummyImg.jpeg" : src}
+        src={hasError ? "/img/dummyImg.png" : src}
         alt={alt}
         className={className}
         {...(fill ? { fill: true } : {})}
@@ -270,19 +270,7 @@ export function CommunityCard({
 
   // 기본(primary) 카드
   return (
-    <div className="flex gap-4 items-start">
-      {imageUrls.length > 0 && (
-        <div className="flex-shrink-0">
-          <div className="relative w-[112px] h-[119px] rounded-md overflow-hidden">
-            <FallbackImage
-              src={imageUrls[0]}
-              alt={title}
-              className="object-cover"
-              fill
-            />
-          </div>
-        </div>
-      )}
+    <div className="flex gap-4 items-start w-full">
       <div
         className={`flex flex-col flex-1 justify-between ${
           imageUrls.length > 0 ? "h-[119px]" : ""
@@ -315,6 +303,18 @@ export function CommunityCard({
           </div>
         </div>
       </div>
+      {imageUrls.length > 0 && (
+        <div className="flex-shrink-0">
+          <div className="relative w-[112px] h-[119px] rounded-md overflow-hidden">
+            <FallbackImage
+              src={imageUrls[0]}
+              alt={title}
+              className="object-cover"
+              fill
+            />
+          </div>
+        </div>
+      )}
       {/* 게시글 작업 선택 바텀시트 */}
       <BottomSheet
         open={isActionSheetOpen}

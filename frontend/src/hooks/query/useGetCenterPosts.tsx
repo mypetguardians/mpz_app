@@ -7,7 +7,8 @@ import {
 } from "@/types/posts";
 import { transformRawPostToPost, ApiPostDetailResponse } from "./posts/utils";
 
-const getPublicPosts = async (
+// 센터권한자용 게시글 목록 조회
+const getCenterPosts = async (
   params?: GetPostsParams
 ): Promise<ApiPostsResponse> => {
   const searchParams = new URLSearchParams();
@@ -26,16 +27,17 @@ const getPublicPosts = async (
   }
 
   const queryString = searchParams.toString();
-  const url = queryString ? `/posts/all/?${queryString}` : `/posts/all/`;
+  const url = queryString ? `/posts/center/?${queryString}` : `/posts/center/`;
   const response = await instance.get<ApiPostsResponse>(url);
   return response.data;
 };
 
-const getPublicPostDetail = async (
+// 센터권한자용 게시글 상세조회
+const getCenterPostDetail = async (
   postId: string
 ): Promise<PostDetailResponse> => {
   const response = await instance.get<ApiPostDetailResponse>(
-    `/posts/all/${postId}`
+    `/posts/center/${postId}`
   );
 
   // API 응답을 Post 타입으로 변환
@@ -51,15 +53,16 @@ const getPublicPostDetail = async (
   };
 };
 
-export const useGetPublicPosts = (params?: GetPostsParams) => {
+// 센터권한자용 게시글 목록 조회 훅
+export const useGetCenterPosts = (params?: GetPostsParams) => {
   return useQuery({
-    queryKey: ["public-posts", params],
-    queryFn: () => getPublicPosts(params),
+    queryKey: ["center-posts", params],
+    queryFn: () => getCenterPosts(params),
     select: (data: ApiPostsResponse) => {
       const transformedPosts = data.data.map(transformRawPostToPost);
 
       return {
-        data: transformedPosts, // API 응답 구조와 일치하도록 data로 변경
+        data: transformedPosts,
         posts: transformedPosts, // 기존 호환성을 위해 posts도 유지
         pagination: {
           count: data.count,
@@ -78,10 +81,11 @@ export const useGetPublicPosts = (params?: GetPostsParams) => {
   });
 };
 
-export const useGetPublicPostDetail = (postId: string) => {
+// 센터권한자용 게시글 상세조회 훅
+export const useGetCenterPostDetail = (postId: string) => {
   return useQuery({
-    queryKey: ["public-posts", postId],
-    queryFn: () => getPublicPostDetail(postId),
+    queryKey: ["center-posts", postId],
+    queryFn: () => getCenterPostDetail(postId),
     enabled: !!postId,
     staleTime: 3 * 60 * 1000, // 3분
     gcTime: 10 * 60 * 1000, // 10분

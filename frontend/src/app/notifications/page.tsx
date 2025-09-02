@@ -159,7 +159,6 @@ export default function Notification() {
               date={item.created_at}
               type={item.notification_type}
               isRead={item.is_read}
-              // TODO 노티 타입
             />
           ))
         )}

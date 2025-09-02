@@ -131,7 +131,7 @@ export default function CommunityUploadPage() {
         status: favoriteAnimal.status,
         centerId: favoriteAnimal.centerId,
         animalImages: [
-          { id: "1", imageUrl: "/img/dummyImg.jpeg", orderIndex: 1 },
+          { id: "1", imageUrl: "/img/dummyImg.png", orderIndex: 1 },
         ],
         foundLocation: "위치 정보 확인 불가", // 기본 지역 설정
       };

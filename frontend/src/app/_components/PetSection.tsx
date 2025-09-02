@@ -121,7 +121,6 @@ export function PetSection({
       return (b.waiting_days || 0) - (a.waiting_days || 0);
     })
     .slice(0, 6);
-
   // ExpertAnalysis 모드일 때
   if (isExpertAnalysis) {
     const analysisAnimals = limitedAnimals.slice(0, 3);

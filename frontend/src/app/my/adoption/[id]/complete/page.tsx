@@ -283,7 +283,9 @@ export default function AdoptionCompletePage({
                   const encodedData = encodeURIComponent(
                     JSON.stringify(contractData)
                   );
-                  router.push(`/adoption/contract?data=${encodedData}`);
+                  router.push(
+                    `/my/adoption/${id}/contract?data=${encodedData}`
+                  );
                 }}
                 className="w-full py-4 my-3"
               >

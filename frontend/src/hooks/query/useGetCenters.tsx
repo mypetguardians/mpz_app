@@ -1,5 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import instance from "@/lib/axios-instance";
+import {
+  transformRawCenterToCenter,
+  RawCenterResponse,
+  Center,
+} from "@/types/center";
 
 // 전체 센터 목록 조회 훅
 export const useGetCenters = () => {
@@ -51,13 +56,14 @@ export const useGetCenterByLocation = (params?: {
 export const useGetCenterById = (centerId?: string) => {
   return useQuery({
     queryKey: ["center", centerId],
-    queryFn: async () => {
+    queryFn: async (): Promise<Center> => {
       if (!centerId) {
         throw new Error("보호센터 ID가 필요합니다");
       }
 
       const response = await instance.get(`/centers/${centerId}`);
-      return response.data;
+      const rawData: RawCenterResponse = response.data;
+      return transformRawCenterToCenter(rawData);
     },
     staleTime: 5 * 60 * 1000, // 5분
     gcTime: 10 * 60 * 1000, // 10분

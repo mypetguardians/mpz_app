@@ -21,7 +21,7 @@ export function CommunitySection({ users = [] }: CommunitySectionProps) {
     error,
   } = useGetPublicPosts({
     page: 1,
-    limit: 3,
+    page_size: 1,
   });
 
   const handleMorePosts = () => {
@@ -55,7 +55,7 @@ export function CommunitySection({ users = [] }: CommunitySectionProps) {
   }
 
   // 게시글이 없는 경우
-  if (!postsData?.posts || postsData.posts.length === 0) {
+  if (!postsData?.data || postsData.data.length === 0) {
     return (
       <MainSection title="누군가의 가족이 된 순간들">
         <div className="text-center py-8">
@@ -78,7 +78,7 @@ export function CommunitySection({ users = [] }: CommunitySectionProps) {
   return (
     <MainSection title="누군가의 가족이 된 순간들">
       <div className="flex flex-col gap-4">
-        {postsData.posts.slice(0, 3).map((item: Post) => (
+        {postsData.data.slice(0, 3).map((item: Post) => (
           <div
             key={item.id}
             className="cursor-pointer"

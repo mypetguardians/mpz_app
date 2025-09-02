@@ -61,7 +61,7 @@ const transformApiDataToUI = (
   return {
     id: adoption.id,
     userName: adoption.user_info.name,
-    profileImage: "/img/dummyImg.jpeg", // 기본 이미지 사용
+    profileImage: "/img/dummyImg.png", // 기본 이미지 사용
     timeAgo,
     status: mapApiStatusToUIStatus(adoption.status),
     isGrayscale: adoption.status === "취소",

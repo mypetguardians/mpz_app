@@ -80,31 +80,12 @@ function ContractContent() {
             <h2 className="text-bk">계약서와 관련한 동의사항이에요.</h2>
             <p className="body2 text-gr">꼼꼼히 확인 후 서명해주세요.</p>
           </div>
-
-          {/* 계약서 정보 */}
-          <div className="bg-gray-50 p-4 rounded-lg mb-6">
-            <h3 className="font-semibold text-bk mb-2">입양 정보</h3>
-            <p className="body text-dg mb-1">동물: {contractData.animalName}</p>
-            <p className="body text-dg mb-1">센터: {contractData.centerName}</p>
-            <p className="body text-dg">입양 ID: {contractData.adoptionId}</p>
-          </div>
-
           {/* 계약서 내용 */}
           <div className="mb-6">
-            <h3 className="font-semibold text-bk mb-3">계약서 내용</h3>
-            <div className="bg-white border border-gray-200 p-4 rounded-lg max-h-40 overflow-y-auto">
+            <h3 className="text-bk mb-3">계약서 내용</h3>
+            <div>
               <p className="body text-dg whitespace-pre-wrap">
                 {contractData.contractContent}
-              </p>
-            </div>
-          </div>
-
-          {/* 동의서 내용 */}
-          <div className="mb-6">
-            <h3 className="font-semibold text-bk mb-3">동의서 내용</h3>
-            <div className="bg-white border border-gray-200 p-4 rounded-lg max-h-40 overflow-y-auto">
-              <p className="body text-dg whitespace-pre-wrap">
-                {contractData.guidelinesContent}
               </p>
             </div>
           </div>

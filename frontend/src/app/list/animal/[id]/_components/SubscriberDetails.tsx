@@ -40,7 +40,7 @@ export default function SubscriberDetails({
             <span className="text-sm text-gray-600">활동량</span>
             <DotsIndicator
               count={activityLevel}
-              color="bg-blue-500"
+              color="bg-brand"
               variant="variant2"
             />
           </div>
@@ -48,7 +48,7 @@ export default function SubscriberDetails({
             <span className="text-sm text-gray-600">민감도</span>
             <DotsIndicator
               count={sensitivity}
-              color="bg-yellow-500"
+              color="bg-yellow"
               variant="variant2"
             />
           </div>
@@ -56,7 +56,7 @@ export default function SubscriberDetails({
             <span className="text-sm text-gray-600">사회성</span>
             <DotsIndicator
               count={sociability}
-              color="bg-green-500"
+              color="bg-green"
               variant="variant2"
             />
           </div>
@@ -64,7 +64,7 @@ export default function SubscriberDetails({
             <span className="text-sm text-gray-600">분리불안</span>
             <DotsIndicator
               count={separationAnxiety}
-              color="bg-green-500"
+              color="bg-green"
               variant="variant2"
             />
           </div>

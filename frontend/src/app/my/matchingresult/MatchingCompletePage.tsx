@@ -13,15 +13,12 @@ import { BigButton } from "@/components/ui/BigButton";
 import { MiniButton } from "@/components/ui/MiniButton";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useMatchingStepStore } from "@/lib/stores/matchingStepStore";
+import { usePostAnimalMatching } from "@/hooks/mutation/usePostAnimalMatching";
 import { mainPetInfo } from "@/app/mock";
 import { AIRecommendResponse } from "@/types/ai-matching";
 
 // 매칭 결과 타입 정의
-type MatchingResultType =
-  | "perfect" // 완벽한 매칭
-  | "good" // 좋은 매칭
-  | "moderate" // 적당한 매칭
-  | "silent"; // 조용한
+type MatchingResultType = "perfect" | "good" | "moderate" | "silent";
 
 // 매칭 결과별 데이터
 const matchingResults = {
@@ -208,7 +205,7 @@ function MatchedPetsList({
                   animalImages: [
                     {
                       id: "0",
-                      imageUrl: "/img/dummyImg.jpeg", // AI 매칭 결과에는 이미지가 없으므로 기본 이미지 사용
+                      imageUrl: "/img/dummyImg.png", // AI 매칭 결과에는 이미지가 없으므로 기본 이미지 사용
                       orderIndex: 0,
                     },
                   ],
@@ -302,23 +299,47 @@ function MatchingResultImage({
 export default function MatchingCompletePage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = React.useState(true);
-  const { aiMatchingResult } = useMatchingStepStore();
+  const { user } = useAuth();
+  const { aiMatchingResult, answers, setAIMatchingResult } =
+    useMatchingStepStore();
+
+  const { mutate: postAnimalMatching } = usePostAnimalMatching({
+    onSuccess: (data) => {
+      setAIMatchingResult(data);
+    },
+    onError: () => {
+      // 실패해도 페이지는 계속 표시
+    },
+  });
+
+  // const aiTestQuery = useGetUserAIPersonalityTest(user?.id ?? "");
 
   // AI 매칭 결과를 기반으로 매칭 타입 결정
   const matchingType: MatchingResultType =
     getMatchingTypeFromAIResult(aiMatchingResult);
 
   React.useEffect(() => {
-    // AI 매칭 결과가 있으면 바로 사용, 없으면 1초 후 로딩 상태 해제
+    // 결과가 없고 사용자 정보가 있으면 이 페이지에서 AI 매칭 요청 실행
+    if (!aiMatchingResult && user?.id) {
+      const preferences: Record<string, string | number | boolean> = {};
+
+      Object.entries(answers).forEach(([, answer]) => {
+        if (answer) {
+          preferences[answer.type] = answer.value;
+        }
+      });
+
+      postAnimalMatching({ user_id: user.id, preferences, limit: 5 });
+    }
+
+    // 로딩 상태 제어: 결과 도착 시 해제, 아니면 짧은 지연 후 해제
     if (aiMatchingResult) {
       setIsLoading(false);
-    } else {
-      const timer = setTimeout(() => {
-        setIsLoading(false);
-      }, 1000);
-      return () => clearTimeout(timer);
+      return;
     }
-  }, [aiMatchingResult]);
+    const timer = setTimeout(() => setIsLoading(false), 1000);
+    return () => clearTimeout(timer);
+  }, [aiMatchingResult, answers, postAnimalMatching, user?.id]);
 
   return (
     <Container className="min-h-screen flex flex-col bg-gradient-to-b from-brand-light/10 to-transparent">

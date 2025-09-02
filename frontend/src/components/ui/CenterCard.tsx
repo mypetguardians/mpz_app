@@ -4,8 +4,6 @@ import { IconButton } from "./IconButton";
 import { SealCheck, Heart } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
-/** @TODO liked true만 받아오기, 취소(flase)시 사라지게 미완*/
-
 interface CenterCardProps {
   imageUrl: string;
   name: string;

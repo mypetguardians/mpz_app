@@ -6,7 +6,7 @@ interface AnimalDetailsProps {
   description: string;
   foundLocation: string;
   center: string;
-  isSubscriber?: boolean;
+  isCenterSubscriber?: boolean;
   specialNotes?: string;
 }
 
@@ -16,17 +16,17 @@ export default function AnimalDetails({
   description,
   foundLocation,
   center,
-  isSubscriber = false,
+  isCenterSubscriber = false,
   specialNotes,
 }: AnimalDetailsProps) {
   return (
     <div className="bg-white rounded-lg mx-4">
       <table className="w-full text-sm">
         <tbody>
-          {!isSubscriber && (
+          {!isCenterSubscriber && (
             <>
               <tr className="h-8">
-                <td className="text-gr h5 py-1 pr-3 align-top w-30">
+                <td className="text-gr h5 py-1 pr-3 align-top w-24">
                   공고번호
                 </td>
                 <td className="text-sm py-1">
@@ -34,7 +34,7 @@ export default function AnimalDetails({
                 </td>
               </tr>
               <tr className="h-8">
-                <td className="text-gr h5 py-1 pr-3 align-top w-30">
+                <td className="text-gr h5 py-1 pr-3 align-top w-24">
                   공고기간
                 </td>
                 <td className="text-sm py-1">
@@ -43,11 +43,11 @@ export default function AnimalDetails({
               </tr>
             </>
           )}
-          {isSubscriber && (
+          {isCenterSubscriber && (
             <>
               {specialNotes && (
                 <tr className="h-8">
-                  <td className="text-gr h5 py-1 pr-3 align-top w-20">
+                  <td className="text-gr h5 py-1 pr-3 align-top w-24">
                     상세 특이사항
                   </td>
                   <td className="text-sm py-1">
@@ -58,20 +58,20 @@ export default function AnimalDetails({
             </>
           )}
           <tr className="h-8">
-            <td className="text-gr h5 py-1 pr-3 align-top w-30">특이사항</td>
+            <td className="text-gr h5 py-1 pr-3 align-top w-24">특이사항</td>
             <td className="text-sm py-1">
               <div>{description}</div>
             </td>
           </tr>
           <tr className="h-8">
-            <td className="text-gr h5 py-1 pr-3 align-top w-30">발견장소</td>
+            <td className="text-gr h5 py-1 pr-3 align-top w-24">발견장소</td>
             <td className="text-sm py-1">
               <div>{foundLocation}</div>
             </td>
           </tr>
-          {!isSubscriber && (
+          {!isCenterSubscriber && (
             <tr className="h-8">
-              <td className="text-gr h5 py-1 pr-3 align-top w-30">관할기관</td>
+              <td className="text-gr h5 py-1 pr-3 align-top w-24">관할기관</td>
               <td className="text-sm py-1">
                 <div>{center}</div>
               </td>

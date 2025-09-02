@@ -3,60 +3,55 @@ import { useRouter } from "next/navigation";
 import instance from "@/lib/axios-instance";
 
 interface CreateAnimalData {
-  name: string;
-  is_female: boolean;
-  age: number;
-  weight: number;
-  color: string;
-  breed: string;
-  description?: string;
-  status?:
-    | "보호중"
-    | "입양완료"
-    | "무지개다리"
-    | "임시보호중"
-    | "반환"
-    | "방사";
-  activity_level?: number;
-  sensitivity?: number;
-  sociability?: number;
-  separation_anxiety?: number;
-  special_notes?: string;
-  health_notes?: string;
-  basic_training?: string;
-  trainer_comment?: string;
-  announce_number?: string;
-  announcement_date?: string;
-  found_location?: string;
-  personality?: string;
+  name: string; // required, 1-50 characters
+  is_female: boolean; // required
+  age?: number | null; // 0-300 months
+  weight?: number | null; // 0.01-999.99 kg
+  color?: string | null;
+  breed?: string | null;
+  description?: string | null;
+  status?: string | null; // default: "보호중"
+  activity_level?: string | null;
+  sensitivity?: string | null;
+  sociability?: string | null;
+  separation_anxiety?: string | null;
+  special_notes?: string | null;
+  health_notes?: string | null;
+  basic_training?: string | null;
+  trainer_comment?: string | null;
+  announce_number?: string | null;
+  announcement_date?: string | null;
+  found_location?: string | null;
+  personality?: string | null;
+  comment?: string | null; // 공공데이터 특이사항 코멘트
 }
 
 interface CreateAnimalResponse {
   id: string;
   name: string;
-  isFemale: boolean;
-  age: number;
+  is_female: boolean;
+  age: number | null;
   weight: number | null;
   color: string | null;
   breed: string | null;
   description: string | null;
   status: string;
-  waitingDays: number | null;
-  activityLevel: number | null;
-  sensitivity: number | null;
-  sociability: number | null;
-  separationAnxiety: number | null;
-  specialNotes: string | null;
-  healthNotes: string | null;
-  basicTraining: string | null;
-  trainerComment: string | null;
-  announceNumber: string | null;
-  announcementDate: string | null;
-  foundLocation: string | null;
+  activity_level: string | null;
+  sensitivity: string | null;
+  sociability: string | null;
+  separation_anxiety: string | null;
+  special_notes: string | null;
+  health_notes: string | null;
+  basic_training: string | null;
+  trainer_comment: string | null;
+  announce_number: string | null;
+  announcement_date: string | null;
+  found_location: string | null;
   personality: string | null;
-  centerId: string;
-  createdAt: string;
-  updatedAt: string;
+  comment: string | null;
+  center_id: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export const useCreateAnimal = () => {
@@ -66,7 +61,7 @@ export const useCreateAnimal = () => {
   return useMutation<CreateAnimalResponse, Error, CreateAnimalData>({
     mutationFn: async (data: CreateAnimalData) => {
       const response = await instance.post<CreateAnimalResponse>(
-        "/animals",
+        "/animals/",
         data
       );
       return response.data;

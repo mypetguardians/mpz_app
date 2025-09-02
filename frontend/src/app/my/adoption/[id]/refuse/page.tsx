@@ -210,31 +210,17 @@ export default function AdoptionRefusePage({
               </div>
             </SectionLine>
 
-            {/* Question Responses */}
-            {adoptionDetail.question_responses &&
-              adoptionDetail.question_responses.length > 0 && (
-                <SectionLine>
-                  <div className="mb-6">
-                    <h3 className="text-bk mb-3">질문 응답</h3>
-                    <div className="space-y-3">
-                      {adoptionDetail.question_responses.map((response) => (
-                        <div
-                          key={response.id}
-                          className="bg-gray-50 p-3 rounded-lg"
-                        >
-                          <div className="font-medium text-gray-700 mb-1">
-                            {response.question_content}
-                          </div>
-                          <div className="text-gray-600">{response.answer}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </SectionLine>
-              )}
-
             {/* Action Buttons */}
             <div className="space-y-3 pb-6">
+              <BigButton
+                variant="variant5"
+                onClick={() => {
+                  router.push(`/my/adoption/${id}/applicationForm`);
+                }}
+                className="w-full py-4"
+              >
+                신청서 보기
+              </BigButton>
               <BigButton
                 variant="variant5"
                 onClick={handleViewConsent}

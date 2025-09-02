@@ -27,6 +27,7 @@ interface CommunityDetailProps {
   onPostAction?: () => void;
   onUserClick?: (userId: string) => void;
   onLoginRequired?: () => void;
+  isAuthorSubscriber?: boolean;
 }
 
 export function CommunityDetail({
@@ -37,6 +38,7 @@ export function CommunityDetail({
   onPostAction,
   onUserClick,
   onLoginRequired,
+  isAuthorSubscriber,
 }: CommunityDetailProps) {
   const { images, title, content, createdAt, userId, tags, likeCount } = post;
   const { isAuthenticated } = useAuth();
@@ -169,14 +171,21 @@ export function CommunityDetail({
         >
           <div className="relative w-10 h-10 rounded-full overflow-hidden">
             <Image
-              src={profileImage || "/img/dummyImg.jpeg"}
+              src={profileImage || "/img/dummyImg.png"}
               alt={author}
               fill
               className="object-cover"
             />
           </div>
-          <div>
+          <div className="flex items-center gap-2">
             <h4 className="font-semibold text-sm">{author}</h4>
+            {isAuthorSubscriber && (
+              <div className="px-2 py-1 bg-orange-100 border border-orange-200 rounded-full">
+                <span className="text-xs text-orange-600 font-medium">
+                  구독자
+                </span>
+              </div>
+            )}
           </div>
         </div>
 

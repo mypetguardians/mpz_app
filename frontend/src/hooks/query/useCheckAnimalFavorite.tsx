@@ -6,7 +6,8 @@ interface CheckAnimalFavoriteParams {
 }
 
 interface CheckAnimalFavoriteResponse {
-  isFavorited: boolean;
+  is_favorited: boolean;
+  total_favorites: number;
 }
 
 const checkAnimalFavorite = async ({
@@ -26,9 +27,9 @@ export const useCheckAnimalFavorite = (
     queryKey: ["animal-favorite-status", animalId],
     queryFn: () => checkAnimalFavorite({ animalId }),
     enabled: enabled && !!animalId,
-    staleTime: 0,
-    gcTime: 5 * 60 * 1000, // 5분
+    staleTime: 30 * 1000,
+    gcTime: 5 * 60 * 1000,
     retry: 1,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
   });
 };

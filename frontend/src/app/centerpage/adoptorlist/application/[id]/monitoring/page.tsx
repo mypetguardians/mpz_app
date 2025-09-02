@@ -17,6 +17,7 @@ import { useGetCenterAdoptions } from "@/hooks/query/useGetCenterAdoptions";
 import { useGetAdoptionMonitoringPosts } from "@/hooks/query/useGetAdoptionMonitoringPosts";
 import { transformRawAnimalToPetCard } from "@/types/animal";
 import { useGetAnimalById } from "@/hooks/query/useGetAnimals";
+import { useWithdrawAdoption } from "@/hooks/mutation";
 import { MiniButton } from "@/components/ui/MiniButton";
 
 interface AdoptionMonitoringPageProps {
@@ -54,6 +55,9 @@ export default function AdoptionMonitoringPage({
     error: postsError,
   } = useGetAdoptionMonitoringPosts(id, 1, 10);
 
+  const { mutate: withdrawAdoption, isPending: isWithdrawing } =
+    useWithdrawAdoption();
+
   // 동물 정보 가져오기 (입양 데이터에서 animal_id 추출)
   const {
     data: animalData,
@@ -63,12 +67,27 @@ export default function AdoptionMonitoringPage({
 
   const handleWithdrawConfirm = () => {
     setShowWithdrawModal(false);
-    setShowToast(true);
-    // 3초 후 토스트 숨기기
-    setTimeout(() => {
-      setShowToast(false);
-      router.back();
-    }, 3000);
+
+    // 입양 신청 철회 API 호출
+    withdrawAdoption(id, {
+      onSuccess: (data) => {
+        console.log("철회 완료:", data.message);
+        setShowToast(true);
+        // 3초 후 토스트 숨기기
+        setTimeout(() => {
+          setShowToast(false);
+          router.back();
+        }, 3000);
+      },
+      onError: (error) => {
+        console.error("철회 실패:", error);
+        // 에러 토스트 표시
+        setShowToast(true);
+        setTimeout(() => {
+          setShowToast(false);
+        }, 3000);
+      },
+    });
   };
 
   const handleWithdrawClick = () => {
@@ -267,7 +286,6 @@ export default function AdoptionMonitoringPage({
               ) : postsError ? (
                 <div className="text-center py-8 text-gray-500">
                   아직 업로드된 게시글이 없어요.
-                  {/* TODO 권한 확인 */}
                 </div>
               ) : !monitoringPostsData?.data ||
                 monitoringPostsData.data.length === 0 ? (
@@ -341,10 +359,11 @@ export default function AdoptionMonitoringPage({
                 동의서 보기
               </BigButton>
               <MiniButton
-                text="입양 신청 철회하기"
+                text={isWithdrawing ? "철회 중..." : "입양 신청 철회하기"}
                 variant="primary"
                 leftIcon={<X size={16} />}
                 onClick={handleWithdrawClick}
+                disabled={isWithdrawing}
                 className="w-full"
               />
             </div>

@@ -38,7 +38,7 @@ export default function AdoptionRefusePage() {
             <div className="flex items-center justify-center">
               <div className="w-36 h-36 overflow-hidden">
                 <Image
-                  src="/img/dummyImg.jpeg"
+                  src="/img/dummyImg.png"
                   alt="강아지 이미지"
                   width={128}
                   height={128}

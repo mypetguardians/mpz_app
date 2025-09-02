@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { ArrowLeft } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
@@ -14,23 +15,29 @@ import { InfoCard } from "@/components/ui/InfoCard";
 import { Toast } from "@/components/ui/Toast";
 import { useGetMyCenter } from "@/hooks/query/useGetMyCenter";
 import { useUpdateCenterSettings } from "@/hooks/mutation/useUpdateCenterSettings";
+import { useUploadSingleImage } from "@/hooks/mutation/useUploadSingleImage";
 
 export default function CenterSettingName() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { data: myCenter, isLoading } = useGetMyCenter();
   const updateCenterSettings = useUpdateCenterSettings();
+  const uploadSingleImage = useUploadSingleImage();
 
   // 폼 상태
   const [centerName, setCenterName] = useState("");
   const [centerNumber, setCenterNumber] = useState("");
-  const [isPublicNumber, setIsPublicNumber] = useState("모두에게 공개");
   const [address, setAddress] = useState("");
   const [isPublicAddress, setIsPublicAddress] = useState("모두에게 공개");
   const [adoptionPrice, setAdoptionPrice] = useState("");
+  const [centerImage, setCenterImage] = useState<string>("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   // 토스트 상태
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+
+  const isSubscriber = myCenter?.isSubscriber === true;
 
   // 토스트 표시 함수
   const showToastMessage = (message: string) => {
@@ -44,19 +51,44 @@ export default function CenterSettingName() {
     if (myCenter) {
       setCenterName(myCenter.name || "");
       setCenterNumber(myCenter.centerNumber || "");
-      setIsPublicNumber(
-        myCenter.isPublic ? "모두에게 공개" : "입양자에게만 공개"
-      );
       setAddress(myCenter.location || "");
       setIsPublicAddress(
         myCenter.isPublic ? "모두에게 공개" : "입양자에게만 공개"
       );
-      setAdoptionPrice(myCenter.adoptionPrice?.toString() || "");
+      setAdoptionPrice(
+        myCenter.adoptionPrice ? myCenter.adoptionPrice.toLocaleString() : ""
+      );
+      setCenterImage(myCenter.imageUrl || "");
     }
   }, [myCenter]);
 
   const handleBack = () => {
     router.back();
+  };
+
+  const handleImageSelect = (file: File) => {
+    setSelectedFile(file);
+    // 미리보기용 URL 생성
+    const previewUrl = URL.createObjectURL(file);
+    setCenterImage(previewUrl);
+  };
+
+  const handleImageClick = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        handleImageSelect(file);
+      }
+    };
+    input.click();
+  };
+
+  const handleImageRemove = () => {
+    setCenterImage("");
+    setSelectedFile(null);
   };
 
   const handleSave = async () => {
@@ -79,15 +111,70 @@ export default function CenterSettingName() {
     }
 
     try {
-      await updateCenterSettings.mutateAsync({
+      let imageUrl = "";
+      let shouldUpdateImage = false;
+
+      // 기존 이미지가 있고 blob URL이 아닌 경우 (실제 서버 URL)
+      if (centerImage && !centerImage.startsWith("blob:")) {
+        imageUrl = centerImage;
+      } else if (!centerImage) {
+        // 이미지가 제거된 경우
+        shouldUpdateImage = true;
+        imageUrl = "";
+      }
+
+      // 새로운 이미지가 선택된 경우 업로드
+      if (selectedFile) {
+        shouldUpdateImage = true;
+        showToastMessage("이미지를 업로드하는 중...");
+
+        // File을 base64로 변환
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = reader.result as string;
+            // data:image/jpeg;base64, 부분 제거
+            resolve(result.split(",")[1]);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(selectedFile);
+        });
+
+        const uploadResult = await uploadSingleImage.mutateAsync({
+          file: base64,
+          filename: selectedFile.name,
+          content_type: selectedFile.type,
+          folder: "centers",
+        });
+
+        imageUrl = uploadResult.file_url;
+      }
+
+      // 책임비 파싱 (안전하게 처리)
+      const parsedAdoptionPrice = adoptionPrice.replace(/,/g, "");
+      const adoptionPriceNumber = parsedAdoptionPrice
+        ? parseInt(parsedAdoptionPrice, 10)
+        : 0;
+
+      if (isNaN(adoptionPriceNumber)) {
+        showToastMessage("책임비는 숫자만 입력 가능합니다.");
+        return;
+      }
+
+      const updateData = {
         name: centerName.trim(),
-        centerNumber: centerNumber.trim() || undefined,
+        center_number: centerNumber.trim() || undefined,
         location: address.trim(),
-        isPublic:
-          isPublicNumber === "모두에게 공개" &&
-          isPublicAddress === "모두에게 공개",
-        adoptionPrice: parseInt(adoptionPrice.replace(/,/g, ""), 10),
-      });
+        is_public: isPublicAddress === "모두에게 공개",
+        adoption_price: adoptionPriceNumber,
+        ...(shouldUpdateImage && { image_url: imageUrl }), // 이미지가 변경된 경우에만 포함
+      };
+
+      await updateCenterSettings.mutateAsync(updateData);
+
+      // 추가 캐시 무효화 및 리페치
+      await queryClient.invalidateQueries({ queryKey: ["myCenter"] });
+      await queryClient.refetchQueries({ queryKey: ["myCenter"] });
 
       showToastMessage("센터 정보가 성공적으로 업데이트되었습니다.");
       setTimeout(() => {
@@ -177,7 +264,13 @@ export default function CenterSettingName() {
         }
       />
       <div className="w-full flex flex-col pb-3 px-4 gap-4 min-h-[100px]">
-        <ImageCard variant="add" />
+        <ImageCard
+          variant={centerImage ? "primary" : "add"}
+          src={centerImage}
+          alt="센터 이미지"
+          onClick={handleImageClick}
+          onRemove={centerImage ? handleImageRemove : undefined}
+        />
         <CustomInput
           variant="primary"
           label="보호센터 이름"
@@ -194,13 +287,6 @@ export default function CenterSettingName() {
           value={centerNumber}
           onChange={(e) => setCenterNumber(e.target.value)}
         />
-        <CustomInput
-          variant="Variant7"
-          value={isPublicNumber}
-          onChangeOption={setIsPublicNumber}
-          twoOptions={["모두에게 공개", "입양자에게만 공개"]}
-          required={true}
-        />
         <div className="flex flex-col gap-3">
           <h5 className="text-dg">
             보호센터 주소 <span className="text-brand">*</span>
@@ -212,13 +298,15 @@ export default function CenterSettingName() {
             value={address}
             onChange={(e) => setAddress(e.target.value)}
           />
-          <CustomInput
-            variant="Variant7"
-            value={isPublicAddress}
-            onChangeOption={setIsPublicAddress}
-            twoOptions={["모두에게 공개", "입양자에게만 공개"]}
-            required={true}
-          />
+          {isSubscriber && (
+            <CustomInput
+              variant="Variant7"
+              value={isPublicAddress}
+              onChangeOption={setIsPublicAddress}
+              twoOptions={["모두에게 공개", "입양자에게만 공개"]}
+              required={true}
+            />
+          )}
           <CustomInput
             variant="primary"
             label="책임비"
@@ -229,14 +317,41 @@ export default function CenterSettingName() {
           />
           <InfoCard>책임비는 외부에 노출되지 않으니 안심하세요.</InfoCard>
         </div>
+        {/* TODO DB컬럼 추가시 활성화 */}
+        {/* {isSubscriber && (
+          <div>
+            <CustomInput
+              variant="Variant7"
+              title="임시보호 가능 여부"
+              value={isPublicAddress}
+              onChangeOption={setIsPublicAddress}
+              twoOptions={["가능", "뷸가능"]}
+              required={true}
+            />
+            <CustomInput
+              variant="Variant7"
+              title="임시보호 가능 여부"
+              value={isPublicAddress}
+              onChangeOption={setIsPublicAddress}
+              twoOptions={["가능", "뷸가능"]}
+              required={true}
+            />
+          </div>
+        )} */}
       </div>
       <div className="sticky bottom-0 left-0 right-0 pb-6 pt-2 px-5">
         <BigButton
           className="w-full"
           onClick={handleSave}
-          disabled={updateCenterSettings.isPending}
+          disabled={
+            updateCenterSettings.isPending || uploadSingleImage.isPending
+          }
         >
-          {updateCenterSettings.isPending ? "저장 중..." : "저장하기"}
+          {uploadSingleImage.isPending
+            ? "이미지 업로드 중..."
+            : updateCenterSettings.isPending
+            ? "저장 중..."
+            : "저장하기"}
         </BigButton>
       </div>
 

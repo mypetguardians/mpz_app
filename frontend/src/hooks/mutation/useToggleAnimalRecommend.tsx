@@ -46,7 +46,7 @@ export const useToggleAnimalRecommend = () => {
 
       // 동물 상세 정보 캐시 무효화 (추천 상태 업데이트를 위해)
       queryClient.invalidateQueries({
-        queryKey: ["animals", variables.animalId],
+        queryKey: ["animal", variables.animalId],
       });
 
       // 전체 동물 목록 캐시 무효화 (추천 개수 업데이트를 위해)

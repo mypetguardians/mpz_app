@@ -1,5 +1,3 @@
-
-
 import { InfoCard } from "@/components/ui/InfoCard";
 import { SelectButton } from "@/components/ui/SelectButton";
 
@@ -72,7 +70,7 @@ export default function DetailInfo({ data, onChange }: DetailInfoProps) {
           placeholder="자유롭게 작성해주세요."
           value={data.trainerComment}
           onChange={(e) => onChange({ trainerComment: e.target.value })}
-          className="flex w-full rounded-md border border-input bg-background px-4 py-3 h5 ring-offset-background placeholder:text-gr placeholder:text-body placeholder:text-top disabled:cursor-not-allowed disabled:opacity-50 resize-none h-[150px] focus:outline-none"
+          className="flex w-full rounded-md border border-lg bg-background px-4 py-3 h5 ring-offset-background placeholder:text-gr placeholder:text-body placeholder:text-top disabled:cursor-not-allowed disabled:opacity-50 resize-none h-[150px] focus:outline-none"
         />
       </div>
     </div>

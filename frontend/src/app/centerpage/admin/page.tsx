@@ -5,26 +5,53 @@ import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
 import { MiniButton } from "@/components/ui/MiniButton";
 import { Container } from "@/components/common/Container";
+import { NotificationToast } from "@/components/ui/NotificationToast";
 import { useGetCenterAdmins } from "@/hooks/query/useGetCenterAdmins";
+import { useDeleteCenterAdmin } from "@/hooks/mutation/useDeleteCenterAdmin";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function AdminPage() {
   const { data: centerAdminsData, isLoading, error } = useGetCenterAdmins();
+  const deleteCenterAdminMutation = useDeleteCenterAdmin();
   const router = useRouter();
 
+  const [toast, setToast] = useState<{
+    show: boolean;
+    message: string;
+    type: "success" | "error";
+  }>({
+    show: false,
+    message: "",
+    type: "success",
+  });
+
   const handleBack = () => {
-    // 뒤로가기 로직
     window.history.back();
   };
 
   const handleCreateId = () => {
-    // 아이디 만들기 로직
     router.push("/centerpage/admin/create");
   };
 
-  const handleDelete = (id: string) => {
-    // 삭제 로직
-    console.log(`삭제: ${id}`);
+  const handleDelete = async (id: string) => {
+    if (confirm("정말로 이 관리자를 삭제하시겠습니까?")) {
+      try {
+        await deleteCenterAdminMutation.mutateAsync(id);
+        setToast({
+          show: true,
+          message: "관리자가 성공적으로 삭제되었습니다.",
+          type: "success",
+        });
+      } catch (error) {
+        console.error("관리자 삭제 실패:", error);
+        setToast({
+          show: true,
+          message: "관리자 삭제에 실패했습니다.",
+          type: "error",
+        });
+      }
+    }
   };
 
   // 로딩 상태 처리
@@ -75,7 +102,7 @@ export default function AdminPage() {
     );
   }
 
-  const centerAdmins = centerAdminsData?.admins || [];
+  const centerAdmins = centerAdminsData || [];
 
   return (
     <Container className="min-h-screen">
@@ -84,8 +111,7 @@ export default function AdminPage() {
           <div className="flex items-center gap-2">
             <IconButton
               icon={ArrowLeft}
-              onClick={handleBack}
-              label="뒤로가기"
+              onClick={() => router.push("/centerpage")}
             />
             <h4>관리자 초대 및 관리</h4>
           </div>
@@ -111,11 +137,12 @@ export default function AdminPage() {
               <div key={admin.id} className="flex items-start justify-between">
                 <div className="flex-1">
                   <h3 className="font-semibold text-gray-900 mb-1">
-                    {admin.name}
+                    {admin.username}
                   </h3>
                   <p className="text-sm text-gray-500">{admin.email}</p>
                   <p className="text-xs text-gray-400 mt-1">
-                    {new Date(admin.createdAt).toLocaleDateString("ko-KR")} 등록
+                    {new Date(admin.created_at).toLocaleDateString("ko-KR")}{" "}
+                    등록
                   </p>
                 </div>
                 <IconButton
@@ -124,12 +151,22 @@ export default function AdminPage() {
                   onClick={() => handleDelete(admin.id)}
                   label="삭제"
                   className="mt-1"
+                  disabled={deleteCenterAdminMutation.isPending}
                 />
               </div>
             ))
           )}
         </div>
       </div>
+
+      {/* Toast 컴포넌트 */}
+      {toast.show && (
+        <NotificationToast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast({ ...toast, show: false })}
+        />
+      )}
     </Container>
   );
 }

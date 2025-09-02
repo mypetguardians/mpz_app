@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
+
 import { Container } from "@/components/common/Container";
 import { NavBar } from "@/components/common/NavBar";
 import { HomeHeader } from "@/app/_components/HomeHeader";
@@ -10,8 +12,8 @@ import { MatchingSection } from "@/app/_components/MatchingSection";
 import { CommunitySection } from "@/app/_components/CommunitySection";
 import { FooterSection } from "@/app/_components/FooterSection";
 import { useGetAnimals } from "@/hooks/query/useGetAnimals";
+import { useGetBanners } from "@/hooks/query/useGetBanners";
 import { useMatchingStepStore } from "@/lib/stores/matchingStepStore";
-
 import { useAuth } from "@/components/providers/AuthProvider";
 import { RawAnimalResponse } from "@/types/animal";
 
@@ -19,6 +21,9 @@ export default function Home() {
   const { isAuthenticated } = useAuth();
   const [selectedLocation, setSelectedLocation] = useState<string>("");
   const { aiMatchingResult } = useMatchingStepStore();
+  const { data: banners, isLoading: bannerLoading } = useGetBanners({
+    type: "main",
+  });
 
   const {
     data: animalsData,
@@ -43,9 +48,32 @@ export default function Home() {
   };
 
   return (
-    <Container className="pb-20">
+    <Container>
       <HomeHeader isLoggedIn={isAuthenticated} />
-
+      <div>
+        {bannerLoading && (
+          <div className="w-full h-[232px] bg-gray-200 animate-pulse" />
+        )}
+        {!bannerLoading && banners && banners.data.length > 0 && (
+          <div
+            className="relative w-full h-[232px] cursor-pointer overflow-hidden"
+            onClick={() => {
+              if (banners.data[0].link_url) {
+                window.open(banners.data[0].link_url, "_blank");
+              }
+            }}
+          >
+            <Image
+              src={banners.data[0].image_url}
+              alt={banners.data[0].alt}
+              fill
+              className="object-cover"
+              sizes="100vw"
+              priority
+            />
+          </div>
+        )}
+      </div>
       <TopPetSection
         title="따듯한 손길을 기다려요"
         rightSlot="모두 보기"
@@ -78,7 +106,6 @@ export default function Home() {
       />
 
       <MatchingSection
-        animals={animals}
         variant="variant2"
         isLoading={isLoading}
         error={error}

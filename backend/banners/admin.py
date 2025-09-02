@@ -107,15 +107,15 @@ class BannerAdmin(admin.ModelAdmin):
         self.message_user(request, f"{len(banners)}개의 배너 순서가 재정렬되었습니다.")
     reorder_banners.short_description = "선택된 배너 순서 재정렬"
     
-    class Media:
-        css = {
-            'all': ('admin/css/banner_admin.css',)
-        }
-        js = ('admin/js/banner_admin.js',)
+    # class Media:
+    #     css = {
+    #         'all': ('admin/css/banner_admin.css',)
+    #     }
+    #     js = ('admin/js/banner_admin.js',)
     
     def get_queryset(self, request):
         """쿼리셋 최적화"""
-        return super().get_queryset(request).select_related()
+        return super().get_queryset(request)
     
     def save_model(self, request, obj, form, change):
         """모델 저장 시 자동 처리"""

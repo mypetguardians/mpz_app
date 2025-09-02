@@ -48,7 +48,7 @@ export default function CommunityPage() {
     }
 
     return (
-      <div className="py-5 px-0 border-b border-bg">
+      <div className="px-0 py-5 border-b border-bg">
         <div className="flex py-[27px] px-5 justify-between items-center rounded-lg">
           <div className="flex gap-2">
             {banners.data.slice(0, 3).map((banner) => (
@@ -58,7 +58,7 @@ export default function CommunityPage() {
                   alt={banner.alt}
                   width={32}
                   height={32}
-                  className="w-8 h-8 rounded object-fill"
+                  className="object-fill w-8 h-8 rounded"
                 />
                 <span className="text-sm text-brand">{banner.title}</span>
               </div>
@@ -187,7 +187,7 @@ export default function CommunityPage() {
   // 로딩 상태
   if (isLoading || tagsLoading) {
     return (
-      <Container className="h-screen bg-white relative flex flex-col">
+      <Container className="relative flex flex-col h-screen bg-white">
         <TopBar
           variant="variant5"
           left={<h2>커뮤니티</h2>}
@@ -206,7 +206,7 @@ export default function CommunityPage() {
             <div className="w-20 h-10 bg-gray-200 rounded-lg animate-pulse" />
           </div>
         </div>
-        <div className="mx-4 flex-1 overflow-y-auto">
+        <div className="flex-1 mx-4 overflow-y-auto">
           {/* 게시글 스켈레톤 */}
           <div className="space-y-4">
             {[...Array(5)].map((_, index) => (
@@ -227,7 +227,7 @@ export default function CommunityPage() {
   // 에러 상태
   if (error) {
     return (
-      <Container className="h-screen bg-white relative flex flex-col">
+      <Container className="relative flex flex-col h-screen bg-white">
         <TopBar
           variant="variant5"
           left={<h2>커뮤니티</h2>}
@@ -238,14 +238,14 @@ export default function CommunityPage() {
             />
           }
         />
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex items-center justify-center flex-1">
           <div className="text-center">
-            <p className="text-red-500 mb-2">
+            <p className="mb-2 text-red-500">
               데이터를 불러오는데 실패했습니다.
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              className="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
             >
               다시 시도
             </button>
@@ -257,7 +257,7 @@ export default function CommunityPage() {
   }
 
   return (
-    <Container className="h-screen bg-white relative flex flex-col">
+    <Container className="relative flex flex-col h-screen bg-white">
       <TopBar
         variant="variant5"
         left={<h2>커뮤니티</h2>}
@@ -279,7 +279,7 @@ export default function CommunityPage() {
           return null;
         })()}
       </div>
-      <div className="mx-4 flex-1 overflow-y-auto">
+      <div className="flex-1 mx-4 overflow-y-auto">
         {isLoading ? (
           // 로딩 중일 때 스켈레톤 표시
           <div className="space-y-4">
@@ -293,8 +293,8 @@ export default function CommunityPage() {
             ))}
           </div>
         ) : posts.length === 0 ? (
-          <div className="flex flex-col h-full items-center justify-center">
-            <h5 className="text-lg text-sm text-center">
+          <div className="flex flex-col items-center justify-center h-full">
+            <h5 className="text-sm text-lg text-center">
               아직 업로드된 게시글이 없어요.
               <br />첫 번째 게시글을 작성해보세요!
             </h5>
@@ -332,7 +332,7 @@ export default function CommunityPage() {
       </div>
 
       {/* 글쓰기 플로팅 버튼 */}
-      <div className="absolute bottom-24 right-4 z-50">
+      <div className="absolute z-50 bottom-24 right-4">
         <BigButton
           variant="primary"
           left={<Plus size={16} />}

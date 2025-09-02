@@ -52,9 +52,9 @@ export default function ProfileEditPage() {
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // 파일 크기 제한 (1MB)
-      if (file.size > 1024 * 1024) {
-        setToastMessage("이미지 크기는 1MB 이하여야 합니다");
+      // 파일 크기 제한 (5MB)
+      if (file.size > 1024 * 1024 * 5) {
+        setToastMessage("이미지 크기는 5MB 이하여야 합니다");
         setToastType("error");
         setShowToast(true);
         return;
@@ -66,8 +66,8 @@ export default function ProfileEditPage() {
       const img = new window.Image();
 
       img.onload = () => {
-        // 최대 크기 설정 (200x200)
-        const maxSize = 200;
+        // 최대 크기 설정 (1200x1200)
+        const maxSize = 1200;
         let { width, height } = img;
 
         if (width > height) {
@@ -216,29 +216,29 @@ export default function ProfileEditPage() {
           }
         />
 
-        <div className="mx-4 pb-32">
+        <div className="pb-32 mx-4">
           <div className="space-y-6">
             {/* 이미지 섹션 */}
             <div className="space-y-3">
-              <h5 className="text-black font-medium">이미지</h5>
+              <h5 className="font-medium text-black">이미지</h5>
               <div className="flex items-center space-x-4">
                 <div className="relative">
-                  <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-200 border">
+                  <div className="w-20 h-20 overflow-hidden bg-gray-200 border rounded-lg">
                     {profileImage ? (
                       <Image
                         src={profileImage}
                         alt="프로필 이미지"
-                        className="w-full h-full object-cover"
+                        className="object-cover w-full h-full"
                         width={80}
                         height={80}
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                      <div className="flex items-center justify-center w-full h-full bg-gray-100">
                         <Camera size={24} className="text-gray-400" />
                       </div>
                     )}
                   </div>
-                  <label className="absolute bottom-0 right-0 bg-brand text-white rounded-full p-1 cursor-pointer">
+                  <label className="absolute bottom-0 right-0 p-1 text-white rounded-full cursor-pointer bg-brand">
                     <Camera size={16} />
                     <input
                       type="file"
@@ -286,7 +286,7 @@ export default function ProfileEditPage() {
       </Container>
 
       {/* 저장 버튼 */}
-      <div className="fixed bottom-10 left-0 right-0 z-50 px-4">
+      <div className="fixed left-0 right-0 z-50 px-4 bottom-10">
         <div className="max-w-[380px] mx-auto">
           <BigButton
             className="w-full"

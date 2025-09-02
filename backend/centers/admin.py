@@ -4,10 +4,10 @@ from centers.models import Center, AdoptionContractTemplate, QuestionForm
 
 @admin.register(Center)
 class CenterAdmin(admin.ModelAdmin):
-    list_display = ['name', 'owner', 'region', 'verified', 'is_public', 'created_at']
-    list_filter = ['region', 'verified', 'is_public', 'has_monitoring']
+    list_display = ['name', 'owner', 'region', 'verified', 'is_public', 'is_subscribed', 'created_at']
+    list_filter = ['region', 'verified', 'is_public', 'is_subscribed', 'has_monitoring']
     search_fields = ['name', 'owner__username', 'center_number']
-    list_editable = ['verified', 'is_public']
+    list_editable = ['verified', 'is_public', 'is_subscribed']
     readonly_fields = ['created_at', 'updated_at']
     
     fieldsets = (
@@ -24,7 +24,7 @@ class CenterAdmin(admin.ModelAdmin):
             'fields': ('has_monitoring', 'monitoring_period_months', 'monitoring_interval_days', 'monitoring_description')
         }),
         ('상태', {
-            'fields': ('verified', 'is_public')
+            'fields': ('verified', 'is_public', 'is_subscribed')
         }),
         ('시간 정보', {
             'fields': ('created_at', 'updated_at'),

@@ -31,10 +31,9 @@ def _ext_from(filename: str | None, content_type: str | None) -> str:
     "/upload",
     summary="[C] 파일 업로드 (Base64 JSON)",
     description="Base64(또는 dataURL)로 전달된 파일을 R2에 업로드합니다.",
-    response={200: FileUploadOut, 400: FileUploadOut, 500: FileUploadOut},
     auth=jwt_auth,
 )
-async def upload_file(request: HttpRequest, data: FileUploadIn):
+def upload_file(request: HttpRequest, data: FileUploadIn):
     """
     FileUploadIn 가정:
       - file: str (Base64 or dataURL)
@@ -44,7 +43,7 @@ async def upload_file(request: HttpRequest, data: FileUploadIn):
     """
     try:
         if not data.file:
-            return FileUploadOut(success=False, message="file이 비어있습니다.")
+            return {"success": False, "message": "file이 비어있습니다."}
 
         r2 = R2Client()
         content_type = (data.content_type or "application/octet-stream").lower().strip()
@@ -56,17 +55,17 @@ async def upload_file(request: HttpRequest, data: FileUploadIn):
         r2.upload_file(key=key, data=data.file, content_type=content_type)
 
         url = f"{r2.public_base_url}/{key}"
-        return FileUploadOut(
-            success=True,
-            message="파일 업로드가 완료되었습니다.",
-            file_url=url,
-            file_key=key,
-            uploaded_at=timezone.now(),
-        )
+        return {
+            "success": True,
+            "message": "파일 업로드가 완료되었습니다.",
+            "file_url": url,
+            "file_key": key,
+            "uploaded_at": timezone.now(),
+        }
     except ValueError as e:
-        return FileUploadOut(success=False, message=f"R2 설정 오류: {e}")
+        return {"success": False, "message": f"R2 설정 오류: {e}"}
     except Exception as e:
-        return FileUploadOut(success=False, message=f"파일 업로드 중 오류가 발생했습니다: {e}")
+        return {"success": False, "message": f"파일 업로드 중 오류가 발생했습니다: {e}"}
 
 @router.post(
     "/upload-multipart",
@@ -105,44 +104,42 @@ def upload_multipart(
     "/delete",
     summary="[D] 파일 삭제",
     description="Cloudflare R2에서 파일을 삭제합니다.",
-    response={200: FileDeleteOut, 400: FileDeleteOut, 500: FileDeleteOut},
     auth=jwt_auth,
 )
-async def delete_file(request: HttpRequest, data: FileDeleteIn):
+def delete_file(request: HttpRequest, data: FileDeleteIn):
     try:
         r2 = R2Client()
         r2.delete_file(data.file_key)
-        return FileDeleteOut(
-            success=True,
-            message="파일 삭제가 완료되었습니다.",
-            deleted_at=timezone.now(),
-        )
+        return {
+            "success": True,
+            "message": "파일 삭제가 완료되었습니다.",
+            "deleted_at": timezone.now(),
+        }
     except ValueError as e:
-        return FileDeleteOut(success=False, message=f"R2 설정 오류: {e}")
+        return {"success": False, "message": f"R2 설정 오류: {e}"}
     except Exception as e:
-        return FileDeleteOut(success=False, message=f"파일 삭제 중 오류: {e}")
+        return {"success": False, "message": f"파일 삭제 중 오류: {e}"}
 
 @router.get(
     "/info/{file_key}",
     summary="[R] 파일 정보 조회",
     description="R2 객체 메타데이터 조회",
-    response={200: FileInfoOut, 400: dict, 500: dict},
     auth=jwt_auth,
 )
-async def get_file_info(request: HttpRequest, file_key: str):
+def get_file_info(request: HttpRequest, file_key: str):
     try:
         r2 = R2Client()
         try:
             head = r2.client.head_object(Bucket=r2.bucket, Key=file_key)
             url = f"{r2.public_base_url}/{file_key}"
             lm = head.get("LastModified")
-            return FileInfoOut(
-                file_key=file_key,
-                file_url=url,
-                content_type=head.get("ContentType", "application/octet-stream"),
-                size=head.get("ContentLength"),
-                uploaded_at=timezone.now() if not lm else lm,
-            )
+            return {
+                "file_key": file_key,
+                "file_url": url,
+                "content_type": head.get("ContentType", "application/octet-stream"),
+                "size": head.get("ContentLength"),
+                "uploaded_at": timezone.now() if not lm else lm,
+            }
         except r2.client.exceptions.NoSuchKey:
             raise HttpError(404, "파일을 찾을 수 없습니다.")
     except ValueError as e:

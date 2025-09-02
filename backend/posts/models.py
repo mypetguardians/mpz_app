@@ -20,12 +20,6 @@ class Post(BaseModel):
         verbose_name_plural = '포스트들'
         ordering = ['-created_at']
     
-    class Meta:
-        db_table = 'posts'
-        verbose_name = '포스트'
-        verbose_name_plural = '포스트들'
-        ordering = ['-created_at']
-    
     def __str__(self):
         return f"{self.user.username} - {self.title}"
     

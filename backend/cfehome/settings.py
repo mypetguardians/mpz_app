@@ -25,6 +25,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config("DJANGO_SECRET_KEY")
 
+# 공공데이터 서비스 키
+PUBLIC_DATA_SERVICE_KEY = config("PUBLIC_DATA_SERVICE_KEY", default="")
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config("DJANGO_DEBUG", default=False, cast=bool)
 

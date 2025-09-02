@@ -70,10 +70,19 @@ export default function BasicInfo({
     const files = event.target.files;
     if (files && files.length > 0) {
       const newImages = Array.from(files);
-      if (images.length + newImages.length <= 5) {
+      const totalImages = images.length + newImages.length;
+      if (totalImages <= 5) {
         onImagesChange([...images, ...newImages]);
       } else {
-        alert("최대 5장까지만 업로드할 수 있습니다.");
+        const remainingSlots = 5 - images.length;
+        if (remainingSlots > 0) {
+          onImagesChange([...images, ...newImages.slice(0, remainingSlots)]);
+          alert(
+            `최대 5장까지만 업로드할 수 있습니다. ${remainingSlots}장만 추가되었습니다.`
+          );
+        } else {
+          alert("최대 5장까지만 업로드할 수 있습니다.");
+        }
       }
     }
   };
@@ -120,7 +129,7 @@ export default function BasicInfo({
           variant="tagdropdown"
           label="상태"
           placeholder="상태를 선택해주세요"
-          options={["보호중", "임시보호중", "입양완료", "무지개다리"]}
+          options={["보호중", "입양대기", "입양완료"]}
           value={data.status}
           onChangeOption={(value) => onChange({ status: value })}
           required={true}
@@ -141,9 +150,17 @@ export default function BasicInfo({
         <CustomInput
           variant="primary"
           label="나이"
-          placeholder="년생을 입력해주세요."
+          placeholder="0~300개월 사이의 숫자를 입력해주세요."
           value={data.age}
-          onChange={(e) => onChange({ age: e.target.value })}
+          onChange={(e) => {
+            const value = e.target.value.replace(/[^0-9]/g, "");
+            if (
+              value === "" ||
+              (parseInt(value) >= 0 && parseInt(value) <= 300)
+            ) {
+              onChange({ age: value });
+            }
+          }}
           required={true}
         />
         <CustomInput
@@ -165,9 +182,23 @@ export default function BasicInfo({
         <CustomInput
           variant="primary"
           label="무게"
-          placeholder="숫자를 입력해주세요."
+          placeholder="0.01~100kg 사이의 값을 입력해주세요."
           value={data.weight}
-          onChange={(e) => onChange({ weight: e.target.value })}
+          onChange={(e) => {
+            const value = e.target.value.replace(/[^0-9.]/g, ""); // 숫자와 소수점만 허용
+            // 소수점이 2개 이상 있는 경우 방지
+            const dotCount = (value.match(/\./g) || []).length;
+            if (dotCount <= 1) {
+              const numValue = parseFloat(value);
+              if (
+                value === "" ||
+                (numValue >= 0.01 && numValue <= 100) ||
+                isNaN(numValue)
+              ) {
+                onChange({ weight: value });
+              }
+            }
+          }}
           required={true}
         />
         <CustomInput

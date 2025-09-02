@@ -128,7 +128,7 @@ export default function BreedFilter({
           />
 
           {/* 품종 리스트 표시 */}
-          <div className="max-h-96 overflow-y-auto">
+          <div className="max-h-96 overflow-y-auto scrollbar-hide">
             {isSearching || isLoading ? (
               <div className="text-center py-8">
                 <div className="text-gray-500">검색 중...</div>

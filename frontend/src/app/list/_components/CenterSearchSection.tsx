@@ -233,7 +233,7 @@ export function CenterSearchSection({
             value={regionSearchTerm}
             onChange={(e) => setRegionSearchTerm(e.target.value)}
           />
-          <div className="max-h-60 overflow-y-auto">
+          <div className="max-h-60 overflow-y-auto scrollbar-hide">
             {filteredRegions.length > 0 ? (
               <div className="space-y-1">
                 {filteredRegions.map((region: string, index: number) => (

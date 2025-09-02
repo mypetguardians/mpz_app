@@ -34,7 +34,7 @@ export function SelectButton({
     >
       {/* **mr-2 삭제 */}
       {isLarge ? (
-        <div className="flex flex-col items-center text-center gap-4">
+        <div className="flex flex-col items-center text-center">
           <div className="flex justify-center">{icon}</div>
           <div className="space-y-2">{children}</div>
         </div>

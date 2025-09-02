@@ -6,6 +6,7 @@ import Image from "next/image";
 
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
+import { useMatchingStepStore } from "@/lib/stores/matchingStepStore";
 
 // 매칭 진행 단계별 데이터
 const matchingSteps = [
@@ -34,36 +35,46 @@ function MatchingLoadingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [currentStep, setCurrentStep] = useState(0);
+  const { aiMatchingResult } = useMatchingStepStore();
 
   // URL에서 매칭 결과 데이터 가져오기
   const resultParam = searchParams.get("result");
 
   useEffect(() => {
+    // AI 매칭 결과가 이미 있다면 바로 결과 페이지로 이동
+    if (aiMatchingResult) {
+      router.push("/matching/result?type=perfect");
+      return;
+    }
+
     // 1초마다 단계 변경
     const stepInterval = setInterval(() => {
       setCurrentStep((prev) => {
         if (prev < matchingSteps.length - 1) {
           return prev + 1;
         } else {
-          // 마지막 단계에서 1초 후 결과 페이지로 이동
+          // 마지막 단계에서도 AI 매칭 결과를 확인
           clearInterval(stepInterval);
           setTimeout(() => {
-            if (resultParam) {
+            if (aiMatchingResult) {
+              router.push("/matching/result?type=perfect");
+            } else if (resultParam) {
               // 결과 데이터가 있으면 결과 페이지로 전달
               router.push(
                 `/matching/result?type=perfect&result=${resultParam}`
               );
             } else {
+              // AI 매칭 결과가 없어도 결과 페이지로 이동 (기본 데이터 사용)
               router.push("/matching/result?type=perfect");
             }
-          }, 1000);
+          }, 1500);
           return prev;
         }
       });
-    }, 1000);
+    }, 1500);
 
     return () => clearInterval(stepInterval);
-  }, [router, resultParam]);
+  }, [router, resultParam, aiMatchingResult]);
 
   const currentStepData = matchingSteps[currentStep];
 

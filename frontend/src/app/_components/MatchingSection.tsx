@@ -94,7 +94,7 @@ export function MatchingSection({
               return (
                 <div className="mb-8">
                   {showLocationFilter && (
-                    <div className="flex items-center overflow-x-auto gap-[6px] mb-4">
+                    <div className="flex items-center overflow-x-auto scrollbar-hide gap-[6px] mb-4">
                       {locations.map((loc) => (
                         <div
                           key={loc}
@@ -231,14 +231,14 @@ export function MatchingSection({
             return (
               <>
                 {showLocationFilter && (
-                  <div className="flex items-center overflow-x-auto gap-[6px]">
+                  <div className="flex items-center overflow-x-auto scrollbar-hide gap-[6px]">
                     {locations.map((loc) => (
                       <MiniButton key={loc} text={loc} variant="outline" />
                     ))}
                   </div>
                 )}
                 <div
-                  className={`flex gap-3 overflow-x-auto flex-nowrap ${
+                  className={`flex gap-3 overflow-x-auto scrollbar-hide flex-nowrap ${
                     variant === "variant2" ? "flex-col" : ""
                   } ${
                     variant === "variant3"

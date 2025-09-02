@@ -60,7 +60,7 @@ export function PetSection({
         </div>
 
         {showLocationFilter && (
-          <div className="flex items-center overflow-x-auto gap-[6px]">
+          <div className="flex items-center overflow-x-auto scrollbar-hide gap-[6px]">
             {locations.map((loc) => (
               <MiniButton key={loc} text={loc} variant="outline" />
             ))}
@@ -150,7 +150,7 @@ export function PetSection({
   return (
     <MainSection title={title} rightSlot={rightSlot}>
       {showLocationFilter && (
-        <div className="flex items-center overflow-x-auto gap-[6px] -mx-4 px-4">
+        <div className="flex items-center overflow-x-auto scrollbar-hide gap-[6px] -mx-4 px-4">
           {locations.map((loc) => (
             <MiniButton
               key={loc}

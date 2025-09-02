@@ -15,11 +15,11 @@ import Step2 from "../_components/Step2";
 import Step3 from "../_components/Step3";
 import Step4 from "../_components/Step4";
 import Step5 from "../_components/Step5";
+import Step5_1 from "../_components/Step5-1";
 import Step6 from "../_components/Step6";
 import Step7 from "../_components/Step7";
 import Step8 from "../_components/Step8";
 import Step9 from "../_components/Step9";
-import Step10 from "../_components/Step10";
 import LinearProgressBar from "@/components/ui/LinearProgressBar";
 
 export default function MatchingQuestionPage() {
@@ -51,11 +51,11 @@ export default function MatchingQuestionPage() {
     3: <Step3 onNext={handleNext} />,
     4: <Step4 onNext={handleNext} />,
     5: <Step5 onNext={handleNext} />,
+    5_1: <Step5_1 onNext={handleNext} />,
     6: <Step6 onNext={handleNext} />,
     7: <Step7 onNext={handleNext} />,
     8: <Step8 onNext={handleNext} />,
-    9: <Step9 onNext={handleNext} />,
-    10: <Step10 onNext={() => router.push("/matching/loading")} />,
+    9: <Step9 onNext={() => {}} />,
   };
 
   if (!stepsMap[currentStep]) {

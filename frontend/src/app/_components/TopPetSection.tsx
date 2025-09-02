@@ -209,7 +209,7 @@ export function TopPetSection({
     >
       {/* 지역 필터 */}
       {showLocationFilter && (
-        <div className="flex items-center overflow-x-auto gap-[6px] -mx-4 px-4">
+        <div className="flex items-center overflow-x-auto scrollbar-hide gap-[6px] -mx-4 px-4">
           <MiniButton
             key="location"
             leftIcon={<MapPin size={16} />}
@@ -242,7 +242,7 @@ export function TopPetSection({
 
       {/* 동물 카드 목록 */}
       <div
-        className={`flex gap-3 overflow-x-auto flex-nowrap -mx-4 px-4 ${
+        className={`flex gap-3 overflow-x-auto scrollbar-hide flex-nowrap -mx-4 px-4 ${
           variant === "variant2" ? "flex-col" : ""
         } ${
           variant === "variant3"

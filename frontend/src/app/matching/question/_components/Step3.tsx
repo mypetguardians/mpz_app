@@ -73,7 +73,7 @@ export function Step3({ onNext }: StepProps) {
                 />
               }
             >
-              <span className="text-sm">{option.text}</span>
+              <span className="text-sm ml-2">{option.text}</span>
             </SelectButton>
           ))}
         </div>

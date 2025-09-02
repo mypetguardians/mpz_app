@@ -179,7 +179,7 @@ export function CustomInput({
           </span>
 
           {isOpen && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto scrollbar-hide">
               {options.map((opt) => (
                 <button
                   key={opt}

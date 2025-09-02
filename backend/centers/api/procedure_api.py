@@ -65,14 +65,21 @@ async def get_procedure_settings(request: HttpRequest):
             current_user = request.auth
             
             # 센터 관리자 권한 확인
-            if current_user.user_type != "센터관리자":
-                raise HttpError(403, "센터 관리자만 접근할 수 있습니다")
+            if current_user.user_type not in ["센터관리자", "센터최고관리자"]:
+                raise HttpError(403, "센터 관리자 이상의 권한이 필요합니다")
             
-            # 사용자의 센터 조회
+            # 사용자의 센터 조회 (owner 또는 center 필드로 연결된 센터)
             try:
+                # 먼저 owner로 조회 시도
                 user_center = Center.objects.get(owner=current_user)
             except Center.DoesNotExist:
-                raise HttpError(400, "등록된 센터가 없습니다")
+                # owner가 아니면 center 필드로 조회
+                try:
+                    user_center = current_user.center
+                    if not user_center:
+                        raise HttpError(400, "등록된 센터가 없습니다")
+                except AttributeError:
+                    raise HttpError(400, "등록된 센터가 없습니다")
             
             # 계약서 템플릿들 조회
             contract_templates = AdoptionContractTemplate.objects.filter(
@@ -116,14 +123,21 @@ async def create_procedure_settings(request: HttpRequest, data: ProcedureSetting
             current_user = request.auth
             
             # 센터 관리자 권한 확인
-            if current_user.user_type != "센터관리자":
-                raise HttpError(403, "센터 관리자만 접근할 수 있습니다")
+            if current_user.user_type not in ["센터관리자", "센터최고관리자"]:
+                raise HttpError(403, "센터 관리자 이상의 권한이 필요합니다")
             
-            # 사용자의 센터 조회
+            # 사용자의 센터 조회 (owner 또는 center 필드로 연결된 센터)
             try:
+                # 먼저 owner로 조회 시도
                 user_center = Center.objects.get(owner=current_user)
             except Center.DoesNotExist:
-                raise HttpError(400, "등록된 센터가 없습니다")
+                # owner가 아니면 center 필드로 조회
+                try:
+                    user_center = current_user.center
+                    if not user_center:
+                        raise HttpError(400, "등록된 센터가 없습니다")
+                except AttributeError:
+                    raise HttpError(400, "등록된 센터가 없습니다")
             
             # 업데이트할 데이터 준비
             update_data = {}
@@ -191,14 +205,21 @@ async def update_procedure_settings(request: HttpRequest, data: ProcedureSetting
             current_user = request.auth
             
             # 센터 관리자 권한 확인
-            if current_user.user_type != "센터관리자":
-                raise HttpError(403, "센터 관리자만 접근할 수 있습니다")
+            if current_user.user_type not in ["센터관리자", "센터최고관리자"]:
+                raise HttpError(403, "센터 관리자 이상의 권한이 필요합니다")
             
-            # 사용자의 센터 조회
+            # 사용자의 센터 조회 (owner 또는 center 필드로 연결된 센터)
             try:
+                # 먼저 owner로 조회 시도
                 user_center = Center.objects.get(owner=current_user)
             except Center.DoesNotExist:
-                raise HttpError(400, "등록된 센터가 없습니다")
+                # owner가 아니면 center 필드로 조회
+                try:
+                    user_center = current_user.center
+                    if not user_center:
+                        raise HttpError(400, "등록된 센터가 없습니다")
+                except AttributeError:
+                    raise HttpError(400, "등록된 센터가 없습니다")
             
             # 업데이트할 데이터만 필터링하여 업데이트
             update_fields = {

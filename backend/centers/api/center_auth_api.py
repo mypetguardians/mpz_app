@@ -78,11 +78,18 @@ async def get_my_center(request: HttpRequest):
             if current_user.user_type not in ["센터관리자", "센터최고관리자", "훈련사"]:
                 raise HttpError(403, "센터 관리자, 최고 관리자, 훈련사 권한이 필요합니다")
             
-            # 사용자의 센터 조회
+            # 사용자의 센터 조회 (owner 또는 center 필드로 연결된 센터)
             try:
+                # 먼저 owner로 조회 시도
                 user_center = Center.objects.get(owner=current_user)
             except Center.DoesNotExist:
-                raise HttpError(404, "등록된 센터가 없습니다")
+                # owner가 아니면 center 필드로 조회
+                try:
+                    user_center = current_user.center
+                    if not user_center:
+                        raise HttpError(404, "등록된 센터가 없습니다")
+                except AttributeError:
+                    raise HttpError(404, "등록된 센터가 없습니다")
             
             # 응답 데이터 변환 (자신의 센터이므로 private location도 노출)
             return _build_center_response(user_center, show_private_location=True)
@@ -124,15 +131,22 @@ async def update_center_settings(request: HttpRequest, data: CenterUpdateIn):
         
         @sync_to_async
         def update_center():
-            # 센터 관리자 권한 확인
-            if current_user.user_type != "센터관리자":
-                raise HttpError(403, "센터 관리자만 센터 설정을 수정할 수 있습니다")
+            # 센터 관리자 또는 센터 최고관리자 권한 확인
+            if current_user.user_type not in ["센터관리자", "센터최고관리자"]:
+                raise HttpError(403, "센터 관리자 이상의 권한이 필요합니다")
             
-            # 사용자의 센터 조회
+            # 사용자의 센터 조회 (owner 또는 center 필드로 연결된 센터)
             try:
+                # 먼저 owner로 조회 시도
                 user_center = Center.objects.get(owner=current_user)
             except Center.DoesNotExist:
-                raise HttpError(404, "등록된 센터가 없습니다")
+                # owner가 아니면 center 필드로 조회
+                try:
+                    user_center = current_user.center
+                    if not user_center:
+                        raise HttpError(404, "등록된 센터가 없습니다")
+                except AttributeError:
+                    raise HttpError(404, "등록된 센터가 없습니다")
             
             # 업데이트할 데이터만 필터링하여 업데이트
             update_fields = {
@@ -153,8 +167,16 @@ async def update_center_settings(request: HttpRequest, data: CenterUpdateIn):
                 'image_url': data.image_url
             }
             
-            # None이 아닌 값만 업데이트
-            update_data = {k: v for k, v in update_fields.items() if v is not None}
+            # None이 아니고 빈 문자열이 아닌 값만 업데이트 (단, image_url은 빈 문자열도 허용)
+            update_data = {}
+            for k, v in update_fields.items():
+                if v is not None:
+                    if k == 'image_url':
+                        # image_url은 빈 문자열도 허용
+                        update_data[k] = v
+                    elif v != '':
+                        # 다른 필드는 빈 문자열 제외
+                        update_data[k] = v
             
             # 센터 정보 업데이트
             Center.objects.filter(id=user_center.id).update(**update_data)

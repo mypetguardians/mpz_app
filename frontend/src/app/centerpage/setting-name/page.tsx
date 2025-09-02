@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { ArrowLeft } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
@@ -18,6 +19,7 @@ import { useUploadSingleImage } from "@/hooks/mutation/useUploadSingleImage";
 
 export default function CenterSettingName() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { data: myCenter, isLoading } = useGetMyCenter();
   const updateCenterSettings = useUpdateCenterSettings();
   const uploadSingleImage = useUploadSingleImage();
@@ -53,7 +55,9 @@ export default function CenterSettingName() {
       setIsPublicAddress(
         myCenter.isPublic ? "모두에게 공개" : "입양자에게만 공개"
       );
-      setAdoptionPrice(myCenter.adoptionPrice?.toString() || "");
+      setAdoptionPrice(
+        myCenter.adoptionPrice ? myCenter.adoptionPrice.toLocaleString() : ""
+      );
       setCenterImage(myCenter.imageUrl || "");
     }
   }, [myCenter]);
@@ -107,22 +111,70 @@ export default function CenterSettingName() {
     }
 
     try {
-      let imageUrl = centerImage;
+      let imageUrl = "";
+      let shouldUpdateImage = false;
+
+      // 기존 이미지가 있고 blob URL이 아닌 경우 (실제 서버 URL)
+      if (centerImage && !centerImage.startsWith("blob:")) {
+        imageUrl = centerImage;
+      } else if (!centerImage) {
+        // 이미지가 제거된 경우
+        shouldUpdateImage = true;
+        imageUrl = "";
+      }
 
       // 새로운 이미지가 선택된 경우 업로드
       if (selectedFile) {
+        shouldUpdateImage = true;
         showToastMessage("이미지를 업로드하는 중...");
-        imageUrl = await uploadSingleImage.mutateAsync(selectedFile);
+
+        // File을 base64로 변환
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = reader.result as string;
+            // data:image/jpeg;base64, 부분 제거
+            resolve(result.split(",")[1]);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(selectedFile);
+        });
+
+        const uploadResult = await uploadSingleImage.mutateAsync({
+          file: base64,
+          filename: selectedFile.name,
+          content_type: selectedFile.type,
+          folder: "centers",
+        });
+
+        imageUrl = uploadResult.file_url;
       }
 
-      await updateCenterSettings.mutateAsync({
+      // 책임비 파싱 (안전하게 처리)
+      const parsedAdoptionPrice = adoptionPrice.replace(/,/g, "");
+      const adoptionPriceNumber = parsedAdoptionPrice
+        ? parseInt(parsedAdoptionPrice, 10)
+        : 0;
+
+      if (isNaN(adoptionPriceNumber)) {
+        showToastMessage("책임비는 숫자만 입력 가능합니다.");
+        return;
+      }
+
+      const updateData = {
         name: centerName.trim(),
-        centerNumber: centerNumber.trim() || undefined,
+        center_number: centerNumber.trim() || undefined,
         location: address.trim(),
-        isPublic: isPublicAddress === "모두에게 공개",
-        adoptionPrice: parseInt(adoptionPrice.replace(/,/g, ""), 10),
-        imageUrl: imageUrl || undefined,
-      });
+        is_public: isPublicAddress === "모두에게 공개",
+        adoption_price: adoptionPriceNumber,
+        ...(shouldUpdateImage && { image_url: imageUrl }), // 이미지가 변경된 경우에만 포함
+      };
+
+      await updateCenterSettings.mutateAsync(updateData);
+
+      // 추가 캐시 무효화 및 리페치
+      await queryClient.invalidateQueries({ queryKey: ["myCenter"] });
+      await queryClient.refetchQueries({ queryKey: ["myCenter"] });
 
       showToastMessage("센터 정보가 성공적으로 업데이트되었습니다.");
       setTimeout(() => {

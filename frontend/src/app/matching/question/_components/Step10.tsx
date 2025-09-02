@@ -4,8 +4,6 @@ import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useMatchingStepStore } from "@/lib/stores/matchingStepStore";
-import { usePostAnimalMatching } from "@/hooks/mutation/usePostAnimalMatching";
-import { useAuth } from "@/components/providers/AuthProvider";
 
 import { SelectButton } from "@/components/ui/SelectButton";
 import { Container } from "@/components/common/Container";
@@ -19,61 +17,16 @@ export function Step10({ onNext }: StepProps) {
   const [selectedGender, setSelectedGender] = React.useState<string | null>(
     null
   );
-  const { setStepAnswer, answers, setAIMatchingResult } =
-    useMatchingStepStore();
-  const { mutate: postAnimalMatching } = usePostAnimalMatching({
-    onSuccess: (data) => {
-      console.log("AI 매칭 성공:", data);
-      // AI 매칭 결과를 스토어에 저장
-      setAIMatchingResult(data);
-      // 바로 결과 페이지로 이동
-      router.push("/matching/result?type=perfect");
-    },
-    onError: (error) => {
-      console.error("AI 매칭 실패:", error);
-      // 에러가 있어도 결과 페이지로 이동
-      router.push("/matching/result?type=perfect");
-    },
-  });
-  const { user } = useAuth();
+  const { setStepAnswer } = useMatchingStepStore();
   const router = useRouter();
 
   const handleNext = async () => {
     if (selectedGender !== null) {
       setStepAnswer(10, { type: "gender", value: selectedGender });
-
-      // AI 매칭 요청 전송
-      console.log("각 단계별 상세 답변:");
-      Object.entries(answers).forEach(([step, answer]) => {
-        console.log(`Step ${step}:`, answer);
-      });
-
-      if (user?.id) {
-        const preferences: Record<string, string | number | boolean> = {};
-
-        // 모든 답변을 preferences 객체로 변환
-        Object.entries(answers).forEach(([, answer]) => {
-          if (answer) {
-            preferences[answer.type] = answer.value;
-          }
-        });
-
-        // 현재 단계의 답변도 추가
-        preferences.gender = selectedGender;
-
-        const requestData = {
-          user_id: user.id,
-          preferences,
-          limit: 5,
-        };
-
-        console.log("AI 매칭 요청 데이터:", requestData);
-
-        postAnimalMatching(requestData);
-      } else {
-        console.log("사용자 정보가 없음");
-        onNext();
-      }
+      // onNext는 더 이상 사용하지 않지만 시그니처 유지를 위해 참조
+      void onNext;
+      // 결과 페이지에서 저장/요청을 수행하도록 이동만 처리
+      router.push("/matching/result?type=perfect");
     }
   };
 

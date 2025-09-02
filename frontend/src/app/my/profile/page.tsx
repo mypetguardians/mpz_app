@@ -11,7 +11,7 @@ import { CustomInput } from "@/components/ui/CustomInput";
 import { IconButton } from "@/components/ui/IconButton";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useUpdateProfile } from "@/hooks/mutation/useUpdateProfile";
-import { useUploadProfileImage } from "@/hooks/mutation/useUploadProfileImage";
+import { useUploadSingleImage } from "@/hooks/mutation/useUploadSingleImage";
 import { ImageCard } from "@/components/ui/ImageCard";
 import { Toast } from "@/components/ui/Toast";
 
@@ -25,7 +25,7 @@ export default function ProfileEditPage() {
     setUserFromToken,
   } = useAuth();
   const updateProfileMutation = useUpdateProfile();
-  const uploadProfileImageMutation = useUploadProfileImage();
+  const uploadProfileImageMutation = useUploadSingleImage();
 
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [nickname, setNickname] = useState("");

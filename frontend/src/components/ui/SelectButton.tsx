@@ -32,14 +32,15 @@ export function SelectButton({
       )}
       onClick={onClick}
     >
+      {/* **mr-2 삭제 */}
       {isLarge ? (
         <div className="flex flex-col items-center text-center gap-4">
-          <div className="flex justify-center mr-2">{icon}</div>
+          <div className="flex justify-center">{icon}</div>
           <div className="space-y-2">{children}</div>
         </div>
       ) : (
         <div className="flex items-center">
-          <div className="flex-shrink-0 mr-2">{icon}</div>
+          <div className="flex-shrink-0">{icon}</div>
           <div className="flex-1">{children}</div>
         </div>
       )}

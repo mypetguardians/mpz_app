@@ -180,40 +180,40 @@ export type CenterRegion =
 
 export interface UpdateCenterSettingsRequest {
   name?: string;
-  centerNumber?: string;
+  center_number?: string;
   description?: string;
   location?: string;
   region?: CenterRegion;
-  phoneNumber?: string;
-  adoptionProcedure?: string;
-  adoptionGuidelines?: string;
-  hasMonitoring?: boolean;
-  monitoringPeriodMonths?: number;
-  monitoringIntervalDays?: number;
-  monitoringDescription?: string;
-  isPublic?: boolean;
-  adoptionPrice?: number;
-  imageUrl?: string;
+  phone_number?: string;
+  adoption_procedure?: string;
+  adoption_guidelines?: string;
+  has_monitoring?: boolean;
+  monitoring_period_months?: number;
+  monitoring_interval_days?: number;
+  monitoring_description?: string;
+  is_public?: boolean;
+  adoption_price?: number;
+  image_url?: string;
 }
 
 export interface UpdateCenterSettingsResponse {
   id: string;
   name: string;
-  centerNumber: string | null;
+  center_number: string | null;
   description: string | null;
   location: string | null;
   region: CenterRegion | null;
-  phoneNumber: string | null;
-  adoptionProcedure: string | null;
-  adoptionGuidelines: string | null;
-  hasMonitoring: boolean;
-  monitoringPeriodMonths: number | null;
-  monitoringIntervalDays: number | null;
-  monitoringDescription: string | null;
+  phone_number: string | null;
+  adoption_procedure: string | null;
+  adoption_guidelines: string | null;
+  has_monitoring: boolean;
+  monitoring_period_months: number | null;
+  monitoring_interval_days: number | null;
+  monitoring_description: string | null;
   verified: boolean;
-  isPublic: boolean;
-  adoptionPrice: number;
-  imageUrl: string | null;
-  createdAt: string;
-  updatedAt: string;
+  is_public: boolean;
+  adoption_price: number;
+  image_url: string | null;
+  created_at: string;
+  updated_at: string;
 }

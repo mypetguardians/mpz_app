@@ -21,6 +21,7 @@ export function Step2({ onNext }: StepProps) {
         <div className="flex flex-col gap-3">
           <CustomInput
             variant="primary"
+            label="당신의 성함은 무엇인가요?"
             placeholder="자유롭게 작성해주세요."
             required={true}
             value={name}

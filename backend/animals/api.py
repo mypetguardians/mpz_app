@@ -332,6 +332,25 @@ async def get_breeds(request: HttpRequest):
 async def get_animal_by_id(request: HttpRequest, animal_id: str):
     """특정 동물의 상세 정보를 조회합니다."""
     try:
+        # 현재 사용자 확인 (로그인된 경우) - 선택적 JWT 인증
+        current_user = None
+        try:
+            auth_header = request.headers.get('Authorization')
+            if auth_header and auth_header.startswith('Bearer '):
+                from api.security import jwt_auth
+                # JWT 토큰 수동 파싱
+                token = auth_header.split(' ')[1]
+                from user import utils
+                payload = utils.validate_access_token(token)
+                if payload:
+                    from user.models import User
+                    user_id = payload.get('user_id')
+                    if user_id:
+                        current_user = await sync_to_async(User.objects.get)(id=user_id)
+        except Exception:
+            # 인증 실패 시 로그인하지 않은 사용자로 처리
+            current_user = None
+
         @sync_to_async
         def get_animal_detail():
             try:
@@ -343,15 +362,23 @@ async def get_animal_by_id(request: HttpRequest, animal_id: str):
                     'id', 'image_url', 'is_primary', 'sequence'
                 ))
                 
-                return animal, images
+                # 사용자의 메가폰 상태 확인
+                is_megaphoned = False
+                if current_user:
+                    is_megaphoned = AnimalMegaphone.objects.filter(
+                        user=current_user,
+                        animal=animal
+                    ).exists()
+                
+                return animal, images, is_megaphoned
             except Animal.DoesNotExist:
-                return None, None
+                return None, None, False
         
         result = await get_animal_detail()
         if result[0] is None:
             raise HttpError(404, "동물을 찾을 수 없습니다")
         
-        animal, images = result
+        animal, images, is_megaphoned = result
         
         response_data = AnimalOut(
             id=str(animal.id),
@@ -379,7 +406,7 @@ async def get_animal_by_id(request: HttpRequest, animal_id: str):
             admission_date=animal.admission_date.isoformat() if animal.admission_date else None,
             personality=animal.personality,
             megaphone_count=animal.megaphone_count,
-            is_megaphoned=False,  # 상세 조회에서는 기본값
+            is_megaphoned=is_megaphoned,  # 사용자의 실제 메가폰 상태
             center_id=str(animal.center_id),
             animal_images=[
                 {

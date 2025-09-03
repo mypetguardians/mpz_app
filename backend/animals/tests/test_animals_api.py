@@ -590,3 +590,39 @@ class TestAnimalsAPI(TestCase):
         # 에러 메시지 확인
         error_data = response.json()
         self.assertIn("센터 ID가 필요합니다", error_data["detail"])
+
+    async def test_get_animal_by_id_with_megaphone_status(self):
+        """동물 상세 조회 시 사용자의 메가폰 상태 확인 테스트"""
+        # 인증 헤더 생성
+        headers = await self.authenticate()
+        
+        # 1. 메가폰을 누르지 않은 상태에서 동물 상세 조회
+        response = await self.client.get(f"/{self.animal.id}", headers=headers)
+        self.assertEqual(response.status_code, 200)
+        
+        animal_data = response.json()
+        self.assertFalse(animal_data["is_megaphoned"])  # 메가폰을 누르지 않았으므로 False
+        initial_megaphone_count = animal_data["megaphone_count"]  # 초기 메가폰 카운트 저장
+        
+        # 2. 메가폰 토글 (추가)
+        megaphone_data = {"is_toggle": True}
+        response = await self.client.post(f"/{self.animal.id}/megaphone", json=megaphone_data, headers=headers)
+        self.assertEqual(response.status_code, 200)
+        
+        # 3. 메가폰을 누른 상태에서 동물 상세 조회
+        response = await self.client.get(f"/{self.animal.id}", headers=headers)
+        self.assertEqual(response.status_code, 200)
+        
+        animal_data = response.json()
+        self.assertTrue(animal_data["is_megaphoned"])  # 메가폰을 눌렀으므로 True
+        self.assertEqual(animal_data["megaphone_count"], initial_megaphone_count + 1)  # 메가폰 카운트가 1 증가
+
+    async def test_get_animal_by_id_without_auth(self):
+        """인증 없이 동물 상세 조회 시 메가폰 상태 테스트"""
+        # 인증 없이 동물 상세 조회
+        response = await self.client.get(f"/{self.animal.id}")
+        self.assertEqual(response.status_code, 200)
+        
+        animal_data = response.json()
+        self.assertFalse(animal_data["is_megaphoned"])  # 로그인하지 않았으므로 False
+        self.assertEqual(animal_data["megaphone_count"], 0)  # 메가폰 카운트는 0

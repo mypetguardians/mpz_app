@@ -854,7 +854,7 @@ async def sync_public_data(
     upkind: str = Query("417000", description="축종코드 (개: 417000, 고양이: 422400, 기타: 429900)"),
     state: str = Query(None, description="상태 (notice: 공고중, protect: 보호중)"),
     page_no: int = Query(1, description="페이지 번호"),
-    num_of_rows: int = Query(1000, description="페이지당 보여줄 개수"),
+    num_of_rows: int = Query(100, description="페이지당 보여줄 개수"),
     sync_strategy: str = Query("incremental", description="동기화 전략 (incremental: 최근 데이터만, full: 전체 데이터, status_check: 상태 체크만)")
 ):
     """공공데이터 API에서 유기동물 정보를 동기화합니다."""

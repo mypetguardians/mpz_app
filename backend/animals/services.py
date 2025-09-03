@@ -38,7 +38,7 @@ class PublicDataService:
                     'serviceKey': self.service_key,
                     'upkind': upkind,
                     'pageNo': current_page,
-                    'numOfRows': num_of_rows,
+                    'numOfRows': min(num_of_rows, 100),  # 최대 100개로 제한
                     '_type': 'xml'
                 }
                 
@@ -80,7 +80,7 @@ class PublicDataService:
                     'serviceKey': self.service_key,
                     'upkind': upkind,
                     'pageNo': page,
-                    'numOfRows': num_of_rows,
+                    'numOfRows': min(num_of_rows, 100),  # 최대 100개로 제한
                     '_type': 'xml'
                 }
                 

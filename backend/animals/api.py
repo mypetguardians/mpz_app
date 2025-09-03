@@ -898,11 +898,15 @@ async def sync_public_data(
         
         # 연도별 상태 자동 설정
         if not state:
-            start_year = int(bgnde[:4])
-            if 2019 <= start_year <= 2022:
-                state = "protect"  # 2019-2022년은 보호중만
+            if bgnde:
+                start_year = int(bgnde[:4])
+                if 2019 <= start_year <= 2022:
+                    state = "protect"  # 2019-2022년은 보호중만
+                else:
+                    state = "protect"  # 2023년 이후는 기본값
             else:
-                state = "protect"  # 2023년 이후는 기본값
+                # 날짜가 지정되지 않은 경우 전체 데이터이므로 상태 필터 없음
+                state = None
         
         print(f"📅 데이터 가져오기 설정: 날짜={bgnde or '전체'}, 상태={state or '전체'}")
         print(f"🔍 동기화 전략: {sync_strategy}, 초기 동기화: {is_initial_sync}")

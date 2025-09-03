@@ -6,3 +6,4 @@ export * from "./notifications";
 export * from "./auth";
 export * from "./center-admin";
 export * from "./banner";
+export * from "./consent";

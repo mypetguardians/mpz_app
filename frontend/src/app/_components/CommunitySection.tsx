@@ -21,7 +21,7 @@ export function CommunitySection({ users = [] }: CommunitySectionProps) {
     error,
   } = useGetPublicPosts({
     page: 1,
-    page_size: 1,
+    page_size: 3,
   });
 
   const handleMorePosts = () => {
@@ -78,7 +78,7 @@ export function CommunitySection({ users = [] }: CommunitySectionProps) {
   return (
     <MainSection title="누군가의 가족이 된 순간들">
       <div className="flex flex-col gap-4">
-        {postsData.data.slice(0, 3).map((item: Post) => (
+        {postsData.data.map((item: Post) => (
           <div
             key={item.id}
             className="cursor-pointer"

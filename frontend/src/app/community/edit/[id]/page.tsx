@@ -69,8 +69,8 @@ export default function CommunityEditPage({
     error: postError,
   } = useGetPublicPostDetail(postId);
 
-  const { mutate: updatePost } = useUpdatePost();
-  const { mutate: uploadImages } = useUploadImages();
+  const { mutateAsync: updatePost } = useUpdatePost();
+  const { mutateAsync: uploadImages } = useUploadImages();
 
   const { user } = useAuth();
   const isAdmin = user?.userType !== "일반사용자";
@@ -78,28 +78,42 @@ export default function CommunityEditPage({
   // 기존 포스트 데이터를 초기값으로 설정
   useEffect(() => {
     if (postData?.post) {
+      console.log("포스트 데이터 로드:", postData.post);
+
       setTitle(postData.post.title || "");
       setContent(postData.post.content || "");
 
       // 기존 태그를 tagName 필드에서 추출 (API 응답 구조에 맞게 수정)
       const existingTags =
         postData.post.tags?.map((tag) => tag.tagName).filter(Boolean) || [];
-
       setTags(existingTags);
 
-      // adoptionId가 있으면 center, 없으면 public
-      const newPublicType = postData.post.adoptionId ? "center" : "public";
+      // 공개 범위 설정 - isAllAccess 필드를 확인
+      const newPublicType = postData.post.isAllAccess ? "public" : "center";
       setPublicType(newPublicType);
+      console.log(
+        "공개 범위 설정:",
+        newPublicType,
+        "isAllAccess:",
+        postData.post.isAllAccess
+      );
 
       // 기존 이미지가 있다면 설정
       if (postData.post.images && postData.post.images.length > 0) {
         const imageUrls = postData.post.images.map((img) => img.imageUrl);
         setUploadedImageUrls(imageUrls);
+        console.log("기존 이미지 설정:", imageUrls);
+      } else {
+        setUploadedImageUrls([]);
       }
 
-      // 기존 adoption_id가 있다면 설정
+      // 기존 adoptionId가 있다면 설정
       if (postData.post.adoptionId) {
         setSelectedAdoptionId(postData.post.adoptionId);
+        console.log("adoptionId 설정:", postData.post.adoptionId);
+      } else {
+        setSelectedAdoptionId(null);
+        setSelectedPet(null);
       }
     }
   }, [postData]);
@@ -151,16 +165,35 @@ export default function CommunityEditPage({
 
   // 기존 adoption_id가 있을 때 해당 동물을 selectedPet으로 설정
   useEffect(() => {
-    if (selectedAdoptionId && adoptionAnimals.length > 0 && !selectedPet) {
+    if (selectedAdoptionId && adoptionAnimals.length > 0) {
+      console.log(
+        "동물 매칭 시도:",
+        selectedAdoptionId,
+        adoptionAnimals.length
+      );
+
       const matchingPet = adoptionAnimals.find(
         (pet) =>
           (pet as ExtendedPetCardAnimal).adoptionId === selectedAdoptionId
       );
+
       if (matchingPet) {
+        console.log("매칭된 동물 찾음:", matchingPet);
         setSelectedPet(matchingPet as ExtendedPetCardAnimal);
+      } else {
+        console.log("매칭되는 동물을 찾을 수 없음");
+        // adoptionId가 있지만 현재 입양 목록에 없는 경우 (완료된 입양 등)
+        // 이 경우 animalId로 동물 정보를 별도로 가져와야 할 수 있음
+        if (postData?.post?.animalId) {
+          console.log("animalId 존재:", postData.post.animalId);
+          // TODO: animalId로 동물 정보를 가져오는 로직 추가 가능
+        }
       }
+    } else if (!selectedAdoptionId) {
+      // adoptionId가 없으면 선택된 동물도 초기화
+      setSelectedPet(null);
     }
-  }, [selectedAdoptionId, adoptionAnimals, selectedPet]);
+  }, [selectedAdoptionId, adoptionAnimals, postData?.post?.animalId]);
 
   // 찜한 동물 목록
   const { data: favoriteAnimalsData } = useGetAnimalFavorites(1, 100);
@@ -294,55 +327,50 @@ export default function CommunityEditPage({
     setTags(extractedTags);
   };
 
-  const handleConfirmSave = () => {
-    // 최종 이미지 목록 계산 (기존 이미지 - 삭제된 이미지)
-    const existingImageUrls =
-      postData?.post?.images?.map((img) => img.imageUrl) || [];
-    const finalImageUrls = existingImageUrls.filter(
-      (url) => !deletedImageUrls.includes(url)
-    );
+  const handleConfirmSave = async () => {
+    try {
+      setShowSaveModal(false);
 
-    // 먼저 포스트를 수정
-    updatePost(
-      {
+      // 1. 새로 업로드할 파일이 있으면 먼저 업로드
+      let newImageUrls: string[] = [];
+      if (uploadedFiles.length > 0) {
+        const uploadResult = await uploadImages({
+          postId: postId,
+          images: uploadedFiles,
+        });
+        newImageUrls = uploadResult.images;
+      }
+
+      // 2. 최종 이미지 목록 계산
+      const existingImageUrls =
+        postData?.post?.images?.map((img) => img.imageUrl) || [];
+      const remainingExistingUrls = existingImageUrls.filter(
+        (url) => !deletedImageUrls.includes(url)
+      );
+      const finalImageUrls = [...remainingExistingUrls, ...newImageUrls];
+
+      // 3. 포스트 수정
+      await updatePost({
         postId: postId,
         data: {
           title,
           content,
           tags,
           images: finalImageUrls,
+          animalId: selectedPet?.id || null,
+          // adoptionId도 함께 전송 (API에서 지원하는 경우)
+          adoptionId: selectedAdoptionId || null,
+          // 공개 범위 설정
+          visibility: publicType,
         },
-      },
-      {
-        onSuccess: (response) => {
-          console.log("포스트 수정 성공:", response);
-          if (uploadedFiles.length > 0) {
-            uploadImages(
-              {
-                postId: postId,
-                images: uploadedFiles,
-              },
-              {
-                onSuccess: () => {
-                  setShowSaveModal(false);
-                  router.back();
-                },
-                onError: (error) => {
-                  console.error("이미지 업로드 실패:", error);
-                },
-              }
-            );
-          } else {
-            setShowSaveModal(false);
-            router.back();
-          }
-        },
-        onError: (error) => {
-          console.error("포스트 수정 실패:", error);
-          console.error("에러 상세:", error.message);
-        },
-      }
-    );
+      });
+
+      router.back();
+    } catch (error) {
+      console.error("저장 실패:", error);
+      setShowSaveModal(true); // 모달 다시 열기
+      alert("저장에 실패했습니다. 다시 시도해주세요.");
+    }
   };
 
   const handleConfirmBack = () => {
@@ -443,6 +471,7 @@ export default function CommunityEditPage({
               setTitle(e.target.value)
             }
             variant="primary"
+            className="focus:outline-none focus:border-brand"
           />
         </div>
 

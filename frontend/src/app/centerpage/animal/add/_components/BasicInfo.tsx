@@ -40,6 +40,7 @@ export default function BasicInfo({
   const [breedSearchTerm, setBreedSearchTerm] = useState("");
   const [tempSelectedBreed, setTempSelectedBreed] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [extraFeatures, setExtraFeatures] = useState<string[]>([]);
 
   const handleBreedSearchClick = () => {
     setTempSelectedBreed(data.breed);
@@ -111,7 +112,7 @@ export default function BasicInfo({
         />
 
         {/* 이미지 업로드 영역 - 최대 5장, 가로 스크롤 */}
-        <div className="flex gap-3 overflow-x-auto scrollbar-hide">
+        <div className="flex gap-3 z-9999 overflow-x-auto scrollbar-hide">
           {images.map((image, index) => (
             <ImageCard
               key={index}
@@ -237,7 +238,23 @@ export default function BasicInfo({
           value={data.healthNotes}
           onChange={(e) => onChange({ healthNotes: e.target.value })}
         />
-        <AddButton>특징 추가</AddButton>
+        {extraFeatures.map((feature, index) => (
+          <CustomInput
+            key={index}
+            variant="primary"
+            label={`추가 특징 ${index + 1}`}
+            placeholder="예) 산책 시 줄당김 없음"
+            value={feature}
+            onChange={(e) => {
+              const updated = [...extraFeatures];
+              updated[index] = e.target.value;
+              setExtraFeatures(updated);
+            }}
+          />
+        ))}
+        <AddButton onClick={() => setExtraFeatures((prev) => [...prev, ""])}>
+          특징 추가
+        </AddButton>
 
         {/* 센터 입소일 - CustomInput 사용 */}
         <CustomInput

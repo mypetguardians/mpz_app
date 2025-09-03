@@ -17,7 +17,9 @@ import {
   useGetCenterProcedureSettings,
   useCreateCenterProcedureSettings,
   useUpdateCenterProcedureSettings,
+  useGetConsents,
 } from "@/hooks";
+import type { Consent } from "@/types";
 
 export default function CenterProcess() {
   const router = useRouter();
@@ -35,6 +37,9 @@ export default function CenterProcess() {
   // 센터 프로시저 설정 데이터
   const { data: procedureSettings, isLoading: isLoadingSettings } =
     useGetCenterProcedureSettings();
+
+  // 동의서 데이터
+  const { data: consentsData, isLoading: isLoadingConsents } = useGetConsents();
 
   // 센터 프로시저 설정 생성/수정
   const createSettings = useCreateCenterProcedureSettings();
@@ -165,6 +170,38 @@ export default function CenterProcess() {
                 setAdoptionGuidelines(e.target.value)
               }
             />
+            {isLoadingConsents ? (
+              <CustomInput
+                variant="text"
+                placeholder="동의서를 불러오는 중..."
+                disabled={true}
+                className="text-gr"
+              />
+            ) : consentsData && consentsData.length > 0 ? (
+              <div className="w-full flex flex-col">
+                {consentsData.map((consent: Consent, index: number) => (
+                  <CustomInput
+                    key={consent.id}
+                    variant="text"
+                    placeholder={`동의서${index + 1}`}
+                    value={consent.title}
+                    className="cursor-pointer hover:bg-gray-50 rounded-md transition-colors read-only"
+                    onClick={() =>
+                      router.push(
+                        `/centerpage/process/edit-consent/${consent.id}`
+                      )
+                    }
+                  />
+                ))}
+              </div>
+            ) : (
+              <CustomInput
+                variant="text"
+                placeholder="등록된 동의서가 없습니다"
+                disabled={true}
+                className="text-gr"
+              />
+            )}
             <Link href="/centerpage/process/create-consent">
               <AddButton>유의사항 동의서 만들기</AddButton>
             </Link>

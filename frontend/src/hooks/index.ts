@@ -56,6 +56,11 @@ export { useUpdateCenterProcedureSettings } from "./mutation/useUpdateCenterProc
 export { useCreateContractTemplate } from "./mutation/useCreateContractTemplate";
 export { useUpdateContractTemplate } from "./mutation/useUpdateContractTemplate";
 export { useDeleteContractTemplate } from "./mutation/useDeleteContractTemplate";
+export { useGetConsents } from "./query/useGetConsents";
+export { useGetConsent } from "./query/useGetConsent";
+export { useCreateConsent } from "./mutation/useCreateConsent";
+export { useUpdateConsent } from "./mutation/useUpdateConsent";
+export { useDeleteConsent } from "./mutation/useDeleteConsent";
 export { useGetCenterAdoptions } from "./query/useGetCenterAdoptions";
 export { useGetMonitoringStatus } from "./query/useGetMonitoringStatus";
 export { useUpdateAdoptionStatus } from "./mutation/useUpdateAdoptionStatus";

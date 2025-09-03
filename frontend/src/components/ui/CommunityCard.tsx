@@ -7,6 +7,32 @@ import { IconButton } from "./IconButton";
 import { BottomSheet } from "./BottomSheet";
 import type { Post } from "@/types/posts";
 import { getRelativeTime } from "@/lib/utils";
+import { useAuth } from "@/components/providers/AuthProvider";
+
+// 공용 폴백 이미지 컴포넌트를 외부로 이동
+const FallbackImage = ({
+  src,
+  alt,
+  className,
+  fill,
+}: {
+  src: string;
+  alt: string;
+  className?: string;
+  fill?: boolean;
+}) => {
+  const [hasError, setHasError] = useState(false);
+  return (
+    <Image
+      src={hasError ? "/img/dummyImg.png" : src}
+      alt={alt}
+      className={className}
+      {...(fill ? { fill: true } : {})}
+      unoptimized
+      onError={() => setHasError(true)}
+    />
+  );
+};
 
 interface User {
   id: string;
@@ -38,30 +64,7 @@ export function CommunityCard({
 }: CommunityCardProps) {
   const [isActionSheetOpen, setIsActionSheetOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  // 공용 폴백 이미지 컴포넌트
-  const FallbackImage = ({
-    src,
-    alt,
-    className,
-    fill,
-  }: {
-    src: string;
-    alt: string;
-    className?: string;
-    fill?: boolean;
-  }) => {
-    const [hasError, setHasError] = useState(false);
-    return (
-      <Image
-        src={hasError ? "/img/dummyImg.png" : src}
-        alt={alt}
-        className={className}
-        {...(fill ? { fill: true } : {})}
-        unoptimized
-        onError={() => setHasError(true)}
-      />
-    );
-  };
+  const { user } = useAuth();
 
   const {
     images,
@@ -108,9 +111,22 @@ export function CommunityCard({
   const comment = commentCount || 0;
   const date = createdAt;
 
-  const user = users.find((u) => u.id === userId);
-  const author = userNickname || user?.nickname || "알 수 없음";
-  const profileImage = userImage || user?.image || undefined;
+  const foundUser = users.find((u) => u.id === userId);
+  const author = userNickname || foundUser?.nickname || "알 수 없음";
+
+  // 현재 로그인된 사용자의 게시물인 경우 Auth context에서 이미지 가져오기
+  const isCurrentUserPost = user?.id === userId;
+  const profileImage =
+    userImage && userImage.trim() && userImage !== "null"
+      ? userImage
+      : isCurrentUserPost &&
+        user?.image &&
+        user.image.trim() &&
+        user.image !== "null"
+      ? user.image
+      : foundUser?.image && foundUser.image.trim() && foundUser.image !== "null"
+      ? foundUser.image
+      : undefined;
 
   // const isMyPost = currentUserId && userId && currentUserId === userId;
 
@@ -286,15 +302,15 @@ export function CommunityCard({
           <h4 className="text-bk">{title}</h4>
           <h6 className="text-gr line-clamp-2">{content}</h6>
         </div>
-        <div className="flex items-right gap-3 text-gr ml-auto">
-          <div className="flex items-center gap-1 text-h6b">
+        <div className="flex gap-3 text-gr">
+          <div className="flex items-center gap-0.5 text-h6b">
             <IconButton
               icon={({ size }) => <ThumbsUp size={size} />}
               size="iconS"
             />
             {like}
           </div>
-          <div className="flex items-center gap-1 text-h6b">
+          <div className="flex items-center gap-0.5 text-h6b">
             <IconButton
               icon={({ size }) => <ChatCircle size={size} />}
               size="iconS"

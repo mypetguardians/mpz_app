@@ -24,6 +24,9 @@ export { useUpdateCenterProcedureSettings } from "./useUpdateCenterProcedureSett
 export { useCreateContractTemplate } from "./useCreateContractTemplate";
 export { useUpdateContractTemplate } from "./useUpdateContractTemplate";
 export { useDeleteContractTemplate } from "./useDeleteContractTemplate";
+export { useCreateConsent } from "./useCreateConsent";
+export { useUpdateConsent } from "./useUpdateConsent";
+export { useDeleteConsent } from "./useDeleteConsent";
 export { useUpdateAdoptionStatus } from "./useUpdateAdoptionStatus";
 export { useSendContract } from "./useSendContract";
 export { useRunManualMonitoringCheck } from "./useRunManualMonitoringCheck";

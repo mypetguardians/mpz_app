@@ -8,10 +8,12 @@ import { PetSectionError } from "@/components/ui/PetSectionError";
 import { CustomModal } from "@/components/ui/CustomModal";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useGetUserAIPersonalityTest } from "@/hooks/query/useGetUserAIPersonalityTest";
-import { useGetAIPersonalityTest } from "@/hooks/query/useGetAIPersonalityTest";
 import { PetCardAnimal } from "@/types/animal";
 import { PetCardVariant } from "@/types/petcard";
-import { AIRecommendResponse } from "@/types/ai-matching";
+import {
+  AIRecommendResponse,
+  AIPersonalityTestResult,
+} from "@/types/ai-matching";
 
 interface MatchingSectionProps {
   variant: PetCardVariant;
@@ -20,7 +22,7 @@ interface MatchingSectionProps {
   isLoading?: boolean;
   error?: Error | null;
   isExpertAnalysis?: boolean;
-  aiMatchingResult?: AIRecommendResponse | null;
+  aiMatchingResult?: AIRecommendResponse | AIPersonalityTestResult | null;
 }
 
 export function MatchingSection({
@@ -35,15 +37,12 @@ export function MatchingSection({
   const { user, isAuthenticated } = useAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
 
-  // 유저의 test_id
-  const { data: userAITestInfo, isLoading: aiTestLoading } =
+  // 유저의 AI 성격 테스트 결과 가져오기
+  const { data: userAITestResult, isLoading: aiTestLoading } =
     useGetUserAIPersonalityTest(isAuthenticated ? user?.id || "" : "");
-  // test_id로 매칭결과
-  const testId = userAITestInfo?.tests?.[0]?.test_id;
-  const { data: userAIMatchingResult, isLoading: aiLoading } =
-    useGetAIPersonalityTest(testId || "");
 
-  const finalAIMatchingResult = aiMatchingResult || userAIMatchingResult;
+  // aiMatchingResult가 있으면 우선 사용, 없으면 userAITestResult 사용
+  const finalAIMatchingResult = aiMatchingResult || userAITestResult;
 
   const handleMatchingClick = () => {
     if (isAuthenticated) {
@@ -85,7 +84,7 @@ export function MatchingSection({
         {/* PetSection 섹션 */}
         {isAuthenticated &&
           (() => {
-            if (isLoading || aiTestLoading || aiLoading) {
+            if (isLoading || aiTestLoading) {
               if (isExpertAnalysis) {
                 // 로딩 상태에서는 아무것도 표시하지 않음
                 return null;

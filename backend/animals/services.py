@@ -36,21 +36,31 @@ class PublicDataService:
             while True:
                 params = {
                     'serviceKey': self.service_key,
-                    'bgnde': bgnde,
-                    'endde': endde,
                     'upkind': upkind,
                     'pageNo': current_page,
                     'numOfRows': num_of_rows,
                     '_type': 'xml'
                 }
                 
+                # 날짜가 지정된 경우만 추가
+                if bgnde:
+                    params['bgnde'] = bgnde
+                if endde:
+                    params['endde'] = endde
+                
                 if state:
                     params['state'] = state
                 
                 async with httpx.AsyncClient() as client:
                     response = await client.get(f"{self.BASE_URL}/abandonmentPublicService_v2/abandonmentPublic", params=params)
-                    response.raise_for_status()
                     
+                    # 500 에러 처리
+                    if response.status_code == 500:
+                        print(f"⚠️ 공공데이터 API 500 에러: {response.url}")
+                        print(f"   응답 내용: {response.text}")
+                        break  # 해당 페이지 건너뛰기
+                    
+                    response.raise_for_status()
                     page_animals = self._parse_xml_response(response.text)
                     
                     # 더 이상 데이터가 없으면 중단
@@ -68,13 +78,17 @@ class PublicDataService:
             for page in range(1, 6):  # 1~5페이지
                 params = {
                     'serviceKey': self.service_key,
-                    'bgnde': bgnde,
-                    'endde': endde,
                     'upkind': upkind,
                     'pageNo': page,
                     'numOfRows': num_of_rows,
                     '_type': 'xml'
                 }
+                
+                # 날짜가 지정된 경우만 추가
+                if bgnde:
+                    params['bgnde'] = bgnde
+                if endde:
+                    params['endde'] = endde
                 
                 if state:
                     params['state'] = state

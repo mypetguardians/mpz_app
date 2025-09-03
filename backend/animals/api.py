@@ -880,12 +880,12 @@ async def sync_public_data(
         if not service_key:
             raise HttpError(500, "공공데이터 서비스 키가 설정되지 않았습니다")
         
-        # 날짜 자동 설정
+        # 날짜 설정 (전체 데이터 가져오기)
         if not bgnde:
-            yesterday = timezone.now().date() - timedelta(days=1)
-            bgnde = yesterday.strftime('%Y%m%d')
+            # 날짜를 지정하지 않으면 모든 데이터 가져오기
+            bgnde = None
         if not endde:
-            endde = bgnde
+            endde = None
         
         # 동기화 전략에 따른 설정
         is_initial_sync = False
@@ -904,7 +904,8 @@ async def sync_public_data(
             else:
                 state = "protect"  # 2023년 이후는 기본값
         
-        print(f"{start_year}년 이후 데이터이므로 모든 상태 허용: {bgnde}, 상태: {state}")
+        print(f"📅 데이터 가져오기 설정: 날짜={bgnde or '전체'}, 상태={state or '전체'}")
+        print(f"🔍 동기화 전략: {sync_strategy}, 초기 동기화: {is_initial_sync}")
         
         # 공공데이터 서비스 초기화
         public_data_service = PublicDataService(service_key)

@@ -54,9 +54,6 @@ export default function CommunityUploadPage() {
   const [selectedPet, setSelectedPet] = useState<ExtendedPetCardAnimal | null>(
     null
   );
-  const [selectedAdoptionId, setSelectedAdoptionId] = useState<string | null>(
-    null
-  );
 
   const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
@@ -180,9 +177,8 @@ export default function CommunityUploadPage() {
     setSelectedPet(null);
   };
 
-  const handlePetSelect = (pet: PetCardAnimal, adoptionId: string) => {
+  const handlePetSelect = (pet: PetCardAnimal) => {
     setSelectedPet(pet);
-    setSelectedAdoptionId(adoptionId);
     setShowPetSelection(false);
   };
 
@@ -286,8 +282,8 @@ export default function CommunityUploadPage() {
         content,
         tags,
         images: imageUrls,
-        adoption_id: selectedAdoptionId || undefined,
-        is_all_access: publicType === "public", // 전체공개 = true, 센터공개 = false
+        animal_id: selectedPet?.id || undefined,
+        is_all_access: publicType === "public",
       };
 
       console.log("전송할 포스트 데이터:", postData);
@@ -477,12 +473,7 @@ export default function CommunityUploadPage() {
                 {animals.map((pet: PetCardAnimal) => (
                   <div
                     key={pet.id}
-                    onClick={() =>
-                      handlePetSelect(
-                        pet,
-                        (pet as ExtendedPetCardAnimal).adoptionId || ""
-                      )
-                    }
+                    onClick={() => handlePetSelect(pet)}
                     className="cursor-pointer w-[calc(50%-4px)]"
                   >
                     <PetCard
@@ -521,7 +512,7 @@ export default function CommunityUploadPage() {
         open={showBackConfirmSheet}
         onClose={() => setShowBackConfirmSheet(false)}
         variant="primary"
-        title="잠을 닫으면 저장되지 않아요!"
+        title="창을 닫으면 저장되지 않아요!"
         description="작성한 내용은 저장 및 복구가 불가능해요."
         leftButtonText="취소"
         rightButtonText="괜찮아요"

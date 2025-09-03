@@ -1,4 +1,4 @@
-export { useGetAnimals } from "./query/useGetAnimals";
+export { useGetAnimals, useGetAnimalById } from "./query/useGetAnimals";
 export { useGetCenterById } from "./query/useGetCenters";
 export { useGetAdoptions } from "./query/useGetAdoptions";
 export { useGetAdoptionsInfinite } from "./query/useGetAdoptions";

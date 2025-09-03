@@ -95,7 +95,7 @@ export default function CommunityDetailPage() {
     : undefined;
 
   // 현재 사용자가 게시글 작성자인지 확인 (실제 로그인된 유저 기준)
-  const isMyPost = user?.id && post?.userId && user.id === post.userId;
+  const isMyPost = user?.id && post?.user_id && user.id === post.user_id;
 
   // 공유 관련 함수들
   const handleKakaoShare = () => {
@@ -186,13 +186,6 @@ export default function CommunityDetailPage() {
 
   // 로딩 상태 또는 데이터가 없을 때 스켈레톤 표시
   if (isLoading || isPostLoading || !postDetailData || !post) {
-    console.log("스켈레톤 렌더링 중:", {
-      isLoading,
-      isPostLoading,
-      hasPostDetailData: !!postDetailData,
-      hasPost: !!post,
-    });
-
     return (
       <Container className="min-h-screen bg-white">
         <TopBar
@@ -373,9 +366,9 @@ export default function CommunityDetailPage() {
             post={post}
             users={[
               {
-                id: post.userId,
-                nickname: post.userNickname || "사용자",
-                profileImg: post.userImage || "/img/dummyImg.png",
+                id: post.user_id,
+                nickname: post.user_nickname || "사용자",
+                profileImg: post.user_image || "/img/dummyImg.png",
               },
             ]}
             isMyPost={isMyPost || false}

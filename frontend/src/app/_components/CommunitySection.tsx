@@ -4,17 +4,16 @@ import { MiniButton } from "@/components/ui/MiniButton";
 import { CommunityCard } from "@/components/ui/CommunityCard";
 import { MainSection } from "@/components/common/MainSection";
 import { useGetPublicPosts } from "@/hooks/query/useGetPublicPosts";
-import type { Post } from "@/types/posts";
+import type { ApiPostResponse, Post } from "@/types/posts";
 import type { User } from "@/types/auth";
 
 interface CommunitySectionProps {
-  users?: User[]; // users는 선택적으로 변경
+  users?: User[];
 }
 
 export function CommunitySection({ users = [] }: CommunitySectionProps) {
   const router = useRouter();
 
-  // useGetPosts 훅을 사용하여 최신 게시물 3개를 가져옴
   const {
     data: postsData,
     isLoading,
@@ -78,13 +77,17 @@ export function CommunitySection({ users = [] }: CommunitySectionProps) {
   return (
     <MainSection title="누군가의 가족이 된 순간들">
       <div className="flex flex-col gap-4">
-        {postsData.data.map((item: Post) => (
+        {postsData.data.map((item: ApiPostResponse) => (
           <div
             key={item.id}
             className="cursor-pointer"
             onClick={() => router.push(`/community/${item.id}`)}
           >
-            <CommunityCard item={item} users={users} variant="primary" />
+            <CommunityCard
+              item={item as unknown as Post}
+              users={users}
+              variant="primary"
+            />
           </div>
         ))}
       </div>

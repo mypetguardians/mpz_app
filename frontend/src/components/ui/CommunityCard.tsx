@@ -70,12 +70,12 @@ export function CommunityCard({
     images,
     title,
     content,
-    postLikes,
-    commentCount,
-    createdAt,
-    userId,
-    userNickname,
-    userImage,
+    like_count,
+    comment_count,
+    created_at,
+    user_id,
+    user_nickname,
+    user_image,
   } = item;
 
   // images 배열에서 유효한 URL 추출 (API 키 케이스 다양성 대응: imageUrl, image_url, file_url, url)
@@ -107,18 +107,18 @@ export function CommunityCard({
   }, [images]);
 
   // like, comment, date를 Post 타입에 맞게 매핑
-  const like = postLikes?.length || 0;
-  const comment = commentCount || 0;
-  const date = createdAt;
+  const like = like_count || 0;
+  const comment = comment_count || 0;
+  const date = created_at;
 
-  const foundUser = users.find((u) => u.id === userId);
-  const author = userNickname || foundUser?.nickname || "알 수 없음";
+  const foundUser = users.find((u) => u.id === user_id);
+  const author = user_nickname || foundUser?.nickname || "알 수 없음";
 
   // 현재 로그인된 사용자의 게시물인 경우 Auth context에서 이미지 가져오기
-  const isCurrentUserPost = user?.id === userId;
+  const isCurrentUserPost = user?.id === user_id;
   const profileImage =
-    userImage && userImage.trim() && userImage !== "null"
-      ? userImage
+    user_image && user_image.trim() && user_image !== "null"
+      ? user_image
       : isCurrentUserPost &&
         user?.image &&
         user.image.trim() &&
@@ -221,7 +221,7 @@ export function CommunityCard({
             author={author}
             profileImage={profileImage}
             size="md"
-            onClick={onUserClick ? () => onUserClick(userId) : undefined}
+            onClick={onUserClick ? () => onUserClick(user_id) : undefined}
           />
         </div>
         {renderGallery(100)}

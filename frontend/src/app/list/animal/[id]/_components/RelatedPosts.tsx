@@ -6,6 +6,7 @@ import { MiniButton } from "@/components/ui/MiniButton";
 import { CommunityCard } from "@/components/ui/CommunityCard";
 import { useGetPublicPosts } from "@/hooks/query/useGetPublicPosts";
 import type { Animal } from "@/types/animal";
+import type { ApiPostResponse, Post } from "@/types/posts";
 
 interface RelatedPostsProps {
   currentPet: Animal;
@@ -26,11 +27,11 @@ export default function RelatedPosts({ currentPet }: RelatedPostsProps) {
   });
 
   // 현재 동물과 관련된 게시물
-  const relatedPosts = postsData?.posts || [];
+  const relatedPosts = postsData?.data || [];
 
   // 실제로 현재 동물과 연관된 게시물만 필터링
   const filteredPosts = relatedPosts.filter(
-    (post) => post.animalId === currentPet.id
+    (post: ApiPostResponse) => post.animal_id === currentPet.id
   );
 
   // 표시할 게시물 결정
@@ -62,9 +63,13 @@ export default function RelatedPosts({ currentPet }: RelatedPostsProps) {
         <h2 className="text-bk mb-4">이 아이에 대해 더 알고싶다면</h2>
         {displayPosts.length > 0 ? (
           <div className="flex flex-col gap-2.5">
-            {displayPosts.slice(0, 3).map((post) => (
+            {displayPosts.slice(0, 3).map((post: ApiPostResponse) => (
               <div key={post.id} className="flex-shrink-1 w-full">
-                <CommunityCard item={post} users={[]} variant="primary" />
+                <CommunityCard
+                  item={post as unknown as Post}
+                  users={[]}
+                  variant="primary"
+                />
               </div>
             ))}
           </div>

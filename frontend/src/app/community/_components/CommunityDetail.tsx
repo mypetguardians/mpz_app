@@ -40,9 +40,10 @@ export function CommunityDetail({
   onLoginRequired,
   isAuthorSubscriber,
 }: CommunityDetailProps) {
-  const { images, title, content, createdAt, userId, tags, likeCount } = post;
+  const { images, title, content, created_at, user_id, tags, like_count } =
+    post;
   const { isAuthenticated } = useAuth();
-  const [currentLikeCount, setCurrentLikeCount] = useState(likeCount || 0);
+  const [currentLikeCount, setCurrentLikeCount] = useState(like_count || 0);
   const [isLiked, setIsLiked] = useState(false);
 
   const toggleLikeMutation = useToggleLike();
@@ -50,7 +51,7 @@ export function CommunityDetail({
     post.id
   );
 
-  const user = users.find((u) => u.id === userId);
+  const user = users.find((u) => u.id === user_id);
   const author = user?.nickname || "사용자";
   const profileImage = user?.profileImg;
 
@@ -64,10 +65,10 @@ export function CommunityDetail({
 
   // 게시글의 기본 좋아요 개수로 초기화
   useEffect(() => {
-    if (likeCount !== undefined) {
-      setCurrentLikeCount(likeCount);
+    if (like_count !== undefined) {
+      setCurrentLikeCount(like_count);
     }
-  }, [likeCount]);
+  }, [like_count]);
 
   const handleLikeToggle = async () => {
     if (!isAuthenticated) {
@@ -167,7 +168,7 @@ export function CommunityDetail({
               ? "cursor-pointer hover:opacity-70 transition-opacity"
               : ""
           }`}
-          onClick={onUserClick ? () => onUserClick(userId) : undefined}
+          onClick={onUserClick ? () => onUserClick(user_id) : undefined}
         >
           <div className="relative w-10 h-10 rounded-full overflow-hidden">
             <Image
@@ -221,9 +222,9 @@ export function CommunityDetail({
         </p>
 
         {/* 날짜 */}
-        {createdAt && (
+        {created_at && (
           <div className="text-gray-500 text-sm">
-            {getRelativeTime(createdAt)}
+            {getRelativeTime(created_at)}
           </div>
         )}
       </div>

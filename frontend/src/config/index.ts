@@ -10,6 +10,9 @@ export interface AppConfig {
     baseUrl: string;
     timeout: number;
   };
+  images: {
+    baseUrl: string;
+  };
   jwt: {
     secret: string;
     expiresIn: string;
@@ -40,12 +43,15 @@ export interface AppConfig {
 
 // 환경별 기본 설정
 const baseConfig: Partial<AppConfig> = {
+  images: {
+    baseUrl: "https://pub-cb782373d9db4c77afff3d6f1e4d28af.r2.dev/uploads/",
+  },
   jwt: {
     secret: process.env.JWT_SECRET || "mpz-default-secret-change-in-production",
     expiresIn: "24h",
   },
   kakao: {
-    clientId: process.env.KAKAO_CLIENT_ID || "0ac4fb684d8e1e469976ec2b35f73857",
+    clientId: process.env.KAKAO_CLIENT_ID || "",
     clientSecret: process.env.KAKAO_CLIENT_SECRET || "",
     redirectUri: process.env.KAKAO_REDIRECT_URI || "",
   },

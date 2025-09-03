@@ -1,8 +1,33 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { config } from "@/config";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+/**
+ * 이미지 URL을 완전한 URL로 변환합니다
+ * @param imageUrl 이미지 URL (상대 경로 또는 절대 경로)
+ * @returns 완전한 이미지 URL
+ */
+export function getFullImageUrl(imageUrl: string | null | undefined): string {
+  if (!imageUrl || imageUrl.trim() === "") {
+    return "/img/dummyImg.png"; // 기본 이미지
+  }
+
+  // 이미 완전한 URL인 경우 (http:// 또는 https://)
+  if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+    return imageUrl;
+  }
+
+  // 로컬 이미지인 경우 (/ 로 시작)
+  if (imageUrl.startsWith("/")) {
+    return imageUrl;
+  }
+
+  // 상대 경로인 경우 베이스 URL 추가
+  return `${config.images.baseUrl}${imageUrl}`;
 }
 
 /**

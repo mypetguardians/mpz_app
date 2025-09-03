@@ -7,11 +7,9 @@ interface UpdatePostData {
   title: string;
   content: string;
   images?: string[];
-  contentTags?: string;
   tags?: string[];
-  animalId?: string | null;
-  adoptionId?: string | null;
-  visibility?: "public" | "center";
+  animal_id?: string | null;
+  is_all_access?: boolean;
 }
 
 interface UpdatePostResponse {

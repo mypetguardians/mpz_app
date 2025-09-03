@@ -136,12 +136,11 @@ export default function CommunityPage() {
   // 일반 사용자인 경우 전체공개 게시글만 필터링
   if (!isCenterUser && publicPostsData?.data) {
     const filteredAllAccess = publicPostsData.data.filter(
-      (post) => post.isAllAccess
+      (post) => post.is_all_access
     );
     postsData = {
       ...publicPostsData,
       data: filteredAllAccess,
-      posts: filteredAllAccess,
     };
   }
 
@@ -152,7 +151,7 @@ export default function CommunityPage() {
   const deletePostMutation = useDeletePost();
 
   const posts: Post[] = useMemo(() => {
-    const list = (postsData?.posts ?? postsData?.data) as Post[] | undefined;
+    const list = postsData?.data as Post[] | undefined;
     return list ?? [];
   }, [postsData]);
 
@@ -247,7 +246,7 @@ export default function CommunityPage() {
           <div className="space-y-4">
             {[...Array(5)].map((_, index) => (
               <div key={index}>
-                {(index === 0 || (index + 1) % 3 === 0) && <BannerSection />}
+                {(index === 0 || (index + 1) % 4 === 0) && <BannerSection />}
                 <div className="pt-4">
                   <CommunityCardSkeleton />
                 </div>
@@ -346,10 +345,10 @@ export default function CommunityPage() {
                       item={post}
                       users={[
                         {
-                          id: post.userId,
-                          nickname: post.userNickname,
-                          image: post.userImage,
-                          createdAt: post.createdAt,
+                          id: post.user_id,
+                          nickname: post.user_nickname,
+                          image: post.user_image,
+                          createdAt: post.created_at,
                         },
                       ]}
                       variant="variant3"

@@ -21,13 +21,10 @@ import {
   protectionStatusOptions,
   expertOpinionOptions,
 } from "@/app/mock";
-import { useGetMyCenter } from "@/hooks/query/useGetMyCenter";
 
 function AnimalFilterContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { data: center } = useGetMyCenter();
-  const isSubscriber = center?.isSubscriber;
 
   const [selectedBreed, setSelectedBreed] = useState("");
   const [breedSearchTerm, setBreedSearchTerm] = useState("");

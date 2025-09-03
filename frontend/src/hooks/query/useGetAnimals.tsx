@@ -55,7 +55,7 @@ export const useGetBreeds = () => {
   });
 };
 
-export const useGetAnimalById = (animalId: string) => {
+export const useGetAnimalById = (animalId: string | null) => {
   return useQuery({
     queryKey: ["animals", animalId],
     queryFn: async (): Promise<RawAnimalResponse> => {

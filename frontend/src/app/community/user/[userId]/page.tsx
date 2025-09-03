@@ -9,6 +9,7 @@ import { TopBar } from "@/components/common/TopBar";
 import { CommunityCard } from "@/components/ui/CommunityCard";
 import { IconButton } from "@/components/ui/IconButton";
 import { useGetUserProfile, useGetPublicPosts } from "@/hooks";
+import type { Post } from "@/types/posts";
 
 export default function UserProfilePage() {
   const params = useParams();
@@ -98,7 +99,7 @@ export default function UserProfilePage() {
     );
   }
 
-  const userPosts = postsData?.posts || [];
+  const userPosts = postsData?.data || [];
 
   return (
     <Container className="min-h-screen bg-white">
@@ -157,7 +158,11 @@ export default function UserProfilePage() {
               {userPosts.map((item) => (
                 <div key={item.id} className="py-4">
                   <a href={`/community/${item.id}`} className="block">
-                    <CommunityCard item={item} users={[]} variant="variant3" />
+                    <CommunityCard
+                      item={item as unknown as Post}
+                      users={[]}
+                      variant="variant3"
+                    />
                   </a>
                 </div>
               ))}

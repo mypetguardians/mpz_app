@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, use } from "react";
+import { useState, useMemo, useEffect, useCallback, use } from "react";
 import { useRouter } from "next/navigation";
 
 import { Container } from "@/components/common/Container";
@@ -12,6 +12,7 @@ import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
 import { PetCard } from "@/components/ui/PetCard";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { ImageCard } from "@/components/ui/ImageCard";
+import { getFullImageUrl } from "@/lib/utils";
 import {
   ArrowLeft,
   X,
@@ -27,8 +28,9 @@ import {
   useGetAnimalFavorites,
   useUploadImages,
   useGetPublicPostDetail,
+  useGetAnimalById,
 } from "@/hooks";
-import type { PetCardAnimal } from "@/types/animal";
+import type { PetCardAnimal, RawAnimalResponse } from "@/types/animal";
 import type { UserAdoptionOut } from "@/types/adoption";
 
 // PetCardAnimal을 확장한 타입 (adoptionId 포함)
@@ -53,7 +55,9 @@ export default function CommunityEditPage({
     null
   );
 
-  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
+  // 기존 이미지와 새 이미지를 분리하여 관리
+  const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
+  const [newImageUrls, setNewImageUrls] = useState<string[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [deletedImageUrls, setDeletedImageUrls] = useState<string[]>([]);
   const [tags, setTags] = useState<string[]>([]);
@@ -75,48 +79,85 @@ export default function CommunityEditPage({
   const { user } = useAuth();
   const isAdmin = user?.userType !== "일반사용자";
 
+  // 포스트에 animal_id가 있을 때만 동물 정보 불러오기
+  const { data: animalData } = useGetAnimalById(
+    postData?.post?.animal_id || null
+  );
+
+  // 동물 데이터를 PetCardAnimal 형태로 변환하는 헬퍼 함수
+  const convertAnimalToPetCard = useCallback(
+    (rawAnimal: RawAnimalResponse | null): ExtendedPetCardAnimal | null => {
+      if (!rawAnimal) return null;
+
+      return {
+        id: rawAnimal.id,
+        name: rawAnimal.name,
+        breed: rawAnimal.breed || null,
+        isFemale: rawAnimal.is_female,
+        status: rawAnimal.status as PetCardAnimal["status"],
+        centerId: rawAnimal.center_id,
+        animalImages: rawAnimal.animal_images?.map((img) => ({
+          id: img.id,
+          imageUrl: img.image_url,
+          orderIndex: img.order_index,
+        })) || [{ id: "1", imageUrl: "/img/dummyImg.png", orderIndex: 1 }],
+        foundLocation: rawAnimal.found_location || "위치 정보 확인 불가",
+        adoptionId: undefined,
+        waitingDays: rawAnimal.waiting_days,
+        admissionDate: rawAnimal.admission_date,
+      };
+    },
+    []
+  );
+
   // 기존 포스트 데이터를 초기값으로 설정
   useEffect(() => {
     if (postData?.post) {
-      console.log("포스트 데이터 로드:", postData.post);
-
       setTitle(postData.post.title || "");
       setContent(postData.post.content || "");
 
-      // 기존 태그를 tagName 필드에서 추출 (API 응답 구조에 맞게 수정)
+      // 기존 태그를 tag_name 필드에서 추출 (API 응답 구조에 맞게 수정)
       const existingTags =
-        postData.post.tags?.map((tag) => tag.tagName).filter(Boolean) || [];
+        postData.post.tags?.map((tag) => tag.tag_name).filter(Boolean) || [];
       setTags(existingTags);
 
-      // 공개 범위 설정 - isAllAccess 필드를 확인
-      const newPublicType = postData.post.isAllAccess ? "public" : "center";
+      // 공개 범위 설정 - is_all_access 필드를 확인
+      const newPublicType = postData.post.is_all_access ? "public" : "center";
       setPublicType(newPublicType);
-      console.log(
-        "공개 범위 설정:",
-        newPublicType,
-        "isAllAccess:",
-        postData.post.isAllAccess
-      );
 
       // 기존 이미지가 있다면 설정
       if (postData.post.images && postData.post.images.length > 0) {
-        const imageUrls = postData.post.images.map((img) => img.imageUrl);
-        setUploadedImageUrls(imageUrls);
-        console.log("기존 이미지 설정:", imageUrls);
+        // 이미지 객체의 구조를 확인하여 올바른 속성명 사용
+        const imageUrls = postData.post.images
+          .map((img) => img.image_url)
+          .filter((url): url is string => Boolean(url));
+
+        setExistingImageUrls(imageUrls);
       } else {
-        setUploadedImageUrls([]);
+        setExistingImageUrls([]);
       }
 
-      // 기존 adoptionId가 있다면 설정
-      if (postData.post.adoptionId) {
-        setSelectedAdoptionId(postData.post.adoptionId);
-        console.log("adoptionId 설정:", postData.post.adoptionId);
-      } else {
-        setSelectedAdoptionId(null);
-        setSelectedPet(null);
-      }
+      // 새 이미지 관련 상태 초기화
+      setNewImageUrls([]);
+      setUploadedFiles([]);
+      setDeletedImageUrls([]);
+
+      // adoptionId 설정 (필드 제거됨)
+      setSelectedAdoptionId(null);
     }
   }, [postData]);
+
+  // animalData가 로드되었을 때 동물 정보를 selectedPet으로 설정
+  useEffect(() => {
+    if (postData?.post?.animal_id && animalData) {
+      const convertedAnimal = convertAnimalToPetCard(animalData);
+      if (convertedAnimal) {
+        setSelectedPet(convertedAnimal);
+      }
+    } else if (!postData?.post?.animal_id) {
+      setSelectedPet(null);
+    }
+  }, [animalData, postData?.post?.animal_id, convertAnimalToPetCard]);
 
   // 사용자 타입에 따라 초기 공개 범위를 지정 (새 포스트일 때만)
   useEffect(() => {
@@ -163,37 +204,19 @@ export default function CommunityEditPage({
     return transformedAnimals as PetCardAnimal[];
   }, [adoptionsData]);
 
-  // 기존 adoption_id가 있을 때 해당 동물을 selectedPet으로 설정
+  // adoptionId가 있을 때 해당 동물을 찾아서 설정 (입양 진행 중인 경우)
   useEffect(() => {
     if (selectedAdoptionId && adoptionAnimals.length > 0) {
-      console.log(
-        "동물 매칭 시도:",
-        selectedAdoptionId,
-        adoptionAnimals.length
-      );
-
       const matchingPet = adoptionAnimals.find(
         (pet) =>
           (pet as ExtendedPetCardAnimal).adoptionId === selectedAdoptionId
       );
 
       if (matchingPet) {
-        console.log("매칭된 동물 찾음:", matchingPet);
         setSelectedPet(matchingPet as ExtendedPetCardAnimal);
-      } else {
-        console.log("매칭되는 동물을 찾을 수 없음");
-        // adoptionId가 있지만 현재 입양 목록에 없는 경우 (완료된 입양 등)
-        // 이 경우 animalId로 동물 정보를 별도로 가져와야 할 수 있음
-        if (postData?.post?.animalId) {
-          console.log("animalId 존재:", postData.post.animalId);
-          // TODO: animalId로 동물 정보를 가져오는 로직 추가 가능
-        }
       }
-    } else if (!selectedAdoptionId) {
-      // adoptionId가 없으면 선택된 동물도 초기화
-      setSelectedPet(null);
     }
-  }, [selectedAdoptionId, adoptionAnimals, postData?.post?.animalId]);
+  }, [selectedAdoptionId, adoptionAnimals]);
 
   // 찜한 동물 목록
   const { data: favoriteAnimalsData } = useGetAnimalFavorites(1, 100);
@@ -236,35 +259,24 @@ export default function CommunityEditPage({
     const files = event.target.files;
     if (files) {
       const newFiles = Array.from(files);
-      const newImageUrls = newFiles.map((file) => URL.createObjectURL(file));
+      const newUrls = newFiles.map((file) => URL.createObjectURL(file));
       setUploadedFiles((prev) => [...prev, ...newFiles]);
-      setUploadedImageUrls((prev) => [...prev, ...newImageUrls]);
+      setNewImageUrls((prev) => [...prev, ...newUrls]);
     }
   };
 
-  const removeImage = (index: number) => {
-    const imageToRemove = uploadedImageUrls[index];
+  const removeExistingImage = (index: number) => {
+    const imageToRemove = existingImageUrls[index];
+    // 삭제 목록에 추가
+    setDeletedImageUrls((prev) => [...prev, imageToRemove]);
+    // UI에서 제거
+    setExistingImageUrls((prev) => prev.filter((_, i) => i !== index));
+  };
 
-    // 기존 이미지인지 새로 업로드된 이미지인지 확인
-    const isExistingImage = postData?.post?.images?.some(
-      (img) => img.imageUrl === imageToRemove
-    );
-
-    if (isExistingImage) {
-      // 기존 이미지라면 삭제 목록에 추가
-      setDeletedImageUrls((prev) => [...prev, imageToRemove]);
-    } else {
-      // 새로 업로드된 파일이라면 파일 목록에서도 제거
-      // 기존 이미지 개수를 고려하여 파일 인덱스 계산
-      const existingImageCount = postData?.post?.images?.length || 0;
-      const fileIndex = index - existingImageCount;
-      if (fileIndex >= 0) {
-        setUploadedFiles((prev) => prev.filter((_, i) => i !== fileIndex));
-      }
-    }
-
-    // UI에서 이미지 제거
-    setUploadedImageUrls((prev) => prev.filter((_, i) => i !== index));
+  const removeNewImage = (index: number) => {
+    // 새 이미지와 파일 목록에서 제거
+    setNewImageUrls((prev) => prev.filter((_, i) => i !== index));
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const removePet = () => {
@@ -332,37 +344,45 @@ export default function CommunityEditPage({
       setShowSaveModal(false);
 
       // 1. 새로 업로드할 파일이 있으면 먼저 업로드
-      let newImageUrls: string[] = [];
+      let uploadedImageUrls: string[] = [];
       if (uploadedFiles.length > 0) {
         const uploadResult = await uploadImages({
           postId: postId,
           images: uploadedFiles,
         });
-        newImageUrls = uploadResult.images;
+        uploadedImageUrls = uploadResult.images;
       }
 
       // 2. 최종 이미지 목록 계산
-      const existingImageUrls =
-        postData?.post?.images?.map((img) => img.imageUrl) || [];
+      // 기존 이미지 중 삭제되지 않은 것들만 유지
       const remainingExistingUrls = existingImageUrls.filter(
-        (url) => !deletedImageUrls.includes(url)
+        (url) => url && url.trim() !== "" && !deletedImageUrls.includes(url)
       );
-      const finalImageUrls = [...remainingExistingUrls, ...newImageUrls];
+
+      // 업로드된 이미지 중 유효한 것들만 필터링
+      const validUploadedUrls = uploadedImageUrls.filter(
+        (url) => url && url.trim() !== ""
+      );
+
+      // 최종 이미지 배열: 남은 기존 이미지 + 새로 업로드된 이미지
+      const finalImageUrls = [...remainingExistingUrls, ...validUploadedUrls];
+
+      // 빈 배열인 경우 undefined로 전송 (null 배열 방지)
+      const imagesToSend = finalImageUrls.length > 0 ? finalImageUrls : [];
 
       // 3. 포스트 수정
+      const updateData = {
+        title,
+        content,
+        tags,
+        animal_id: selectedPet?.id || null,
+        is_all_access: publicType === "public",
+        images: imagesToSend.length > 0 ? imagesToSend : [],
+      };
+
       await updatePost({
         postId: postId,
-        data: {
-          title,
-          content,
-          tags,
-          images: finalImageUrls,
-          animalId: selectedPet?.id || null,
-          // adoptionId도 함께 전송 (API에서 지원하는 경우)
-          adoptionId: selectedAdoptionId || null,
-          // 공개 범위 설정
-          visibility: publicType,
-        },
+        data: updateData,
       });
 
       router.back();
@@ -421,7 +441,7 @@ export default function CommunityEditPage({
               <IconButton
                 icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
                 size="iconM"
-                onClick={handleBack}
+                onClick={() => router.push("/community")}
               />
               <h3>글 수정하기</h3>
             </div>
@@ -552,13 +572,25 @@ export default function CommunityEditPage({
             </label>
 
             {/* 기존 이미지들 */}
-            {uploadedImageUrls.map((imageUrl, index) => (
+            {existingImageUrls.map((imageUrl, index) => (
               <ImageCard
-                key={index}
-                src={imageUrl}
-                alt={`이미지 ${index + 1}`}
+                key={`existing-${index}`}
+                src={getFullImageUrl(imageUrl)}
+                alt={`기존 이미지 ${index + 1}`}
                 variant="primary"
-                onRemove={() => removeImage(index)}
+                onRemove={() => removeExistingImage(index)}
+                className="w-20 h-20"
+              />
+            ))}
+
+            {/* 새로 업로드된 이미지들 */}
+            {newImageUrls.map((imageUrl, index) => (
+              <ImageCard
+                key={`new-${index}`}
+                src={imageUrl}
+                alt={`새 이미지 ${index + 1}`}
+                variant="primary"
+                onRemove={() => removeNewImage(index)}
                 className="w-20 h-20"
               />
             ))}
@@ -643,7 +675,7 @@ export default function CommunityEditPage({
         open={showBackConfirmSheet}
         onClose={() => setShowBackConfirmSheet(false)}
         variant="primary"
-        title="잠을 닫으면 저장되지 않아요!"
+        title="창을 닫으면 저장되지 않아요!"
         description="작성한 내용은 저장 및 복구가 불가능해요."
         leftButtonText="취소"
         rightButtonText="괜찮아요"

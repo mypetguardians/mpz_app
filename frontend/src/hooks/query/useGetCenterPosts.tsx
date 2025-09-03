@@ -4,6 +4,7 @@ import {
   ApiPostsResponse,
   GetPostsParams,
   PostDetailResponse,
+  Post,
 } from "@/types/posts";
 import { transformRawPostToPost, ApiPostDetailResponse } from "./posts/utils";
 
@@ -40,16 +41,8 @@ const getCenterPostDetail = async (
     `/posts/center/${postId}`
   );
 
-  // API 응답을 Post 타입으로 변환
-  const transformedPost = transformRawPostToPost(response.data.post);
-
   return {
-    post: {
-      ...transformedPost,
-      tags: response.data.post.tags,
-      images: response.data.post.images,
-      postLikes: response.data.post.postLikes,
-    },
+    post: response.data.post as unknown as Post,
   };
 };
 

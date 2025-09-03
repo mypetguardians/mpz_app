@@ -861,7 +861,7 @@ async def sync_public_data(
     try:
         # 헤더 기반 인증 확인 (QStash용)
         x_api_key = request.headers.get('X-API-Key')
-        expected_api_key = getattr(settings, 'PUBLIC_DATA_API_KEY', None)
+        expected_api_key = getattr(settings, 'PUBLIC_DATA_SERVICE_KEY', None)
         
         # 디버깅용 로그
         print(f"🔍 디버깅 정보:")

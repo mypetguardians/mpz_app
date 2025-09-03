@@ -85,6 +85,57 @@ async def get_consents(request: HttpRequest):
 
 
 @router.get(
+    "/center/{center_id}",
+    summary="[R] 특정 센터의 동의서 목록 조회",
+    description="center_id를 받아서 해당 센터의 동의서 목록을 조회합니다. 인증이 필요하지 않은 공개 API입니다.",
+    response={
+        200: List[ConsentOut],
+        400: ErrorOut,
+        404: ErrorOut,
+        500: ErrorOut,
+    },
+)
+async def get_consents_by_center(request: HttpRequest, center_id: str):
+    """특정 센터의 동의서 목록을 조회합니다."""
+    try:
+        @sync_to_async
+        def get_center_consents_list():
+            # center_id로 센터 조회
+            try:
+                center = Center.objects.get(id=center_id)
+            except Center.DoesNotExist:
+                raise HttpError(404, "센터를 찾을 수 없습니다")
+            
+            # 해당 센터의 모든 동의서 조회 (활성화된 것만)
+            consents = AdoptionConsent.objects.filter(
+                center=center, 
+                is_active=True
+            ).order_by('-created_at')
+            
+            # 응답 데이터 변환
+            return [
+                ConsentOut(
+                    id=str(consent.id),
+                    center_id=str(consent.center.id),
+                    title=consent.title,
+                    description=consent.description,
+                    content=consent.content,
+                    is_active=consent.is_active,
+                    created_at=consent.created_at.isoformat(),
+                    updated_at=consent.updated_at.isoformat(),
+                )
+                for consent in consents
+            ]
+        
+        return await get_center_consents_list()
+        
+    except HttpError:
+        raise
+    except Exception as e:
+        raise HttpError(500, f"특정 센터의 동의서 목록 조회 중 오류가 발생했습니다: {str(e)}")
+
+
+@router.get(
     "/{consent_id}",
     summary="[R] 동의서 상세 조회",
     description="센터 관리자가 특정 동의서의 상세 정보를 조회합니다.",

@@ -315,3 +315,31 @@ class TestContractTemplateAPI(TestCase):
         
         # 401 Unauthorized
         self.assertEqual(response.status_code, 401)
+
+    async def test_get_contract_templates_by_center_success(self):
+        """특정 센터의 계약서 템플릿 목록 조회 성공 테스트 (공개 API)"""
+        # 인증 없이 직접 조회
+        response = await self.client.get(f"/center/{self.center.id}")
+        
+        # 200 OK
+        self.assertEqual(response.status_code, 200)
+        
+        # 응답 데이터 확인
+        templates = response.json()
+        self.assertIsInstance(templates, list)
+        self.assertEqual(len(templates), 1)
+        
+        template = templates[0]
+        self.assertEqual(template['title'], "테스트 계약서")
+        self.assertEqual(template['center_id'], str(self.center.id))
+        self.assertTrue(template['is_active'])
+
+    async def test_get_contract_templates_by_center_not_found(self):
+        """존재하지 않는 센터의 계약서 템플릿 목록 조회 테스트 (공개 API)"""
+        fake_center_id = "00000000-0000-0000-0000-000000000000"
+        response = await self.client.get(f"/center/{fake_center_id}")
+        
+        # 404 Not Found
+        self.assertEqual(response.status_code, 404)
+        error = response.json()
+        self.assertIn("센터를 찾을 수 없습니다", error['detail'])

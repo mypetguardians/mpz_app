@@ -100,6 +100,49 @@ async def get_question_forms(request: HttpRequest):
         raise HttpError(500, f"질문 폼 목록 조회 중 오류가 발생했습니다: {str(e)}")
 
 
+@router.get(
+    "/center/{center_id}",
+    summary="[R] 특정 센터의 질문 폼 목록 조회",
+    description="center_id를 받아서 해당 센터의 질문 폼 목록을 조회합니다. 인증이 필요하지 않은 공개 API입니다.",
+    response={
+        200: QuestionFormListOut,
+        400: ErrorOut,
+        404: ErrorOut,
+        500: ErrorOut,
+    },
+)
+async def get_question_forms_by_center(request: HttpRequest, center_id: str):
+    """특정 센터의 질문 폼 목록을 조회합니다."""
+    try:
+        @sync_to_async
+        def get_center_questions():
+            # center_id로 센터 조회
+            try:
+                center = Center.objects.get(id=center_id)
+            except Center.DoesNotExist:
+                raise HttpError(404, "센터를 찾을 수 없습니다")
+            
+            # 해당 센터의 모든 질문 폼 조회 (순서대로)
+            questions = QuestionForm.objects.filter(
+                center=center
+            ).order_by('sequence')
+            
+            # 응답 데이터 변환
+            questions_response = [
+                _build_question_response(question)
+                for question in questions
+            ]
+            
+            return {"questions": questions_response}
+        
+        return await get_center_questions()
+        
+    except HttpError:
+        raise
+    except Exception as e:
+        raise HttpError(500, f"특정 센터의 질문 폼 목록 조회 중 오류가 발생했습니다: {str(e)}")
+
+
 @router.post(
     "/",
     summary="[C] 센터 질문 폼 생성",

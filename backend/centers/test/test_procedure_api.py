@@ -198,3 +198,41 @@ class TestProcedureSettingsAPI(TestCase):
         except Exception as e:
             # 인증 실패는 예상된 결과
             self.assertTrue(True)
+
+    async def test_get_procedure_settings_by_center_success(self):
+        """특정 센터의 프로시저 설정 조회 성공 테스트 (공개 API)"""
+        # 인증 없이 직접 조회
+        response = await self.client.get(f"/center/{self.center.id}")
+        
+        # 200 OK
+        self.assertEqual(response.status_code, 200)
+        
+        # 응답 데이터 확인
+        settings = response.json()
+        self.assertIsInstance(settings, dict)
+        self.assertEqual(settings["has_monitoring"], True)
+        self.assertEqual(settings["monitoring_period_months"], 6)
+        self.assertEqual(settings["monitoring_interval_days"], 30)
+        self.assertEqual(settings["monitoring_description"], "테스트 모니터링 설명")
+        self.assertEqual(settings["adoption_guidelines"], "테스트 입양 가이드라인")
+        self.assertEqual(settings["adoption_procedure"], "테스트 입양 절차")
+        
+        # 계약서 템플릿 정보 확인
+        self.assertIn("contract_templates", settings)
+        templates = settings["contract_templates"]
+        self.assertIsInstance(templates, list)
+        self.assertEqual(len(templates), 1)
+        
+        template = templates[0]
+        self.assertEqual(template["title"], "테스트 계약서")
+        self.assertTrue(template["is_active"])
+
+    async def test_get_procedure_settings_by_center_not_found(self):
+        """존재하지 않는 센터의 프로시저 설정 조회 테스트 (공개 API)"""
+        fake_center_id = "00000000-0000-0000-0000-000000000000"
+        response = await self.client.get(f"/center/{fake_center_id}")
+        
+        # 404 Not Found
+        self.assertEqual(response.status_code, 404)
+        error = response.json()
+        self.assertIn("센터를 찾을 수 없습니다", error['detail'])

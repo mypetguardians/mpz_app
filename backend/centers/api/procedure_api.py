@@ -97,6 +97,45 @@ async def get_procedure_settings(request: HttpRequest):
         raise HttpError(500, f"프로시저 설정 조회 중 오류가 발생했습니다: {str(e)}")
 
 
+@router.get(
+    "/center/{center_id}",
+    summary="[R] 특정 센터의 프로시저 설정 조회",
+    description="center_id를 받아서 해당 센터의 프로시저 설정을 조회합니다. 인증이 필요하지 않은 공개 API입니다.",
+    response={
+        200: ProcedureSettingsOut,
+        400: ErrorOut,
+        404: ErrorOut,
+        500: ErrorOut,
+    },
+)
+async def get_procedure_settings_by_center(request: HttpRequest, center_id: str):
+    """특정 센터의 프로시저 설정을 조회합니다."""
+    try:
+        @sync_to_async
+        def get_center_settings():
+            # center_id로 센터 조회
+            try:
+                center = Center.objects.get(id=center_id)
+            except Center.DoesNotExist:
+                raise HttpError(404, "센터를 찾을 수 없습니다")
+            
+            # 계약서 템플릿들 조회 (활성화된 것만)
+            contract_templates = AdoptionContractTemplate.objects.filter(
+                center=center,
+                is_active=True
+            ).order_by('-created_at')
+            
+            # 응답 데이터 변환
+            return _build_procedure_settings_response(center, contract_templates)
+        
+        return await get_center_settings()
+        
+    except HttpError:
+        raise
+    except Exception as e:
+        raise HttpError(500, f"특정 센터의 프로시저 설정 조회 중 오류가 발생했습니다: {str(e)}")
+
+
 @router.post(
     "/",
     summary="[C] 센터 프로시저 설정 생성",

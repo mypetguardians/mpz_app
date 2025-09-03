@@ -36,6 +36,7 @@ PUBLIC_DATA_API_KEY="mpz_public_data_2024_secure_key_xyz123"
 ```
 
 **보안 권장사항:**
+
 - 최소 32자 이상의 랜덤 문자열 사용
 - 특수문자, 숫자, 대소문자 조합
 - 정기적으로 키 교체
@@ -43,12 +44,14 @@ PUBLIC_DATA_API_KEY="mpz_public_data_2024_secure_key_xyz123"
 ## 4. 스케줄 등록 실행
 
 ### 방법 1: Python 스크립트 사용
+
 ```bash
 cd backend
 python qstash_public_data_setup.py
 ```
 
 ### 방법 2: 간단한 셸 스크립트 사용
+
 ```bash
 cd backend
 chmod +x qstash_simple_setup.sh
@@ -56,6 +59,7 @@ chmod +x qstash_simple_setup.sh
 ```
 
 ### 방법 3: QStash 대시보드에서 직접 등록
+
 1. [QStash Console](https://console.upstash.com/) 접속
 2. "Schedules" 탭 클릭
 3. "Create Schedule" 버튼 클릭
@@ -67,9 +71,19 @@ URL: https://mpzfullstack-production.up.railway.app/v1/animals/public-data/sync
 Method: GET
 Cron: 0 2 * * *
 Headers:
-  X-API-Key: your_api_key_here
-  Content-Type: application/json
+  upstash-forward-x-api-key: your_api_key_here
+  upstash-forward-content-type: application/json
 ```
+
+**중요**: QStash에서는 `upstash-forward-*` 접두사를 사용하여 헤더를 전달합니다.
+
+### QStash 헤더 규칙
+
+- `X-API-Key` → `upstash-forward-x-api-key`
+- `Content-Type` → `upstash-forward-content-type`
+- `Authorization` → `upstash-forward-authorization`
+
+QStash는 중간 프록시 역할을 하며, `upstash-forward-*` 헤더를 통해 원본 요청의 헤더를 그대로 전달합니다.
 
 ## 5. 등록되는 스케줄
 

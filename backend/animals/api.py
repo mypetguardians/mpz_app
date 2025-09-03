@@ -863,11 +863,17 @@ async def sync_public_data(
         x_api_key = request.headers.get('X-API-Key')
         expected_api_key = getattr(settings, 'PUBLIC_DATA_API_KEY', None)
         
+        # 디버깅용 로그
+        print(f"🔍 디버깅 정보:")
+        print(f"   받은 X-API-Key: {x_api_key}")
+        print(f"   설정된 API Key: {expected_api_key}")
+        print(f"   키 일치 여부: {x_api_key == expected_api_key}")
+        
         if not expected_api_key:
             raise HttpError(500, "공공데이터 API 키가 설정되지 않았습니다")
         
         if not x_api_key or x_api_key != expected_api_key:
-            raise HttpError(401, "유효하지 않은 API 키입니다")
+            raise HttpError(401, f"유효하지 않은 API 키입니다. 받은 키: {x_api_key}, 예상 키: {expected_api_key}")
         
         # 서비스 키 확인
         service_key = getattr(settings, 'PUBLIC_DATA_SERVICE_KEY', None)

@@ -60,7 +60,6 @@ export function Step10({ onNext }: StepProps) {
         limit: 5,
       };
 
-      // 백그라운드에서 API 호출 (결과를 기다리지 않음)
       aiMatchingMutation.mutate(requestData);
     }
   };
@@ -90,7 +89,6 @@ export function Step10({ onNext }: StepProps) {
         <p className="body2 text-brand-light  mb-6">선호하는 성별이 궁금해요</p>
 
         <div className="flex flex-col gap-2">
-          {/* 상단: 암/수 버튼 */}
           <div className="grid grid-cols-2 gap-2">
             {genderOptions.slice(0, 2).map((option) => (
               <SelectButton

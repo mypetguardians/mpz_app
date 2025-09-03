@@ -312,7 +312,8 @@ export default function MatchingCompletePage() {
     },
   });
 
-  // const aiTestQuery = useGetUserAIPersonalityTest(user?.id ?? "");
+  // useGetUserAIPersonalityTest로 AI 테스트 결과 가져오기 (필요시 사용)
+  // const { data: aiTestResult } = useGetUserAIPersonalityTest(user?.id ?? "");
 
   // AI 매칭 결과를 기반으로 매칭 타입 결정
   const matchingType: MatchingResultType =

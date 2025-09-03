@@ -47,7 +47,6 @@ function MatchingLoadingContent() {
       return;
     }
 
-    // 1초마다 단계 변경
     const stepInterval = setInterval(() => {
       setCurrentStep((prev) => {
         if (prev < matchingSteps.length - 1) {
@@ -67,11 +66,11 @@ function MatchingLoadingContent() {
               // AI 매칭 결과가 없어도 결과 페이지로 이동 (기본 데이터 사용)
               router.push("/matching/result?type=perfect");
             }
-          }, 1500);
+          }, 3000);
           return prev;
         }
       });
-    }, 1500);
+    }, 4000);
 
     return () => clearInterval(stepInterval);
   }, [router, resultParam, aiMatchingResult]);

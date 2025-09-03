@@ -13,7 +13,7 @@ export interface StepProps {
   onNext: () => void;
 }
 
-export function Step5({ onNext }: StepProps) {
+export function Step6({ onNext }: StepProps) {
   const { user } = useAuth();
   const { data: storeData } = useAdoptionVerificationStore(user?.id);
   const centerId = storeData.centerId;
@@ -27,6 +27,7 @@ export function Step5({ onNext }: StepProps) {
   const [agree, setAgree] = React.useState(false);
 
   // 활성화된 동의서들 필터링
+
   const activeConsents =
     consentsData?.filter((consent) => consent.is_active) || [];
 
@@ -119,4 +120,4 @@ export function Step5({ onNext }: StepProps) {
   );
 }
 
-export default Step5;
+export default Step6;

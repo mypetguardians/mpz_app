@@ -31,6 +31,8 @@ import {
   useToggleAnimalFavorite,
   useToggleAnimalRecommend,
 } from "@/hooks";
+import { useGetMyProfile } from "@/hooks/query/useGetMyProfile";
+import { useAdoptionVerificationStore } from "@/lib/stores";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { Toast } from "@/components/ui/Toast";
 import { NotificationToast } from "@/components/ui/NotificationToast";
@@ -80,7 +82,7 @@ interface AnimalDetailPageProps {
 export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
   const router = useRouter();
   const { id } = use(params);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const {
     data: animal,
     isLoading,
@@ -98,6 +100,12 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
 
   // 센터의 구독 상태 확인 (공고를 올린 센터가 구독자인지)
   const isCenterSubscriber = center?.isSubscriber === true;
+
+  // 사용자 프로필 정보 가져오기 (전화번호 인증 상태 확인용)
+  const { data: userProfile } = useGetMyProfile();
+
+  // 입양 신청 스토어 초기화
+  const adoptionStore = useAdoptionVerificationStore(user?.id);
 
   // 찜하기 관련
   const { data: favoriteData, isLoading: favoriteLoading } =
@@ -203,6 +211,36 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
       setShowLoginModal(true);
       return;
     }
+
+    // 구독 센터인 경우 전화번호 인증 상태에 따라 다른 경로로 이동
+    if (isCenterSubscriber) {
+      // 스토어에 동물 정보 설정
+      adoptionStore.setAnimalInfo(id, animal?.center_id || "");
+
+      // 사용자 정보를 스토어에 로드
+      if (userProfile) {
+        adoptionStore.loadUserData({
+          phone: userProfile.phoneNumber || undefined,
+          phoneVerification: userProfile.isPhoneVerified || false,
+          name: userProfile.name || undefined,
+          birth: undefined, // birth 정보가 userProfile에 없다면 undefined
+          address: undefined, // address 정보가 userProfile에 없다면 undefined
+        });
+      }
+
+      const isPhoneVerified = userProfile?.isPhoneVerified === true;
+
+      if (isPhoneVerified) {
+        // 전화번호 인증이 완료된 경우 step5로 이동
+        router.push(`/adoption/verification/5`);
+      } else {
+        // 전화번호 인증이 안된 경우 step1부터 시작
+        router.push(`/adoption/verification/1`);
+      }
+      return;
+    }
+
+    // 일반 센터인 경우 기존 바텀시트 표시
     setShowAdoptionBottomSheet(true);
   };
 

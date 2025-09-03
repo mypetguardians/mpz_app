@@ -70,7 +70,7 @@ function MatchingLoadingContent() {
           return prev;
         }
       });
-    }, 4000);
+    }, 1500);
 
     return () => clearInterval(stepInterval);
   }, [router, resultParam, aiMatchingResult]);

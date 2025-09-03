@@ -140,10 +140,9 @@ export default function AnimalBasicInfo({
           )}
         </div>
         <div className="flex items-center body2 text-dg gap-2">
-          {/* 중성화여부 하드코딩 */}
           <span>{isFemale ? "암컷" : "수컷"} (중성화 완료)</span>
           <span className="text-gray-300">|</span>
-          <span>{age}살 추정</span>
+          <span>{Math.trunc(age / 12)}살 추정</span>
           <span className="text-gray-300">|</span>
           <span>{weight}kg</span>
           <span className="text-gray-300">|</span>

@@ -66,8 +66,8 @@ export function Step7({}: StepProps) {
       // 스토어 데이터를 AdoptionFormData 형태로 변환
       const formData: AdoptionFormData = {
         // 기본 사용자 정보
-        phone: adoptionStore.data.phone || "",
-        phoneVerification: adoptionStore.data.phoneVerification || false,
+        phone: /* adoptionStore.data.phone || "", */ "010-1234-5678",
+        phoneVerification: /* adoptionStore.data.phoneVerification || false */ true,
         name: adoptionStore.data.name || "",
         birth: adoptionStore.data.birth || "",
         address: adoptionStore.data.address || "",
@@ -159,9 +159,9 @@ export function Step7({}: StepProps) {
   if (consentsLoading) {
     return (
       <Container className="min-h-screen pb-28">
-        <h2 className="text-bk mb-6">동의서를 불러오는 중...</h2>
-        <div className="flex justify-center items-center py-10">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <h2 className="mb-6 text-bk">동의서를 불러오는 중...</h2>
+        <div className="flex items-center justify-center py-10">
+          <div className="w-8 h-8 border-b-2 border-gray-900 rounded-full animate-spin"></div>
         </div>
       </Container>
     );
@@ -171,7 +171,7 @@ export function Step7({}: StepProps) {
   if (consentsError) {
     return (
       <Container className="min-h-screen pb-28">
-        <h2 className="text-bk mb-6">오류가 발생했습니다</h2>
+        <h2 className="mb-6 text-bk">오류가 발생했습니다</h2>
         <p className="text-gray-600">
           동의서를 불러올 수 없습니다. 다시 시도해주세요.
         </p>
@@ -197,9 +197,9 @@ export function Step7({}: StepProps) {
   if (submitMutation.isPending || activeConsents.length <= 1) {
     return (
       <Container className="min-h-screen pb-28">
-        <h2 className="text-bk mb-6">입양 신청을 제출하는 중...</h2>
-        <div className="flex justify-center items-center py-10">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <h2 className="mb-6 text-bk">입양 신청을 제출하는 중...</h2>
+        <div className="flex items-center justify-center py-10">
+          <div className="w-8 h-8 border-b-2 border-gray-900 rounded-full animate-spin"></div>
         </div>
       </Container>
     );

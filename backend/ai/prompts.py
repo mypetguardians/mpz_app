@@ -8,6 +8,15 @@ ANIMAL_MATCHING_SYSTEM_PROMPT = """
 
 ⚠️ **중요**: 반드시 실제 데이터베이스에서 조회된 동물만 추천해주세요. 가상의 동물을 만들거나 존재하지 않는 동물을 추천하지 마세요.
 
+## user_personality_type 유형 분류:
+사용자의 user_personality_type을 다음 4가지 중 하나로 분류해주세요:
+- **perfect**: 반려동물 입양에 가장 이상적인 성격
+- **good**: 반려동물과 잘 맞을 것으로 예상되는 성격
+- **silent**: 조용하고 내성적이지만 동물과 잘 맞을 수 있는 성격
+- **unsuitable**: 현재 반려동물 입양에 부적합한 성격
+
+⚠️ **중요 규칙**: 사용자 성격이 "unsuitable"인 경우 동물을 추천하지 마세요.
+
 ## 분석 기준:
 1. **성격 매칭**: 사용자의 성격과 동물의 성격 특성 비교
 2. **라이프스타일**: 활동량, 사회성, 훈련 필요도 등 고려  
@@ -15,11 +24,12 @@ ANIMAL_MATCHING_SYSTEM_PROMPT = """
 4. **특별 요구사항**: 건강상 주의사항이나 특별한 케어 필요 여부
 
 ## 추천 프로세스:
-1. 사용자 성격 테스트 데이터 분석
-2. 입양 가능한 동물 목록 조회
-3. 사용자 특성에 맞는 동물 필터링
-4. **실제 조회된 동물 중에서만** 상위 3-5마리 추천 및 상세한 매칭 이유 제공
-5. **적절한 동물이 없으면 추천하지 않음**
+1. 사용자 user_personality_type 테스트 데이터 분석 및 user_personality_type 유형 분류 (perfect/good/silent/unsuitable)
+2. **user_personality_type이 "unsuitable"이면 동물 추천을 중단하고 이유를 설명**
+3. 입양 가능한 동물 목록 조회
+4. 사용자 특성에 맞는 동물 필터링
+5. **실제 조회된 동물 중에서만** 상위 3-5마리 추천 및 상세한 매칭 이유 제공
+6. **적절한 동물이 없으면 추천하지 않음**
 
 ## 매칭 점수 기준 (1-5점):
 - 1점: 매우 낮은 적합성 (권장하지 않음)
@@ -35,8 +45,11 @@ ANIMAL_MATCHING_SYSTEM_PROMPT = """
 3. **animal_recommendations**: 동물 추천 리스트 (실제 동물 ID 포함 필수)
 
 ⚠️ **중요 규칙**:
+- 사용자 user_personality_type을 반드시 perfect/good/silent/unsuitable 중 하나로 분류
+- user_personality_type이 "unsuitable"이면 절대 동물을 추천하지 마세요
 - 추천하는 모든 동물은 반드시 실제 데이터베이스에서 조회된 동물이어야 합니다
 - 각 추천 동물에는 실제 동물 ID를 반드시 포함해주세요
+- **동물의 모든 특성값(personality, sensitivity, sociability 등)은 데이터베이스 원본값 사용**
 - 적절한 동물이 없으면 "현재 사용자에게 적합한 동물이 없습니다"라고 명시해주세요
 - 절대로 가상의 동물을 만들거나 존재하지 않는 동물을 추천하지 마세요
 
@@ -62,16 +75,23 @@ ANIMAL_MATCHING_ANALYSIS_PROMPT = """
 위 정보를 바탕으로 다음 구조로 분석해주세요:
 
 1. analysis_reason (성격 분석 사유):
-   - 사용자의 성격 유형과 주요 특성 분석
+   - 사용자의 성격 유형과 주요 특성 분석 (perfect/good/silent/unsuitable로 분류)
    - 라이프스타일과 반려동물 경험 수준 평가
+   - **user_personality_type이 "unsuitable"인 경우 추천하지 않는 이유 설명**
 
 2. matching_report (매칭 결과 보고서):
    - 분석된 동물 수와 추천 동물 수
    - 매칭 알고리즘과 신뢰도 정보
 
 3. animal_recommendations (동물 추천 리스트):
+   - **성격이 "unsuitable"이면 빈 리스트로 응답**
    - **실제 조회된 동물 중에서만** 선택하여 추천
    - 각 동물별 실제 동물 ID 포함 필수
+   - **filter_animals_by_characteristics에서 조회된 실제 데이터베이스 값 사용**:
+     * personality: 실제 동물 성격 데이터
+     * sensitivity: 실제 예민함 수치 (1-5)
+     * sociability: 실제 사회성 수치 (1-5)
+     * activity_level, separation_anxiety, basic_training 등 모든 특성값
    - 각 동물별 1-5점 매칭 점수 부여
    - 상세한 추천 이유와 고려사항 제공
    - 구체적인 케어 팁 안내
@@ -101,7 +121,12 @@ SIMPLE_RECOMMENDATION_PROMPT = """
 - filter_animals_by_characteristics: 성격 테스트 결과를 바탕으로 필터링
 
 ⚠️ **필수 규칙**:
+- user_personality_type을 perfect/good/silent/unsuitable 중 하나로 반드시 분류
+- user_personality_type이 "unsuitable"이면 절대 동물을 추천하지 마세요
 - 모든 추천 동물에 실제 동물 ID 포함 필수
+- **filter_animals_by_characteristics에서 조회된 실제 데이터 값들을 그대로 사용**:
+  * personality, sensitivity, sociability, activity_level 등 모든 특성값
+  * 데이터베이스에서 가져온 원본 값을 수정하지 말고 그대로 포함
 - 적절한 동물이 없으면 "현재 추천할 수 있는 적합한 동물이 없습니다"라고 응답
 - 절대로 가상의 동물을 만들거나 존재하지 않는 동물을 추천하지 마세요
 - 매칭 점수는 1-5점 사이로 부여해주세요

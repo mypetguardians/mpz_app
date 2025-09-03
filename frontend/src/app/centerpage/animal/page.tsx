@@ -42,10 +42,6 @@ export default function CenterAnimal() {
     }
   );
 
-  const handleBack = () => {
-    router.back();
-  };
-
   const handleAdoptionClick = (pet: Animal) => {
     const animalUrl = `${window.location.origin}/list/animal/${pet.id}`;
 
@@ -109,7 +105,7 @@ export default function CenterAnimal() {
             <IconButton
               icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
               size="iconM"
-              onClick={handleBack}
+              onClick={() => router.push("/centerpage")}
             />
             <h4>동물 관리</h4>
           </div>

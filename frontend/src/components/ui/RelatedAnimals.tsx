@@ -19,28 +19,30 @@ export function RelatedAnimals({
       {pets.length === 0 ? (
         <div className="text-gr text-md">가까운 동물이 없습니다.</div>
       ) : (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-3">
           {pets.slice(0, 6).map((pet) => (
-            <PetCard
-              key={pet.id}
-              pet={{
-                id: pet.id,
-                name: pet.name || "",
-                breed: pet.breed || "",
-                isFemale: pet.is_female,
-                status: pet.status,
-                centerId: pet.center_id,
-                animalImages:
-                  pet.animal_images?.map((img) => ({
-                    id: img.id,
-                    imageUrl: img.image_url,
-                    orderIndex: img.order_index,
-                  })) || [],
-                foundLocation: pet.found_location || "",
-              }}
-              variant="variant3"
-              className="w-full"
-            />
+            <div key={pet.id} className="flex-shrink-0">
+              <PetCard
+                pet={{
+                  id: pet.id,
+                  name: pet.name || "",
+                  breed: pet.breed || "",
+                  isFemale: pet.is_female,
+                  status: pet.status,
+                  centerId: pet.center_id,
+                  animalImages:
+                    pet.animal_images?.map((img) => ({
+                      id: img.id,
+                      imageUrl: img.image_url,
+                      orderIndex: img.order_index,
+                    })) || [],
+                  foundLocation: pet.found_location || "",
+                }}
+                variant="variant3"
+                imageSize="full"
+                className="w-full"
+              />
+            </div>
           ))}
         </div>
       )}

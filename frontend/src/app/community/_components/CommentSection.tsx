@@ -29,7 +29,6 @@ export function CommentSection({
   comments,
   postId,
   isLoading = false,
-  pagination,
 }: CommentSectionProps) {
   const { isAuthenticated } = useAuth();
   const [showReplies, setShowReplies] = useState<Record<string, boolean>>({});
@@ -133,15 +132,28 @@ export function CommentSection({
           {(() => {
             // 메인 댓글 수
             const mainCommentCount = comments.length;
-            // 대댓글 수 계산
-            const replyCount = comments.reduce(
-              (total, comment) => total + (comment.replies?.length || 0),
-              0
-            );
-            // 총 댓글 수
-            const totalCommentCount = mainCommentCount + replyCount;
+            // 대댓글 수 계산 (replies가 존재하는 경우만)
+            const replyCount = comments.reduce((total, comment) => {
+              const repliesLength = comment.replies?.length || 0;
+              return total + repliesLength;
+            }, 0);
+            // 총 댓글 수 = 메인 댓글 + 모든 대댓글
+            const totalCount = mainCommentCount + replyCount;
 
-            return pagination?.totalCnt || totalCommentCount;
+            // 디버깅용 로그 (개발환경에서만)
+            if (process.env.NODE_ENV === "development") {
+              console.log("댓글 수 계산:", {
+                mainCommentCount,
+                replyCount,
+                totalCount,
+                comments: comments.map((c) => ({
+                  id: c.id,
+                  repliesCount: c.replies?.length || 0,
+                })),
+              });
+            }
+
+            return totalCount;
           })()}
         </h4>
 

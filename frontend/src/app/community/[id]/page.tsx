@@ -49,6 +49,7 @@ export default function CommunityDetailPage() {
     data: centerPostDetailData,
     isLoading: isCenterPostLoading,
     error: centerPostError,
+    refetch: refetchCenterPost,
   } = useGetCenterPostDetail(params.id as string);
 
   // 일반 사용자용 게시글 상세조회
@@ -56,6 +57,7 @@ export default function CommunityDetailPage() {
     data: publicPostDetailData,
     isLoading: isPublicPostLoading,
     error: publicPostError,
+    refetch: refetchPublicPost,
   } = useGetPublicPostDetail(params.id as string);
 
   // 권한에 따라 적절한 데이터 선택
@@ -67,9 +69,11 @@ export default function CommunityDetailPage() {
     : isPublicPostLoading;
   const postError = isCenterUser ? centerPostError : publicPostError;
 
-  const { data: commentsData, isLoading: isCommentsLoading } = useGetComments(
-    params.id as string
-  );
+  const {
+    data: commentsData,
+    isLoading: isCommentsLoading,
+    refetch: refetchComments,
+  } = useGetComments(params.id as string);
 
   const deletePostMutation = useDeletePost();
 
@@ -82,6 +86,22 @@ export default function CommunityDetailPage() {
       setIsLoading(false);
     }
   }, [postDetailData, post]);
+
+  // 페이지 마운트 시 데이터 새로고침
+  useEffect(() => {
+    const refreshData = async () => {
+      try {
+        await Promise.all([
+          isCenterUser ? refetchCenterPost() : refetchPublicPost(),
+          refetchComments(),
+        ]);
+      } catch (error) {
+        console.error("데이터 새로고침 실패:", error);
+      }
+    };
+
+    refreshData();
+  }, [isCenterUser, refetchCenterPost, refetchPublicPost, refetchComments]);
 
   const pagination = commentsData
     ? {

@@ -76,6 +76,7 @@ export function CommunityCard({
     user_id,
     user_nickname,
     user_image,
+    is_liked,
   } = item;
 
   // images 배열에서 유효한 URL 추출 (API 키 케이스 다양성 대응: imageUrl, image_url, file_url, url)
@@ -200,7 +201,11 @@ export function CommunityCard({
           {date && <span>{getRelativeTime(date)}</span>}
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
-              <ThumbsUp size={16} />
+              <ThumbsUp
+                size={16}
+                weight={is_liked ? "fill" : "regular"}
+                className={is_liked ? "text-blue-500" : ""}
+              />
               {like}
             </span>
             <span className="flex items-center gap-1">
@@ -231,7 +236,13 @@ export function CommunityCard({
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
               <IconButton
-                icon={({ size }) => <ThumbsUp size={size} />}
+                icon={({ size }) => (
+                  <ThumbsUp
+                    size={size}
+                    weight={is_liked ? "fill" : "regular"}
+                    className={is_liked ? "text-blue-500" : ""}
+                  />
+                )}
                 size="iconS"
               />
               {like}
@@ -261,7 +272,13 @@ export function CommunityCard({
         <div className="flex items-center gap-6 text-gray-400 mt-2">
           <div className="flex items-center gap-1">
             <IconButton
-              icon={({ size }) => <ThumbsUp size={size} />}
+              icon={({ size }) => (
+                <ThumbsUp
+                  size={size}
+                  weight={is_liked ? "fill" : "regular"}
+                  className={is_liked ? "text-blue-500" : ""}
+                />
+              )}
               size="iconS"
             />
             {like}
@@ -305,7 +322,13 @@ export function CommunityCard({
         <div className="flex gap-3 text-gr">
           <div className="flex items-center gap-0.5 text-h6b">
             <IconButton
-              icon={({ size }) => <ThumbsUp size={size} />}
+              icon={({ size }) => (
+                <ThumbsUp
+                  size={size}
+                  weight={is_liked ? "fill" : "regular"}
+                  className={is_liked ? "text-blue-500" : ""}
+                />
+              )}
               size="iconS"
             />
             {like}

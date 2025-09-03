@@ -161,7 +161,7 @@ export function CommunityDetail({
   return (
     <div className="w-full">
       {/* 사용자 정보 */}
-      <div className="flex items-center justify-between mb-3 px-4">
+      <div className="flex items-center justify-between border-b border-bg pb-3 px-4">
         <div
           className={`flex items-center gap-3 ${
             onUserClick
@@ -204,7 +204,7 @@ export function CommunityDetail({
               text="신고하기"
               leftIcon={<Bell size={20} />}
               onClick={onReport}
-              className="text-sm text-gray-500 py-1"
+              variant="nomargin"
             />
           )}
         </div>
@@ -212,12 +212,12 @@ export function CommunityDetail({
 
       {/* 이미지 갤러리 */}
       {renderGallery()}
-      <div className="flex flex-col gap-1 items-start mb-2 px-4">
+      <div className="flex flex-col gap-2 items-start px-4">
         {/* 제목 */}
-        <h4 className="text-black">{title}</h4>
+        <h4 className="text-black mt-3">{title}</h4>
 
         {/* 내용 */}
-        <p className="text-gray-800 leading-relaxed">
+        <p className="text-dg body2">
           {content.replace(/#[ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9_-]+/g, "")}
         </p>
 
@@ -237,9 +237,7 @@ export function CommunityDetail({
           variant={isLiked ? "filterOn" : "filterOff"}
           onClick={handleLikeToggle}
           disabled={toggleLikeMutation.isPending || isLikeLoading}
-          className={
-            toggleLikeMutation.isPending ? "opacity-50 cursor-not-allowed" : ""
-          }
+          className={toggleLikeMutation.isPending ? "cursor-not-allowed" : ""}
         />
         {tags &&
           Array.isArray(tags) &&

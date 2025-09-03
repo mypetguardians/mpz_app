@@ -67,10 +67,10 @@ export const useGetCenterPosts = (params?: GetPostsParams) => {
         },
       };
     },
-    staleTime: 3 * 60 * 1000, // 3분
+    staleTime: 0,
     gcTime: 10 * 60 * 1000, // 10분
     retry: 1,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -80,7 +80,8 @@ export const useGetCenterPostDetail = (postId: string) => {
     queryKey: ["center-posts", postId],
     queryFn: () => getCenterPostDetail(postId),
     enabled: !!postId,
-    staleTime: 3 * 60 * 1000, // 3분
+    staleTime: 0, // 항상 최신 데이터 요청
     gcTime: 10 * 60 * 1000, // 10분
+    refetchOnWindowFocus: true,
   });
 };

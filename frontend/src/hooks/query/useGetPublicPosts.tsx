@@ -16,7 +16,6 @@ const getPublicPosts = async (
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
         if (key === "tags" && Array.isArray(value)) {
-          // tags 배열을 개별 파라미터로 변환
           value.forEach((tag) => searchParams.append("tags", tag));
         } else {
           searchParams.append(key, value.toString());
@@ -54,10 +53,10 @@ export const useGetPublicPosts = (params?: GetPostsParams) => {
   return useQuery({
     queryKey: ["public-posts", params],
     queryFn: () => getPublicPosts(params),
-    staleTime: 3 * 60 * 1000, // 3분
-    gcTime: 10 * 60 * 1000, // 10분
+    staleTime: 0,
+    gcTime: 10 * 60 * 1000,
     retry: 1,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -66,7 +65,8 @@ export const useGetPublicPostDetail = (postId: string) => {
     queryKey: ["public-posts", postId],
     queryFn: () => getPublicPostDetail(postId),
     enabled: !!postId,
-    staleTime: 3 * 60 * 1000, // 3분
+    staleTime: 0, // 항상 최신 데이터 요청
     gcTime: 10 * 60 * 1000, // 10분
+    refetchOnWindowFocus: true,
   });
 };

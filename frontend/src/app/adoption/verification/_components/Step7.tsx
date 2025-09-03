@@ -120,6 +120,7 @@ export function Step7({}: StepProps) {
     router,
     activeConsents.length,
     isSubmitted,
+    adoptionStore,
   ]);
 
   // 토스트 자동 숨김
@@ -151,6 +152,7 @@ export function Step7({}: StepProps) {
     activeConsents.length,
     isSubmitted,
     animalId,
+    handleSubmit,
   ]);
 
   // 로딩 상태 처리

@@ -31,3 +31,4 @@ export { useUpdateAdoptionStatus } from "./useUpdateAdoptionStatus";
 export { useSendContract } from "./useSendContract";
 export { useRunManualMonitoringCheck } from "./useRunManualMonitoringCheck";
 export { useWithdrawAdoption } from "./useWithdrawAdoption";
+export { useSubmitAdoptionApplication } from "./useSubmitAdoptionApplication";

@@ -35,6 +35,7 @@ export default function CenterAnimal() {
     {
       page: currentPage,
       breed: searchTerm || undefined,
+      center_id: centerData?.id,
     },
     {
       enabled: shouldFetchAnimals,

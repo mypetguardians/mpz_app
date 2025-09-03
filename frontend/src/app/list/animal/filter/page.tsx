@@ -270,15 +270,12 @@ function AnimalFilterContent() {
         )}
 
         {/* 전문가 분석 의견 (Expert Analysis Opinion) */}
-        {/* 구독자용 디자인 추가 필요 */}
-        {isSubscriber && (
-          <MultiSelectFilter
-            title="전문가 분석 의견"
-            options={expertOpinionOptions}
-            selectedValues={selectedExpertOpinion}
-            onSelectionChange={setSelectedExpertOpinion}
-          />
-        )}
+        <MultiSelectFilter
+          title="전문가 분석 의견"
+          options={expertOpinionOptions}
+          selectedValues={selectedExpertOpinion}
+          onSelectionChange={setSelectedExpertOpinion}
+        />
       </div>
 
       {/* Fixed Bottom Bar */}

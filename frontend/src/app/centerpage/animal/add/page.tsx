@@ -7,10 +7,11 @@ import { ArrowLeft, ArrowsClockwise } from "@phosphor-icons/react";
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
-import BasicInfo from "../../add/_components/BasicInfo";
-import DetailInfo from "../../add/_components/DetailInfo";
+import BasicInfo from "./_components/BasicInfo";
+import DetailInfo from "./_components/DetailInfo";
 import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
 import { useCreateAnimal, useUploadImages } from "@/hooks/mutation";
+import { useGetMyCenter } from "@/hooks/query/useGetMyCenter";
 
 interface FormData {
   basicInfo: {
@@ -66,11 +67,14 @@ const initialFormData: FormData = {
   images: [],
 };
 
-export default function EditAnimal() {
+export default function AddAnimal() {
   const router = useRouter();
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const createAnimalMutation = useCreateAnimal();
   const uploadImagesMutation = useUploadImages();
+  const { data: myCenter } = useGetMyCenter();
+
+  const isSubscriber = myCenter?.isSubscriber === true;
 
   const handleBack = () => {
     router.back();
@@ -139,7 +143,7 @@ export default function EditAnimal() {
         health_notes: basicInfo.healthNotes || "",
         basic_training: "",
         trainer_comment: detailInfo.trainerComment || "",
-        announce_number: null,
+        announce_number: "",
         announcement_date: basicInfo.centerEntryDate || null,
         found_location: basicInfo.foundLocation || "",
         personality: basicInfo.personality || "",
@@ -157,7 +161,7 @@ export default function EditAnimal() {
       router.push("/centerpage/animal");
     } catch (error) {
       console.error("동물 등록 실패:", error);
-      alert("동물 등록에 실패했습니다. 다시 시도해주세22요.");
+      alert("동물 등록에 실패했습니다. 다시 시도해주세요.");
     }
   };
 
@@ -187,10 +191,12 @@ export default function EditAnimal() {
           images={formData.images}
           onImagesChange={handleImagesChange}
         />
-        <DetailInfo
-          data={formData.detailInfo}
-          onChange={handleDetailInfoChange}
-        />
+        {isSubscriber && (
+          <DetailInfo
+            data={formData.detailInfo}
+            onChange={handleDetailInfoChange}
+          />
+        )}
       </div>
       <FixedBottomBar
         variant="variant2"

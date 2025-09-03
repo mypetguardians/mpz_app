@@ -159,7 +159,10 @@ function AnimalTab() {
     }
 
     // 전문가 의견 필터
-    if (filters.expertOpinion.length > 0) {
+    if (
+      filters.expertOpinion.length > 0 &&
+      filters.expertOpinion[0] === "포함"
+    ) {
       params.hasTrainerComment = "true";
     }
 

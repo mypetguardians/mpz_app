@@ -103,7 +103,10 @@ export function AnimalSearchSection({
               | "반환"
               | "방사"),
     }),
-    ...(filters.expertOpinion.length > 0 && { hasTrainerComment: "true" }),
+    ...(filters.expertOpinion.length > 0 &&
+      filters.expertOpinion[0] === "포함" && {
+        hasTrainerComment: "true",
+      }),
   });
 
   // 품종 검색을 위한 데이터 가져오기
@@ -185,6 +188,12 @@ export function AnimalSearchSection({
       path: "/list/animal/filter",
       count: filterCounts.protectionStatus,
       hasFilters: filterCounts.protectionStatus > 0,
+    },
+    {
+      label: "전문가 분석",
+      path: "/list/animal/filter",
+      count: filterCounts.expertOpinion,
+      hasFilters: filterCounts.expertOpinion > 0,
     },
   ];
 
@@ -283,7 +292,13 @@ export function AnimalSearchSection({
           )}
 
           {hasSearchResults && (
-            <div className="flex flex-wrap justify-start gap-2 cursor-pointer">
+            <div
+              className={
+                filters.expertOpinion.includes("포함")
+                  ? "flex flex-col gap-3 cursor-pointer"
+                  : "flex flex-wrap justify-start gap-2 cursor-pointer"
+              }
+            >
               {searchAnimals
                 .filter(
                   (animal): animal is NonNullable<typeof animal> =>
@@ -294,7 +309,11 @@ export function AnimalSearchSection({
                 .map((animal, idx) => (
                   <div
                     key={animal.id ?? idx}
-                    className="w-[calc(50%-4px)] cursor-pointer"
+                    className={
+                      filters.expertOpinion.includes("포함")
+                        ? "w-full cursor-pointer"
+                        : "w-[calc(50%-4px)] cursor-pointer"
+                    }
                     onClick={() => router.push(`/list/animal/${animal.id}`)}
                   >
                     <PetCard
@@ -312,8 +331,16 @@ export function AnimalSearchSection({
                           })) || [],
                         foundLocation: animal.found_location || "",
                         centerId: animal.center_id,
+                        trainerComment: animal.trainer_comment,
+                        activityLevel: animal.activity_level?.toString() || "",
+                        sensitivity: animal.sensitivity?.toString() || "",
+                        sociability: animal.sociability?.toString() || "",
                       }}
-                      variant="primary"
+                      variant={
+                        filters.expertOpinion.includes("포함")
+                          ? "variant2"
+                          : "primary"
+                      }
                       imageSize="full"
                       className="w-full"
                     />

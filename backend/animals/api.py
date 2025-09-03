@@ -66,9 +66,16 @@ async def create_animal(request: HttpRequest, data: AnimalCreateIn):
                 except AttributeError:
                     raise HttpError(400, "등록된 센터가 없습니다")
             center_id = user_center.id
+        elif user.user_type == "센터최고관리자":
+            # 센터 최고관리자는 자신이 소유한 센터에 등록 가능
+            try:
+                user_center = await sync_to_async(Center.objects.get)(owner=user)
+                center_id = user_center.id
+            except Center.DoesNotExist:
+                raise HttpError(400, "등록된 센터가 없습니다")
         else:
-            # 훈련사나 최고관리자는 센터 ID를 요청에서 받아야 함
-            center_id = request.GET.get("center_id")
+            # 훈련사는 센터 ID를 요청 body에서 받아야 함
+            center_id = data.center_id
             if not center_id:
                 raise HttpError(400, "센터 ID가 필요합니다")
         

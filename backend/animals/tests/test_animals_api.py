@@ -521,3 +521,72 @@ class TestAnimalsAPI(TestCase):
         # 에러 메시지 확인
         error_data = response.json()
         self.assertIn("등록된 센터가 없습니다", error_data["detail"])
+
+    async def test_create_animal_with_trainer(self):
+        """훈련사 계정으로 동물 등록 테스트 (센터 ID 지정)"""
+        # 훈련사 계정 생성
+        trainer = await sync_to_async(User.objects.create_user)(
+            username="trainer",
+            email="trainer@test.com",
+            password="password1234!",
+            user_type="훈련사"
+        )
+        
+        # JWT 토큰 생성
+        headers = await self.authenticate(trainer)
+        
+        # 동물 등록 데이터 (센터 ID 포함)
+        data = {
+            "name": "훈련사 강아지",
+            "center_id": str(self.center.id),  # 센터 ID 지정
+            "is_female": True,
+            "age": 1,
+            "weight": "5.0",
+            "breed": "말티즈",
+            "description": "훈련사가 등록한 강아지입니다",
+            "found_location": "서울시 마포구",
+            "personality": "조용하고 순함"
+        }
+        
+        # 동물 등록 요청
+        response = await self.client.post("/", json=data, headers=headers)
+        
+        # 성공적으로 등록되어야 함
+        self.assertEqual(response.status_code, 200)
+        
+        # 응답 데이터 확인
+        animal_data = response.json()
+        self.assertEqual(animal_data["name"], "훈련사 강아지")
+        self.assertEqual(animal_data["center_id"], str(self.center.id))
+
+    async def test_create_animal_trainer_no_center_id(self):
+        """훈련사가 센터 ID 없이 동물 등록 실패 테스트"""
+        # 훈련사 계정 생성
+        trainer = await sync_to_async(User.objects.create_user)(
+            username="trainer_no_center",
+            email="trainer2@test.com",
+            password="password1234!",
+            user_type="훈련사"
+        )
+        
+        # JWT 토큰 생성
+        headers = await self.authenticate(trainer)
+        
+        # 동물 등록 데이터 (센터 ID 없음)
+        data = {
+            "name": "센터없는 강아지",
+            "is_female": False,
+            "age": 2,
+            "weight": "10.0",
+            "breed": "비글"
+        }
+        
+        # 동물 등록 요청
+        response = await self.client.post("/", json=data, headers=headers)
+        
+        # 센터 ID가 없어서 실패해야 함
+        self.assertEqual(response.status_code, 400)
+        
+        # 에러 메시지 확인
+        error_data = response.json()
+        self.assertIn("센터 ID가 필요합니다", error_data["detail"])

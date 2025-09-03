@@ -7,6 +7,7 @@ from decimal import Decimal
 class AnimalCreateIn(Schema):
     """동물 등록 입력 스키마"""
     name: str = Field(..., min_length=1, max_length=50, description="동물 이름")
+    center_id: Optional[str] = Field(None, description="센터 ID (훈련사가 동물을 등록할 때 필요)")
     is_female: bool = Field(..., description="암컷 여부")
     age: Optional[int] = Field(None, ge=0, le=300, description="나이 (개월 단위, 0-300개월)")
     weight: Optional[Decimal] = Field(None, ge=Decimal('0.01'), le=Decimal('999.99'), description="체중 (kg, 0.01-999.99kg)")

@@ -105,7 +105,7 @@ class AdoptionContractAdmin(admin.ModelAdmin):
 
 @admin.register(AdoptionMonitoring)
 class AdoptionMonitoringAdmin(admin.ModelAdmin):
-    list_display = ['id', 'adoption', 'post_id', 'created_at']
+    list_display = ['id', 'adoption', 'created_at']
     list_filter = ['adoption__status']
     search_fields = ['adoption__user__username', 'adoption__animal__name']
     readonly_fields = ['created_at', 'updated_at']

@@ -7,13 +7,15 @@ import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
 import { FormListItem } from "@/components/ui/FormListItem";
 import { useGetCenterConsents } from "@/hooks/query";
 import { useAdoptionVerificationStore } from "@/lib/stores/adoptionVerificationStore";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 export interface StepProps {
   onNext: () => void;
 }
 
 export function Step5({ onNext }: StepProps) {
-  const { data: storeData } = useAdoptionVerificationStore();
+  const { user } = useAuth();
+  const { data: storeData } = useAdoptionVerificationStore(user?.id);
   const centerId = storeData.centerId;
 
   const {
@@ -37,7 +39,6 @@ export function Step5({ onNext }: StepProps) {
   const handleNext = () => {
     if (activeConsents.length <= 1) {
       // 동의서가 1개 이하면 Step7을 건너뛰고 바로 제출 처리
-      // 여기서는 일단 onNext()를 호출하고, 상위 컴포넌트에서 처리하도록 함
       onNext();
     } else {
       // 동의서가 2개 이상이면 Step7로 이동

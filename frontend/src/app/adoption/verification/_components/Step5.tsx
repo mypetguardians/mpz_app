@@ -7,13 +7,15 @@ import { Container } from "@/components/common/Container";
 import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
 import { useGetCenterProcedureQuestions } from "@/hooks/query";
 import { useAdoptionVerificationStore } from "@/lib/stores/adoptionVerificationStore";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 export interface StepProps {
   onNext: () => void;
 }
 
 export function Step5({ onNext }: StepProps) {
-  const { data: storeData } = useAdoptionVerificationStore();
+  const { user } = useAuth();
+  const { data: storeData } = useAdoptionVerificationStore(user?.id);
   const centerId = storeData.centerId;
 
   const {

@@ -26,6 +26,8 @@ export function Step7({}: StepProps) {
   const [agree, setAgree] = React.useState(false);
   const [showToast, setShowToast] = React.useState(false);
   const [toastMessage, setToastMessage] = React.useState("");
+  const [isSubmitted, setIsSubmitted] = React.useState(false);
+  const hasAutoSubmittedRef = React.useRef(false);
 
   const isValid = agree;
 
@@ -47,9 +49,18 @@ export function Step7({}: StepProps) {
 
   // 입양신청 제출 핸들러
   const handleSubmit = React.useCallback(async () => {
-    if (!agree || !animalId) {
+    // 이미 제출된 경우 중복 제출 방지
+    if (isSubmitted) {
       return;
     }
+
+    // 동의서가 1개 이하인 경우 동의 체크 무시, 그 외에는 동의 필요
+    const needsAgreement = activeConsents.length > 1;
+    if ((needsAgreement && !agree) || !animalId) {
+      return;
+    }
+
+    setIsSubmitted(true);
 
     try {
       // 스토어 데이터를 AdoptionFormData 형태로 변환
@@ -96,12 +107,20 @@ export function Step7({}: StepProps) {
       }, 2000);
     } catch (error) {
       console.error("입양 신청 제출 실패:", error);
-      setToastMessage(
-        "입양 신청 제출 중 오류가 발생했습니다. 다시 시도해주세요."
-      );
+      // setToastMessage(
+      //   "입양 신청 제출 중 오류가 발생했습니다. 다시 시도해주세요."
+      // );
       setShowToast(true);
+      setIsSubmitted(false); // 실패 시 다시 제출 가능하도록
     }
-  }, [agree, animalId, adoptionStore, submitMutation, router]);
+  }, [
+    agree,
+    animalId,
+    submitMutation,
+    router,
+    activeConsents.length,
+    isSubmitted,
+  ]);
 
   // 토스트 자동 숨김
   React.useEffect(() => {
@@ -115,10 +134,24 @@ export function Step7({}: StepProps) {
 
   // 자동 제출 처리를 위한 useEffect (동의서가 1개 이하인 경우)
   React.useEffect(() => {
-    if (!consentsLoading && !consentsError && activeConsents.length <= 1) {
+    if (
+      !consentsLoading &&
+      !consentsError &&
+      activeConsents.length <= 1 &&
+      !isSubmitted &&
+      animalId &&
+      !hasAutoSubmittedRef.current
+    ) {
+      hasAutoSubmittedRef.current = true;
       handleSubmit();
     }
-  }, [consentsLoading, consentsError, activeConsents.length, handleSubmit]);
+  }, [
+    consentsLoading,
+    consentsError,
+    activeConsents.length,
+    isSubmitted,
+    animalId,
+  ]);
 
   // 로딩 상태 처리
   if (consentsLoading) {

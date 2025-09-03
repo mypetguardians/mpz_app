@@ -114,7 +114,7 @@ const submitAdoptionApplication = async (
   const requestData = transformFormDataToRequest(formData);
 
   const response = await instance.post<AdoptionApplicationResponse>(
-    "/v1/adoptions/apply",
+    "/adoptions/apply",
     requestData
   );
 

@@ -215,7 +215,8 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
     // 구독 센터인 경우 전화번호 인증 상태에 따라 다른 경로로 이동
     if (isCenterSubscriber) {
       // 스토어에 동물 정보 설정
-      adoptionStore.setAnimalInfo(id, animal?.center_id || "");
+      const centerId = animal?.center_id || center?.id || "";
+      adoptionStore.setAnimalInfo(id, centerId);
 
       // 사용자 정보를 스토어에 로드
       if (userProfile) {
@@ -223,8 +224,8 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
           phone: userProfile.phoneNumber || undefined,
           phoneVerification: userProfile.isPhoneVerified || false,
           name: userProfile.name || undefined,
-          birth: undefined, // birth 정보가 userProfile에 없다면 undefined
-          address: undefined, // address 정보가 userProfile에 없다면 undefined
+          birth: userProfile.birth || undefined,
+          address: userProfile.address || undefined,
         });
       }
 

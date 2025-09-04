@@ -17,9 +17,19 @@ const instance: AxiosInstance = axios.create({
 instance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     // 안전한 토큰 가져오기 (localStorage 우선, 실패 시 쿠키)
-    const accessToken = safeGetItem("access_token") || Cookies.get("access");
+    const accessToken =
+      safeGetItem("access_token") || Cookies.get("access_token");
+    console.log(
+      "🔍 axios 인터셉터 실행됨 - 토큰 확인:",
+      accessToken
+        ? `토큰 있음: ${accessToken.substring(0, 10)}...`
+        : "토큰 없음",
+      "URL:",
+      config.url
+    );
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
+      console.log("✅ axios 인터셉터 - Authorization 헤더 설정 완료");
     }
     return config;
   },

@@ -143,7 +143,12 @@ export function FixedBottomBar({
           {showDivider && <div className="mx-1 h-6 w-px bg-gray-200" />}
           {rightIcon1 && (
             <IconButton
-              icon={() => rightIcon1}
+              icon={({ size, className }) =>
+                React.cloneElement(rightIcon1 as React.ReactElement, {
+                  size,
+                  className: cn(className, "text-gr"),
+                })
+              }
               size="iconM"
               onClick={onRightIcon1Click}
               className="text-gr"
@@ -151,7 +156,12 @@ export function FixedBottomBar({
           )}
           {rightIcon2 && (
             <IconButton
-              icon={() => rightIcon2}
+              icon={({ size, className }) =>
+                React.cloneElement(rightIcon2 as React.ReactElement, {
+                  size,
+                  className: cn(className, "text-gr"),
+                })
+              }
               size="iconM"
               onClick={onRightIcon2Click}
               className="text-gr"

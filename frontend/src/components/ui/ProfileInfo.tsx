@@ -30,6 +30,12 @@ export function ProfileInfo({
     lg: "w-8 h-8",
   };
 
+  const iconSizes = {
+    sm: 16,
+    md: 24,
+    lg: 32,
+  };
+
   const textSizes = {
     sm: "text-xs",
     md: "text-sm",
@@ -62,7 +68,7 @@ export function ProfileInfo({
           <div
             className={`w-full h-full bg-lg flex items-center justify-center p-1`}
           >
-            <User size={sizeClasses[size]} weight="bold" className="text-gr" />
+            <User size={iconSizes[size]} weight="bold" className="text-gr" />
           </div>
         )}
       </div>

@@ -149,7 +149,6 @@ export function PetCard({
                   alt={`순위 ${rank}`}
                   width={24}
                   height={24}
-                  className="w-6 h-6"
                 />
               </div>
             )}
@@ -182,15 +181,9 @@ export function PetCard({
                 : breed || "종 미등록"}
             </h4>
             {isFemale ? (
-              <GenderFemale
-                className="text-red text-xl w-3 h-3"
-                weight="bold"
-              />
+              <GenderFemale className="text-red" weight="bold" size={12} />
             ) : (
-              <GenderMale
-                className="text-brand text-xl w-3 h-3"
-                weight="bold"
-              />
+              <GenderMale className="text-brand" weight="bold" size={12} />
             )}
           </div>
           <div className="text-gray-600 text-sm mb-3 line-clamp-2">
@@ -269,9 +262,9 @@ export function PetCard({
         <Image
           src={getImageUrl()}
           alt={breed || "동물"}
-          width={48}
-          height={48}
-          className="w-13 h-13 object-cover"
+          width={52}
+          height={52}
+          className="object-cover rounded"
         />
         <div className="flex-1">
           <div className="flex items-center mb-[6px] gap-1">
@@ -291,15 +284,9 @@ export function PetCard({
             </Chip>
             <h4 className="text-bk">{breed || "종 미등록"}</h4>
             {isFemale ? (
-              <GenderFemale
-                className="text-red text-xl w-3 h-3"
-                weight="bold"
-              />
+              <GenderFemale className="text-red" weight="bold" size={12} />
             ) : (
-              <GenderMale
-                className="text-brand text-xl w-3 h-3"
-                weight="bold"
-              />
+              <GenderMale className="text-brand" weight="bold" size={12} />
             )}
           </div>
           <p className="text-xs text-gray-500">
@@ -355,9 +342,9 @@ export function PetCard({
               : breed || "종 미등록"}
           </h4>
           {isFemale ? (
-            <GenderFemale className="text-red text-xl w-3 h-3" weight="bold" />
+            <GenderFemale className="text-red" weight="bold" />
           ) : (
-            <GenderMale className="text-brand text-xl w-3 h-3" weight="bold" />
+            <GenderMale className="text-brand" weight="bold" />
           )}
         </div>
         <h6 className="text-dg">{foundLocation || "위치 정보 없음"}</h6>
@@ -415,9 +402,9 @@ export function PetCard({
             : breed || "종 미등록"}
         </h4>
         {isFemale ? (
-          <GenderFemale className="text-red text-xl w-3 h-3" weight="bold" />
+          <GenderFemale className="text-red" weight="bold" />
         ) : (
-          <GenderMale className="text-brand text-xl w-3 h-3" weight="bold" />
+          <GenderMale className="text-brand" weight="bold" />
         )}
       </div>
       <h6 className="text-dg">{foundLocation || "위치 정보 없음"}</h6>

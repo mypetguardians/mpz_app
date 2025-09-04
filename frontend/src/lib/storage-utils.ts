@@ -10,14 +10,18 @@ export const safeSetItem = (
   maxAge: number = 86400
 ): void => {
   try {
+    // iOS Safari에서 localStorage 접근 시도
     localStorage.setItem(key, value);
     console.log(`localStorage에 ${key} 저장 완료`);
+
+    // iOS Safari의 경우 추가적으로 쿠키에도 저장 (이중 보안)
+    if (isIOSSafari()) {
+      setSafeCookieForSafari(key, value, maxAge);
+    }
   } catch (error) {
     console.warn(`localStorage 저장 실패, 쿠키로 대체:`, error);
     // localStorage 실패 시 쿠키로 대체
-    const secure = window.location.protocol === "https:" ? "; Secure" : "";
-    document.cookie = `${key}=${value}; path=/; max-age=${maxAge}; SameSite=None${secure}`;
-    console.log(`쿠키에 ${key} 저장 완료`);
+    setSafeCookieForSafari(key, value, maxAge);
   }
 };
 
@@ -62,7 +66,35 @@ export const safeRemoveItem = (key: string): void => {
 };
 
 /**
- * iOS Safari에서 안전하게 쿠키를 설정하는 함수
+ * iOS Safari 전용 안전한 쿠키 설정 함수
+ */
+export const setSafeCookieForSafari = (
+  key: string,
+  value: string,
+  maxAge: number = 86400
+): void => {
+  const isSecure = window.location.protocol === "https:";
+  const isIOS = isIOSSafari();
+
+  if (isIOS) {
+    // iOS Safari에서는 SameSite=Lax를 사용하여 호환성 개선
+    const cookieString = `${key}=${value}; path=/; max-age=${maxAge}; SameSite=Lax${
+      isSecure ? "; Secure" : ""
+    }`;
+    document.cookie = cookieString;
+    console.log(`iOS Safari용 쿠키 설정 완료: ${key}`);
+  } else {
+    // 다른 브라우저에서는 기존 방식 사용
+    const cookieString = `${key}=${value}; path=/; max-age=${maxAge}; SameSite=None${
+      isSecure ? "; Secure" : ""
+    }`;
+    document.cookie = cookieString;
+    console.log(`일반 브라우저용 쿠키 설정 완료: ${key}`);
+  }
+};
+
+/**
+ * iOS Safari에서 안전하게 쿠키를 설정하는 함수 (기존 호환성 유지)
  */
 export const setSafeCookie = (
   name: string,
@@ -81,14 +113,19 @@ export const setSafeCookie = (
     secure = window.location.protocol === "https:",
   } = options;
 
-  let cookieString = `${name}=${value}; path=${path}; max-age=${maxAge}; SameSite=${sameSite}`;
+  const isIOS = isIOSSafari();
+
+  // iOS Safari에서는 SameSite 정책을 더 엄격하게 적용
+  const finalSameSite = isIOS && sameSite === "None" ? "Lax" : sameSite;
+
+  let cookieString = `${name}=${value}; path=${path}; max-age=${maxAge}; SameSite=${finalSameSite}`;
 
   if (secure) {
     cookieString += "; Secure";
   }
 
   document.cookie = cookieString;
-  console.log(`쿠키 설정 완료: ${name}`);
+  console.log(`쿠키 설정 완료: ${name} (SameSite: ${finalSameSite})`);
 };
 
 /**

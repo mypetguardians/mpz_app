@@ -9,9 +9,12 @@ import {
   isKakaoTalkInstalled,
   setSafeCookie,
 } from "@/lib/storage-utils";
+import SafariLoginGuide from "./SafariLoginGuide";
 
 export function KakaoLoginButton() {
   const [isLoading, setIsLoading] = useState(false);
+  const [showSafariGuide, setShowSafariGuide] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
   const pathname = usePathname();
 
   const handleKakaoLogin = async () => {
@@ -72,6 +75,12 @@ export function KakaoLoginButton() {
     } catch (error) {
       console.error("카카오 로그인 시작 중 오류:", error);
       setIsLoading(false);
+      setLoginError("로그인 중 오류가 발생했습니다.");
+
+      // iOS Safari에서 에러 발생 시 가이드 표시
+      if (isIOSSafari()) {
+        setShowSafariGuide(true);
+      }
     }
   };
 
@@ -86,10 +95,41 @@ export function KakaoLoginButton() {
         // Django에서 받은 카카오 로그인 URL로 리다이렉트
         console.log("리다이렉트할 URL:", response.data.authUrl);
 
-        // iOS Safari에서는 window.location.href 대신 location.replace 사용 권장
-        if (isIOSSafari()) {
-          window.location.replace(response.data.authUrl);
+        const isIOS = isIOSSafari();
+
+        if (isIOS) {
+          // iOS Safari에서 팝업 차단을 우회하기 위한 처리
+          console.log("iOS Safari 환경 - 직접 리다이렉트 방식 사용");
+
+          // 사용자 액션에 의해 즉시 실행되어야 팝업 차단을 피할 수 있음
+          try {
+            // 먼저 새 창으로 시도 (팝업 차단되지 않을 경우)
+            const popup = window.open(
+              response.data.authUrl,
+              "_blank",
+              "width=500,height=600,scrollbars=yes,resizable=yes"
+            );
+
+            if (!popup || popup.closed) {
+              // 팝업이 차단된 경우 현재 창에서 리다이렉트
+              console.log("팝업 차단됨 - 현재 창에서 리다이렉트");
+              window.location.replace(response.data.authUrl);
+            } else {
+              // 팝업이 성공한 경우 팝업 모니터링
+              const checkClosed = setInterval(() => {
+                if (popup.closed) {
+                  clearInterval(checkClosed);
+                  // 팝업이 닫혔을 때 현재 페이지 새로고침 또는 상태 확인
+                  window.location.reload();
+                }
+              }, 1000);
+            }
+          } catch (popupError) {
+            console.log("팝업 생성 실패 - 현재 창에서 리다이렉트:", popupError);
+            window.location.replace(response.data.authUrl);
+          }
         } else {
+          // 다른 브라우저에서는 기존 방식 사용
           window.location.href = response.data.authUrl;
         }
       } else {
@@ -98,36 +138,68 @@ export function KakaoLoginButton() {
     } catch (error) {
       console.error("웹 로그인 처리 중 오류:", error);
       setIsLoading(false);
-      throw error;
+      setLoginError("웹 로그인 처리 중 오류가 발생했습니다.");
+
+      // iOS Safari에서 에러 발생 시 가이드 표시
+      if (isIOSSafari()) {
+        setTimeout(() => setShowSafariGuide(true), 500);
+      }
+      // 에러를 다시 던지지 않고 여기서 처리 완료
     }
   };
 
+  const handleRetryLogin = () => {
+    setLoginError(null);
+    setShowSafariGuide(false);
+    handleKakaoLogin();
+  };
+
+  const handleCloseGuide = () => {
+    setShowSafariGuide(false);
+    setLoginError(null);
+  };
+
   return (
-    <Button
-      onClick={handleKakaoLogin}
-      disabled={isLoading}
-      className="w-full bg-yellow-400 text-black hover:bg-yellow-500 border border-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
-      type="button"
-    >
-      {isLoading ? (
-        <div className="flex items-center">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black mr-2"></div>
-          로그인 중...
+    <>
+      <Button
+        onClick={handleKakaoLogin}
+        disabled={isLoading}
+        className="w-full bg-yellow-400 text-black hover:bg-yellow-500 border border-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        type="button"
+      >
+        {isLoading ? (
+          <div className="flex items-center">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black mr-2"></div>
+            로그인 중...
+          </div>
+        ) : (
+          <>
+            <svg
+              className="w-5 h-5 mr-2"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="M12 3C6.477 3 2 6.991 2 11.75c0 3.072 1.978 5.764 4.912 7.328l-1.048 3.797c-.077.281.193.544.465.448L10.87 21.85c.36.044.725.067 1.096.068h.069C17.523 21.918 22 17.927 22 13.168 22 8.409 17.523 4.418 12 3.836V3z" />
+            </svg>
+            카카오로 계속하기
+          </>
+        )}
+      </Button>
+
+      {loginError && (
+        <div className="text-red-500 text-sm mt-2 text-center">
+          {loginError}
         </div>
-      ) : (
-        <>
-          <svg
-            className="w-5 h-5 mr-2"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path d="M12 3C6.477 3 2 6.991 2 11.75c0 3.072 1.978 5.764 4.912 7.328l-1.048 3.797c-.077.281.193.544.465.448L10.87 21.85c.36.044.725.067 1.096.068h.069C17.523 21.918 22 17.927 22 13.168 22 8.409 17.523 4.418 12 3.836V3z" />
-          </svg>
-          카카오로 계속하기
-        </>
       )}
-    </Button>
+
+      {showSafariGuide && (
+        <SafariLoginGuide
+          onRetry={handleRetryLogin}
+          onClose={handleCloseGuide}
+        />
+      )}
+    </>
   );
 }
 

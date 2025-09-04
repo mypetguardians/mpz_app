@@ -4,7 +4,6 @@ import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useMatchingStepStore } from "@/lib/stores/matchingStepStore";
-import { usePostAnimalMatching } from "@/hooks/mutation/usePostAnimalMatching";
 import { useAuth } from "@/components/providers/AuthProvider";
 
 import { SelectButton } from "@/components/ui/SelectButton";
@@ -15,23 +14,13 @@ export interface StepProps {
   onNext: () => void;
 }
 
-export function Step10({ onNext }: StepProps) {
+export function Step9({ onNext }: StepProps) {
   const [selectedGender, setSelectedGender] = React.useState<string | null>(
     null
   );
-  const { setStepAnswer, answers, setAIMatchingResult } =
-    useMatchingStepStore();
+  const { setStepAnswer } = useMatchingStepStore();
   const { user } = useAuth();
   const router = useRouter();
-
-  const aiMatchingMutation = usePostAnimalMatching({
-    onSuccess: (data) => {
-      setAIMatchingResult(data);
-    },
-    onError: (error) => {
-      console.error("AI 매칭 요청 실패:", error);
-    },
-  });
 
   const handleNext = async () => {
     if (selectedGender !== null) {
@@ -40,27 +29,8 @@ export function Step10({ onNext }: StepProps) {
       // onNext는 더 이상 사용하지 않지만 시그니처 유지를 위해 참조
       void onNext;
 
-      // 바로 로딩 페이지로 이동
-      router.push("/matching/loading");
-
-      // 백그라운드에서 AI 매칭 API 호출 (응답을 기다리지 않음)
-      const requestData = {
-        user_id: user?.id || "anonymous",
-        preferences: {
-          activity_level: answers[1]?.value || "",
-          living_space: answers[2]?.value || "",
-          age_preference: answers[3]?.value || "",
-          gender_preference: selectedGender,
-          noise_sensitivity: answers[5]?.value || "",
-          size_preference: answers[6]?.value || "",
-          experience_level: answers[7]?.value || "",
-          time_availability: answers[8]?.value || "",
-          budget_range: answers[9]?.value || "",
-        },
-        limit: 5,
-      };
-
-      aiMatchingMutation.mutate(requestData);
+      // 로딩 페이지로 이동 (user id를 query로 전달)
+      router.push(`/matching/loading?result=${user?.id || "anonymous"}`);
     }
   };
 
@@ -134,4 +104,4 @@ export function Step10({ onNext }: StepProps) {
   );
 }
 
-export default Step10;
+export default Step9;

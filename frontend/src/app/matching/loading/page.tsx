@@ -26,8 +26,8 @@ const matchingSteps = [
     imageAlt: "매칭 중 일러스트",
   },
   {
-    message: "완벽한 매칭을 완성했어요!",
-    subtitle: "결과를 확인해보세요!",
+    message: "완벽한 매칭을 거의 완성했어요...",
+    subtitle: "매칭 결과를 분석하는 중입니다...",
     image: "/illust/result03.svg",
     imageAlt: "완성 일러스트",
   },
@@ -36,17 +36,19 @@ const matchingSteps = [
 function MatchingLoadingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const resultParam = searchParams.get("result"); // 서버에서 매칭 ID 같은 값 전달받는다고 가정
+  const resultParam = searchParams.get("result"); // Step9에서 전달받은 userId
   const [currentStep, setCurrentStep] = useState(0);
   const { user } = useAuth();
   const { setAIMatchingResult } = useMatchingStepStore(user?.id);
 
-  const { mutate, isPending } = usePostAnimalMatching({
+  const { mutate, isPending, isSuccess, isError } = usePostAnimalMatching({
     onSuccess: (res) => {
+      console.log("AI 매칭 성공:", res);
       setAIMatchingResult(res);
       router.replace("/matching/result");
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("AI 매칭 실패:", error);
       router.replace("/matching/result"); // 실패해도 결과 페이지로 이동
     },
   });
@@ -54,12 +56,15 @@ function MatchingLoadingContent() {
   // 페이지 진입 시 요청 실행
   useEffect(() => {
     if (resultParam) {
+      console.log("AI 매칭 요청 시작:", resultParam);
       const payload: AIRecommendRequest = {
-        user_id: resultParam, // 실제 API 스펙에 맞게 수정
+        user_id: resultParam,
         preferences: {},
         limit: 5,
       };
       mutate(payload);
+    } else {
+      console.log("resultParam이 없음 - 매칭 요청을 시작할 수 없음");
     }
   }, [resultParam, mutate]);
 
@@ -69,20 +74,24 @@ function MatchingLoadingContent() {
 
     const interval = setInterval(() => {
       setCurrentStep((prev) =>
-        prev < matchingSteps.length - 1 ? prev + 1 : prev
+        prev >= matchingSteps.length - 1 ? 0 : prev + 1
       );
-    }, 8000); // 8초마다 다음 단계로
+    }, 4000);
 
     return () => clearInterval(interval);
   }, [isPending]);
 
-  // pending이 끝나면 즉시 결과 페이지로 이동하거나 완료 상태 표시
+  // API 요청 완료 시 결과 페이지로 이동하는 안전장치
   useEffect(() => {
-    if (!isPending && currentStep > 0) {
-      // API 요청이 완료되면 마지막 단계로 설정 후 잠시 보여주고 이동
+    if (isSuccess || isError) {
+      console.log("API 요청 완료 감지 - 결과 페이지로 이동");
       setCurrentStep(matchingSteps.length - 1);
+      const timer = setTimeout(() => {
+        router.replace("/matching/result");
+      }, 1500);
+      return () => clearTimeout(timer);
     }
-  }, [isPending, currentStep]);
+  }, [isSuccess, isError, router]);
 
   const stepData = matchingSteps[currentStep];
 
@@ -106,21 +115,6 @@ function MatchingLoadingContent() {
           priority
         />
       </div>
-
-      {/* 진행 바 */}
-      <div className="w-full max-w-md">
-        <div className="w-full bg-gray-200 rounded-full h-2">
-          <div
-            className="bg-brand h-2 rounded-full transition-all duration-1000 ease-in-out"
-            style={{
-              width: `${((currentStep + 1) / matchingSteps.length) * 100}%`,
-            }}
-          />
-        </div>
-        <div className="text-center mt-2 text-sm text-gray-600">
-          {currentStep + 1} / {matchingSteps.length}
-        </div>
-      </div>
     </div>
   );
 }
@@ -143,12 +137,6 @@ function LoadingFallback() {
           className="object-contain"
           priority
         />
-      </div>
-      <div className="w-full max-w-md">
-        <div className="w-full bg-gray-200 rounded-full h-2">
-          <div className="bg-brand h-2 rounded-full w-1/3" />
-        </div>
-        <div className="text-center mt-2 text-sm text-gray-600">1 / 3</div>
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import instance from "@/lib/axios-instance";
-import { safeGetItem } from "@/lib/storage-utils";
+import { safeGetItem, safeRemoveItem } from "@/lib/storage-utils";
 import {
   User,
   LoginResponse,
@@ -79,19 +79,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // 토큰 확인 (안전한 스토리지 유틸리티 사용)
       const accessToken = safeGetItem("access_token");
 
-      if (accessToken) {
-        instance.defaults.headers.common[
-          "Authorization"
-        ] = `Bearer ${accessToken}`;
-      }
+      console.log(
+        "fetchCurrentUser - 토큰 확인:",
+        accessToken ? "토큰 있음" : "토큰 없음"
+      );
+
+      // axios 인터셉터가 자동으로 토큰을 추가하므로 여기서는 제거
+      // if (accessToken) {
+      //   instance.defaults.headers.common[
+      //     "Authorization"
+      //   ] = `Bearer ${accessToken}`;
+      // }
 
       const response = await instance.get("/auth/me");
 
       if (response.status === 200) {
         const data = response.data;
+        console.log("fetchCurrentUser - API 응답 데이터:", data);
 
         // user 객체가 있으면 그것을 사용, 없으면 응답 데이터 자체를 사용
         const userData = data.user || data;
+        console.log("fetchCurrentUser - 처리할 사용자 데이터:", userData);
 
         if (userData && (userData.username || userData.email || userData.id)) {
           // User 인터페이스에 맞게 데이터 변환
@@ -143,18 +151,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error("fetchCurrentUser 에러:", error);
       setUser(null);
       setIsAuthenticated(false);
-      // 토큰 제거 (localStorage와 쿠키 모두)
-      try {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
-      } catch (storageError) {
-        console.warn("localStorage 접근 실패:", storageError);
-      }
-      // 쿠키에서도 토큰 제거
-      document.cookie =
-        "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-      document.cookie =
-        "refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+      // 안전한 토큰 제거 유틸리티 사용
+      safeRemoveItem("access_token");
+      safeRemoveItem("refresh_token");
       delete instance.defaults.headers.common["Authorization"];
     } finally {
       setIsLoading(false);

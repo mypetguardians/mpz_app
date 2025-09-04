@@ -5,6 +5,7 @@ import React from "react";
 import { CustomInput } from "@/components/ui/CustomInput";
 import { Container } from "@/components/common/Container";
 import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
+import { NotificationToast } from "@/components/ui/NotificationToast";
 import { useGetCenterProcedureQuestions } from "@/hooks/query";
 
 import { useAdoptionVerificationStore } from "@/lib/stores";
@@ -31,6 +32,15 @@ export function Step5({ onNext }: StepProps) {
   // 각 질문에 대한 답변을 저장할 상태
   const [answers, setAnswers] = React.useState<Record<string, string>>({});
 
+  // toast state
+  const [showToast, setShowToast] = React.useState(false);
+  const [toastMessage, setToastMessage] = React.useState("");
+
+  const showErrorToast = (message: string) => {
+    setToastMessage(message);
+    setShowToast(true);
+  };
+
   // 답변 변경 핸들러
   const handleAnswerChange = (questionId: string, value: string) => {
     setAnswers((prev) => ({
@@ -48,6 +58,20 @@ export function Step5({ onNext }: StepProps) {
     );
     return requiredQuestions.every((q) => answers[q.id]?.trim().length > 0);
   }, [questionsData, answers]);
+
+  const handleNext = () => {
+    if (!isAllRequiredAnswered) {
+      showErrorToast("모든 필수 질문에 답변해주세요.");
+      return;
+    }
+    try {
+      sessionStorage.setItem("verification.answers", JSON.stringify(answers));
+      onNext();
+    } catch (error) {
+      console.error("답변 저장 실패:", error);
+      showErrorToast("답변 저장에 실패했습니다. 다시 시도해주세요.");
+    }
+  };
 
   // 로딩 상태 처리
   if (isLoading) {
@@ -69,6 +93,11 @@ export function Step5({ onNext }: StepProps) {
         <p className="text-gray-600">
           질문을 불러올 수 없습니다. 다시 시도해주세요.
         </p>
+        <NotificationToast
+          message="질문을 불러오는 중 오류가 발생했습니다."
+          type="error"
+          onClose={() => {}}
+        />
       </Container>
     );
   }
@@ -113,9 +142,17 @@ export function Step5({ onNext }: StepProps) {
       <FixedBottomBar
         variant="variant1"
         primaryButtonText="확인"
-        onPrimaryButtonClick={onNext}
+        onPrimaryButtonClick={handleNext}
         primaryButtonDisabled={!isAllRequiredAnswered}
       />
+
+      {showToast && (
+        <NotificationToast
+          message={toastMessage}
+          type="error"
+          onClose={() => setShowToast(false)}
+        />
+      )}
     </>
   );
 }

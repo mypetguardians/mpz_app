@@ -7,6 +7,7 @@ import { Container } from "@/components/common/Container";
 import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
 import { FormListItem } from "@/components/ui/FormListItem";
 import { Toast } from "@/components/ui/Toast";
+import { NotificationToast } from "@/components/ui/NotificationToast";
 import { useAdoptionVerificationStore } from "@/lib/stores";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useSubmitAdoptionApplication } from "@/hooks/mutation/useSubmitAdoptionApplication";
@@ -26,8 +27,23 @@ export function Step7({}: StepProps) {
   const [agree, setAgree] = React.useState(false);
   const [showToast, setShowToast] = React.useState(false);
   const [toastMessage, setToastMessage] = React.useState("");
+  const [toastType, setToastType] = React.useState<"success" | "error">(
+    "success"
+  );
   const [isSubmitted, setIsSubmitted] = React.useState(false);
   const hasAutoSubmittedRef = React.useRef(false);
+
+  const showErrorToast = (message: string) => {
+    setToastMessage(message);
+    setToastType("error");
+    setShowToast(true);
+  };
+
+  const showSuccessToast = (message: string) => {
+    setToastMessage(message);
+    setToastType("success");
+    setShowToast(true);
+  };
 
   const isValid = agree;
 
@@ -56,7 +72,14 @@ export function Step7({}: StepProps) {
 
     // 동의서가 1개 이하인 경우 동의 체크 무시, 그 외에는 동의 필요
     const needsAgreement = activeConsents.length > 1;
-    if ((needsAgreement && !agree) || !animalId) {
+    if (needsAgreement && !agree) {
+      showErrorToast("동의서에 동의해주세요.");
+      setIsSubmitted(false);
+      return;
+    }
+    if (!animalId) {
+      showErrorToast("동물 정보를 찾을 수 없습니다.");
+      setIsSubmitted(false);
       return;
     }
 
@@ -67,7 +90,8 @@ export function Step7({}: StepProps) {
       const formData: AdoptionFormData = {
         // 기본 사용자 정보
         phone: /* adoptionStore.data.phone || "", */ "010-1234-5678",
-        phoneVerification: /* adoptionStore.data.phoneVerification || false */ true,
+        phoneVerification:
+          /* adoptionStore.data.phoneVerification || false */ true,
         name: adoptionStore.data.name || "",
         birth: adoptionStore.data.birth || "",
         address: adoptionStore.data.address || "",
@@ -95,8 +119,7 @@ export function Step7({}: StepProps) {
       await submitMutation.mutateAsync(formData);
 
       // 성공 시 처리
-      setToastMessage("입양 신청이 성공적으로 제출되었습니다!");
-      setShowToast(true);
+      showSuccessToast("입양 신청이 성공적으로 제출되었습니다!");
 
       // 스토어 초기화
       adoptionStore.resetStore();
@@ -107,10 +130,9 @@ export function Step7({}: StepProps) {
       }, 2000);
     } catch (error) {
       console.error("입양 신청 제출 실패:", error);
-      // setToastMessage(
-      //   "입양 신청 제출 중 오류가 발생했습니다. 다시 시도해주세요."
-      // );
-      setShowToast(true);
+      showErrorToast(
+        "입양 신청 제출 중 오류가 발생했습니다. 다시 시도해주세요."
+      );
       setIsSubmitted(false); // 실패 시 다시 제출 가능하도록
     }
   }, [
@@ -175,6 +197,11 @@ export function Step7({}: StepProps) {
         <p className="text-gray-600">
           동의서를 불러올 수 없습니다. 다시 시도해주세요.
         </p>
+        <NotificationToast
+          message="동의서를 불러오는 중 오류가 발생했습니다."
+          type="error"
+          onClose={() => {}}
+        />
       </Container>
     );
   }
@@ -239,7 +266,14 @@ export function Step7({}: StepProps) {
         primaryButtonDisabled={!isValid || submitMutation.isPending}
       />
 
-      {showToast && <Toast>{toastMessage}</Toast>}
+      {showToast && toastType === "success" && <Toast>{toastMessage}</Toast>}
+      {showToast && toastType === "error" && (
+        <NotificationToast
+          message={toastMessage}
+          type="error"
+          onClose={() => setShowToast(false)}
+        />
+      )}
     </>
   );
 }

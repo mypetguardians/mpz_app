@@ -5,6 +5,7 @@ import React from "react";
 import { Input } from "@/components/ui/CustomInput";
 import { Container } from "@/components/common/Container";
 import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
+import { NotificationToast } from "@/components/ui/NotificationToast";
 
 export interface StepProps {
   onNext: () => void;
@@ -29,9 +30,43 @@ export function Step3({ onNext }: StepProps) {
   const year = Number(birthDigits.slice(0, 4));
   const month = Number(birthDigits.slice(4, 6));
   const day = Number(birthDigits.slice(6, 8));
-  const isBirthValid = birthDigits.length === 8 && year >= 1900 && month >= 1 && month <= 12 && day >= 1 && day <= 31;
+  const isBirthValid =
+    birthDigits.length === 8 &&
+    year >= 1900 &&
+    month >= 1 &&
+    month <= 12 &&
+    day >= 1 &&
+    day <= 31;
   const isGenderValid = gender === "남" || gender === "여";
   const isValid = isBirthValid && isGenderValid;
+
+  // toast state
+  const [showToast, setShowToast] = React.useState(false);
+  const [toastMessage, setToastMessage] = React.useState("");
+
+  const showErrorToast = (message: string) => {
+    setToastMessage(message);
+    setShowToast(true);
+  };
+
+  const handleNext = () => {
+    if (!isBirthValid) {
+      showErrorToast("올바른 생년월일을 입력해주세요 (YYYYMMDD).");
+      return;
+    }
+    if (!isGenderValid) {
+      showErrorToast("성별을 선택해주세요.");
+      return;
+    }
+    try {
+      sessionStorage.setItem("verification.birth", birth);
+      sessionStorage.setItem("verification.gender", gender);
+      onNext();
+    } catch (error) {
+      console.error("생년월일/성별 저장 실패:", error);
+      showErrorToast("정보 저장에 실패했습니다. 다시 시도해주세요.");
+    }
+  };
 
   return (
     <>
@@ -59,7 +94,20 @@ export function Step3({ onNext }: StepProps) {
         </div>
       </Container>
 
-      <FixedBottomBar variant="variant1" primaryButtonText="확인" onPrimaryButtonClick={onNext} primaryButtonDisabled={!isValid} />
+      <FixedBottomBar
+        variant="variant1"
+        primaryButtonText="확인"
+        onPrimaryButtonClick={handleNext}
+        primaryButtonDisabled={!isValid}
+      />
+
+      {showToast && (
+        <NotificationToast
+          message={toastMessage}
+          type="error"
+          onClose={() => setShowToast(false)}
+        />
+      )}
     </>
   );
 }

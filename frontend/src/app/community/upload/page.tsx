@@ -39,12 +39,6 @@ type PublicType = "center" | "public";
 const uploadFormSchema = z.object({
   title: z.string().min(1, "제목을 입력해주세요"),
   content: z.string().min(1, "내용을 입력해주세요"),
-  selectedPet: z
-    .object({})
-    .nullable()
-    .refine((val) => val !== null, "관련 공고를 선택해주세요"),
-  uploadedImages: z.array(z.string()).optional(),
-  tags: z.array(z.string()).optional(),
 });
 
 export default function CommunityUploadPage() {
@@ -230,9 +224,6 @@ export default function CommunityUploadPage() {
     const formData = {
       title,
       content,
-      selectedPet,
-      uploadedImages: uploadedImageUrls,
-      tags,
     };
 
     try {
@@ -241,7 +232,7 @@ export default function CommunityUploadPage() {
     } catch {
       return false;
     }
-  }, [title, content, selectedPet, uploadedImageUrls, tags]);
+  }, [title, content]);
 
   const handleConfirmSave = async () => {
     try {

@@ -4,6 +4,7 @@ import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
 import instance from "@/lib/axios-instance";
+import Cookies from "js-cookie";
 
 function KakaoCallbackContent() {
   const router = useRouter();
@@ -83,8 +84,21 @@ function KakaoCallbackContent() {
         console.log("토큰 교환 응답:", response.data);
 
         if (response.data.access_token) {
+          // 쿠키와 로컬스토리지 모두에 저장 (사파리 호환성)
+          Cookies.set("access_token", response.data.access_token, {
+            secure: true,
+            sameSite: "lax", // 사파리 호환성
+            expires: 365 // 1년
+          });
           localStorage.setItem("access_token", response.data.access_token);
+          
           if (response.data.refresh_token) {
+            Cookies.set("refresh_token", response.data.refresh_token, {
+              secure: true,
+              sameSite: "lax",
+              expires: 730, // 2년
+              httpOnly: false // JS에서 접근 가능하도록 설정
+            });
             localStorage.setItem("refresh_token", response.data.refresh_token);
           }
 

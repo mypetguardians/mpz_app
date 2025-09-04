@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.db.models import Q
 from asgiref.sync import sync_to_async
 from typing import List
-from .models import Animal, AnimalMegaphone
+from .models import Animal, AnimalMegaphone, AnimalImage
 from animals.schemas.inbound import (
     AnimalCreateIn, AnimalUpdateIn, AnimalStatusUpdateIn,
     AnimalListQueryIn, MegaphoneToggleIn, RelatedAnimalsQueryIn
@@ -105,6 +105,30 @@ async def create_animal(request: HttpRequest, data: AnimalCreateIn):
         # DB에 동물 정보 삽입
         animal = await sync_to_async(Animal.objects.create)(**animal_data)
         
+        # 이미지 처리
+        animal_images = []
+        if data.image_urls:
+            @sync_to_async
+            def create_animal_images():
+                images = []
+                for idx, image_url in enumerate(data.image_urls):
+                    if image_url and image_url.strip():
+                        image = AnimalImage.objects.create(
+                            animal=animal,
+                            image_url=image_url.strip(),
+                            is_primary=(idx == 0),  # 첫 번째 이미지를 대표 이미지로 설정
+                            sequence=idx
+                        )
+                        images.append({
+                            "id": str(image.id),
+                            "image_url": image.image_url,
+                            "is_primary": image.is_primary,
+                            "sequence": image.sequence
+                        })
+                return images
+            
+            animal_images = await create_animal_images()
+        
         # 응답 데이터 변환
         response_data = AnimalOut(
             id=str(animal.id),
@@ -134,7 +158,7 @@ async def create_animal(request: HttpRequest, data: AnimalCreateIn):
             megaphone_count=animal.megaphone_count,
             is_megaphoned=False,  # 새로 생성된 동물은 기본값
             center_id=str(animal.center_id),
-            animal_images=[],
+            animal_images=animal_images,
             created_at=animal.created_at.isoformat(),
             updated_at=animal.updated_at.isoformat(),
             

@@ -4,6 +4,7 @@ import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
 import instance from "@/lib/axios-instance";
+import { safeSetItem, isIOSSafari, isPrivateMode } from "@/lib/storage-utils";
 
 function KakaoCallbackContent() {
   const router = useRouter();
@@ -13,6 +14,18 @@ function KakaoCallbackContent() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
+        // iOS Safari 및 Private 모드 감지
+        const isIOS = isIOSSafari();
+        const isPrivate = await isPrivateMode();
+
+        console.log("브라우저 환경:", { isIOS, isPrivate });
+
+        if (isIOS && isPrivate) {
+          console.warn(
+            "iOS Safari Private 모드에서 실행 중 - 쿠키 기반 저장 사용"
+          );
+        }
+
         const code = searchParams.get("code");
         const state = searchParams.get("state");
         const error = searchParams.get("error");
@@ -83,9 +96,10 @@ function KakaoCallbackContent() {
         console.log("토큰 교환 응답:", response.data);
 
         if (response.data.access_token) {
-          localStorage.setItem("access_token", response.data.access_token);
+          // iOS Safari 호환성을 위한 안전한 토큰 저장
+          safeSetItem("access_token", response.data.access_token, 86400); // 24시간
           if (response.data.refresh_token) {
-            localStorage.setItem("refresh_token", response.data.refresh_token);
+            safeSetItem("refresh_token", response.data.refresh_token, 2592000); // 30일
           }
 
           console.log("토큰 저장 완료");

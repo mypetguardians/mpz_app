@@ -20,10 +20,10 @@ export function KakaoLoginButton() {
         currentUrl !== "/kakao/login/callback" &&
         currentUrl !== "/login"
       ) {
-        // 쿠키에 현재 URL 저장 (1시간 유효)
+        // 쿠키에 현재 URL 저장 (1시간 유효) - iOS Safari 호환성 개선
         document.cookie = `redirect_after_login=${encodeURIComponent(
           currentUrl
-        )}; path=/; max-age=3600; SameSite=Lax`;
+        )}; path=/; max-age=3600; SameSite=None; Secure`;
       }
 
       // Django API 호출하여 카카오 로그인 URL 가져오기

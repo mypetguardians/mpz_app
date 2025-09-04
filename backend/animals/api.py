@@ -254,11 +254,31 @@ async def get_animals(request: HttpRequest, filters: AnimalListQueryIn = Query(A
         # 동물 목록 조회
         animals_list = await get_animals_list()
         
+        # 현재 사용자 정보 가져오기
+        current_user = None
+        if hasattr(request, 'auth') and request.auth:
+            current_user = request.auth
+            if hasattr(current_user, '__await__'):
+                current_user = await current_user
+        
         # 응답 데이터 변환
         animals_response = []
         for animal in animals_list:
             # 이미지 처리 (prefetch_related로 가져온 데이터 사용)
             images = list(animal.animalimage_set.all())
+            
+            # 현재 사용자의 확성기 상태 확인
+            is_megaphoned = False
+            if current_user:
+                try:
+                    from .models import AnimalMegaphone
+                    megaphone_exists = await AnimalMegaphone.objects.filter(
+                        user=current_user,
+                        animal=animal
+                    ).aexists()
+                    is_megaphoned = megaphone_exists
+                except Exception:
+                    is_megaphoned = False
             
             animal_data = AnimalOut(
                 id=str(animal.id),
@@ -286,7 +306,7 @@ async def get_animals(request: HttpRequest, filters: AnimalListQueryIn = Query(A
                 admission_date=animal.admission_date.isoformat() if animal.admission_date else None,
                 personality=animal.personality,
                 megaphone_count=animal.megaphone_count,
-                is_megaphoned=False,  # 목록 조회에서는 기본값
+                is_megaphoned=is_megaphoned,  # 사용자별 동적 상태
                 center_id=str(animal.center_id),
                 animal_images=[
                     {
@@ -406,6 +426,24 @@ async def get_animal_by_id(request: HttpRequest, animal_id: str):
         
         animal, images, is_megaphoned = result
         
+        # 현재 사용자의 확성기 상태 확인
+        is_megaphoned = False
+        if hasattr(request, 'auth') and request.auth:
+            current_user = request.auth
+            if hasattr(current_user, '__await__'):
+                current_user = await current_user
+            
+            # 사용자가 해당 동물에 확성기를 눌렀는지 확인
+            try:
+                from .models import AnimalMegaphone
+                megaphone_exists = await AnimalMegaphone.objects.filter(
+                    user=current_user,
+                    animal=animal
+                ).aexists()
+                is_megaphoned = megaphone_exists
+            except Exception:
+                is_megaphoned = False
+        
         response_data = AnimalOut(
             id=str(animal.id),
             name=animal.name,
@@ -432,7 +470,7 @@ async def get_animal_by_id(request: HttpRequest, animal_id: str):
             admission_date=animal.admission_date.isoformat() if animal.admission_date else None,
             personality=animal.personality,
             megaphone_count=animal.megaphone_count,
-            is_megaphoned=is_megaphoned,  # 사용자의 실제 메가폰 상태
+            is_megaphoned=is_megaphoned,  # 사용자별 동적 상태
             center_id=str(animal.center_id),
             animal_images=[
                 {

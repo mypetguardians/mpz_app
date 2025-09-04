@@ -52,7 +52,7 @@ class PublicDataService:
                     params['state'] = state
                 
                 async with httpx.AsyncClient() as client:
-                    response = await client.get(f"{self.BASE_URL}/abandonmentPublicService_v2/abandonmentPublic", params=params)
+                    response = await client.get(f"{self.BASE_URL}/abandonmentPublicService/abandonmentPublic", params=params)
                     
                     # 500 에러 처리
                     if response.status_code == 500:
@@ -94,7 +94,7 @@ class PublicDataService:
                     params['state'] = state
                 
                 async with httpx.AsyncClient() as client:
-                    response = await client.get(f"{self.BASE_URL}/abandonmentPublicService_v2/abandonmentPublic", params=params)
+                    response = await client.get(f"{self.BASE_URL}/abandonmentPublicService/abandonmentPublic", params=params)
                     response.raise_for_status()
                     
                     page_animals = self._parse_xml_response(response.text)

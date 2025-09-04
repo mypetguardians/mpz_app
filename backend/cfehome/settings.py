@@ -103,7 +103,7 @@ for origin in ENV_CORS_ALLOWED_ORIGINS.split(","):
 # cors & csrf
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SAMESITE = "None"
+SESSION_COOKIE_SAMESITE = config("SESSION_COOKIE_SAMESITE", default="None")
 CSRF_COOKIE_SAMESITE = "None"
 
 # Cookie settings

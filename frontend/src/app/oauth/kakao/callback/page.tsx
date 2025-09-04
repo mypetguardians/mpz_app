@@ -4,7 +4,12 @@ import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
 import instance from "@/lib/axios-instance";
-import { safeSetItem, isIOSSafari, isPrivateMode } from "@/lib/storage-utils";
+import {
+  safeSetItem,
+  safeGetItem,
+  isIOSSafari,
+  isPrivateMode,
+} from "@/lib/storage-utils";
 
 function KakaoCallbackContent() {
   const router = useRouter();
@@ -24,6 +29,28 @@ function KakaoCallbackContent() {
           console.warn(
             "iOS Safari Private 모드에서 실행 중 - 쿠키 기반 저장 사용"
           );
+        }
+
+        // iOS Safari에서 앱에서 돌아온 경우 추가 처리
+        if (isIOS) {
+          console.log("iOS Safari 환경에서 카카오 콜백 처리");
+
+          // 페이지 가시성 변경 이벤트 리스너 추가 (앱 전환 감지)
+          const handleVisibilityChange = () => {
+            if (!document.hidden) {
+              console.log("앱에서 브라우저로 돌아옴");
+            }
+          };
+
+          document.addEventListener("visibilitychange", handleVisibilityChange);
+
+          // 컴포넌트 언마운트 시 리스너 제거
+          return () => {
+            document.removeEventListener(
+              "visibilitychange",
+              handleVisibilityChange
+            );
+          };
         }
 
         const code = searchParams.get("code");
@@ -103,6 +130,31 @@ function KakaoCallbackContent() {
           }
 
           console.log("토큰 저장 완료");
+
+          // iOS Safari에서 토큰 저장 후 즉시 검증
+          if (isIOS) {
+            console.log("iOS Safari - 토큰 저장 검증 중...");
+
+            // 잠시 대기 후 토큰이 제대로 저장되었는지 확인
+            setTimeout(async () => {
+              const storedToken = safeGetItem("access_token");
+              if (!storedToken) {
+                console.error("토큰 저장 실패 감지, 재시도...");
+                // 토큰 재저장 시도
+                safeSetItem("access_token", response.data.access_token, 86400);
+                if (response.data.refresh_token) {
+                  safeSetItem(
+                    "refresh_token",
+                    response.data.refresh_token,
+                    2592000
+                  );
+                }
+              } else {
+                console.log("토큰 저장 검증 완료");
+              }
+            }, 100);
+          }
+
           await setUserFromToken();
         } else {
           throw new Error("토큰을 받지 못했습니다.");

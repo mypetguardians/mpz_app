@@ -103,6 +103,56 @@ export const isIOSSafari = (): boolean => {
 };
 
 /**
+ * 카카오톡 앱 설치 여부 감지 함수 (iOS Safari 환경)
+ */
+export const isKakaoTalkInstalled = (): Promise<boolean> => {
+  return new Promise((resolve) => {
+    if (!isIOSSafari()) {
+      resolve(false);
+      return;
+    }
+
+    // iOS Safari에서 카카오톡 앱 스키마 체크
+    const kakaoScheme = "kakaotalk://";
+    const iframe = document.createElement("iframe");
+    iframe.style.display = "none";
+    iframe.src = kakaoScheme;
+
+    // eslint-disable-next-line prefer-const
+    let timeout: NodeJS.Timeout | undefined;
+
+    const cleanup = () => {
+      if (timeout) {
+        clearTimeout(timeout);
+      }
+      document.body.removeChild(iframe);
+    };
+
+    // 앱이 설치되어 있으면 페이지가 백그라운드로 이동
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        cleanup();
+        resolve(true);
+        document.removeEventListener(
+          "visibilitychange",
+          handleVisibilityChange
+        );
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.body.appendChild(iframe);
+
+    // 1초 후에도 페이지가 여전히 활성화되어 있으면 앱이 설치되지 않은 것으로 판단
+    timeout = setTimeout(() => {
+      cleanup();
+      resolve(false);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    }, 1000);
+  });
+};
+
+/**
  * Private 브라우징 모드 감지 함수
  */
 export const isPrivateMode = async (): Promise<boolean> => {

@@ -2,6 +2,7 @@ import httpx
 import xml.etree.ElementTree as ET
 from datetime import datetime, date
 from typing import List, Dict, Optional
+from urllib.parse import urlencode
 from django.conf import settings
 from django.utils import timezone
 from .models import Animal, AnimalImage
@@ -51,8 +52,13 @@ class PublicDataService:
                 if state:
                     params['state'] = state
                 
+                # URL 직접 구성하여 &amp; 문제 해결
+                url = f"{self.BASE_URL}/abandonmentPublicService_v2/abandonmentPublic"
+                query_string = urlencode(params)
+                full_url = f"{url}?{query_string}"
+                
                 async with httpx.AsyncClient() as client:
-                    response = await client.get(f"{self.BASE_URL}/abandonmentPublicService_v2/abandonmentPublic", params=params)
+                    response = await client.get(full_url)
                     
                     # 500 에러 처리
                     if response.status_code == 500:
@@ -93,8 +99,13 @@ class PublicDataService:
                 if state:
                     params['state'] = state
                 
+                # URL 직접 구성하여 &amp; 문제 해결
+                url = f"{self.BASE_URL}/abandonmentPublicService_v2/abandonmentPublic"
+                query_string = urlencode(params)
+                full_url = f"{url}?{query_string}"
+                
                 async with httpx.AsyncClient() as client:
-                    response = await client.get(f"{self.BASE_URL}/abandonmentPublicService_v2/abandonmentPublic_v2", params=params)
+                    response = await client.get(full_url)
                     response.raise_for_status()
                     
                     page_animals = self._parse_xml_response(response.text)

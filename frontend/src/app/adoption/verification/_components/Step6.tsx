@@ -5,6 +5,7 @@ import React from "react";
 import { Container } from "@/components/common/Container";
 import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
 import { FormListItem } from "@/components/ui/FormListItem";
+import { NotificationToast } from "@/components/ui/NotificationToast";
 import { useGetCenterConsents } from "@/hooks/query";
 import { useAdoptionVerificationStore } from "@/lib/stores";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -26,6 +27,15 @@ export function Step6({ onNext }: StepProps) {
 
   const [agree, setAgree] = React.useState(false);
 
+  // toast state
+  const [showToast, setShowToast] = React.useState(false);
+  const [toastMessage, setToastMessage] = React.useState("");
+
+  const showErrorToast = (message: string) => {
+    setToastMessage(message);
+    setShowToast(true);
+  };
+
   // 활성화된 동의서들 필터링
   const activeConsents =
     consentsData?.filter((consent) => consent.is_active) || [];
@@ -37,12 +47,22 @@ export function Step6({ onNext }: StepProps) {
 
   // 다음 단계 처리 (동의서가 2개 이상이면 Step7로, 1개 이하면 Step7 건너뛰기)
   const handleNext = () => {
-    if (activeConsents.length <= 1) {
-      // 동의서가 1개 이하면 Step7을 건너뛰고 바로 제출 처리
-      onNext();
-    } else {
-      // 동의서가 2개 이상이면 Step7로 이동
-      onNext();
+    if (!agree) {
+      showErrorToast("동의서에 동의해주세요.");
+      return;
+    }
+    try {
+      sessionStorage.setItem("verification.firstConsentAgreed", "true");
+      if (activeConsents.length <= 1) {
+        // 동의서가 1개 이하면 Step7을 건너뛰고 바로 제출 처리
+        onNext();
+      } else {
+        // 동의서가 2개 이상이면 Step7로 이동
+        onNext();
+      }
+    } catch (error) {
+      console.error("동의 정보 저장 실패:", error);
+      showErrorToast("동의 정보 저장에 실패했습니다. 다시 시도해주세요.");
     }
   };
 
@@ -66,6 +86,11 @@ export function Step6({ onNext }: StepProps) {
         <p className="text-gray-600">
           동의서를 불러올 수 없습니다. 다시 시도해주세요.
         </p>
+        <NotificationToast
+          message="동의서를 불러오는 중 오류가 발생했습니다."
+          type="error"
+          onClose={() => {}}
+        />
       </Container>
     );
   }
@@ -115,6 +140,14 @@ export function Step6({ onNext }: StepProps) {
         onPrimaryButtonClick={handleNext}
         primaryButtonDisabled={!isValid}
       />
+
+      {showToast && (
+        <NotificationToast
+          message={toastMessage}
+          type="error"
+          onClose={() => setShowToast(false)}
+        />
+      )}
     </>
   );
 }

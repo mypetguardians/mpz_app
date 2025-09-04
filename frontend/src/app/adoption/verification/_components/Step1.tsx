@@ -5,6 +5,7 @@ import React from "react";
 import { Input } from "@/components/ui/CustomInput";
 import { Container } from "@/components/common/Container";
 import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
+import { NotificationToast } from "@/components/ui/NotificationToast";
 
 export interface StepProps {
   onNext: () => void;
@@ -35,6 +36,13 @@ export function Step1({ onNext }: StepProps) {
   const [expireAt, setExpireAt] = React.useState<number | null>(null);
   const [nowTs, setNowTs] = React.useState<number>(Date.now());
 
+  // toast state
+  const [showToast, setShowToast] = React.useState(false);
+  const [toastMessage, setToastMessage] = React.useState("");
+  const [toastType, setToastType] = React.useState<"success" | "error">(
+    "error"
+  );
+
   React.useEffect(() => {
     if (!expireAt) return;
     const id = setInterval(() => setNowTs(Date.now()), 300);
@@ -48,27 +56,64 @@ export function Step1({ onNext }: StepProps) {
     .padStart(2, "0");
   const countdown = expireAt ? `${remainMin}:${remainSec}` : undefined;
 
+  const showErrorToast = (message: string) => {
+    setToastMessage(message);
+    setToastType("error");
+    setShowToast(true);
+  };
+
   const requestOtp = async () => {
-    if (!isPhoneValid) return;
+    if (!isPhoneValid) {
+      showErrorToast("올바른 휴대폰 번호를 입력해주세요.");
+      return;
+    }
     try {
       sessionStorage.setItem("verification.phone", phoneDigits);
-    } catch {}
-    // TODO: 실제 OTP 발급 API 연동
-    setExpireAt(Date.now() + 3 * 60 * 1000);
-    setOtp("");
-    setStage("otp");
+      // TODO: 실제 OTP 발급 API 연동
+      setExpireAt(Date.now() + 3 * 60 * 1000);
+      setOtp("");
+      setStage("otp");
+    } catch (error) {
+      console.error("OTP 발급 실패:", error);
+      showErrorToast("인증번호 발송에 실패했습니다. 다시 시도해주세요.");
+    }
   };
 
   const verifyOtp = async () => {
-    if (otp.trim().length < 4) return;
-    // TODO: 실제 검증 API 연동
-    onNext();
+    if (otp.trim().length < 4) {
+      showErrorToast("인증번호를 입력해주세요.");
+      return;
+    }
+    if (remainMs <= 0) {
+      showErrorToast("인증번호가 만료되었습니다. 재전송해주세요.");
+      return;
+    }
+    try {
+      // TODO: 실제 검증 API 연동
+      // 임시로 성공 처리
+      onNext();
+    } catch (error) {
+      console.error("OTP 검증 실패:", error);
+      showErrorToast("인증번호가 올바르지 않습니다. 다시 확인해주세요.");
+    }
   };
 
   const resendOtp = async () => {
-    if (!isPhoneValid) return;
-    // TODO: 재전송 API 연동
-    setExpireAt(Date.now() + 3 * 60 * 1000);
+    if (!isPhoneValid) {
+      showErrorToast("올바른 휴대폰 번호를 입력해주세요.");
+      return;
+    }
+    try {
+      // TODO: 재전송 API 연동
+      setExpireAt(Date.now() + 3 * 60 * 1000);
+      setOtp("");
+      setToastMessage("인증번호를 재전송했습니다.");
+      setToastType("success");
+      setShowToast(true);
+    } catch (error) {
+      console.error("OTP 재전송 실패:", error);
+      showErrorToast("인증번호 재전송에 실패했습니다. 다시 시도해주세요.");
+    }
   };
 
   return (
@@ -120,6 +165,14 @@ export function Step1({ onNext }: StepProps) {
           stage === "phone" ? !isPhoneValid : otp.trim().length < 4
         }
       />
+
+      {showToast && (
+        <NotificationToast
+          message={toastMessage}
+          type={toastType}
+          onClose={() => setShowToast(false)}
+        />
+      )}
     </>
   );
 }

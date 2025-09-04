@@ -84,7 +84,7 @@ function NavBar() {
         url = "/community";
         break;
       case "like":
-        url = "/favorite/animal";
+        url = isAuthenticated ? "/favorite/animal" : "/login";
         break;
       case "my":
         url = isAuthenticated ? (isCenter ? "/centerpage" : "/my") : "/login";

@@ -4,6 +4,7 @@ import axios, {
   InternalAxiosRequestConfig,
 } from "axios";
 import Cookies from "js-cookie";
+import { safeGetItem } from "./storage-utils";
 
 const BASE_URL = "https://mpzfullstack-production.up.railway.app/v1/";
 
@@ -12,11 +13,11 @@ const instance: AxiosInstance = axios.create({
   withCredentials: true, // 쿠키 자동 전송을 위해 true로 변경
 });
 
-// header
+// header - iOS Safari 호환성을 위한 안전한 토큰 접근
 instance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // 로컬 스토리지에서 access_token 가져오기
-    const accessToken = Cookies.get("access");
+    // 안전한 토큰 가져오기 (localStorage 우선, 실패 시 쿠키)
+    const accessToken = safeGetItem("access_token") || Cookies.get("access");
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }

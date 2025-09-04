@@ -63,16 +63,26 @@ function MatchingLoadingContent() {
     }
   }, [resultParam, mutate]);
 
-  // 로딩 단계 애니메이션
+  // 로딩 단계 애니메이션 - pending 상태일 때만 실행
   useEffect(() => {
     if (!isPending) return;
+
     const interval = setInterval(() => {
       setCurrentStep((prev) =>
         prev < matchingSteps.length - 1 ? prev + 1 : prev
       );
     }, 8000); // 8초마다 다음 단계로
+
     return () => clearInterval(interval);
   }, [isPending]);
+
+  // pending이 끝나면 즉시 결과 페이지로 이동하거나 완료 상태 표시
+  useEffect(() => {
+    if (!isPending && currentStep > 0) {
+      // API 요청이 완료되면 마지막 단계로 설정 후 잠시 보여주고 이동
+      setCurrentStep(matchingSteps.length - 1);
+    }
+  }, [isPending, currentStep]);
 
   const stepData = matchingSteps[currentStep];
 

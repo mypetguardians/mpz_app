@@ -426,23 +426,7 @@ async def get_animal_by_id(request: HttpRequest, animal_id: str):
         
         animal, images, is_megaphoned = result
         
-        # 현재 사용자의 확성기 상태 확인
-        is_megaphoned = False
-        if hasattr(request, 'auth') and request.auth:
-            current_user = request.auth
-            if hasattr(current_user, '__await__'):
-                current_user = await current_user
-            
-            # 사용자가 해당 동물에 확성기를 눌렀는지 확인
-            try:
-                from .models import AnimalMegaphone
-                megaphone_exists = await AnimalMegaphone.objects.filter(
-                    user=current_user,
-                    animal=animal
-                ).aexists()
-                is_megaphoned = megaphone_exists
-            except Exception:
-                is_megaphoned = False
+        # 확성기 상태는 이미 get_animal_detail()에서 확인했으므로 중복 제거
         
         response_data = AnimalOut(
             id=str(animal.id),
@@ -945,7 +929,7 @@ async def sync_public_data(
     upkind: str = Query("417000", description="축종코드 (개: 417000, 고양이: 422400, 기타: 429900)"),
     state: str = Query(None, description="상태 (notice: 공고중, protect: 보호중)"),
     page_no: int = Query(1, description="페이지 번호"),
-    num_of_rows: int = Query(10, description="페이지당 보여줄 개수"),
+    num_of_rows: int = Query(1000, description="페이지당 보여줄 개수"),
     sync_strategy: str = Query("incremental", description="동기화 전략 (incremental: 최근 데이터만, full: 전체 데이터, status_check: 상태 체크만)")
 ):
     """공공데이터 API에서 유기동물 정보를 동기화합니다."""

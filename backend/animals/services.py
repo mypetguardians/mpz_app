@@ -38,7 +38,7 @@ class PublicDataService:
                     'serviceKey': self.service_key,
                     'upkind': upkind,
                     'pageNo': current_page,
-                    'numOfRows': min(num_of_rows, 100),  # 최대 100개로 제한
+                    'numOfRows': min(num_of_rows, 1000),  # 최대 100개로 제한
                     '_type': 'xml'
                 }
                 
@@ -94,7 +94,7 @@ class PublicDataService:
                     params['state'] = state
                 
                 async with httpx.AsyncClient() as client:
-                    response = await client.get(f"{self.BASE_URL}/abandonmentPublicService/abandonmentPublic", params=params)
+                    response = await client.get(f"{self.BASE_URL}/abandonmentPublicService_v2/abandonmentPublic_v2", params=params)
                     response.raise_for_status()
                     
                     page_animals = self._parse_xml_response(response.text)

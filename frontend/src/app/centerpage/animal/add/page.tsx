@@ -27,6 +27,7 @@ interface FormData {
     healthNotes: string;
     centerEntryDate: string;
     color: string;
+    imageUrls?: string[]; // 업로드된 이미지 URL들
   };
   detailInfo: {
     personality: {
@@ -147,17 +148,27 @@ export default function AddAnimal() {
         announcement_date: basicInfo.centerEntryDate || null,
         found_location: basicInfo.foundLocation || "",
         personality: basicInfo.personality || "",
+        // 업로드된 이미지 URL들 포함
+        image_urls: basicInfo.imageUrls || [],
       };
 
       const createdAnimal = await createAnimalMutation.mutateAsync(requestData);
 
-      if (formData.images.length > 0) {
+      // BasicInfo에서 이미 이미지가 업로드되었으므로 중복 업로드 제거
+      // 만약 로컬 파일이 남아있다면 (업로드되지 않은 이미지) 추가 업로드
+      const unuploadedImages = formData.images.filter(
+        (_, index) => !basicInfo.imageUrls || !basicInfo.imageUrls[index]
+      );
+
+      if (unuploadedImages.length > 0) {
+        console.log(`${unuploadedImages.length}개의 추가 이미지 업로드 중...`);
         await uploadImagesMutation.mutateAsync({
           postId: createdAnimal.id,
-          images: formData.images,
+          images: unuploadedImages,
         });
       }
 
+      console.log("동물 등록 완료, 리스트 페이지로 이동");
       router.push("/centerpage/animal");
     } catch (error) {
       console.error("동물 등록 실패:", error);

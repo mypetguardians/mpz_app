@@ -34,7 +34,6 @@ import {
 import { useGetMyProfile } from "@/hooks/query/useGetMyProfile";
 import { useAdoptionVerificationStore } from "@/lib/stores";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { Toast } from "@/components/ui/Toast";
 import { NotificationToast } from "@/components/ui/NotificationToast";
 import { CustomModal } from "@/components/ui/CustomModal";
 import { BottomSheet } from "@/components/ui/BottomSheet";
@@ -124,6 +123,7 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
   // 토스트 상태
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState<"success" | "error">("success");
 
   // 로그인 유도 모달 상태
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -160,11 +160,13 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
           setToastMessage(
             isFavorited ? "찜이 추가되었습니다" : "찜이 취소되었습니다"
           );
+          setToastType("success");
           setShowToast(true);
         },
         onError: (error) => {
           setLocalIsFavorited(currentState);
           setToastMessage("찜하기 처리 중 오류가 발생했습니다");
+          setToastType("error");
           setShowToast(true);
           console.error(error);
         },
@@ -193,11 +195,13 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
           setToastMessage(
             isMegaphonedFromApi ? "추천되었습니다" : "추천이 취소되었습니다"
           );
+          setToastType("success");
           setShowToast(true);
         },
         onError: (error) => {
           setIsMegaphoned(currentState);
           setToastMessage("추천하기 처리 중 오류가 발생했습니다");
+          setToastType("error");
           setShowToast(true);
           console.error(error);
         },
@@ -526,7 +530,13 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
         onRightIcon2Click={handleFavoriteToggle}
       />
 
-      {showToast && <Toast>{toastMessage}</Toast>}
+      {showToast && (
+        <NotificationToast
+          message={toastMessage}
+          type={toastType}
+          onClose={() => setShowToast(false)}
+        />
+      )}
 
       {showShareBottomSheet && animal && (
         <CustomModal

@@ -10,12 +10,14 @@ import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
 import { ImageCard } from "@/components/ui/ImageCard";
 import { CustomInput } from "@/components/ui/CustomInput";
+import { SearchInput } from "@/components/ui/SearchInput";
 import { BigButton } from "@/components/ui/BigButton";
 import { InfoCard } from "@/components/ui/InfoCard";
 import { Toast } from "@/components/ui/Toast";
 import { useGetMyCenter } from "@/hooks/query/useGetMyCenter";
 import { useUpdateCenterSettings } from "@/hooks/mutation/useUpdateCenterSettings";
 import { useUploadSingleImage } from "@/hooks/mutation/useUploadSingleImage";
+import { openKakaoAddress } from "@/lib/openKakaoAddress";
 
 export default function CenterSettingName() {
   const router = useRouter();
@@ -202,6 +204,12 @@ export default function CenterSettingName() {
     }
   };
 
+  const handleAddressSearch = () => {
+    openKakaoAddress((selectedAddress) => {
+      setAddress(selectedAddress);
+    });
+  };
+
   if (isLoading) {
     return (
       <Container className="min-h-screen relative">
@@ -291,12 +299,12 @@ export default function CenterSettingName() {
           <h5 className="text-dg">
             보호센터 주소 <span className="text-brand">*</span>
           </h5>
-          <CustomInput
-            variant="primary"
+          <SearchInput
+            variant="variant2"
             placeholder="보호센터 주소를 입력해주세요."
-            required={true}
             value={address}
             onChange={(e) => setAddress(e.target.value)}
+            onSearch={handleAddressSearch}
           />
           {isSubscriber && (
             <CustomInput

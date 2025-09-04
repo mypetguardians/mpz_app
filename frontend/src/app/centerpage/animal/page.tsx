@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowLeft } from "@phosphor-icons/react";
+import { useState, useEffect } from "react";
+import { ArrowLeft, ArrowsClockwise } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -15,14 +15,17 @@ import { useGetMyCenterAnimals } from "@/hooks/query";
 import { useGetMyCenter } from "@/hooks/query";
 import type { Animal } from "@/types/animal";
 import { NotificationToast } from "@/components/ui/NotificationToast";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function CenterAnimal() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState<"success" | "error">("success");
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const {
     data: centerData,
     isLoading: centerLoading,
@@ -31,7 +34,7 @@ export default function CenterAnimal() {
 
   const shouldFetchAnimals = !centerLoading && !!centerData?.id;
 
-  const { data, isLoading, error } = useGetMyCenterAnimals(
+  const { data, isLoading, error, refetch } = useGetMyCenterAnimals(
     {
       page: currentPage,
       breed: searchTerm || undefined,
@@ -41,6 +44,42 @@ export default function CenterAnimal() {
       enabled: shouldFetchAnimals,
     }
   );
+
+  // 페이지 포커스 시 데이터 새로고침
+  useEffect(() => {
+    const handleFocus = () => {
+      if (shouldFetchAnimals) {
+        console.log("페이지 포커스 - 동물 데이터 새로고침");
+        refetch();
+      }
+    };
+
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [shouldFetchAnimals, refetch]);
+
+  // 수동 새로고침 함수
+  const handleRefresh = async () => {
+    if (!shouldFetchAnimals) return;
+
+    setIsRefreshing(true);
+    try {
+      // 캐시 무효화 후 다시 가져오기
+      await queryClient.invalidateQueries({ queryKey: ["myCenterAnimals"] });
+      await refetch();
+
+      setToastMessage("동물 목록이 새로고침되었습니다!");
+      setToastType("success");
+      setShowToast(true);
+    } catch (error) {
+      console.error("새로고침 실패:", error);
+      setToastMessage("새로고침에 실패했습니다.");
+      setToastType("error");
+      setShowToast(true);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const handleAdoptionClick = (pet: Animal) => {
     const animalUrl = `${window.location.origin}/list/animal/${pet.id}`;
@@ -109,6 +148,15 @@ export default function CenterAnimal() {
             />
             <h4>동물 관리</h4>
           </div>
+        }
+        right={
+          <IconButton
+            icon={({ size }) => <ArrowsClockwise size={size} weight="bold" />}
+            size="iconM"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className={`${isRefreshing ? "animate-spin opacity-50" : ""}`}
+          />
         }
       />
       <div className="flex flex-col gap-4 px-4">

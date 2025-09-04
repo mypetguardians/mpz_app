@@ -1,12 +1,15 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ImageCard } from "@/components/ui/ImageCard";
 import { CustomInput } from "@/components/ui/CustomInput";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { AddButton } from "@/components/ui/AddButton";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { breed } from "@/app/mock";
+import { useUploadAnimalImages } from "@/hooks/mutation/useUploadAnimalImages";
+import { openKakaoAddress } from "@/lib/openKakaoAddress";
+import { NotificationToast } from "@/components/ui/NotificationToast";
 
 interface BasicInfoData {
   status: string;
@@ -21,6 +24,7 @@ interface BasicInfoData {
   specialNotes: string;
   healthNotes: string;
   centerEntryDate: string;
+  imageUrls?: string[]; // 업로드된 이미지 URL들
 }
 
 interface BasicInfoProps {
@@ -41,6 +45,22 @@ export default function BasicInfo({
   const [tempSelectedBreed, setTempSelectedBreed] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [extraFeatures, setExtraFeatures] = useState<string[]>([]);
+  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+
+  // 토스트 상태
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState<"success" | "error">("success");
+
+  const uploadAnimalImages = useUploadAnimalImages();
+
+  // 기존 이미지 URL이 있을 때 초기화
+  useEffect(() => {
+    if (data.imageUrls && data.imageUrls.length > 0) {
+      setUploadedImageUrls(data.imageUrls);
+    }
+  }, [data.imageUrls]);
 
   const handleBreedSearchClick = () => {
     setTempSelectedBreed(data.breed);
@@ -67,33 +87,95 @@ export default function BasicInfo({
     }
   };
 
-  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const files = event.target.files;
     if (files && files.length > 0) {
       const newImages = Array.from(files);
       const totalImages = images.length + newImages.length;
+
+      let imagesToUpload: File[] = [];
+
       if (totalImages <= 5) {
+        imagesToUpload = newImages;
         onImagesChange([...images, ...newImages]);
       } else {
         const remainingSlots = 5 - images.length;
         if (remainingSlots > 0) {
-          onImagesChange([...images, ...newImages.slice(0, remainingSlots)]);
-          alert(
-            `최대 5장까지만 업로드할 수 있습니다. ${remainingSlots}장만 추가되었습니다.`
+          imagesToUpload = newImages.slice(0, remainingSlots);
+          onImagesChange([...images, ...imagesToUpload]);
+          showToastMessage(
+            `최대 5장까지만 업로드할 수 있습니다. ${remainingSlots}장만 추가되었습니다.`,
+            "error"
           );
         } else {
-          alert("최대 5장까지만 업로드할 수 있습니다.");
+          showToastMessage("최대 5장까지만 업로드할 수 있습니다.", "error");
+          return;
+        }
+      }
+
+      // 이미지 서버에 업로드
+      if (imagesToUpload.length > 0) {
+        setIsUploading(true);
+        try {
+          const result = await uploadAnimalImages.mutateAsync({
+            images: imagesToUpload,
+          });
+
+          const newUrls = [...uploadedImageUrls, ...result.images];
+          setUploadedImageUrls(newUrls);
+          onChange({ imageUrls: newUrls });
+        } catch (error) {
+          console.error("이미지 업로드 실패:", error);
+          showToastMessage(
+            "이미지 업로드에 실패했습니다. 다시 시도해주세요.",
+            "error"
+          );
+
+          // 업로드 실패 시 로컬 이미지도 제거
+          const failedImages = imagesToUpload;
+          const updatedImages = images.filter(
+            (img) => !failedImages.includes(img)
+          );
+          onImagesChange(updatedImages);
+        } finally {
+          setIsUploading(false);
         }
       }
     }
   };
 
   const handleRemoveImage = (index: number) => {
+    // 로컬 이미지 제거
     onImagesChange(images.filter((_, i) => i !== index));
+
+    // 업로드된 URL도 제거
+    if (uploadedImageUrls[index]) {
+      const newUrls = uploadedImageUrls.filter((_, i) => i !== index);
+      setUploadedImageUrls(newUrls);
+      onChange({ imageUrls: newUrls });
+    }
   };
 
   const getImagePreview = (file: File): string => {
     return URL.createObjectURL(file);
+  };
+
+  const handleFoundLocationSearch = () => {
+    openKakaoAddress((selectedAddress) => {
+      onChange({ foundLocation: selectedAddress });
+    });
+  };
+
+  const showToastMessage = (
+    message: string,
+    type: "success" | "error" = "success"
+  ) => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
   };
 
   return (
@@ -122,9 +204,26 @@ export default function BasicInfo({
             />
           ))}
           {images.length < 5 && (
-            <ImageCard variant="add" onClick={handleAddImage} />
+            <ImageCard
+              variant="add"
+              onClick={isUploading ? undefined : handleAddImage}
+            />
           )}
         </div>
+
+        {/* 업로드 상태 표시 */}
+        {isUploading && (
+          <div className="flex items-center gap-2 text-sm text-blue-600">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+            <span>이미지 업로드 중...</span>
+          </div>
+        )}
+
+        {uploadedImageUrls.length > 0 && (
+          <div className="text-sm text-green-600">
+            ✓ {uploadedImageUrls.length}장의 이미지가 업로드되었습니다.
+          </div>
+        )}
 
         <CustomInput
           variant="tagdropdown"
@@ -187,7 +286,6 @@ export default function BasicInfo({
           value={data.weight}
           onChange={(e) => {
             const value = e.target.value.replace(/[^0-9.]/g, ""); // 숫자와 소수점만 허용
-            // 소수점이 2개 이상 있는 경우 방지
             const dotCount = (value.match(/\./g) || []).length;
             if (dotCount <= 1) {
               const numValue = parseFloat(value);
@@ -210,13 +308,18 @@ export default function BasicInfo({
           onChange={(e) => onChange({ color: e.target.value })}
           required={true}
         />
-        <CustomInput
-          variant="primary"
-          label="발견장소"
-          placeholder="확실하지 않다면 추정으로 입력해주세요."
-          value={data.foundLocation}
-          onChange={(e) => onChange({ foundLocation: e.target.value })}
-        />
+        <div className="flex flex-col gap-2">
+          <h5 className="text-dg">발견장소</h5>
+          <div onClick={handleFoundLocationSearch} className="cursor-pointer">
+            <SearchInput
+              variant="variant2"
+              placeholder="확실하지 않다면 추정으로 입력해주세요."
+              value={data.foundLocation}
+              onChange={(e) => onChange({ foundLocation: e.target.value })}
+              onSearch={handleFoundLocationSearch}
+            />
+          </div>
+        </div>
         <CustomInput
           variant="primary"
           label="성격"
@@ -310,6 +413,15 @@ export default function BasicInfo({
           </div>
         </div>
       </BottomSheet>
+
+      {/* 토스트 메시지 */}
+      {showToast && (
+        <NotificationToast
+          message={toastMessage}
+          type={toastType}
+          onClose={() => setShowToast(false)}
+        />
+      )}
     </>
   );
 }

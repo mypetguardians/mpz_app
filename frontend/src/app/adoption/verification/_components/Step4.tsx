@@ -7,6 +7,7 @@ import { SearchInput } from "@/components/ui/SearchInput";
 import { InfoCard } from "@/components/ui/InfoCard";
 import { Container } from "@/components/common/Container";
 import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
+import { openKakaoAddress } from "@/lib/openKakaoAddress";
 
 export interface StepProps {
   onNext: () => void;
@@ -15,6 +16,12 @@ export interface StepProps {
 export function Step4({ onNext }: StepProps) {
   const [address, setAddress] = React.useState("");
   const [visibility, setVisibility] = React.useState("");
+
+  const handleAddressSearch = () => {
+    openKakaoAddress((selectedAddress) => {
+      setAddress(selectedAddress);
+    });
+  };
 
   const isAddressValid = address.trim().length > 0;
   const isVisibilityValid =
@@ -33,6 +40,7 @@ export function Step4({ onNext }: StepProps) {
               placeholder="도로명 주소로 검색해주세요."
               value={address}
               onChange={(e) => setAddress(e.target.value)}
+              onSearch={handleAddressSearch}
             />
             <Input
               variant="Variant7"

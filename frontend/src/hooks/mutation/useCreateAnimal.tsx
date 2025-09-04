@@ -1,5 +1,4 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import instance from "@/lib/axios-instance";
 
 interface CreateAnimalData {
@@ -56,7 +55,6 @@ interface CreateAnimalResponse {
 
 export const useCreateAnimal = () => {
   const queryClient = useQueryClient();
-  const router = useRouter();
 
   return useMutation<CreateAnimalResponse, Error, CreateAnimalData>({
     mutationFn: async (data: CreateAnimalData) => {
@@ -67,11 +65,15 @@ export const useCreateAnimal = () => {
       return response.data;
     },
     onSuccess: () => {
-      // 동물 목록 캐시 무효화
+      // 모든 동물 관련 캐시 무효화
       queryClient.invalidateQueries({ queryKey: ["animals"] });
+      queryClient.invalidateQueries({ queryKey: ["myCenterAnimals"] });
+      queryClient.invalidateQueries({ queryKey: ["relatedAnimals"] });
 
-      // 성공 후 동물 목록 페이지로 이동
-      router.push("/centerpage/animal");
+      // 센터 관련 캐시도 무효화 (통계 등)
+      queryClient.invalidateQueries({ queryKey: ["center"] });
+
+      console.log("동물 등록 성공 - 캐시 무효화 완료");
     },
     onError: (error) => {
       console.error("동물 등록 실패:", error);

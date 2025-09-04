@@ -1,10 +1,10 @@
+/* eslint-disable prefer-const */
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import instance from "@/lib/axios-instance";
-import { safeGetItem, safeRemoveItem } from "@/lib/storage-utils";
 import {
   User,
   LoginResponse,
@@ -76,20 +76,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // 세션 토큰으로 사용자 정보 가져오기 - iOS Safari 호환성 개선
   const fetchCurrentUser = async () => {
     try {
-      // 토큰 확인 (안전한 스토리지 유틸리티 사용)
-      const accessToken = safeGetItem("access_token");
-
-      console.log(
-        "fetchCurrentUser - 토큰 확인:",
-        accessToken ? "토큰 있음" : "토큰 없음"
-      );
-
-      // axios 인터셉터가 자동으로 토큰을 추가하므로 여기서는 제거
-      // if (accessToken) {
-      //   instance.defaults.headers.common[
-      //     "Authorization"
-      //   ] = `Bearer ${accessToken}`;
-      // }
+      // 쿠키와 로컬 스토리지 모두에서 토큰 확인 (사파리 호환성)
+      let accessToken =
+        Cookies.get("access_token") || localStorage.getItem("access_token");
+      if (accessToken) {
+        instance.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${accessToken}`;
+      }
 
       const response = await instance.get("/auth/me");
 
@@ -128,9 +122,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log("401 에러 - 인증되지 않은 사용자");
         setUser(null);
         setIsAuthenticated(false);
-        // 안전한 토큰 제거 유틸리티 사용
-        safeRemoveItem("access_token");
-        safeRemoveItem("refresh_token");
+        // 토큰 제거 (쿠키와 로컬스토리지 모두)
+        Cookies.remove("access_token");
+        Cookies.remove("refresh_token");
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
         delete instance.defaults.headers.common["Authorization"];
       } else {
         // 기타 서버 오류
@@ -142,9 +138,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error("fetchCurrentUser 에러:", error);
       setUser(null);
       setIsAuthenticated(false);
-      // 안전한 토큰 제거 유틸리티 사용
-      safeRemoveItem("access_token");
-      safeRemoveItem("refresh_token");
+      // 토큰 제거 (쿠키와 로컬스토리지 모두)
+      Cookies.remove("access_token");
+      Cookies.remove("refresh_token");
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
       delete instance.defaults.headers.common["Authorization"];
     } finally {
       setIsLoading(false);
@@ -179,9 +177,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         document.cookie =
           "better-auth.session_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
-        // 안전한 토큰 제거 유틸리티 사용
-        safeRemoveItem("access_token");
-        safeRemoveItem("refresh_token");
+        // 토큰 제거 (쿠키와 로컬스토리지 모두)
+        Cookies.remove("access_token");
+        Cookies.remove("refresh_token");
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
         delete instance.defaults.headers.common["Authorization"];
 
         // 사용자 상태 초기화
@@ -258,9 +258,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsAuthenticated(false);
         setIsLoading(false);
         setIsLoggingIn(false);
-        // 안전한 토큰 제거 유틸리티 사용
-        safeRemoveItem("access_token");
-        safeRemoveItem("refresh_token");
+        // 토큰 제거 (쿠키와 로컬스토리지 모두)
+        Cookies.remove("access_token");
+        Cookies.remove("refresh_token");
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
         delete instance.defaults.headers.common["Authorization"];
       } else {
         console.log("setUserFromToken 실패:", response.statusText);

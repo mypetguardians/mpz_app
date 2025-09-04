@@ -105,23 +105,27 @@ def set_cookie_jwt(response, access, refresh, access_exp, refresh_exp, reset=Non
     secure = getattr(settings, 'SESSION_COOKIE_SECURE', True)
     samesite = getattr(settings, 'SESSION_COOKIE_SAMESITE', 'Lax')
 
+    # 사파리 호환성을 위해 SameSite=Lax 사용
+    if samesite == "None":
+        samesite = "Lax"
+
     response.set_cookie(
-        key="access",
+        key="access_token",  # 프론트엔드와 일치시킴
         value=access,
         expires=access_exp,
         secure=secure,
         samesite=samesite,
-        httponly=False,
+        httponly=False,  # JavaScript에서 접근 가능하도록
         domain=domain,
     )
 
     response.set_cookie(
-        key="refresh",
+        key="refresh_token",  # 프론트엔드와 일치시킴
         value=refresh,
         expires=refresh_exp,
         secure=secure,
         samesite=samesite,
-        httponly=True,
+        httponly=True,  # 보안을 위해 HttpOnly 유지
         domain=domain,
     )
 

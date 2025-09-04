@@ -1,5 +1,5 @@
 from ninja import Schema, Field
-from typing import Optional
+from typing import Optional, List
 from datetime import date
 from decimal import Decimal
 
@@ -28,6 +28,16 @@ class AnimalCreateIn(Schema):
     found_location: Optional[str] = Field(None, max_length=200, description="발견 장소")
     personality: Optional[str] = Field(None, max_length=500, description="성격")
     comment: Optional[str] = Field(None, max_length=1000, description="공공데이터 특이사항 코멘트")
+    
+    # 이미지 관련 필드
+    image_urls: Optional[List[str]] = Field(None, description="동물 이미지 URL 목록")
+
+
+class AnimalImageCreateIn(Schema):
+    """동물 이미지 생성 입력 스키마"""
+    image_url: str = Field(..., max_length=500, description="이미지 URL")
+    is_primary: Optional[bool] = Field(False, description="대표 이미지 여부")
+    sequence: Optional[int] = Field(0, description="이미지 순서")
 
 
 class AnimalUpdateIn(Schema):

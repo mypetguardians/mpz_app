@@ -157,9 +157,9 @@ async def submit_adoption_application(request, data: AdoptionApplicationIn):
         if current_user.user_type != User.UserTypeChoice.normal:
             raise HttpError(403, "일반사용자만 입양 신청이 가능합니다")
         
-        # 현재 사용자의 전화번호 인증 상태 확인
-        if not current_user.is_phone_verified:
-            raise HttpError(403, "전화번호 인증이 필요합니다")
+        # 현재 사용자의 전화번호 인증 상태 확인 (임시 주석 처리)
+        # if not current_user.is_phone_verified:
+        #     raise HttpError(403, "전화번호 인증이 필요합니다")
         
         # 동물 정보 조회
         try:

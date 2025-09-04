@@ -15,6 +15,36 @@ from ai.tools import (
     get_available_animals,
 )
 from favorites.models import PersonalityTest
+from animals.models import Animal
+
+
+def sanitize_recommendations(ai_result):
+    """AI 추천 결과의 동물 정보를 실제 DB 값으로 검증 및 덮어쓰기"""
+    for rec in ai_result.get("animal_recommendations", []):
+        db_animal = Animal.objects.filter(id=rec["animal_id"]).first()
+        if db_animal:
+            # DB 값으로 덮어쓰기 (이름, 품종 등 모든 필드)
+            rec["animal_name"] = db_animal.name
+            rec["animal_type"] = db_animal.animal_type
+            rec["breed"] = db_animal.breed
+            rec["age"] = db_animal.age
+            rec["gender"] = "수컷" if not db_animal.is_female else "암컷"
+            rec["personality"] = db_animal.personality
+            rec["sensitivity"] = db_animal.sensitivity
+            rec["sociability"] = db_animal.sociability
+            rec["activity_level"] = db_animal.activity_level
+            rec["separation_anxiety"] = db_animal.separation_anxiety
+            rec["basic_training"] = db_animal.basic_training
+            rec["center_name"] = db_animal.center.name if db_animal.center else None
+            rec["adoption_fee"] = db_animal.adoption_fee
+            rec["description"] = db_animal.description
+            rec["health_notes"] = db_animal.health_notes
+            rec["special_needs"] = db_animal.special_needs
+        else:
+            # 존재하지 않는 동물 ID인 경우 로그나 처리
+            print(f"Warning: Animal ID {rec.get('animal_id')} not found in database")
+    
+    return ai_result
 
 
 @sync_to_async
@@ -51,7 +81,12 @@ def run_agent_recommendation(target_user_id: str, limit: int):
             if json_match:
                 json_str = json_match.group()
                 parsed_response = parser.parse(json_str)
-                return parsed_response.dict()
+                ai_result = parsed_response.dict()
+                
+                # AI 결과의 동물 정보를 실제 DB 값으로 검증 및 덮어쓰기
+                sanitized_result = sanitize_recommendations(ai_result)
+                
+                return sanitized_result
             else:
                 # JSON 형태가 아닌 경우 raw 응답 반환
                 return {

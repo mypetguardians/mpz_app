@@ -230,8 +230,16 @@ async def update_me(request, data: UserUpdateIn):
         
         logger.info(f"Updating user {user.id} with data: {data_dict}")
         
-        # 빈 값들을 필터링해서 업데이트
-        update_data = {k: v for k, v in data_dict.items() if v is not None and v != ""}
+        # null 값과 빈 문자열을 제외하고 업데이트할 데이터만 필터링
+        # null이 아닌 값만 업데이트하고, null이거나 빈 문자열인 경우 해당 필드는 수정하지 않음
+        update_data = {}
+        for key, value in data_dict.items():
+            if value is not None and value != "":
+                # nickname이 빈 문자열이 아닌 경우 추가 검증
+                if key == "nickname" and len(value.strip()) == 0:
+                    continue  # 빈 nickname은 무시
+                update_data[key] = value
+        
         logger.info(f"Filtered update data: {update_data}")
         
         if update_data:

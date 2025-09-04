@@ -5,12 +5,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
 import instance from "@/lib/axios-instance";
 import {
-  safeSetItem,
   safeGetItem,
   isIOSSafari,
   isPrivateMode,
   setSafeCookieForSafari,
 } from "@/lib/storage-utils";
+import Cookies from "js-cookie";
 
 function KakaoCallbackContent() {
   const router = useRouter();
@@ -153,17 +153,22 @@ function KakaoCallbackContent() {
         console.log("토큰 교환 응답:", response.data);
 
         if (response.data.access_token) {
-          // iOS Safari 호환성을 위한 안전한 토큰 저장
-          console.log("📥 토큰 저장 시작:", {
-            access_token: response.data.access_token
-              ? `${response.data.access_token.substring(0, 10)}...`
-              : "없음",
-            refresh_token: response.data.refresh_token ? "있음" : "없음",
+          // 쿠키와 로컬스토리지 모두에 저장 (사파리 호환성)
+          Cookies.set("access_token", response.data.access_token, {
+            secure: true,
+            sameSite: "lax", // 사파리 호환성
+            expires: 365, // 1년
           });
+          localStorage.setItem("access_token", response.data.access_token);
 
-          safeSetItem("access_token", response.data.access_token, 86400); // 24시간
           if (response.data.refresh_token) {
-            safeSetItem("refresh_token", response.data.refresh_token, 2592000); // 30일
+            Cookies.set("refresh_token", response.data.refresh_token, {
+              secure: true,
+              sameSite: "lax",
+              expires: 730, // 2년
+              httpOnly: false, // JS에서 접근 가능하도록 설정
+            });
+            localStorage.setItem("refresh_token", response.data.refresh_token);
           }
 
           // 저장 즉시 검증

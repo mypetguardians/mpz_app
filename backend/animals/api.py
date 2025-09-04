@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.db.models import Q
 from asgiref.sync import sync_to_async
 from typing import List
-from .models import Animal, AnimalMegaphone
+from .models import Animal, AnimalMegaphone, AnimalImage
 from animals.schemas.inbound import (
     AnimalCreateIn, AnimalUpdateIn, AnimalStatusUpdateIn,
     AnimalListQueryIn, MegaphoneToggleIn, RelatedAnimalsQueryIn
@@ -105,6 +105,30 @@ async def create_animal(request: HttpRequest, data: AnimalCreateIn):
         # DB에 동물 정보 삽입
         animal = await sync_to_async(Animal.objects.create)(**animal_data)
         
+        # 이미지 처리
+        animal_images = []
+        if data.image_urls:
+            @sync_to_async
+            def create_animal_images():
+                images = []
+                for idx, image_url in enumerate(data.image_urls):
+                    if image_url and image_url.strip():
+                        image = AnimalImage.objects.create(
+                            animal=animal,
+                            image_url=image_url.strip(),
+                            is_primary=(idx == 0),  # 첫 번째 이미지를 대표 이미지로 설정
+                            sequence=idx
+                        )
+                        images.append({
+                            "id": str(image.id),
+                            "image_url": image.image_url,
+                            "is_primary": image.is_primary,
+                            "sequence": image.sequence
+                        })
+                return images
+            
+            animal_images = await create_animal_images()
+        
         # 응답 데이터 변환
         response_data = AnimalOut(
             id=str(animal.id),
@@ -134,7 +158,7 @@ async def create_animal(request: HttpRequest, data: AnimalCreateIn):
             megaphone_count=animal.megaphone_count,
             is_megaphoned=False,  # 새로 생성된 동물은 기본값
             center_id=str(animal.center_id),
-            animal_images=[],
+            animal_images=animal_images,
             created_at=animal.created_at.isoformat(),
             updated_at=animal.updated_at.isoformat(),
             
@@ -230,11 +254,31 @@ async def get_animals(request: HttpRequest, filters: AnimalListQueryIn = Query(A
         # 동물 목록 조회
         animals_list = await get_animals_list()
         
+        # 현재 사용자 정보 가져오기
+        current_user = None
+        if hasattr(request, 'auth') and request.auth:
+            current_user = request.auth
+            if hasattr(current_user, '__await__'):
+                current_user = await current_user
+        
         # 응답 데이터 변환
         animals_response = []
         for animal in animals_list:
             # 이미지 처리 (prefetch_related로 가져온 데이터 사용)
             images = list(animal.animalimage_set.all())
+            
+            # 현재 사용자의 확성기 상태 확인
+            is_megaphoned = False
+            if current_user:
+                try:
+                    from .models import AnimalMegaphone
+                    megaphone_exists = await AnimalMegaphone.objects.filter(
+                        user=current_user,
+                        animal=animal
+                    ).aexists()
+                    is_megaphoned = megaphone_exists
+                except Exception:
+                    is_megaphoned = False
             
             animal_data = AnimalOut(
                 id=str(animal.id),
@@ -262,7 +306,7 @@ async def get_animals(request: HttpRequest, filters: AnimalListQueryIn = Query(A
                 admission_date=animal.admission_date.isoformat() if animal.admission_date else None,
                 personality=animal.personality,
                 megaphone_count=animal.megaphone_count,
-                is_megaphoned=False,  # 목록 조회에서는 기본값
+                is_megaphoned=is_megaphoned,  # 사용자별 동적 상태
                 center_id=str(animal.center_id),
                 animal_images=[
                     {
@@ -332,6 +376,18 @@ async def get_breeds(request: HttpRequest):
 async def get_animal_by_id(request: HttpRequest, animal_id: str):
     """특정 동물의 상세 정보를 조회합니다."""
     try:
+        # 현재 사용자 확인 (로그인된 경우) - 선택적 JWT 인증
+        current_user = None
+        try:
+            auth_header = request.headers.get('Authorization')
+            if auth_header and auth_header.startswith('Bearer '):
+                from user import utils
+                # JWT 토큰 수동 파싱
+                current_user = await utils.decodeJWT(auth_header)
+        except Exception:
+            # 인증 실패 시 로그인하지 않은 사용자로 처리
+            current_user = None
+
         @sync_to_async
         def get_animal_detail():
             try:
@@ -343,15 +399,34 @@ async def get_animal_by_id(request: HttpRequest, animal_id: str):
                     'id', 'image_url', 'is_primary', 'sequence'
                 ))
                 
-                return animal, images
+                # 사용자의 메가폰 상태 확인
+                is_megaphoned = False
+                if current_user:
+                    megaphone_count = AnimalMegaphone.objects.filter(
+                        user=current_user,
+                        animal=animal
+                    ).count()
+                    is_megaphoned = megaphone_count > 0
+                    print(f"🔍 User {current_user.id} megaphone count for animal {animal.id}: {megaphone_count}")
+                    print(f"🔍 is_megaphoned: {is_megaphoned}")
+                    
+                    # 전체 메가폰 현황도 확인
+                    total_megaphones = AnimalMegaphone.objects.filter(animal=animal).count()
+                    print(f"🔍 Total megaphones for animal {animal.id}: {total_megaphones}")
+                else:
+                    print(f"🔍 No current user found")
+                
+                return animal, images, is_megaphoned
             except Animal.DoesNotExist:
-                return None, None
+                return None, None, False
         
         result = await get_animal_detail()
         if result[0] is None:
             raise HttpError(404, "동물을 찾을 수 없습니다")
         
-        animal, images = result
+        animal, images, is_megaphoned = result
+        
+        # 확성기 상태는 이미 get_animal_detail()에서 확인했으므로 중복 제거
         
         response_data = AnimalOut(
             id=str(animal.id),
@@ -379,7 +454,7 @@ async def get_animal_by_id(request: HttpRequest, animal_id: str):
             admission_date=animal.admission_date.isoformat() if animal.admission_date else None,
             personality=animal.personality,
             megaphone_count=animal.megaphone_count,
-            is_megaphoned=False,  # 상세 조회에서는 기본값
+            is_megaphoned=is_megaphoned,  # 사용자별 동적 상태
             center_id=str(animal.center_id),
             animal_images=[
                 {
@@ -838,7 +913,7 @@ async def get_related_animals_by_distance(
 @router.get(
     "/public-data/sync",
     summary="[R] 공공데이터 동기화",
-    description="공공데이터 API에서 유기동물 정보를 가져와서 DB에 동기화합니다. (관리자 전용 또는 qstash 스케줄러용)",
+    description="공공데이터 API에서 유기동물 정보를 가져와서 DB에 동기화합니다. (QStash 스케줄러용)",
     response={
         200: PublicDataSyncResponseOut,
         400: PublicDataErrorOut,
@@ -846,7 +921,6 @@ async def get_related_animals_by_distance(
         403: PublicDataErrorOut,
         500: PublicDataErrorOut,
     },
-    auth=jwt_auth,
 )
 async def sync_public_data(
     request: HttpRequest,
@@ -860,22 +934,33 @@ async def sync_public_data(
 ):
     """공공데이터 API에서 유기동물 정보를 동기화합니다."""
     try:
-        # 관리자 권한 확인
-        current_user = request.auth
-        if current_user.user_type not in ["최고관리자", "센터관리자"]:
-            raise HttpError(403, "관리자 권한이 필요합니다")
+        # 헤더 기반 인증 확인 (QStash용)
+        x_api_key = request.headers.get('X-API-Key')
+        expected_api_key = getattr(settings, 'PUBLIC_DATA_SERVICE_KEY', None)
+        
+        # 디버깅용 로그
+        print(f"🔍 디버깅 정보:")
+        print(f"   받은 X-API-Key: {x_api_key}")
+        print(f"   설정된 API Key: {expected_api_key}")
+        print(f"   키 일치 여부: {x_api_key == expected_api_key}")
+        
+        if not expected_api_key:
+            raise HttpError(500, "공공데이터 API 키가 설정되지 않았습니다")
+        
+        if not x_api_key or x_api_key != expected_api_key:
+            raise HttpError(401, f"유효하지 않은 API 키입니다. 받은 키: {x_api_key}, 예상 키: {expected_api_key}")
         
         # 서비스 키 확인
         service_key = getattr(settings, 'PUBLIC_DATA_SERVICE_KEY', None)
         if not service_key:
             raise HttpError(500, "공공데이터 서비스 키가 설정되지 않았습니다")
         
-        # 날짜 자동 설정
+        # 날짜 설정 (전체 데이터 가져오기)
         if not bgnde:
-            yesterday = timezone.now().date() - timedelta(days=1)
-            bgnde = yesterday.strftime('%Y%m%d')
+            # 날짜를 지정하지 않으면 모든 데이터 가져오기
+            bgnde = None
         if not endde:
-            endde = bgnde
+            endde = None
         
         # 동기화 전략에 따른 설정
         is_initial_sync = False
@@ -888,13 +973,18 @@ async def sync_public_data(
         
         # 연도별 상태 자동 설정
         if not state:
-            start_year = int(bgnde[:4])
-            if 2019 <= start_year <= 2022:
-                state = "protect"  # 2019-2022년은 보호중만
+            if bgnde:
+                start_year = int(bgnde[:4])
+                if 2019 <= start_year <= 2022:
+                    state = "protect"  # 2019-2022년은 보호중만
+                else:
+                    state = "protect"  # 2023년 이후는 기본값
             else:
-                state = "protect"  # 2023년 이후는 기본값
+                # 날짜가 지정되지 않은 경우 전체 데이터이므로 상태 필터 없음
+                state = None
         
-        print(f"{start_year}년 이후 데이터이므로 모든 상태 허용: {bgnde}, 상태: {state}")
+        print(f"📅 데이터 가져오기 설정: 날짜={bgnde or '전체'}, 상태={state or '전체'}")
+        print(f"🔍 동기화 전략: {sync_strategy}, 초기 동기화: {is_initial_sync}")
         
         # 공공데이터 서비스 초기화
         public_data_service = PublicDataService(service_key)

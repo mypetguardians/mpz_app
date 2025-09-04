@@ -186,3 +186,74 @@ class TestUserAPI(TestCase):
         """사용자 삭제 실패 테스트 - 현재는 /me 엔드포인트만 있음"""
         # 사용자 삭제 엔드포인트가 없으므로 테스트 제거
         pass
+
+    async def test_update_me_birth_and_address(self):
+        """내 정보 수정 테스트: birth와 address 필드"""
+        headers = await self.authenticate()
+        
+        # birth와 address 업데이트
+        data = {
+            "birth": "1990-01-01",
+            "address": "서울시 강남구 테헤란로 123"
+        }
+        response = await self.client.patch("/me", json=data, headers=headers)
+        self.assertEqual(response.status_code, 200)
+        
+        user_data = response.json()
+        self.assertEqual(user_data["birth"], "1990-01-01")
+        self.assertEqual(user_data["address"], "서울시 강남구 테헤란로 123")
+
+    async def test_update_me_null_values_ignored(self):
+        """내 정보 수정 테스트: null 값은 무시되어야 함"""
+        headers = await self.authenticate()
+        
+        # 먼저 기존 값 설정
+        initial_data = {
+            "nickname": "초기닉네임",
+            "birth": "1990-01-01",
+            "address": "초기주소"
+        }
+        response = await self.client.patch("/me", json=initial_data, headers=headers)
+        self.assertEqual(response.status_code, 200)
+        
+        # null 값과 일부 새로운 값을 함께 전송
+        update_data = {
+            "nickname": "새닉네임",  # 업데이트될 값
+            "birth": None,          # null 값 - 기존 값 유지
+            "address": "",          # 빈 문자열 - 기존 값 유지
+            "name": "새이름"        # 새로운 값
+        }
+        response = await self.client.patch("/me", json=update_data, headers=headers)
+        self.assertEqual(response.status_code, 200)
+        
+        user_data = response.json()
+        self.assertEqual(user_data["nickname"], "새닉네임")  # 업데이트됨
+        self.assertEqual(user_data["birth"], "1990-01-01")    # 기존 값 유지
+        self.assertEqual(user_data["address"], "초기주소")     # 기존 값 유지
+        self.assertEqual(user_data["name"], "새이름")         # 업데이트됨
+
+    async def test_update_me_empty_string_ignored(self):
+        """내 정보 수정 테스트: 빈 문자열은 무시되어야 함"""
+        headers = await self.authenticate()
+        
+        # 기존 값 설정
+        initial_data = {
+            "nickname": "기존닉네임",
+            "phone_number": "010-1234-5678"
+        }
+        response = await self.client.patch("/me", json=initial_data, headers=headers)
+        self.assertEqual(response.status_code, 200)
+        
+        # 빈 문자열로 업데이트 시도
+        update_data = {
+            "nickname": "",           # 빈 문자열 - 기존 값 유지
+            "phone_number": "",       # 빈 문자열 - 기존 값 유지
+            "image": "new_image.jpg"  # 새로운 값
+        }
+        response = await self.client.patch("/me", json=update_data, headers=headers)
+        self.assertEqual(response.status_code, 200)
+        
+        user_data = response.json()
+        self.assertEqual(user_data["nickname"], "기존닉네임")     # 기존 값 유지
+        self.assertEqual(user_data["phone_number"], "010-1234-5678")  # 기존 값 유지
+        self.assertEqual(user_data["image"], "new_image.jpg")    # 업데이트됨

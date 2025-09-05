@@ -42,14 +42,8 @@ export interface AdoptionMonitoringPostsResponse {
 // 모니터링 상태 enum
 export type MonitoringStatusEnum = "진행중" | "완료" | "지연" | "중단";
 
-// 입양 상태 enum
-export type AdoptionStatusEnum =
-  | "신청"
-  | "미팅"
-  | "계약서작성"
-  | "입양완료"
-  | "모니터링"
-  | "취소";
+// 입양 상태 enum (adoption.ts에서 import)
+export type { AdoptionStatus as AdoptionStatusEnum } from "./adoption";
 
 // 체크 상태 enum
 export type CheckStatusEnum = "정상" | "지연" | "미제출";

@@ -17,6 +17,7 @@ export interface UserAdoptionOut {
   center_name: string;
   center_location: string;
   center_centerNumber: string;
+  center_image_url?: string | null;
   status: string;
   notes: string;
   center_notes: string;
@@ -46,6 +47,7 @@ export interface UserAdoptionDetailOut {
   center_id: string;
   center_name: string;
   center_location: string | null;
+  center_image_url?: string | null;
   status: "신청" | "미팅" | "계약서작성" | "입양완료" | "모니터링" | "취소";
   notes: string | null;
   center_notes: string | null;

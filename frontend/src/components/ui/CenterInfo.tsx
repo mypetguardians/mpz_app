@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { Heart, SealCheck } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { MiniButton } from "./MiniButton";
@@ -17,6 +18,7 @@ interface CenterInfoProps {
   className?: string;
   isAuthenticated?: boolean;
   onShowLoginModal?: () => void;
+  imageUrl?: string | null; // 센터 이미지 URL 추가
 }
 
 export function CenterInfo({
@@ -30,6 +32,7 @@ export function CenterInfo({
   className,
   isAuthenticated = true,
   onShowLoginModal,
+  imageUrl,
 }: CenterInfoProps) {
   // 찜 상태 확인
   const { data: favoriteData, isLoading: isCheckingFavorite } =
@@ -59,7 +62,18 @@ export function CenterInfo({
       {/* Profile Section */}
       <div className="flex items-center justify-between pt-5 pb-3">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gray-200 rounded-full flex-shrink-0" />
+          <div className="w-12 h-12 bg-gray-200 rounded-full flex-shrink-0 relative overflow-hidden">
+            {imageUrl ? (
+              <Image
+                src={imageUrl}
+                alt={`${name} 센터 이미지`}
+                fill
+                className="object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gray-200 rounded-full" />
+            )}
+          </div>
           <div className="flex items-center gap-2">
             <span className="font-semibold text-gray-900">{name}</span>
             {variant === "subscriber" && isVerified && (

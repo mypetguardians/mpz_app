@@ -24,8 +24,9 @@ export function CommentItem({
   onAddReply,
   onSubmitReply,
 }: CommentItemProps) {
-  // 사용자 정보 가져오기
-  const nickname = comment.user?.nickname || "사용자";
+  // 사용자 정보 가져오기 (대댓글에서 user 정보가 없을 경우 대비)
+  const nickname =
+    comment.user?.nickname || `사용자${comment.user_id?.slice(-4) || ""}`;
   const profileImg = comment.user?.image || "/img/dummyImg.png";
 
   const renderContent = () => {

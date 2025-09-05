@@ -9,6 +9,7 @@ import { Chip } from "./Chip";
 import { cn, getRelativeTime } from "@/lib/utils";
 // 기존 호환성을 위한 타입 사용
 import { PetCardAnimal } from "@/types/animal";
+import { AdoptionStatus } from "@/types/adoption";
 
 // PetCard에서 실제로 사용하는 필드들만 포함하는 타입
 type PetCardVariant = "primary" | "variant2" | "variant3" | "variant4" | "edit";
@@ -23,7 +24,7 @@ interface PetCardProps {
   showLocation?: boolean;
   showUpdatedAt?: boolean;
   disableNavigation?: boolean;
-  adoptionStatus?: string; // 입양 상태를 표시할 때 사용
+  adoptionStatus?: AdoptionStatus | string; // 입양 상태를 표시할 때 사용
 }
 
 export function PetCard({
@@ -36,6 +37,7 @@ export function PetCard({
   showLocation = true,
   showUpdatedAt = false,
   disableNavigation = false,
+  adoptionStatus,
 }: PetCardProps) {
   const router = useRouter();
 
@@ -134,6 +136,32 @@ export function PetCard({
         return {
           text: adoptionStatus,
           colorClass: "bg-red-100/10 text-red-600",
+        };
+      // 입양 현황에서 사용하는 구체적인 상태들
+      case "신청":
+        return {
+          text: "신청완료",
+          colorClass: "bg-yellow/10 text-yellow",
+        };
+      case "미팅":
+        return {
+          text: "미팅예정",
+          colorClass: "bg-blue/10 text-blue",
+        };
+      case "계약서작성":
+        return {
+          text: "계약진행",
+          colorClass: "bg-purple/10 text-purple",
+        };
+      case "모니터링":
+        return {
+          text: "모니터링",
+          colorClass: "bg-green/10 text-green",
+        };
+      case "취소":
+        return {
+          text: "취소됨",
+          colorClass: "bg-gray/10 text-gray",
         };
       case "입양가능":
       default:
@@ -389,7 +417,9 @@ export function PetCard({
       </div>
       <div className="flex items-center mb-[6px] gap-1">
         {(() => {
-          const statusInfo = getStatusInfo(protection_status, adoption_status);
+          // adoptionStatus prop이 전달된 경우 우선 사용, 없으면 기본 adoption_status 사용
+          const statusToUse = adoptionStatus || adoption_status;
+          const statusInfo = getStatusInfo(protection_status, statusToUse);
           return (
             <Chip className={statusInfo.colorClass}>{statusInfo.text}</Chip>
           );

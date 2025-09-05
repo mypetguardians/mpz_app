@@ -36,6 +36,42 @@ export function CommentSection({
     Record<string, boolean>
   >({});
 
+  // 모든 사용자 정보를 수집 (댓글과 대댓글에서)
+  const allUsers = React.useMemo(() => {
+    const userMap = new Map();
+
+    comments.forEach((comment) => {
+      if (comment.user) {
+        userMap.set(comment.user_id, comment.user);
+      }
+
+      comment.replies?.forEach((reply) => {
+        if (reply.user) {
+          userMap.set(reply.user_id, reply.user);
+        }
+      });
+    });
+
+    return userMap;
+  }, [comments]);
+
+  // 대댓글에 사용자 정보가 없는 경우 보완
+  const enhancedComments = React.useMemo(() => {
+    return comments.map((comment) => ({
+      ...comment,
+      replies:
+        comment.replies?.map((reply) => ({
+          ...reply,
+          user: reply.user ||
+            allUsers.get(reply.user_id) || {
+              id: reply.user_id,
+              nickname: `사용자${reply.user_id?.slice(-4) || ""}`,
+              image: "/img/dummyImg.png",
+            },
+        })) || [],
+    }));
+  }, [comments, allUsers]);
+
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [toast, setToast] = useState<{
     show: boolean;
@@ -168,7 +204,7 @@ export function CommentSection({
 
         {/* 댓글 목록 */}
         <div className="space-y-4">
-          {comments.map((comment) => (
+          {enhancedComments.map((comment) => (
             <div key={comment.id} className="space-y-3">
               {/* 메인 댓글 */}
               <CommentItem

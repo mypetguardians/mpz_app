@@ -172,6 +172,7 @@ export default function MeetingPage({
                 name={adoption.center_name}
                 location={adoption.center_location || "위치 정보 없음"}
                 phoneNumber="000-000-0000"
+                imageUrl={adoption.center_image_url}
                 className="mb-6"
               />
             </SectionLine>

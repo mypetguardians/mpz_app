@@ -322,7 +322,8 @@ export function AnimalSearchSection({
                         name: animal.name,
                         breed: animal.breed,
                         isFemale: animal.is_female,
-                        status: animal.status,
+                        protection_status: animal.protection_status || "보호중",
+                        adoption_status: animal.adoption_status || "입양가능",
                         animalImages:
                           animal.animal_images?.map((image) => ({
                             id: image.id,

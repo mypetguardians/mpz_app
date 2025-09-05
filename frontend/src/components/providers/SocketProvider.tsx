@@ -58,7 +58,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
     const isDevelopment =
       typeof window !== "undefined" && window.location.hostname === "localhost";
     const socketUrl = isDevelopment
-      ? "ws://localhost:8000" 
+      ? "ws://localhost:8000"
       : "wss://your-backend-domain.com"; // Django 실제 백엔드 서버주소필요해요
 
     const newSocket = io(socketUrl, {
@@ -125,7 +125,8 @@ export function SocketProvider({ children }: SocketProviderProps) {
     return () => {
       newSocket.disconnect();
     };
-  }, [isAuthenticated, user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, user, showToast]);
 
   // 브라우저 알림 권한 요청 및 푸시 토큰 등록
   useEffect(() => {

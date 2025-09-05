@@ -455,6 +455,8 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
           currentPet={{
             ...animal,
             isFemale: animal.is_female,
+            status:
+              animal.protection_status === "보호중" ? "보호중" : "입양완료",
             animalImages:
               animal.animal_images?.map((img) => ({
                 id: img.id,

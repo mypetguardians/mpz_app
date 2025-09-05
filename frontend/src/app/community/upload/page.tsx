@@ -87,7 +87,8 @@ export default function CommunityUploadPage() {
       name: adoption.animal_name,
       breed: adoption.animal_breed,
       isFemale: adoption.animal_is_female,
-      status: adoption.animal_status as PetCardAnimal["status"],
+      protection_status: "보호중",
+      adoption_status: "입양진행중",
       centerId: adoption.center_id,
       animalImages: adoption.animal_image
         ? [
@@ -119,7 +120,8 @@ export default function CommunityUploadPage() {
         name: favoriteAnimal.name,
         breed: favoriteAnimal.breed,
         isFemale: favoriteAnimal.isFemale,
-        status: favoriteAnimal.status,
+        protection_status: "보호중",
+        adoption_status: "입양가능",
         centerId: favoriteAnimal.centerId,
         animalImages: [
           { id: "1", imageUrl: "/img/dummyImg.png", orderIndex: 1 },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { CommentInput } from "./CommentInput";
 import { CommentItem } from "./CommentItem";
 import type { Comment } from "@/types/posts";

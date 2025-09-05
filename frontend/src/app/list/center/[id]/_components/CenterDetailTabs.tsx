@@ -46,7 +46,8 @@ export function CenterDetailTabs({
               color: animal.color,
               breed: animal.breed,
               description: animal.description,
-              status: animal.status,
+              status:
+                animal.protection_status === "보호중" ? "보호중" : "입양완료",
               protection_status: animal.protection_status || "보호중",
               adoption_status: animal.adoption_status || "입양가능",
               waitingDays: animal.waiting_days,

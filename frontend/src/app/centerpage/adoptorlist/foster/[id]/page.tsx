@@ -61,8 +61,8 @@ export default function AdoptorlistDetailPage({
                   name: mainPetInfo[0].name,
                   breed: mainPetInfo[0].tag,
                   isFemale: mainPetInfo[0].isFemale,
-                  status:
-                    mainPetInfo[0].tag === "보호중" ? "보호중" : "임시보호중",
+                  protection_status: "보호중" as const,
+                  adoption_status: "입양가능" as const,
                   centerId: "1",
                   animalImages: mainPetInfo[0].imageUrls.map((url, index) => ({
                     id: index.toString(),
@@ -83,6 +83,8 @@ export default function AdoptorlistDetailPage({
                   breed: animal.tag,
                   isFemale: animal.isFemale,
                   status: animal.tag === "보호중" ? "보호중" : "임시보호중",
+                  protection_status: "보호중" as const,
+                  adoption_status: "입양가능" as const,
                   age: animal.age || 0,
                   weight: animal.weight || null,
                   color: animal.color || null,

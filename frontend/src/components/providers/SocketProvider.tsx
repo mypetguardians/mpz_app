@@ -58,8 +58,8 @@ export function SocketProvider({ children }: SocketProviderProps) {
     const isDevelopment =
       typeof window !== "undefined" && window.location.hostname === "localhost";
     const socketUrl = isDevelopment
-      ? "ws://localhost:3001" // 백엔드 서버 포트에 맞게 조정
-      : "wss://your-backend-domain.com";
+      ? "ws://localhost:8000" 
+      : "wss://your-backend-domain.com"; // Django 실제 백엔드 서버주소필요해요
 
     const newSocket = io(socketUrl, {
       auth: {

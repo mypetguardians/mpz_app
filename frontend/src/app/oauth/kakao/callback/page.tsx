@@ -165,8 +165,8 @@ function KakaoCallbackContent() {
             Cookies.set("refresh_token", response.data.refresh_token, {
               secure: true,
               sameSite: "lax",
-              expires: 730, // 2년
-              httpOnly: false, // JS에서 접근 가능하도록 설정
+              expires: 730,
+              httpOnly: false,
             });
             localStorage.setItem("refresh_token", response.data.refresh_token);
           }

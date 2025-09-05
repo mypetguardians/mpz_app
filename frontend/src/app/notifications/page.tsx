@@ -10,6 +10,10 @@ import { IconButton } from "@/components/ui/IconButton";
 import { NotificationCard } from "./_components/NotificationCard";
 import { useGetNotifications } from "@/hooks/query/useGetNotifications";
 import { useAuth } from "@/components/providers/AuthProvider";
+import {
+  useMarkNotificationRead,
+  useMarkAllNotificationsRead,
+} from "@/hooks/mutation";
 
 export default function Notification() {
   const router = useRouter();
@@ -20,6 +24,11 @@ export default function Notification() {
     error,
     refetch,
   } = useGetNotifications();
+
+  const markNotificationRead = useMarkNotificationRead();
+  const markAllNotificationsRead = useMarkAllNotificationsRead();
+
+  const notifications = notificationsData?.data || [];
 
   // 30초마다 알림 데이터 자동 새로고침
   useEffect(() => {
@@ -37,6 +46,30 @@ export default function Notification() {
     router.back();
   };
 
+  const handleNotificationClick = (notificationId: string, isRead: boolean) => {
+    if (isRead) return;
+
+    markNotificationRead.mutate(notificationId, {
+      onSuccess: () => {
+        console.log("알림이 읽음 처리되었습니다.");
+      },
+      onError: (error) => {
+        console.error("알림 읽음 처리 실패:", error);
+      },
+    });
+  };
+
+  const handleMarkAllAsRead = () => {
+    markAllNotificationsRead.mutate(undefined, {
+      onSuccess: () => {
+        console.log("모든 알림이 읽음 처리되었습니다.");
+      },
+      onError: (error) => {
+        console.error("전체 알림 읽음 처리 실패:", error);
+      },
+    });
+  };
+
   // 로그인되지 않은 경우
   if (!isAuthenticated) {
     return (
@@ -52,6 +85,14 @@ export default function Notification() {
               />
               <h4>알림함</h4>
             </div>
+          }
+          right={
+            <h6
+              className="text-gr cursor-pointer hover:text-dg transition-colors"
+              onClick={handleMarkAllAsRead}
+            >
+              전체읽음
+            </h6>
           }
         />
         <div className="flex items-center justify-center h-64">
@@ -85,6 +126,14 @@ export default function Notification() {
               <h4>알림함</h4>
             </div>
           }
+          right={
+            <h6
+              className="text-gr cursor-pointer hover:text-dg transition-colors"
+              onClick={handleMarkAllAsRead}
+            >
+              전체읽음
+            </h6>
+          }
         />
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
@@ -109,6 +158,14 @@ export default function Notification() {
               <h4>알림함</h4>
             </div>
           }
+          right={
+            <h6
+              className="text-gr cursor-pointer hover:text-dg transition-colors"
+              onClick={handleMarkAllAsRead}
+            >
+              전체읽음
+            </h6>
+          }
         />
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
@@ -125,9 +182,6 @@ export default function Notification() {
     );
   }
 
-  const notifications = notificationsData?.data || [];
-  console.log(notifications);
-
   return (
     <Container className="min-h-screen">
       <TopBar
@@ -142,8 +196,16 @@ export default function Notification() {
             <h4>알림함</h4>
           </div>
         }
+        right={
+          <h6
+            className="text-gr cursor-pointer hover:text-dg transition-colors"
+            onClick={handleMarkAllAsRead}
+          >
+            전체읽음
+          </h6>
+        }
       />
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col">
         {notifications.length === 0 ? (
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
@@ -155,10 +217,13 @@ export default function Notification() {
             <NotificationCard
               key={item.id}
               variant="primary"
-              title={item.title}
+              message={item.message}
               date={item.created_at}
               type={item.notification_type}
               isRead={item.is_read}
+              onClick={() =>
+                handleNotificationClick(item.id.toString(), item.is_read)
+              }
             />
           ))
         )}

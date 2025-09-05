@@ -13,7 +13,7 @@ import { TopBar } from "@/components/common/TopBar";
 import { NavBar } from "@/components/common/NavBar";
 import { DotProgressBar } from "@/components/ui/DotProgressBar";
 import { TextMenu } from "@/components/ui/TextMenu";
-import { CustomModal } from "@/components/ui/CustomModal";=
+import { CustomModal } from "@/components/ui/CustomModal";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Toast } from "@/components/ui/Toast";
 

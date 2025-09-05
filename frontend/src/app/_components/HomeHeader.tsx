@@ -37,7 +37,7 @@ export function HomeHeader({ isLoggedIn }: HomeHeaderProps) {
                 size="iconM"
               />
               {hasUnreadNotifications && (
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
+                <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red rounded-full"></div>
               )}
             </div>
           </Link>

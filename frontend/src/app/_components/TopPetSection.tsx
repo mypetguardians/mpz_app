@@ -53,8 +53,6 @@ export function TopPetSection({
     if (latitude && longitude && isValidLocation(latitude, longitude)) {
       const region = getLocationBasedRegion(latitude, longitude);
       setUserLocation(region);
-      console.log("사용자 위치 기반 지역:", region);
-      // 위치정보가 성공적으로 가져와졌고, 현재 "내 주변"이 선택되어 있다면 자동으로 필터 적용
       if (selectedLocation === "내 주변") {
         onLocationSelect?.(region);
       }
@@ -66,7 +64,6 @@ export function TopPetSection({
     if (userLocation) {
       onLocationSelect?.(userLocation);
     } else {
-      // 위치정보가 아직 없는 경우 "내 주변" 상태로 설정하고 위치정보 요청
       onLocationSelect?.("내 주변");
       requestLocation();
     }
@@ -75,8 +72,6 @@ export function TopPetSection({
   // 위치정보 에러가 있는 경우 처리
   useEffect(() => {
     if (locationError) {
-      console.error("위치정보 에러:", locationError);
-      // 에러 발생 시 사용자에게 알림 (실제 앱에서는 토스트나 모달로 표시)
       alert(
         "위치정보를 가져올 수 없습니다. 브라우저 설정에서 위치정보 접근을 허용해주세요."
       );

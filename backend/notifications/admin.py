@@ -4,15 +4,15 @@ from .models import Notification, PushToken
 
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'notification_type', 'title', 'priority', 'is_read', 'created_at']
+    list_display = ['id', 'user', 'notification_type', 'message', 'priority', 'is_read', 'created_at']
     list_filter = ['notification_type', 'priority', 'is_read']
-    search_fields = ['user__username', 'title', 'message']
+    search_fields = ['user__username', 'message']
     list_editable = ['priority', 'is_read']
     readonly_fields = ['created_at', 'updated_at']
     
     fieldsets = (
         ('기본 정보', {
-            'fields': ('user', 'notification_type', 'title', 'message', 'priority')
+            'fields': ('user', 'notification_type', 'message', 'priority')
         }),
         ('상태 정보', {
             'fields': ('is_read', 'read_at', 'action_url', 'metadata')

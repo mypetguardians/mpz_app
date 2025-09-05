@@ -139,6 +139,23 @@ async def update_adoption_status(request, adoption_id: str, data: UpdateAdoption
         # DB 업데이트
         await Adoption.objects.filter(id=adoption_id).aupdate(**update_fields)
         
+        # 동물의 입양 상태도 함께 업데이트
+        animal = adoption.animal
+        if data.status == "신청":
+            # 입양 신청이 들어오면 동물의 입양 상태를 "입양진행중"으로 변경
+            if animal.adoption_status == "입양가능":
+                animal.adoption_status = "입양진행중"
+                await sync_to_async(animal.save)()
+        elif data.status == "입양완료":
+            # 입양 완료 시 동물의 입양 상태를 "입양완료"로 변경
+            animal.adoption_status = "입양완료"
+            await sync_to_async(animal.save)()
+        elif data.status == "취소":
+            # 입양 신청이 취소되면 동물의 입양 상태를 "입양가능"으로 되돌림
+            if animal.adoption_status == "입양진행중":
+                animal.adoption_status = "입양가능"
+                await sync_to_async(animal.save)()
+        
         # 업데이트된 입양 신청 조회 및 응답 생성
         updated_adoption = await Adoption.objects.select_related('animal', 'user').aget(id=adoption_id)
         

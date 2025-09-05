@@ -30,6 +30,22 @@ def generate_state() -> str:
 
 
 @router.get(
+    "/debug",
+    summary="카카오 로그인 디버그 정보",
+    description="카카오 로그인 설정 정보를 확인합니다.",
+)
+async def kakao_debug(request):
+    """카카오 로그인 디버그 정보"""
+    return {
+        "CLIENT_ID": CLIENT_ID,
+        "REDIRECT_URI": REDIRECT_URI,
+        "CLIENT_SECRET": CLIENT_SECRET[:10] + "..." if CLIENT_SECRET else "None",
+        "FRONTEND_URL": settings.FRONTEND_URL,
+        "KAKAO_CONFIG": KAKAO_CONFIG,
+    }
+
+
+@router.get(
     "/login",
     summary="카카오 로그인 페이지로 이동",
     description="카카오 로그인 페이지로 이동",
@@ -60,6 +76,8 @@ async def kakao_login(request):
     description="카카오 로그인 콜백",
 )
 async def kakao_login_callback(request, code: str, state: str, redirect_uri: str = None):
+    """카카오 로그인 콜백 처리"""
+    print(f"카카오 로그인 콜백 시작 - code: {code[:10]}..., state: {state}, redirect_uri: {redirect_uri}")
 
     @sync_to_async
     def set_unusable_password(user):
@@ -69,7 +87,25 @@ async def kakao_login_callback(request, code: str, state: str, redirect_uri: str
     # 액세스 토큰 받기 (프론트엔드와 동일한 로직)
     try:
         # redirect_uri를 동적으로 결정 (프론트엔드에서 전달받거나 기본값 사용)
-        actual_redirect_uri = redirect_uri if redirect_uri else REDIRECT_URI
+        # 프론트엔드에서 전달된 redirect_uri가 있으면 사용, 없으면 기본값 사용
+        if redirect_uri:
+            # URL 디코딩 처리
+            from urllib.parse import unquote
+            actual_redirect_uri = unquote(redirect_uri)
+        else:
+            actual_redirect_uri = REDIRECT_URI
+            
+        print(f"프론트엔드에서 전달된 redirect_uri: {redirect_uri}")
+        print(f"디코딩된 redirect_uri: {actual_redirect_uri}")
+        print(f"설정된 REDIRECT_URI: {REDIRECT_URI}")
+            
+        print(f"사용할 redirect_uri: {actual_redirect_uri}")
+        print(f"설정된 CLIENT_ID: {CLIENT_ID}")
+        print(f"설정된 CLIENT_SECRET: {CLIENT_SECRET[:10]}...")
+        
+        # redirect_uri 검증
+        if not actual_redirect_uri:
+            raise HttpError(400, "redirect_uri가 설정되지 않았습니다.")
         
         async with httpx.AsyncClient(timeout=30.0) as client:
             token_request = await client.post(
@@ -85,8 +121,12 @@ async def kakao_login_callback(request, code: str, state: str, redirect_uri: str
                     "Content-Type": "application/x-www-form-urlencoded;charset=utf-8"
                 }
             )
+            print(f"카카오 토큰 요청 응답: {token_request.status_code}")
+            print(f"카카오 토큰 요청 응답 내용: {token_request.text}")
+            
             if token_request.status_code != 200:
                 error_text = token_request.text
+                print(f"카카오 토큰 교환 실패 - 상태코드: {token_request.status_code}, 내용: {error_text}")
                 raise HttpError(
                     503, f"카카오 토큰 교환 실패: {token_request.status_code} - {error_text}"
                 )

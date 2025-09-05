@@ -100,11 +100,11 @@ for origin in ENV_CORS_ALLOWED_ORIGINS.split(","):
     if origin.strip():  # 빈 문자열 체크
         CORS_ALLOWED_ORIGINS.append(origin.strip().lower())
 
-# cors & csrf - 사파리 호환성을 위해 Lax 사용
+# cors & csrf
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SAMESITE = "Lax"  # 사파리 호환성 개선
-CSRF_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SAMESITE = config("SESSION_COOKIE_SAMESITE", default="None")
+CSRF_COOKIE_SAMESITE = "None"
 
 # Cookie settings
 SESSION_COOKIE_DOMAIN = None  # 모든 도메인에서 접근 가능

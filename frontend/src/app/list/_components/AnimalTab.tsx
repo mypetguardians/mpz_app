@@ -37,6 +37,8 @@ function AnimalTab() {
   const apiParams = useMemo(() => {
     const params: GetAnimalsParams = {
       limit: ITEMS_PER_PAGE,
+      sortBy: "waiting_days", // 오래기다린순 정렬
+      sortOrder: "desc",
     };
 
     // 품종 필터
@@ -178,13 +180,15 @@ function AnimalTab() {
     hasNextPage,
     isFetchingNextPage,
   } = useGetAnimals(apiParams);
-  console.log(data);
 
   // 데이터가 로드되면 상태 업데이트
   useEffect(() => {
     if (data) {
       const allAnimalsData = data.pages
-        .flatMap((page) => page.data || [])
+        .flatMap((page) => {
+          // API 응답 구조에 따라 data 또는 animals 필드에서 데이터 추출
+          return page.data || page.animals || [];
+        })
         .filter((animal) => animal && typeof animal === "object");
       setAllAnimals(allAnimalsData);
     }
@@ -195,19 +199,33 @@ function AnimalTab() {
     fetchNextPage();
   }, [isFetchingNextPage, hasNextPage, fetchNextPage]);
 
-  // 스크롤 이벤트 처리
+  // 스크롤 이벤트 처리 (디바운싱 적용)
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
     const handleScroll = () => {
-      if (
-        window.innerHeight + window.scrollY >=
-        document.body.offsetHeight - 1000
-      ) {
-        loadMoreAnimals();
-      }
+      // 기존 타이머 클리어
+      clearTimeout(timeoutId);
+
+      // 100ms 후에 스크롤 처리 실행
+      timeoutId = setTimeout(() => {
+        const scrollTop =
+          window.pageYOffset || document.documentElement.scrollTop;
+        const windowHeight = window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+
+        // 페이지 하단에서 800px 이내에 도달하면 다음 페이지 로드
+        if (scrollTop + windowHeight >= documentHeight - 800) {
+          loadMoreAnimals();
+        }
+      }, 100);
     };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      clearTimeout(timeoutId);
+    };
   }, [loadMoreAnimals]);
 
   // 필터 초기화 함수

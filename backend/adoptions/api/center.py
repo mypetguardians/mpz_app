@@ -141,6 +141,22 @@ async def update_adoption_status(request, adoption_id: str, data: UpdateAdoption
         
         # 업데이트된 입양 신청 조회 및 응답 생성
         updated_adoption = await Adoption.objects.select_related('animal', 'user').aget(id=adoption_id)
+        
+        # 입양 신청자에게 상태 업데이트 알림 전송
+        try:
+            from notifications.utils import send_adoption_update_notification
+            await send_adoption_update_notification(
+                user_id=str(updated_adoption.user.id),
+                adoption_status=data.status,
+                animal_name=updated_adoption.animal.name,
+                adoption_id=str(updated_adoption.id)
+            )
+        except Exception as e:
+            # 알림 전송 실패는 로그만 남기고 API 응답에는 영향 주지 않음
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"입양 상태 업데이트 알림 전송 실패: {e}")
+        
         return await build_center_adoption_response(updated_adoption, center)
         
     except HttpError:
@@ -201,6 +217,21 @@ async def send_contract(request, adoption_id: str, data: SendContractIn):
             center_notes=data.center_notes,
             updated_at=timezone.now()
         )
+        
+        # 입양 신청자에게 계약서 전송 알림 전송
+        try:
+            from notifications.utils import send_adoption_update_notification
+            await send_adoption_update_notification(
+                user_id=str(adoption.user.id),
+                adoption_status="계약서작성",
+                animal_name=adoption.animal.name,
+                adoption_id=str(adoption.id)
+            )
+        except Exception as e:
+            # 알림 전송 실패는 로그만 남기고 API 응답에는 영향 주지 않음
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"계약서 전송 알림 전송 실패: {e}")
         
         return SendContractOut(
             message="계약서가 성공적으로 전송되었습니다",

@@ -49,6 +49,43 @@ async def sign_contract(request, data: ContractSignIn):
             adoption_completed_at=timezone.now(),
         )
         
+        # 입양 완료 알림 전송 (사용자에게)
+        try:
+            from notifications.utils import send_adoption_update_notification
+            await send_adoption_update_notification(
+                user_id=str(current_user.id),
+                adoption_status="입양완료",
+                animal_name=contract.adoption.animal.name,
+                adoption_id=str(contract.adoption.id)
+            )
+        except Exception as e:
+            # 알림 전송 실패는 로그만 남기고 API 응답에는 영향 주지 않음
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"입양 완료 알림 전송 실패: {e}")
+        
+        # 센터 관리자들에게 입양 완료 알림 전송
+        try:
+            from notifications.utils import create_notification_for_center_users
+            await create_notification_for_center_users(
+                center_id=str(contract.adoption.animal.center.id),
+                notification_type='adoption_completed',
+                message=f"{current_user.nickname}님이 {contract.adoption.animal.name}의 입양을 완료했습니다.",
+                action_url=f"/adoptions/{contract.adoption.id}",
+                metadata={
+                    'adoption_id': str(contract.adoption.id),
+                    'animal_id': str(contract.adoption.animal.id),
+                    'user_id': str(current_user.id),
+                    'center_id': str(contract.adoption.animal.center.id)
+                },
+                priority='high'
+            )
+        except Exception as e:
+            # 알림 전송 실패는 로그만 남기고 API 응답에는 영향 주지 않음
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"센터 관리자 입양 완료 알림 전송 실패: {e}")
+        
         return ContractSignOut(
             message="계약서 서명이 완료되었습니다. 입양이 완료되었습니다!",
             adoption_status="입양완료",

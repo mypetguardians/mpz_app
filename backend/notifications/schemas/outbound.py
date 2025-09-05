@@ -6,7 +6,6 @@ class NotificationOut(Schema):
     """알림 출력 스키마"""
     id: str = Field(..., description="알림 ID")
     user_id: str = Field(..., description="사용자 ID")
-    title: str = Field(..., description="알림 제목")
     message: str = Field(..., description="알림 내용")
     notification_type: str = Field(..., description="알림 유형")
     priority: str = Field(..., description="우선순위")

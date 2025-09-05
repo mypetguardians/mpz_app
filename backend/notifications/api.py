@@ -30,7 +30,6 @@ def _build_notification_response(notification):
     return NotificationOut(
         id=str(notification.id),
         user_id=str(notification.user.id),
-        title=notification.title,
         message=notification.message,
         notification_type=notification.notification_type,
         priority=notification.priority,
@@ -353,7 +352,6 @@ async def create_notification(request: HttpRequest, data: NotificationCreateIn):
         notification = await create_and_send_notification(
             user_id=data.user_id,
             notification_type=data.notification_type,
-            title=data.title,
             message=data.message,
             priority=data.priority,
             action_url=data.action_url,

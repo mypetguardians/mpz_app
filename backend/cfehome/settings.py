@@ -257,6 +257,8 @@ if LANGCHAIN_TRACING_V2:
         os.environ["LANGCHAIN_API_KEY"] = LANGCHAIN_API_KEY
     os.environ["LANGCHAIN_ENDPOINT"] = LANGCHAIN_ENDPOINT
 
+SMS_API_KEY=config("SMS_API_KEY", default="")
+
 # Django Channels Settings
 ASGI_APPLICATION = "cfehome.asgi.application"
 

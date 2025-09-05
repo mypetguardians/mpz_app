@@ -18,6 +18,7 @@ class Notification(BaseModel):
         ('new_adoption_application', '새로운 입양 신청'),
         ('new_temporary_protection', '새로운 임시보호 등록'),
         ('monitoring_delayed', '모니터링 지연'),
+        ('adoption_completed', '입양 완료'),
         
         # 유저 측 알림 타입들
         ('monitoring_delayed_user', '모니터링 지연 (사용자)'),
@@ -36,7 +37,6 @@ class Notification(BaseModel):
     
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, help_text="수신자")
     notification_type = models.CharField(max_length=30, choices=NOTIFICATION_TYPE_CHOICES, help_text="알림 타입")
-    title = models.CharField(max_length=200, help_text="알림 제목")
     message = models.TextField(help_text="알림 내용")
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='normal', help_text="우선순위")
     is_read = models.BooleanField(default=False, help_text="읽음 여부")
@@ -51,7 +51,7 @@ class Notification(BaseModel):
         ordering = ['-created_at']
     
     def __str__(self):
-        return f"{self.user.username} - {self.title}"
+        return f"{self.user.username} - {self.message[:50]}..."
 
 
 class PushToken(BaseModel):

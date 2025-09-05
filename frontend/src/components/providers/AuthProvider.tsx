@@ -1,4 +1,3 @@
-/* eslint-disable prefer-const */
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
@@ -76,9 +75,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // 세션 토큰으로 사용자 정보 가져오기 - iOS Safari 호환성 개선
   const fetchCurrentUser = async () => {
     try {
-      // 쿠키와 로컬 스토리지 모두에서 토큰 확인 (사파리 호환성)
-      let accessToken =
-        Cookies.get("access_token") || localStorage.getItem("access_token");
+      // 로컬 스토리지에서 토큰 확인
+      const accessToken = localStorage.getItem("access_token");
       if (accessToken) {
         instance.defaults.headers.common[
           "Authorization"
@@ -122,9 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log("401 에러 - 인증되지 않은 사용자");
         setUser(null);
         setIsAuthenticated(false);
-        // 토큰 제거 (쿠키와 로컬스토리지 모두)
-        Cookies.remove("access_token");
-        Cookies.remove("refresh_token");
+        // 토큰 제거
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
         delete instance.defaults.headers.common["Authorization"];
@@ -138,9 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error("fetchCurrentUser 에러:", error);
       setUser(null);
       setIsAuthenticated(false);
-      // 토큰 제거 (쿠키와 로컬스토리지 모두)
-      Cookies.remove("access_token");
-      Cookies.remove("refresh_token");
+      // 토큰 제거
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
       delete instance.defaults.headers.common["Authorization"];
@@ -177,9 +171,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         document.cookie =
           "better-auth.session_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
-        // 토큰 제거 (쿠키와 로컬스토리지 모두)
-        Cookies.remove("access_token");
-        Cookies.remove("refresh_token");
+        // 로컬 스토리지 토큰 제거
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
         delete instance.defaults.headers.common["Authorization"];
@@ -258,9 +250,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsAuthenticated(false);
         setIsLoading(false);
         setIsLoggingIn(false);
-        // 토큰 제거 (쿠키와 로컬스토리지 모두)
-        Cookies.remove("access_token");
-        Cookies.remove("refresh_token");
+        // 토큰 제거
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
         delete instance.defaults.headers.common["Authorization"];

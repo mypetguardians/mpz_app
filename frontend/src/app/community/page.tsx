@@ -17,9 +17,11 @@ import { useGetPublicPosts } from "@/hooks/query/useGetPublicPosts";
 import { useGetCenterPosts } from "@/hooks/query/useGetCenterPosts";
 import { useGetSystemTags } from "@/hooks/query/useGetSystemTags";
 import { useGetComments } from "@/hooks/query/useGetComments";
+import { useGetNotifications } from "@/hooks/query/useGetNotifications";
 import { useDeletePost } from "@/hooks/mutation/useDeletePost";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { useNotificationSocket } from "@/hooks/useNotificationSocket";
 import { CustomModal } from "@/components/ui/CustomModal";
 import { Toast } from "@/components/ui/Toast";
 import { useGetBanners } from "@/hooks/query/useGetBanners";
@@ -32,6 +34,20 @@ export default function CommunityPage() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+
+  // 알림 관련 hooks (메인페이지와 동일한 로직)
+  const { data: notificationsData } = useGetNotifications();
+  const { unreadCount: socketUnreadCount, isConnected } =
+    useNotificationSocket();
+
+  // 읽지 않은 알림이 있는지 확인 (소켓 연결 시 소켓 데이터 우선, 아니면 API 데이터)
+  const hasUnreadNotifications = isAuthenticated
+    ? isConnected && socketUnreadCount > 0
+      ? true
+      : notificationsData?.data?.some(
+          (notification) => notification.is_read === false
+        )
+    : false;
 
   const {
     data: banners,
@@ -316,12 +332,26 @@ export default function CommunityPage() {
           variant="variant5"
           left={<h2>커뮤니티</h2>}
           right={
-            <Link href="/community/notifications">
-              <IconButton
-                icon={({ size }) => <Bell size={size} weight="bold" />}
-                size="iconM"
-              />
-            </Link>
+            isAuthenticated ? (
+              <Link href="/notifications">
+                <div className="relative">
+                  <IconButton
+                    icon={({ size }) => <Bell size={size} weight="bold" />}
+                    size="iconM"
+                  />
+                  {hasUnreadNotifications && (
+                    <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red rounded-full"></div>
+                  )}
+                </div>
+              </Link>
+            ) : (
+              <Link href="/login">
+                <IconButton
+                  icon={({ size }) => <Bell size={size} weight="bold" />}
+                  size="iconM"
+                />
+              </Link>
+            )
           }
         />
         <div className="w-full overflow-x-auto scrollbar-hide">
@@ -358,10 +388,26 @@ export default function CommunityPage() {
           variant="variant5"
           left={<h2>커뮤니티</h2>}
           right={
-            <IconButton
-              icon={({ size }) => <Bell size={size} weight="bold" />}
-              size="iconM"
-            />
+            isAuthenticated ? (
+              <Link href="/notifications">
+                <div className="relative">
+                  <IconButton
+                    icon={({ size }) => <Bell size={size} weight="bold" />}
+                    size="iconM"
+                  />
+                  {hasUnreadNotifications && (
+                    <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red rounded-full"></div>
+                  )}
+                </div>
+              </Link>
+            ) : (
+              <Link href="/login">
+                <IconButton
+                  icon={({ size }) => <Bell size={size} weight="bold" />}
+                  size="iconM"
+                />
+              </Link>
+            )
           }
         />
         <div className="flex items-center justify-center flex-1">
@@ -388,10 +434,26 @@ export default function CommunityPage() {
         variant="variant5"
         left={<h2>커뮤니티</h2>}
         right={
-          <IconButton
-            icon={({ size }) => <Bell size={size} weight="bold" />}
-            size="iconM"
-          />
+          isAuthenticated ? (
+            <Link href="/notifications">
+              <div className="relative">
+                <IconButton
+                  icon={({ size }) => <Bell size={size} weight="bold" />}
+                  size="iconM"
+                />
+                {hasUnreadNotifications && (
+                  <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red rounded-full"></div>
+                )}
+              </div>
+            </Link>
+          ) : (
+            <Link href="/login">
+              <IconButton
+                icon={({ size }) => <Bell size={size} weight="bold" />}
+                size="iconM"
+              />
+            </Link>
+          )
         }
       />
       <div className="w-full overflow-x-auto scrollbar-hide">

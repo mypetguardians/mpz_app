@@ -22,7 +22,7 @@ class NotificationListQueryIn(Schema):
 class NotificationCreateIn(Schema):
     """알림 생성 입력 스키마 (관리자용)"""
     user_id: str = Field(..., description="알림을 받을 사용자 ID")
-    notification_type: str = Field(..., pattern="^(adoption_update|monitoring_reminder|center_update|animal_update|system|other)$", description="알림 유형")
+    notification_type: str = Field(..., pattern="^(community|adoption|monitoring|other)$", description="알림 유형")
     message: str = Field(..., min_length=1, description="알림 내용")
     priority: Optional[str] = Field("normal", pattern="^(low|normal|high|urgent)$", description="우선순위")
     action_url: Optional[str] = Field(None, max_length=500, description="액션 URL")

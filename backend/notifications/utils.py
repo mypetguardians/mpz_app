@@ -325,7 +325,7 @@ async def send_adoption_update_notification(user_id: str, adoption_status: str, 
     
     await create_and_send_notification(
         user_id=user_id,
-        notification_type="adoption_update",
+        notification_type="adoption",
         message=message,
         priority="high",
         action_url=action_url,
@@ -344,7 +344,7 @@ async def send_monitoring_reminder_notification(user_id: str, reminder_type: str
     
     await create_and_send_notification(
         user_id=user_id,
-        notification_type="monitoring_reminder",
+        notification_type="monitoring",
         message=message,
         priority="normal",
         action_url=action_url,
@@ -363,7 +363,7 @@ async def send_center_update_notification(user_id: str, center_name: str, update
     
     await create_and_send_notification(
         user_id=user_id,
-        notification_type="center_update",
+        notification_type="other",
         message=message,
         priority="normal",
         action_url=action_url,
@@ -375,7 +375,7 @@ async def send_system_notification(user_id: str, message: str):
     """시스템 알림"""
     await create_and_send_notification(
         user_id=user_id,
-        notification_type="system",
+        notification_type="other",
         message=message,
         priority="normal"
     )
@@ -533,7 +533,7 @@ async def notify_new_adoption_application(adoption_id: str):
     
     await create_notification_for_center_users(
         center_id=str(adoption.animal.center.id),
-        notification_type='new_adoption_application',
+        notification_type='adoption',
         message=message,
         action_url=action_url,
         metadata=metadata,
@@ -560,7 +560,7 @@ async def notify_new_temporary_protection(animal_id: str):
     
     await create_notification_for_center_users(
         center_id=str(animal.center.id),
-        notification_type='new_temporary_protection',
+        notification_type='adoption',
         message=message,
         action_url=action_url,
         metadata=metadata,
@@ -588,7 +588,7 @@ async def notify_monitoring_delayed_for_center(adoption_id: str, delay_days: int
     
     await create_notification_for_center_users(
         center_id=str(adoption.animal.center.id),
-        notification_type='monitoring_delayed',
+        notification_type='monitoring',
         message=message,
         action_url=action_url,
         metadata=metadata,
@@ -615,7 +615,7 @@ async def notify_monitoring_delayed_for_user(adoption_id: str, delay_days: int):
     
     await create_notification_for_user(
         user_id=str(adoption.user.id),
-        notification_type='monitoring_delayed_user',
+        notification_type='monitoring',
         message=message,
         action_url=action_url,
         metadata=metadata,
@@ -647,7 +647,7 @@ async def notify_new_comment(comment_id: str):
     
     await create_notification_for_user(
         user_id=str(comment.post.user.id),
-        notification_type='new_comment',
+        notification_type='community',
         message=message,
         action_url=action_url,
         metadata=metadata,
@@ -680,7 +680,7 @@ async def notify_new_reply(reply_id: str):
     
     await create_notification_for_user(
         user_id=str(reply.comment.user.id),
-        notification_type='new_reply',
+        notification_type='community',
         message=message,
         action_url=action_url,
         metadata=metadata,

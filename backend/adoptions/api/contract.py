@@ -69,7 +69,7 @@ async def sign_contract(request, data: ContractSignIn):
             from notifications.utils import create_notification_for_center_users
             await create_notification_for_center_users(
                 center_id=str(contract.adoption.animal.center.id),
-                notification_type='adoption_completed',
+                notification_type='adoption',
                 message=f"{current_user.nickname}님이 {contract.adoption.animal.name}의 입양을 완료했습니다.",
                 action_url=f"/adoptions/{contract.adoption.id}",
                 metadata={

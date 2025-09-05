@@ -25,12 +25,8 @@ const getCenters = async (
   }
 
   const endpoint = `/centers?${searchParams.toString()}`;
-  console.log("Centers API Request:", endpoint);
 
   const response = await instance.get<GetCentersResponse>(endpoint);
-
-  console.log("Centers Raw API Response:", response.data);
-
   return response.data;
 };
 
@@ -39,12 +35,9 @@ export const useGetCenters = (params?: Omit<CenterSearchParams, "page">) => {
   return useInfiniteQuery({
     queryKey: ["centers", params],
     queryFn: ({ pageParam = 1 }) => {
-      console.log("Fetching centers page:", pageParam, "with params:", params);
       return getCenters({ ...params, page: pageParam, limit: ITEMS_PER_PAGE });
     },
     getNextPageParam: (lastPage) => {
-      console.log("getNextPageParam - lastPage:", lastPage);
-
       // 여러 가능한 필드 확인
       const hasNext =
         (lastPage.nextPage !== null && lastPage.nextPage !== undefined) ||
@@ -55,8 +48,6 @@ export const useGetCenters = (params?: Omit<CenterSearchParams, "page">) => {
       const nextPage =
         lastPage.nextPage ||
         (lastPage.curPage ? lastPage.curPage + 1 : undefined);
-
-      console.log("Centers hasNext:", hasNext, "nextPage:", nextPage);
 
       if (hasNext && nextPage) {
         return nextPage;

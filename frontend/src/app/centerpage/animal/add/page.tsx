@@ -15,7 +15,8 @@ import { useGetMyCenter } from "@/hooks/query/useGetMyCenter";
 
 interface FormData {
   basicInfo: {
-    status: string;
+    protection_status: string;
+    adoption_status: string;
     breed: string;
     age: string;
     gender: string;
@@ -43,7 +44,8 @@ interface FormData {
 
 const initialFormData: FormData = {
   basicInfo: {
-    status: "",
+    protection_status: "",
+    adoption_status: "",
     breed: "",
     age: "",
     gender: "",
@@ -108,7 +110,8 @@ export default function AddAnimal() {
     const { basicInfo, detailInfo } = formData;
 
     if (
-      !basicInfo.status ||
+      !basicInfo.protection_status ||
+      !basicInfo.adoption_status ||
       !basicInfo.breed ||
       !basicInfo.age ||
       !basicInfo.gender ||
@@ -129,13 +132,16 @@ export default function AddAnimal() {
         color: basicInfo.color,
         breed: basicInfo.breed,
         description: basicInfo.personality || "",
-        status: basicInfo.status as
+        protection_status: basicInfo.protection_status as
           | "보호중"
+          | "안락사"
+          | "자연사"
+          | "반환",
+        adoption_status: basicInfo.adoption_status as
+          | "입양가능"
+          | "입양진행중"
           | "입양완료"
-          | "무지개다리"
-          | "임시보호중"
-          | "반환"
-          | "방사",
+          | "입양불가",
         activity_level: detailInfo.personality.activity.toString(),
         sensitivity: detailInfo.personality.sensitivity.toString(),
         sociability: detailInfo.personality.sociability.toString(),

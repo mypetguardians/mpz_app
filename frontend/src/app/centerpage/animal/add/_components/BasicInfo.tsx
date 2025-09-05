@@ -12,7 +12,8 @@ import { openKakaoAddress } from "@/lib/openKakaoAddress";
 import { NotificationToast } from "@/components/ui/NotificationToast";
 
 interface BasicInfoData {
-  status: string;
+  protection_status: string;
+  adoption_status: string;
   breed: string;
   age: string;
   gender: string;
@@ -227,11 +228,20 @@ export default function BasicInfo({
 
         <CustomInput
           variant="tagdropdown"
-          label="상태"
-          placeholder="상태를 선택해주세요"
-          options={["보호중", "입양대기", "입양완료"]}
-          value={data.status}
-          onChangeOption={(value) => onChange({ status: value })}
+          label="보호 상태"
+          placeholder="보호 상태를 선택해주세요"
+          options={["보호중", "안락사", "자연사", "반환"]}
+          value={data.protection_status}
+          onChangeOption={(value) => onChange({ protection_status: value })}
+          required={true}
+        />
+        <CustomInput
+          variant="tagdropdown"
+          label="입양 상태"
+          placeholder="입양 상태를 선택해주세요"
+          options={["입양가능", "입양진행중", "입양완료", "입양불가"]}
+          value={data.adoption_status}
+          onChangeOption={(value) => onChange({ adoption_status: value })}
           required={true}
         />
         <div className="flex flex-col gap-2">

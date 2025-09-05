@@ -134,29 +134,36 @@ function AnimalTab() {
 
     // 보호상태 필터 (protectionStatus 배열의 첫 번째 값 사용)
     if (filters.protectionStatus.length > 0) {
-      const statusMap: {
-        [key: string]:
-          | "보호중"
-          | "입양완료"
-          | "입양진행중"
-          | "임시보호중"
-          | "자연사"
-          | "안락사"
-          | "방사";
+      const protectionStatusMap: {
+        [key: string]: "보호중" | "안락사" | "자연사" | "반환";
       } = {
         보호중: "보호중",
-        입양완료: "입양완료",
-        입양진행중: "입양진행중",
-        임시보호중: "임시보호중",
+        안락사: "안락사",
+        자연사: "자연사",
+        반환: "반환",
+        무지개다리: "안락사", // 무지개다리는 안락사로 매핑
       };
-      const statusValue = statusMap[filters.protectionStatus[0]];
-      if (statusValue) {
-        params.status = statusValue;
+
+      const protectionStatusValue =
+        protectionStatusMap[filters.protectionStatus[0]];
+      if (protectionStatusValue) {
+        params.protection_status = protectionStatusValue;
       }
 
-      // 무지개다리 필터가 선택된 경우 자연사나 안락사 중 하나 선택
-      if (filters.protectionStatus.includes("무지개다리")) {
-        params.status = Math.random() > 0.5 ? "자연사" : "안락사";
+      // 입양 관련 필터를 별도 처리
+      const adoptionStatusMap: {
+        [key: string]: "입양가능" | "입양진행중" | "입양완료" | "입양불가";
+      } = {
+        입양가능: "입양가능",
+        입양진행중: "입양진행중",
+        입양완료: "입양완료",
+        입양불가: "입양불가",
+      };
+
+      const adoptionStatusValue =
+        adoptionStatusMap[filters.protectionStatus[0]];
+      if (adoptionStatusValue) {
+        params.adoption_status = adoptionStatusValue;
       }
     }
 

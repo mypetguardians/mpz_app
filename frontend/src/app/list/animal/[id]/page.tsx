@@ -378,7 +378,8 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
   const relatedAnimals: RawAnimalResponse[] = (relatedAnimalsData || []).map(
     (item) => ({
       ...item,
-      status: item.status as RawAnimalResponse["status"],
+      protection_status: item.protection_status,
+      adoption_status: item.adoption_status,
       weight: item.weight,
       color: item.color,
       breed: item.breed,
@@ -410,7 +411,8 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
         />
 
         <AnimalBasicInfo
-          tag={animal.status}
+          protection_status={animal.protection_status}
+          adoption_status={animal.adoption_status}
           name={animal.name}
           isFemale={animal.is_female}
           age={animal.age}
@@ -553,7 +555,8 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
                 id: animal.id,
                 name: animal.name || "",
                 isFemale: animal.is_female,
-                status: animal.status,
+                protection_status: animal.protection_status,
+                adoption_status: animal.adoption_status,
                 breed: animal.breed || "",
                 centerId: animal.center_id,
                 animalImages:

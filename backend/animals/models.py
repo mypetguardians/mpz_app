@@ -8,14 +8,18 @@ from common.models import BaseModel
 class Animal(BaseModel):
     """동물 모델"""
     
-    STATUS_CHOICES = [
+    PROTECTION_STATUS_CHOICES = [
         ('보호중', '보호중'),
-        ('입양대기', '입양대기'),
-        ('입양진행중', '입양진행중'),
-        ('입양완료', '입양완료'),
         ('안락사', '안락사'),
         ('자연사', '자연사'),
         ('반환', '반환'),
+    ]
+    
+    ADOPTION_STATUS_CHOICES = [
+        ('입양가능', '입양가능'),
+        ('입양진행중', '입양진행중'),
+        ('입양완료', '입양완료'),
+        ('입양불가', '입양불가'),
     ]
     
     SEX_CHOICES = [
@@ -46,7 +50,8 @@ class Animal(BaseModel):
     neutering = models.BooleanField(default=False, help_text="중성화 여부")
     vaccination = models.BooleanField(default=False, help_text="예방접종 여부")
     heartworm = models.BooleanField(default=False, help_text="심장사상충 예방 여부")
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='보호중', help_text="보호 상태")
+    protection_status = models.CharField(max_length=20, choices=PROTECTION_STATUS_CHOICES, default='보호중', help_text="보호 상태")
+    adoption_status = models.CharField(max_length=20, choices=ADOPTION_STATUS_CHOICES, default='입양가능', help_text="입양 상태")
     description = models.TextField(blank=True, null=True, help_text="동물 설명")
     personality = models.TextField(blank=True, null=True, help_text="성격")
     health_notes = models.TextField(blank=True, null=True, help_text="건강 상태 메모")
@@ -80,8 +85,9 @@ class Animal(BaseModel):
     def __str__(self):
         center_name = self.center.name if self.center else "Unknown Center"
         animal_name = self.name if self.name else "Unknown Animal"
-        status = self.get_status_display() if self.status else "Unknown Status"
-        return f"{center_name} - {animal_name} ({status})"
+        protection_status = self.get_protection_status_display() if self.protection_status else "Unknown Protection"
+        adoption_status = self.get_adoption_status_display() if self.adoption_status else "Unknown Adoption"
+        return f"{center_name} - {animal_name} (보호:{protection_status}, 입양:{adoption_status})"
     
     @property
     def display_notice_number(self):

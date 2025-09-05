@@ -92,7 +92,8 @@ async def create_animal(request: HttpRequest, data: AnimalCreateIn):
             "weight": data.weight,
             "breed": data.breed,
             "description": data.description,
-            "status": data.status or "보호중",
+            "protection_status": data.protection_status or "보호중",
+            "adoption_status": data.adoption_status or "입양가능",
             "personality": data.personality,
             "health_notes": data.health_notes,
             "special_needs": data.special_notes,  # special_notes를 special_needs에 매핑
@@ -139,7 +140,8 @@ async def create_animal(request: HttpRequest, data: AnimalCreateIn):
 
             breed=animal.breed,
             description=animal.description,
-            status=animal.status,
+            protection_status=animal.protection_status,
+            adoption_status=animal.adoption_status,
             waiting_days=0,
             activity_level=animal.activity_level,
             sensitivity=animal.sensitivity,
@@ -206,7 +208,11 @@ async def get_animals(request: HttpRequest, filters: AnimalListQueryIn = Query(A
             
             # 필터 조건 적용
             if filters.status:
-                queryset = queryset.filter(status=filters.status)
+                # 기존 status 필터를 protection_status와 adoption_status로 분리
+                if filters.status in ['보호중', '안락사', '자연사', '반환']:
+                    queryset = queryset.filter(protection_status=filters.status)
+                elif filters.status in ['입양가능', '입양진행중', '입양완료', '입양불가']:
+                    queryset = queryset.filter(adoption_status=filters.status)
             if filters.center_id:
                 queryset = queryset.filter(center_id=filters.center_id)
             if filters.gender:
@@ -289,7 +295,8 @@ async def get_animals(request: HttpRequest, filters: AnimalListQueryIn = Query(A
                 color=None,  # Animal 모델에 없는 필드
                 breed=animal.breed,
                 description=animal.description,
-                status=animal.status,
+                protection_status=animal.protection_status,
+            adoption_status=animal.adoption_status,
                 waiting_days=0,
                 activity_level=None,  # Animal 모델에 없는 필드
                 sensitivity=None,  # Animal 모델에 없는 필드
@@ -437,7 +444,8 @@ async def get_animal_by_id(request: HttpRequest, animal_id: str):
             color=None,  # Animal 모델에 없는 필드
             breed=animal.breed,
             description=animal.description,
-            status=animal.status,
+            protection_status=animal.protection_status,
+            adoption_status=animal.adoption_status,
             waiting_days=0,
             activity_level=None,  # Animal 모델에 없는 필드
             sensitivity=None,  # Animal 모델에 없는 필드
@@ -583,7 +591,8 @@ async def update_animal(request: HttpRequest, animal_id: str, data: AnimalUpdate
 
             breed=animal.breed,
             description=animal.description,
-            status=animal.status,
+            protection_status=animal.protection_status,
+            adoption_status=animal.adoption_status,
             waiting_days=0,
             activity_level=animal.activity_level,
             sensitivity=animal.sensitivity,
@@ -782,19 +791,29 @@ async def update_animal_status(request: HttpRequest, animal_id: str, data: Anima
                 raise HttpError(403, "해당 동물에 대한 권한이 없습니다")
         
         # 상태 변경 로직
-        previous_status = animal.status
-        new_status = data.status
+        previous_protection_status = animal.protection_status
+        previous_adoption_status = animal.adoption_status
+        changes_made = []
         
-        # 동일한 상태로 변경하려는 경우 체크
-        if previous_status == new_status:
-            raise HttpError(400, f"동물의 상태가 이미 '{new_status}'입니다")
+        # 보호 상태 변경
+        if data.protection_status and data.protection_status != previous_protection_status:
+            animal.protection_status = data.protection_status
+            changes_made.append(f"보호상태: '{previous_protection_status}' → '{data.protection_status}'")
+        
+        # 입양 상태 변경
+        if data.adoption_status and data.adoption_status != previous_adoption_status:
+            animal.adoption_status = data.adoption_status
+            changes_made.append(f"입양상태: '{previous_adoption_status}' → '{data.adoption_status}'")
+        
+        # 변경사항이 없으면 에러
+        if not changes_made:
+            raise HttpError(400, "변경할 상태가 없습니다")
         
         # 상태 업데이트
-        animal.status = new_status
         await sync_to_async(animal.save)()
         
         # 상태 변경 로그
-        status_change_message = f"{animal.name}의 상태가 '{previous_status}'에서 '{new_status}'로 변경되었습니다"
+        status_change_message = f"{animal.name}의 상태가 변경되었습니다: {', '.join(changes_made)}"
         
         if data.reason:
             print(f"[상태 변경] {status_change_message} (사유: {data.reason})")
@@ -804,8 +823,10 @@ async def update_animal_status(request: HttpRequest, animal_id: str, data: Anima
         response_data = AnimalStatusUpdateOut(
             id=str(animal.id),
             name=animal.name,
-            previous_status=previous_status,
-            new_status=new_status,
+            previous_protection_status=previous_protection_status,
+            new_protection_status=data.protection_status,
+            previous_adoption_status=previous_adoption_status,
+            new_adoption_status=data.adoption_status,
             updated_at=timezone.now().isoformat(),
             message=status_change_message,
         )
@@ -1051,12 +1072,19 @@ async def get_public_data_status(request: HttpRequest):
         # 공공데이터 동물 통계
         total_public_animals = await Animal.objects.filter(is_public_data=True).acount()
         
-        # 상태별 통계
-        status_stats = await Animal.objects.filter(
+        # 보호상태별 통계
+        protection_status_stats = await Animal.objects.filter(
             is_public_data=True
-        ).values('status').annotate(
+        ).values('protection_status').annotate(
             count=Count('id')
-        ).order_by('status')
+        ).order_by('protection_status')
+        
+        # 입양상태별 통계
+        adoption_status_stats = await Animal.objects.filter(
+            is_public_data=True
+        ).values('adoption_status').annotate(
+            count=Count('id')
+        ).order_by('adoption_status')
         
         # 최근 업데이트 시간
         latest_update = await Animal.objects.filter(
@@ -1065,7 +1093,8 @@ async def get_public_data_status(request: HttpRequest):
         
         return 200, PublicDataStatusOut(
             total_public_animals=total_public_animals,
-            status_distribution=list(status_stats),
+            protection_status_distribution=list(protection_status_stats),
+            adoption_status_distribution=list(adoption_status_stats),
             latest_update=latest_update.isoformat() if latest_update else None
         )
         

@@ -22,7 +22,8 @@ class AnimalOut(Schema):
     color: Optional[str] = Field(None, description="색상")
     breed: Optional[str] = Field(None, description="품종")
     description: Optional[str] = Field(None, description="동물 설명")
-    status: str = Field(..., description="동물 상태 (보호중, 입양대기, 입양완료)")
+    protection_status: str = Field(..., description="보호 상태 (보호중, 안락사, 자연사, 반환)")
+    adoption_status: str = Field(..., description="입양 상태 (입양가능, 입양진행중, 입양완료, 입양불가)")
     waiting_days: int = Field(0, description="보호 기간 (일)")
     activity_level: Optional[int] = Field(None, description="활동량 수준")
     sensitivity: Optional[int] = Field(None, description="예민함 정도")
@@ -66,8 +67,10 @@ class AnimalStatusUpdateOut(Schema):
     """동물 상태 변경 출력 스키마"""
     id: str = Field(..., description="동물 ID")
     name: str = Field(..., description="동물 이름")
-    previous_status: str = Field(..., description="이전 상태")
-    new_status: str = Field(..., description="새로운 상태")
+    previous_protection_status: Optional[str] = Field(None, description="이전 보호 상태")
+    new_protection_status: Optional[str] = Field(None, description="새로운 보호 상태")
+    previous_adoption_status: Optional[str] = Field(None, description="이전 입양 상태")
+    new_adoption_status: Optional[str] = Field(None, description="새로운 입양 상태")
     updated_at: str = Field(..., description="상태 변경 일시 (ISO 형식)")
     message: str = Field(..., description="상태 변경 메시지")
 

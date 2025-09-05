@@ -40,7 +40,7 @@ class PublicDataService:
                     'upkind': upkind,
                     'pageNo': current_page,
                     'numOfRows': min(num_of_rows, 1000),  # 최대 100개로 제한
-                    '_type': 'xml'
+                    '_type': '_xml'
                 }
                 
                 # 날짜가 지정된 경우만 추가
@@ -53,7 +53,7 @@ class PublicDataService:
                     params['state'] = state
                 
                 # URL 직접 구성하여 &amp; 문제 해결
-                url = f"{self.BASE_URL}/abandonmentPublicService_v2/abandonmentPublic"
+                url = f"{self.BASE_URL}/abandonmentPublicService_v2/abandonmentPublic_v2"
                 query_string = urlencode(params)
                 full_url = f"{url}?{query_string}"
                 
@@ -87,7 +87,7 @@ class PublicDataService:
                     'upkind': upkind,
                     'pageNo': page,
                     'numOfRows': min(num_of_rows, 100),  # 최대 100개로 제한
-                    '_type': 'xml'
+                    '_type': '_xml'
                 }
                 
                 # 날짜가 지정된 경우만 추가
@@ -100,7 +100,7 @@ class PublicDataService:
                     params['state'] = state
                 
                 # URL 직접 구성하여 &amp; 문제 해결
-                url = f"{self.BASE_URL}/abandonmentPublicService_v2/abandonmentPublic"
+                url = f"{self.BASE_URL}/abandonmentPublicService_v2/abandonmentPublic_v2"
                 query_string = urlencode(params)
                 full_url = f"{url}?{query_string}"
                 
@@ -235,9 +235,10 @@ class PublicDataService:
         
         try:
             # public_notice_number로 중복 체크
-            animal = await Animal.objects.filter(
-                public_notice_number=notice_number
-            ).afirst()
+            from asgiref.sync import sync_to_async
+            animal = await sync_to_async(
+                lambda: Animal.objects.filter(public_notice_number=notice_number).first()
+            )()
             return animal
         except Exception:
             return None
@@ -257,7 +258,8 @@ class PublicDataService:
             is_female=animal_data.sex_cd == 'F',
             weight=self._parse_weight(animal_data.weight),
             neutering=animal_data.neuter_yn == 'Y',
-            status=self._map_status(animal_data.process_state),  # 공공데이터 상태를 우리 status에 매핑
+            protection_status=self._map_protection_status(animal_data.process_state),  # 공공데이터 상태를 보호상태에 매핑
+            adoption_status=self._map_adoption_status(animal_data.process_state),  # 공공데이터 상태를 입양상태에 매핑
             description=animal_data.special_mark or '',  # 공공데이터 특이사항을 description에 저장
             found_location=animal_data.happen_place,  # 공공데이터 발견장소를 found_location에 저장
             admission_date=animal_data.happen_dt,  # 공공데이터 구조날짜를 admission_date에 저장
@@ -266,7 +268,8 @@ class PublicDataService:
             comment=animal_data.notice_comment or '',  # 공공데이터 공고 코멘트를 comment에 저장
         )
         
-        await animal.asave()
+        from asgiref.sync import sync_to_async
+        await sync_to_async(animal.save)()
         
         # 이미지 처리
         await self._process_animal_images(animal, animal_data)
@@ -278,11 +281,18 @@ class PublicDataService:
         updated = False
         
         # 1. 상태 업데이트 (가장 중요한 변경사항)
-        new_status = self._map_status(animal_data.process_state)
-        if animal.status != new_status:
-            animal.status = new_status
+        new_protection_status = self._map_protection_status(animal_data.process_state)
+        new_adoption_status = self._map_adoption_status(animal_data.process_state)
+        
+        if animal.protection_status != new_protection_status:
+            animal.protection_status = new_protection_status
             updated = True
-            print(f"동물 상태 업데이트: {animal.public_notice_number} - {animal.status} -> {new_status}")
+            print(f"동물 보호상태 업데이트: {animal.public_notice_number} - {animal.protection_status} -> {new_protection_status}")
+        
+        if animal.adoption_status != new_adoption_status:
+            animal.adoption_status = new_adoption_status
+            updated = True
+            print(f"동물 입양상태 업데이트: {animal.public_notice_number} - {animal.adoption_status} -> {new_adoption_status}")
         
         # 2. 공공데이터 정보 업데이트 - 기존 필드 활용
         if animal.description != (animal_data.special_mark or ''):
@@ -331,7 +341,8 @@ class PublicDataService:
         
         # 5. 실제 변경사항이 있을 때만 DB에 저장
         if updated:
-            await animal.asave()
+            from asgiref.sync import sync_to_async
+            await sync_to_async(animal.save)()
             print(f"동물 정보 업데이트 완료: {animal.public_notice_number}")
         
         return updated
@@ -343,7 +354,8 @@ class PublicDataService:
         
         if care_reg_no:
             # Center 모델에서 해당 보호소와 연결된 센터 조회
-            center, created = await Center.objects.aget_or_create(
+            from asgiref.sync import sync_to_async
+            center, created = await sync_to_async(Center.objects.get_or_create)(
                 public_reg_no=care_reg_no,
                 defaults={
                     'name': care_name,
@@ -374,13 +386,16 @@ class PublicDataService:
                     updated = True
                 
                 if updated:
-                    await center.asave()
+                    await sync_to_async(center.save)()
                     print(f"센터 정보 업데이트 완료: {center.name} ({center.public_reg_no})")
             
             return center
         
         # 기본 센터 반환
-        return await Center.objects.filter(is_public=True).afirst()
+        from asgiref.sync import sync_to_async
+        return await sync_to_async(
+            lambda: Center.objects.filter(is_public=True).first()
+        )()
     
     def _map_sido_to_region(self, org_name: str) -> str:
         """기관명에서 지역 추출하여 우리 시스템의 지역 코드로 매핑"""
@@ -449,22 +464,35 @@ class PublicDataService:
         except (ValueError, AttributeError):
             return None
     
-    def _map_status(self, public_status: str) -> str:
-        """공공데이터 상태를 우리 시스템 상태로 매핑"""
-        status_mapping = {
+    def _map_protection_status(self, public_status: str) -> str:
+        """공공데이터 상태를 보호상태로 매핑"""
+        protection_mapping = {
             '보호중': '보호중',
             '공고중': '보호중',
-            '입양완료': '입양완료',
+            '입양완료': '보호중',  # 입양완료되어도 보호소에서 보호받은 상태
             '안락사': '안락사',
             '자연사': '자연사',
             '반환': '반환'
         }
-        return status_mapping.get(public_status, '보호중')
+        return protection_mapping.get(public_status, '보호중')
+    
+    def _map_adoption_status(self, public_status: str) -> str:
+        """공공데이터 상태를 입양상태로 매핑"""
+        adoption_mapping = {
+            '보호중': '입양가능',
+            '공고중': '입양가능',
+            '입양완료': '입양완료',
+            '안락사': '입양불가',
+            '자연사': '입양불가',
+            '반환': '입양불가'
+        }
+        return adoption_mapping.get(public_status, '입양가능')
     
     async def _process_animal_images(self, animal: Animal, animal_data: PublicDataAnimalOut):
         """동물 이미지 처리 - filename과 popfile 모두 처리"""
         # 기존 이미지 삭제
-        await AnimalImage.objects.filter(animal=animal).adelete()
+        from asgiref.sync import sync_to_async
+        await sync_to_async(AnimalImage.objects.filter(animal=animal).delete)()
         
         # 새 이미지 추가
         images = []
@@ -485,7 +513,7 @@ class PublicDataService:
         # 공공데이터 API에서 filename 필드가 제공되는 경우를 대비
         
         if images:
-            await AnimalImage.objects.abulk_create(images)
+            await sync_to_async(AnimalImage.objects.bulk_create)(images)
             print(f"동물 이미지 처리 완료: {animal.public_notice_number} - {len(images)}개 이미지")
         else:
             print(f"동물 이미지 없음: {animal.public_notice_number}")

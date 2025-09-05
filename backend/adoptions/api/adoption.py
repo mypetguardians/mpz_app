@@ -44,8 +44,8 @@ async def get_adoption_pre_check(request, animal_id: str):
         if not animal.center:
             raise HttpError(404, "센터 정보를 찾을 수 없습니다")
         
-        # 입양 가능한 상태인지 확인 (보호중인 동물만 입양 신청 가능)
-        can_apply = animal.status == "보호중"
+        # 입양 가능한 상태인지 확인 (보호중이고 입양가능한 동물만 입양 신청 가능)
+        can_apply = animal.protection_status == "보호중" and animal.adoption_status == "입양가능"
         
         # 이미 입양 신청을 했는지 확인
         existing_application_count = await Adoption.objects.filter(
@@ -113,7 +113,8 @@ async def get_adoption_pre_check(request, animal_id: str):
             animal=AnimalInfoOut(
                 id=str(animal.id),
                 name=animal.name,
-                status=animal.status,
+                protection_status=animal.protection_status,
+                adoption_status=animal.adoption_status,
                 center_id=str(animal.center.id),
                 center_name=animal.center.name,
             ),
@@ -170,8 +171,8 @@ async def submit_adoption_application(request, data: AdoptionApplicationIn):
         if not animal.center:
             raise HttpError(404, "센터 정보를 찾을 수 없습니다")
         
-        # 입양 가능한 상태인지 확인 (보호중인 동물만 입양 신청 가능)
-        if animal.status != "보호중":
+        # 입양 가능한 상태인지 확인 (보호중이고 입양가능한 동물만 입양 신청 가능)
+        if animal.protection_status != "보호중" or animal.adoption_status != "입양가능":
             raise HttpError(403, "현재 입양 신청이 불가능한 동물입니다")
         
         # 이미 입양 신청을 했는지 확인 (취소되지 않은 신청)

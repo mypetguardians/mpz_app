@@ -235,9 +235,10 @@ class PublicDataService:
         
         try:
             # public_notice_number로 중복 체크
-            animal = await Animal.objects.filter(
-                public_notice_number=notice_number
-            ).afirst()
+            from asgiref.sync import sync_to_async
+            animal = await sync_to_async(
+                lambda: Animal.objects.filter(public_notice_number=notice_number).first()
+            )()
             return animal
         except Exception:
             return None
@@ -267,7 +268,8 @@ class PublicDataService:
             comment=animal_data.notice_comment or '',  # 공공데이터 공고 코멘트를 comment에 저장
         )
         
-        await animal.asave()
+        from asgiref.sync import sync_to_async
+        await sync_to_async(animal.save)()
         
         # 이미지 처리
         await self._process_animal_images(animal, animal_data)
@@ -339,7 +341,8 @@ class PublicDataService:
         
         # 5. 실제 변경사항이 있을 때만 DB에 저장
         if updated:
-            await animal.asave()
+            from asgiref.sync import sync_to_async
+            await sync_to_async(animal.save)()
             print(f"동물 정보 업데이트 완료: {animal.public_notice_number}")
         
         return updated
@@ -351,7 +354,8 @@ class PublicDataService:
         
         if care_reg_no:
             # Center 모델에서 해당 보호소와 연결된 센터 조회
-            center, created = await Center.objects.aget_or_create(
+            from asgiref.sync import sync_to_async
+            center, created = await sync_to_async(Center.objects.get_or_create)(
                 public_reg_no=care_reg_no,
                 defaults={
                     'name': care_name,
@@ -382,13 +386,16 @@ class PublicDataService:
                     updated = True
                 
                 if updated:
-                    await center.asave()
+                    await sync_to_async(center.save)()
                     print(f"센터 정보 업데이트 완료: {center.name} ({center.public_reg_no})")
             
             return center
         
         # 기본 센터 반환
-        return await Center.objects.filter(is_public=True).afirst()
+        from asgiref.sync import sync_to_async
+        return await sync_to_async(
+            lambda: Center.objects.filter(is_public=True).first()
+        )()
     
     def _map_sido_to_region(self, org_name: str) -> str:
         """기관명에서 지역 추출하여 우리 시스템의 지역 코드로 매핑"""
@@ -484,7 +491,8 @@ class PublicDataService:
     async def _process_animal_images(self, animal: Animal, animal_data: PublicDataAnimalOut):
         """동물 이미지 처리 - filename과 popfile 모두 처리"""
         # 기존 이미지 삭제
-        await AnimalImage.objects.filter(animal=animal).adelete()
+        from asgiref.sync import sync_to_async
+        await sync_to_async(AnimalImage.objects.filter(animal=animal).delete)()
         
         # 새 이미지 추가
         images = []
@@ -505,7 +513,7 @@ class PublicDataService:
         # 공공데이터 API에서 filename 필드가 제공되는 경우를 대비
         
         if images:
-            await AnimalImage.objects.abulk_create(images)
+            await sync_to_async(AnimalImage.objects.bulk_create)(images)
             print(f"동물 이미지 처리 완료: {animal.public_notice_number} - {len(images)}개 이미지")
         else:
             print(f"동물 이미지 없음: {animal.public_notice_number}")

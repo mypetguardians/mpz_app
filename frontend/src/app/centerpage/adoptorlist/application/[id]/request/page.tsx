@@ -226,7 +226,8 @@ export default function AdoptionRequestPage({
                   name: currentAdoption.animal_name,
                   isFemale: false, // API에서 제공되지 않는 정보
                   breed: "종 미등록",
-                  status: "보호중" as const,
+                  protection_status: "보호중" as const,
+                  adoption_status: "입양진행중" as const,
                   centerId: "", // 필수 필드이지만 API에서 제공되지 않음
                   animalImages: [],
                   foundLocation: null,

@@ -211,7 +211,8 @@ function MatchedPetsList({
                   name: String(animalData.animal_name),
                   breed: String(animalData.breed || "믹스견"),
                   isFemale: String(animalData.gender) === "암",
-                  status: "보호중" as const,
+                  protection_status: "보호중" as const,
+                  adoption_status: "입양가능" as const,
                   centerId: String(animalData.center_name || "AI 매칭"),
                   animalImages: [
                     {
@@ -252,7 +253,8 @@ function MatchedPetsList({
                   name: petInfo.name,
                   breed: petInfo.color || "",
                   isFemale: petInfo.isFemale,
-                  status: "보호중" as const,
+                  protection_status: "보호중" as const,
+                  adoption_status: "입양가능" as const,
                   centerId: petInfo.center,
                   animalImages: petInfo.imageUrls.map(
                     (img: string, imgIndex: number) => ({

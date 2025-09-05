@@ -47,13 +47,14 @@ export function AnimalStatusUpdateModal({
 
   return (
     <CustomModal
-      isOpen={isOpen}
+      open={isOpen}
       onClose={onClose}
       title="동물 상태 변경"
-      confirmText="변경하기"
-      cancelText="취소"
-      onConfirm={handleSubmit}
-      confirmDisabled={updateStatusMutation.isPending}
+      variant="variant1"
+      leftButtonText="취소"
+      rightButtonText="변경하기"
+      onLeftClick={onClose}
+      onRightClick={handleSubmit}
     >
       <div className="space-y-4">
         <CustomInput

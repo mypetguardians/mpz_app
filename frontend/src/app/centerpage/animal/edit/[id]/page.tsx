@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowsClockwise } from "@phosphor-icons/react";
 
@@ -69,15 +69,20 @@ const initialFormData: FormData = {
   images: [],
 };
 
-export default function EditAnimal({ params }: { params: { id: string } }) {
+export default function EditAnimal({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const router = useRouter();
+  const resolvedParams = use(params);
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const updateAnimalMutation = useUpdateAnimal();
   const uploadImagesMutation = useUploadImages();
 
   // 기존 동물 데이터 불러오기
   const { data: animalData, isLoading: isLoadingAnimal } = useGetAnimalById(
-    params.id
+    resolvedParams.id
   );
 
   // 기존 데이터를 폼에 설정
@@ -159,7 +164,7 @@ export default function EditAnimal({ params }: { params: { id: string } }) {
 
     try {
       const requestData = {
-        id: params.id, // 수정할 동물의 ID
+        id: resolvedParams.id, // 수정할 동물의 ID
         name: basicInfo.breed,
         is_female: basicInfo.gender === "암컷",
         age: parseInt(basicInfo.age),

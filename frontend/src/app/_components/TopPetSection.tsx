@@ -116,7 +116,7 @@ export function TopPetSection({
     }
 
     const analysisAnimals = (animals || [])
-      .filter((animal) => animal?.status === "보호중")
+      .filter((animal) => animal?.protection_status === "보호중")
       .sort((a, b) => {
         if (a.admission_date && b.admission_date) {
           return (
@@ -165,7 +165,7 @@ export function TopPetSection({
 
   // 보호중인 동물만 필터링하고 admission_date 높은 순서대로 정렬
   const limitedAnimals = (animals || [])
-    .filter((animal) => animal?.status === "보호중")
+    .filter((animal) => animal?.protection_status === "보호중")
     .sort((a, b) => {
       if (a.admission_date && b.admission_date) {
         return (

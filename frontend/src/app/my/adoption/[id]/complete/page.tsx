@@ -177,7 +177,8 @@ export default function AdoptionCompletePage({
                   name: adoption.animal_name,
                   isFemale: adoption.animal_gender === "암컷",
                   breed: adoption.animal_breed || "종 미등록",
-                  status: "보호중" as const,
+                  protection_status: "보호중" as const,
+                  adoption_status: "입양완료" as const,
                   centerId: adoption.center_id,
                   animalImages: adoption.animal_image
                     ? [

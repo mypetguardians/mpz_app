@@ -30,7 +30,6 @@ function AdoptorNotificationCard({
   apiStatus,
   animalName,
   animalAdoptionStatus,
-  animalProtectionStatus,
 }: AdoptorNotificationCardProps) {
   const router = useRouter();
 

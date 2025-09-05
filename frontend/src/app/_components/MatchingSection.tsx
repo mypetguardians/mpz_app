@@ -148,7 +148,8 @@ export function MatchingSection({
                       isFemale:
                         String(animal.gender) === "암" ||
                         String(animal.gender) === "여성",
-                      status: "보호중" as const,
+                      protection_status: "보호중" as const,
+                      adoption_status: "입양가능" as const,
                       centerId: String(animal.center_name || "AI 매칭"),
                       animalImages: [
                         {
@@ -174,7 +175,8 @@ export function MatchingSection({
                       name: String(animal.animal_name),
                       breed: String(animal.breed || "믹스견"),
                       isFemale: String(animal.gender) === "암",
-                      status: "보호중" as const,
+                      protection_status: "보호중" as const,
+                      adoption_status: "입양가능" as const,
                       centerId: String(animal.center_name || "AI 매칭"),
                       animalImages: [
                         {

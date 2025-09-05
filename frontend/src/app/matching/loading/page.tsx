@@ -36,10 +36,10 @@ const matchingSteps = [
 function MatchingLoadingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const resultParam = searchParams.get("result"); // Step9에서 전달받은 userId
+  const resultParam = searchParams.get("result");
   const [currentStep, setCurrentStep] = useState(0);
   const { user } = useAuth();
-  const { setAIMatchingResult } = useMatchingStepStore(user?.id);
+  const { setAIMatchingResult, answers } = useMatchingStepStore(user?.id);
 
   const { mutate, isPending, isSuccess, isError } = usePostAnimalMatching({
     onSuccess: (res) => {
@@ -55,18 +55,35 @@ function MatchingLoadingContent() {
 
   // 페이지 진입 시 요청 실행
   useEffect(() => {
-    if (resultParam) {
+    if (resultParam && answers) {
       console.log("AI 매칭 요청 시작:", resultParam);
+      console.log("사용자 답변 데이터:", answers);
+
+      // 스토어의 답변 데이터를 preferences 형태로 변환
+      const preferences: Record<string, string | number | boolean> = {};
+
+      Object.entries(answers).forEach(([stepNum, answer]) => {
+        if (answer) {
+          preferences[answer.type] = answer.value;
+          console.log(`Step ${stepNum}: ${answer.type} = ${answer.value}`);
+        }
+      });
+
+      console.log("변환된 preferences:", preferences);
+
       const payload: AIRecommendRequest = {
         user_id: resultParam,
-        preferences: {},
+        preferences,
         limit: 5,
       };
       mutate(payload);
     } else {
-      console.log("resultParam이 없음 - 매칭 요청을 시작할 수 없음");
+      console.log("resultParam이 없거나 answers가 없음:", {
+        resultParam,
+        answers,
+      });
     }
-  }, [resultParam, mutate]);
+  }, [resultParam, mutate, answers]);
 
   // 로딩 단계 애니메이션 - pending 상태일 때만 실행
   useEffect(() => {

@@ -239,7 +239,7 @@ export default function AdoptionMeetingPage({
           <div className="p-4">
             {/* Main Title */}
             <h2 className="flex itemx-center justify-center text-bk mb-6">
-              미팅이 팔요하다면 진행해주세요!
+              미팅이 필요하다면 진행해주세요!
             </h2>
 
             {/* Progress Bar */}

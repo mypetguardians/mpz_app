@@ -259,13 +259,14 @@ export function PetCard({
         )}
         onClick={handleCardClick}
       >
-        <Image
-          src={getImageUrl()}
-          alt={breed || "동물"}
-          width={52}
-          height={52}
-          className="object-cover rounded"
-        />
+        <div className="relative w-[52px] h-[52px] rounded overflow-hidden flex-shrink-0">
+          <Image
+            src={getImageUrl()}
+            alt={breed || "동물"}
+            fill
+            className="object-cover"
+          />
+        </div>
         <div className="flex-1">
           <div className="flex items-center mb-[6px] gap-1">
             <Chip className={getStatusColorClass(status || "보호중")}>

@@ -13,7 +13,7 @@ import { TopBar } from "@/components/common/TopBar";
 import { NavBar } from "@/components/common/NavBar";
 import { DotProgressBar } from "@/components/ui/DotProgressBar";
 import { TextMenu } from "@/components/ui/TextMenu";
-import { CustomModal } from "@/components/ui/CustomModal";
+import { CustomModal } from "@/components/ui/CustomModal";=
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Toast } from "@/components/ui/Toast";
 
@@ -237,12 +237,16 @@ export default function MyPage() {
                   >
                     <div className="flex items-center gap-3 mb-4">
                       {/* 동물 이미지 */}
-                      <div className="relative overflow-hidden w-18 h-18">
+                      <div className="relative overflow-hidden w-16 h-16 rounded-lg bg-gray-100">
                         <Image
                           src={adoption.animal_image || "/img/dummyImg.png"}
-                          alt={adoption.animal_name}
+                          alt={adoption.animal_name || "동물"}
                           fill
                           className="object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = "/img/dummyImg.png";
+                          }}
                         />
                       </div>
                       {/* 텍스트와 화살표 */}

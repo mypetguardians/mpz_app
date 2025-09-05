@@ -32,3 +32,5 @@ export { useSendContract } from "./useSendContract";
 export { useRunManualMonitoringCheck } from "./useRunManualMonitoringCheck";
 export { useWithdrawAdoption } from "./useWithdrawAdoption";
 export { useSubmitAdoptionApplication } from "./useSubmitAdoptionApplication";
+export { useMarkNotificationRead } from "./useMarkNotificationRead";
+export { useMarkAllNotificationsRead } from "./useMarkAllNotificationsRead";

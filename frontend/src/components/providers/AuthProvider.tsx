@@ -72,7 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // 세션 토큰으로 사용자 정보 가져오기 - iOS Safari 호환성 개선
+  // 세션 토큰으로 사용자 정보 가져오기
   const fetchCurrentUser = async () => {
     try {
       // 로컬 스토리지에서 토큰 확인
@@ -87,11 +87,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (response.status === 200) {
         const data = response.data;
-        console.log("fetchCurrentUser - API 응답 데이터:", data);
 
         // user 객체가 있으면 그것을 사용, 없으면 응답 데이터 자체를 사용
         const userData = data.user || data;
-        console.log("fetchCurrentUser - 처리할 사용자 데이터:", userData);
 
         if (userData && (userData.username || userData.email || userData.id)) {
           // User 인터페이스에 맞게 데이터 변환
@@ -208,7 +206,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // 토큰에서 사용자 정보 가져오기
   const setUserFromToken = async () => {
     try {
-      console.log("setUserFromToken - API 호출 시작");
       const response = await instance.get("/auth/me");
 
       if (response.status === 200) {

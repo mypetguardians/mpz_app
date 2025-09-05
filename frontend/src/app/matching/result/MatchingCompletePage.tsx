@@ -82,7 +82,7 @@ function getMatchingTypeFromAIResult(
     case "unsuitable":
       return "unsuitable";
     default:
-      return null; // AI 결과가 없으면 null 반환
+      return null;
   }
 }
 
@@ -185,23 +185,21 @@ function MatchedPetsList({
           {user?.nickname || "사용자"} 님과
           <br />꼭 맞는 아이들이에요!
         </h2>
-        <p className="text-dg text-sm">결과는 매일 업데이트 돼요.</p>
-        {/* 디버깅용 */}
-        {aiMatchingResult?.data?.matching_report && (
-          <div className="mt-2 p-3 bg-brand-light/10 rounded-lg">
-            <p className="text-xs text-brand">
-              <strong>매칭 신뢰도:</strong>{" "}
-              {aiMatchingResult.data.matching_report.confidence_level}
-            </p>
-          </div>
-        )}
       </div>
 
       <div className="flex flex-col gap-3">
         {animals.map((animal: unknown, index: number) => {
-          // AI 매칭 결과인지 mainPetInfo인지 확인
           const animalData = animal as Record<string, unknown>;
           const isAIMatching = animalData.animal_id;
+
+          // 디버깅용 로그
+          console.log(`Animal ${index + 1}:`, {
+            isAIMatching,
+            activity_level: animalData.activity_level,
+            sensitivity: animalData.sensitivity,
+            sociability: animalData.sociability,
+            separation_anxiety: animalData.separation_anxiety,
+          });
 
           if (isAIMatching) {
             // AI 매칭 결과 데이터
@@ -225,6 +223,19 @@ function MatchedPetsList({
                   foundLocation: String(
                     animalData.found_location || "AI 매칭 추천"
                   ),
+                  // 성향 정보 추가
+                  activityLevel: animalData.activity_level
+                    ? String(animalData.activity_level)
+                    : null,
+                  sensitivity: animalData.sensitivity
+                    ? String(animalData.sensitivity)
+                    : null,
+                  sociability: animalData.sociability
+                    ? String(animalData.sociability)
+                    : null,
+                  separationAnxiety: animalData.separation_anxiety
+                    ? String(animalData.separation_anxiety)
+                    : null,
                 }}
                 variant="variant2"
                 rank={index + 1}

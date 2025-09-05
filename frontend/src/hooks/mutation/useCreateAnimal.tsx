@@ -9,7 +9,8 @@ interface CreateAnimalData {
   color?: string | null;
   breed?: string | null;
   description?: string | null;
-  status?: string | null; // default: "보호중"
+  protection_status?: "보호중" | "안락사" | "자연사" | "반환" | null; // default: "보호중"
+  adoption_status?: "입양가능" | "입양진행중" | "입양완료" | "입양불가" | null; // default: "입양가능"
   activity_level?: string | null;
   sensitivity?: string | null;
   sociability?: string | null;

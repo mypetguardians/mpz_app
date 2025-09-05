@@ -21,11 +21,8 @@ const getAnimals = async (
   }
 
   const endpoint = `/animals/?${searchParams.toString()}`;
-  console.log("API Request:", endpoint);
 
   const response = await instance.get<ActualGetAnimalsResponse>(endpoint);
-
-  console.log("Raw API Response:", response.data);
 
   return response.data;
 };
@@ -34,12 +31,9 @@ export const useGetAnimals = (params?: GetAnimalsParams) => {
   return useInfiniteQuery({
     queryKey: ["animals", params],
     queryFn: ({ pageParam = 1 }) => {
-      console.log("Fetching page:", pageParam, "with params:", params);
       return getAnimals({ ...params, page: pageParam });
     },
     getNextPageParam: (lastPage) => {
-      console.log("getNextPageParam - lastPage:", lastPage);
-
       // 여러 가능한 필드 확인
       const hasNext =
         lastPage.hasNext ||
@@ -55,8 +49,6 @@ export const useGetAnimals = (params?: GetAnimalsParams) => {
         lastPage.nextPage ||
         (lastPage.page ? lastPage.page + 1 : undefined) ||
         (lastPage.curPage ? lastPage.curPage + 1 : undefined);
-
-      console.log("hasNext:", hasNext, "nextPage:", nextPage);
 
       if (hasNext && nextPage) {
         return nextPage;

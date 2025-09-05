@@ -10,15 +10,14 @@ export interface Animal {
   description: string | null;
   status:
     | "보호중"
-    | "입양완료"
-    | "자연사"
-    | "안락사"
-    | "임시보호중"
     | "입양대기"
+    | "입양완료"
+    | "무지개다리"
+    | "임시보호중"
     | "반환"
-    | "방사"
-    | "취소"
-    | "입양진행중";
+    | "방사";
+  protection_status: "보호중" | "안락사" | "자연사" | "반환";
+  adoption_status: "입양가능" | "입양진행중" | "입양완료" | "입양불가";
   waitingDays: number | null;
   activityLevel: string | null;
   sensitivity: string | null;
@@ -47,16 +46,8 @@ export interface Animal {
 
 // API 요청 파라미터 타입
 export interface GetAnimalsParams {
-  status?:
-    | "보호중"
-    | "입양완료"
-    | "자연사"
-    | "안락사"
-    | "임시보호중"
-    | "입양대기"
-    | "반환"
-    | "방사"
-    | "입양진행중";
+  protection_status?: "보호중" | "안락사" | "자연사" | "반환";
+  adoption_status?: "입양가능" | "입양진행중" | "입양완료" | "입양불가";
   centerId?: string;
   region?:
     | "서울"
@@ -97,16 +88,8 @@ export interface RawAnimalResponse {
   color: string | null;
   breed: string | null;
   description: string | null;
-  status:
-    | "보호중"
-    | "입양완료"
-    | "자연사"
-    | "안락사"
-    | "임시보호중"
-    | "입양대기"
-    | "반환"
-    | "방사"
-    | "입양진행중";
+  protection_status: "보호중" | "안락사" | "자연사" | "반환";
+  adoption_status: "입양가능" | "입양진행중" | "입양완료" | "입양불가";
   waiting_days: number | null;
   activity_level: number | null;
   sensitivity: number | null;
@@ -160,7 +143,8 @@ export type PetCardAnimal = Pick<
   | "name"
   | "breed"
   | "isFemale"
-  | "status"
+  | "protection_status"
+  | "adoption_status"
   | "centerId"
   | "animalImages"
   | "foundLocation"
@@ -194,7 +178,9 @@ export function transformRawAnimalToAnimal(raw: RawAnimalResponse): Animal {
     color: raw.color,
     breed: raw.breed,
     description: raw.description,
-    status: raw.status,
+    status: "보호중", // 기본값, 필요에 따라 로직 추가
+    protection_status: raw.protection_status,
+    adoption_status: raw.adoption_status,
     waitingDays: raw.waiting_days,
     activityLevel: raw.activity_level?.toString() || null,
     sensitivity: raw.sensitivity?.toString() || null,
@@ -238,7 +224,8 @@ export function transformRawAnimalToPetCard(
     name: raw.name,
     isFemale: raw.is_female,
     breed: raw.breed,
-    status: raw.status,
+    protection_status: raw.protection_status,
+    adoption_status: raw.adoption_status,
     centerId: raw.center_id,
     animalImages: raw.animal_images
       ? raw.animal_images.map((img) => ({
@@ -293,7 +280,8 @@ export interface RelatedAnimalsResponse {
   color: string;
   breed: string;
   description: string;
-  status: string;
+  protection_status: "보호중" | "안락사" | "자연사" | "반환";
+  adoption_status: "입양가능" | "입양진행중" | "입양완료" | "입양불가";
   waiting_days: number;
   activity_level: number;
   sensitivity: number;

@@ -14,6 +14,9 @@ interface AdoptorNotificationCardProps {
   tabType?: "application" | "foster" | "adopter";
   apiStatus?: string; // API 상태값 추가
   adoption?: CenterAdoptionData; // 입양 데이터 추가
+  animalName?: string; // 동물 이름
+  animalAdoptionStatus?: string; // 동물 입양 상태
+  animalProtectionStatus?: string; // 동물 보호 상태
 }
 
 function AdoptorNotificationCard({
@@ -25,6 +28,9 @@ function AdoptorNotificationCard({
   isGrayscale = false,
   tabType = "adopter",
   apiStatus,
+  animalName,
+  animalAdoptionStatus,
+  animalProtectionStatus,
 }: AdoptorNotificationCardProps) {
   const router = useRouter();
 
@@ -108,12 +114,22 @@ function AdoptorNotificationCard({
             <span className="text-sm font-medium text-gray-900 truncate">
               {userName}
             </span>
+            {animalName && (
+              <span className="text-xs text-gray-600 mt-0.5">
+                동물: {animalName}
+              </span>
+            )}
             <span className="text-xs text-gray-500 mt-1">{timeAgo}</span>
           </div>
 
-          {/* 상태 태그 */}
-          <div className="flex-shrink-0 ml-2">
+          {/* 상태 태그들 */}
+          <div className="flex-shrink-0 ml-2 flex flex-col gap-1">
             <Chip className={getStatusColorClass(status)}>{status}</Chip>
+            {animalAdoptionStatus && (
+              <Chip className="bg-blue/10 text-blue text-xs">
+                {animalAdoptionStatus}
+              </Chip>
+            )}
           </div>
         </div>
       </div>

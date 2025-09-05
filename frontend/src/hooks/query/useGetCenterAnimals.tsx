@@ -32,6 +32,8 @@ interface ApiAnimalResponse {
   breed: string | null;
   description: string | null;
   status: string;
+  protection_status: string;
+  adoption_status: string;
   waiting_days: number | null;
   activity_level: string | null;
   sensitivity: string | null;
@@ -78,6 +80,9 @@ const transformApiResponseToAnimal = (apiAnimal: ApiAnimalResponse): Animal => {
     breed: apiAnimal.breed,
     description: apiAnimal.description,
     status: apiAnimal.status as Animal["status"],
+    protection_status:
+      apiAnimal.protection_status as Animal["protection_status"],
+    adoption_status: apiAnimal.adoption_status as Animal["adoption_status"],
     waitingDays: apiAnimal.waiting_days,
     activityLevel: apiAnimal.activity_level,
     sensitivity: apiAnimal.sensitivity,

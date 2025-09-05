@@ -28,7 +28,8 @@ export function RelatedAnimals({
                   name: pet.name || "",
                   breed: pet.breed || "",
                   isFemale: pet.is_female,
-                  status: pet.status,
+                  protection_status: pet.protection_status,
+                  adoption_status: pet.adoption_status,
                   centerId: pet.center_id,
                   animalImages:
                     pet.animal_images?.map((img) => ({

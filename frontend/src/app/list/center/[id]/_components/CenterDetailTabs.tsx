@@ -47,6 +47,8 @@ export function CenterDetailTabs({
               breed: animal.breed,
               description: animal.description,
               status: animal.status,
+              protection_status: animal.protection_status || "보호중",
+              adoption_status: animal.adoption_status || "입양가능",
               waitingDays: animal.waiting_days,
               activityLevel: animal.activity_level?.toString() || null,
               sensitivity: animal.sensitivity?.toString() || null,

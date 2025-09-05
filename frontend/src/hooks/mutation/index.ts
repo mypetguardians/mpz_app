@@ -13,6 +13,8 @@ export { useToggleCenterFavorite } from "./useToggleCenterFavorite";
 export { usePostAnimalMatching } from "./usePostAnimalMatching";
 export { useCreateFeedback } from "./useCreateFeedback";
 export { useCreateAnimal } from "./useCreateAnimal";
+export { useUpdateAnimal } from "./useUpdateAnimal";
+export { useUpdateAnimalStatus } from "./useUpdateAnimalStatus";
 export { useUploadImages } from "./useUploadImages";
 export { useCreateQuestionForm } from "./useCreateQuestionForm";
 export { useUpdateQuestionForm } from "./useUpdateQuestionForm";

@@ -17,7 +17,10 @@ export { useGetAdoptionsInfinite } from "./useGetAdoptions";
 export { useGetAnimalAdoptions } from "./useGetAdoptions";
 export { useCheckPostLike } from "./useCheckPostLike";
 export { useGetMyCenter } from "./useGetMyCenter";
-export { useGetMyCenterAnimals } from "./useGetCenterAnimals";
+export {
+  useGetMyCenterAnimals,
+  useGetMyCenterAnimalsInfinite,
+} from "./useGetCenterAnimals";
 export { useGetCenterNotices } from "./useGetCenterNotices";
 export { useCenterNotices } from "./useCenterNotices";
 export { useGetQuestionForms } from "./useGetQuestionForms";

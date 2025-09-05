@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { CenterCard } from "@/components/ui/CenterCard";
 import { useGetCenters } from "@/hooks/query/useGetCenters";
 import { useCheckCenterFavorite } from "@/hooks/query/useCheckCenterFavorite";
@@ -10,7 +10,7 @@ import { Center, transformRawCenterToCenter } from "@/types/center";
 import { CenterCardSkeleton } from "@/components/ui/CenterCardSkeleton";
 
 function CenterTab() {
-  const [centers, setCenters] = useState<Center[]>([]);
+  const [allCenters, setAllCenters] = useState<Center[]>([]);
   const [localFavorites, setLocalFavorites] = useState<Record<string, boolean>>(
     {}
   );
@@ -18,22 +18,61 @@ function CenterTab() {
   const toggleFavorite = useToggleCenterFavorite();
 
   const {
-    data: centersData,
-    isLoading: isApiLoading,
-    error: apiError,
+    data,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
   } = useGetCenters();
 
+  // 데이터가 로드되면 상태 업데이트
   useEffect(() => {
-    if (centersData) {
-      const rawCenters = centersData.data || [];
-      if (rawCenters) {
-        const transformedCenters = rawCenters.map(transformRawCenterToCenter);
-        setCenters(transformedCenters);
-      } else {
-        setCenters([]);
-      }
+    if (data) {
+      const allCentersData = data.pages
+        .flatMap((page) => {
+          // API 응답 구조에 따라 data 필드에서 센터 데이터 추출
+          return page.data || [];
+        })
+        .filter((center) => center && typeof center === "object")
+        .map(transformRawCenterToCenter);
+      setAllCenters(allCentersData);
     }
-  }, [centersData]);
+  }, [data]);
+
+  const loadMoreCenters = useCallback(() => {
+    if (isFetchingNextPage || !hasNextPage) return;
+    fetchNextPage();
+  }, [isFetchingNextPage, hasNextPage, fetchNextPage]);
+
+  // 스크롤 이벤트 처리 (디바운싱 적용)
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
+    const handleScroll = () => {
+      // 기존 타이머 클리어
+      clearTimeout(timeoutId);
+
+      // 100ms 후에 스크롤 처리 실행
+      timeoutId = setTimeout(() => {
+        const scrollTop =
+          window.pageYOffset || document.documentElement.scrollTop;
+        const windowHeight = window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+
+        // 페이지 하단에서 800px 이내에 도달하면 다음 페이지 로드
+        if (scrollTop + windowHeight >= documentHeight - 800) {
+          loadMoreCenters();
+        }
+      }, 100);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      clearTimeout(timeoutId);
+    };
+  }, [loadMoreCenters]);
 
   // 좋아요 토글 핸들러
   const handleLikeToggle = (centerId: string) => {
@@ -45,7 +84,7 @@ function CenterTab() {
     const currentFavorite =
       localFavorites[centerId] !== undefined
         ? localFavorites[centerId]
-        : centers.find((c) => c.id === centerId)?.isFavorited || false;
+        : allCenters.find((c) => c.id === centerId)?.isFavorited || false;
 
     // 즉시 로컬 상태 업데이트 (optimistic update) - 현재 상태의 반대
     setLocalFavorites((prev) => ({
@@ -75,8 +114,8 @@ function CenterTab() {
     );
   };
 
-  // 로딩 상태 처리
-  if (isApiLoading && (!centers || centers.length === 0)) {
+  // 로딩 상태 처리 - 스켈레톤 표시
+  if (isLoading && allCenters.length === 0) {
     return (
       <div className="flex flex-col gap-4 px-4">
         {[...Array(5)].map((_, index) => (
@@ -87,7 +126,7 @@ function CenterTab() {
   }
 
   // 에러 상태 처리
-  if (apiError) {
+  if (error) {
     return (
       <div className="text-center py-8">
         <div className="text-red-500">센터 목록을 불러오는데 실패했습니다</div>
@@ -96,7 +135,7 @@ function CenterTab() {
   }
 
   // 데이터가 없는 경우
-  if (!centers || centers.length === 0) {
+  if (allCenters.length === 0 && !isLoading) {
     return (
       <div className="text-center py-8">
         <div className="text-gray-500">등록된 센터가 없습니다</div>
@@ -105,16 +144,29 @@ function CenterTab() {
   }
 
   return (
-    <div className="flex flex-col gap-4 px-4">
-      {centers?.map((center, idx) => (
-        <CenterCardWithFavorite
-          key={center.id ?? idx}
-          center={center}
-          isAuthenticated={isAuthenticated}
-          onLikeToggle={handleLikeToggle}
-          localFavorite={localFavorites[center.id]}
-        />
-      ))}
+    <div>
+      <div className="flex flex-col gap-4 px-4">
+        {allCenters
+          .filter((center) => center && center.id)
+          .map((center, idx) => (
+            <CenterCardWithFavorite
+              key={center.id ?? idx}
+              center={center}
+              isAuthenticated={isAuthenticated}
+              onLikeToggle={handleLikeToggle}
+              localFavorite={localFavorites[center.id]}
+            />
+          ))}
+      </div>
+
+      {/* 추가 로딩 스켈레톤 */}
+      {isFetchingNextPage && (
+        <div className="flex flex-col gap-4 px-4 mt-4">
+          {[...Array(3)].map((_, index) => (
+            <CenterCardSkeleton key={`loading-${index}`} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

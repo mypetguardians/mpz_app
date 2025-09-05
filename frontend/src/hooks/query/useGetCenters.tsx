@@ -1,15 +1,80 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import instance from "@/lib/axios-instance";
 import {
   transformRawCenterToCenter,
   RawCenterResponse,
   Center,
+  GetCentersResponse,
+  CenterSearchParams,
 } from "@/types/center";
 
-// 전체 센터 목록 조회 훅
-export const useGetCenters = () => {
+const ITEMS_PER_PAGE = 20;
+
+// 센터 목록 조회 API 함수
+const getCenters = async (
+  params?: CenterSearchParams
+): Promise<GetCentersResponse> => {
+  const searchParams = new URLSearchParams();
+
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        searchParams.append(key, value.toString());
+      }
+    });
+  }
+
+  const endpoint = `/centers?${searchParams.toString()}`;
+  console.log("Centers API Request:", endpoint);
+
+  const response = await instance.get<GetCentersResponse>(endpoint);
+
+  console.log("Centers Raw API Response:", response.data);
+
+  return response.data;
+};
+
+// 무한스크롤을 지원하는 센터 목록 조회 훅
+export const useGetCenters = (params?: Omit<CenterSearchParams, "page">) => {
+  return useInfiniteQuery({
+    queryKey: ["centers", params],
+    queryFn: ({ pageParam = 1 }) => {
+      console.log("Fetching centers page:", pageParam, "with params:", params);
+      return getCenters({ ...params, page: pageParam, limit: ITEMS_PER_PAGE });
+    },
+    getNextPageParam: (lastPage) => {
+      console.log("getNextPageParam - lastPage:", lastPage);
+
+      // 여러 가능한 필드 확인
+      const hasNext =
+        (lastPage.nextPage !== null && lastPage.nextPage !== undefined) ||
+        (lastPage.curPage &&
+          lastPage.pageCnt &&
+          lastPage.curPage < lastPage.pageCnt);
+
+      const nextPage =
+        lastPage.nextPage ||
+        (lastPage.curPage ? lastPage.curPage + 1 : undefined);
+
+      console.log("Centers hasNext:", hasNext, "nextPage:", nextPage);
+
+      if (hasNext && nextPage) {
+        return nextPage;
+      }
+      return undefined;
+    },
+    initialPageParam: 1,
+    staleTime: 3 * 60 * 1000, // 3분
+    gcTime: 10 * 60 * 1000, // 10분
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+};
+
+// 기존 호환성을 위한 레거시 훅 (사용하지 않는 것을 권장)
+export const useGetCentersLegacy = () => {
   return useQuery({
-    queryKey: ["centers"],
+    queryKey: ["centers-legacy"],
     queryFn: async () => {
       const response = await instance.get("/centers");
       return response.data;

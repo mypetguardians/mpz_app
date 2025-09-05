@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import instance from "@/lib/axios-instance";
 import type { Animal } from "@/types/animal";
 
@@ -157,4 +157,25 @@ export const useGetMyCenterAnimals = (
   });
 
   return queryResult;
+};
+
+// 무한스크롤용 훅
+export const useGetMyCenterAnimalsInfinite = (
+  params?: Omit<GetMyCenterAnimalsParams, "page">,
+  options?: { enabled?: boolean }
+) => {
+  return useInfiniteQuery({
+    queryKey: ["myCenterAnimalsInfinite", params],
+    queryFn: ({ pageParam = 1 }) =>
+      getMyCenterAnimals({ ...params, page: pageParam }),
+    getNextPageParam: (lastPage) => {
+      return lastPage.hasNext ? lastPage.page + 1 : undefined;
+    },
+    initialPageParam: 1,
+    staleTime: 5 * 60 * 1000, // 5분
+    gcTime: 10 * 60 * 1000, // 10분
+    retry: 1,
+    refetchOnWindowFocus: false,
+    enabled: options?.enabled ?? true,
+  });
 };

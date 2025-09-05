@@ -7,24 +7,10 @@ class Notification(BaseModel):
     """알림 모델"""
     
     NOTIFICATION_TYPE_CHOICES = [
-        # 기존 알림 타입들
-        ('adoption_update', '입양 상태 업데이트'),
-        ('monitoring_reminder', '모니터링 알림'),
-        ('center_update', '센터 정보 업데이트'),
-        ('animal_update', '동물 정보 업데이트'),
-        ('system', '시스템 알림'),
-        
-        # 센터 측 알림 타입들
-        ('new_adoption_application', '새로운 입양 신청'),
-        ('new_temporary_protection', '새로운 임시보호 등록'),
-        ('monitoring_delayed', '모니터링 지연'),
-        
-        # 유저 측 알림 타입들
-        ('monitoring_delayed_user', '모니터링 지연 (사용자)'),
-        ('new_comment', '새로운 댓글'),
-        ('new_reply', '새로운 대댓글'),
-        
-        ('other', '기타'),
+        ('community', '커뮤니티'),      # 댓글, 대댓글, 포스트 관련
+        ('adoption', '입양'),          # 입양 신청, 상태 변경, 완료 등
+        ('monitoring', '모니터링'),     # 모니터링 관련 알림
+        ('other', '기타'),             # 시스템, 센터 정보 업데이트 등
     ]
     
     PRIORITY_CHOICES = [
@@ -36,7 +22,6 @@ class Notification(BaseModel):
     
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, help_text="수신자")
     notification_type = models.CharField(max_length=30, choices=NOTIFICATION_TYPE_CHOICES, help_text="알림 타입")
-    title = models.CharField(max_length=200, help_text="알림 제목")
     message = models.TextField(help_text="알림 내용")
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='normal', help_text="우선순위")
     is_read = models.BooleanField(default=False, help_text="읽음 여부")
@@ -51,7 +36,34 @@ class Notification(BaseModel):
         ordering = ['-created_at']
     
     def __str__(self):
-        return f"{self.user.username} - {self.title}"
+        return f"{self.user.username} - {self.message[:50]}..."
+    
+    @classmethod
+    def map_old_type_to_new_type(cls, old_type: str) -> str:
+        """기존 알림 유형을 새로운 카테고리로 매핑"""
+        type_mapping = {
+            # 커뮤니티 관련
+            'new_comment': 'community',
+            'new_reply': 'community',
+            
+            # 입양 관련
+            'adoption_update': 'adoption',
+            'new_adoption_application': 'adoption',
+            'new_temporary_protection': 'adoption',
+            'adoption_completed': 'adoption',
+            
+            # 모니터링 관련
+            'monitoring_reminder': 'monitoring',
+            'monitoring_delayed': 'monitoring',
+            'monitoring_delayed_user': 'monitoring',
+            
+            # 기타
+            'center_update': 'other',
+            'animal_update': 'other',
+            'system': 'other',
+            'other': 'other',
+        }
+        return type_mapping.get(old_type, 'other')
 
 
 class PushToken(BaseModel):

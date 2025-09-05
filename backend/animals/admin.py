@@ -4,18 +4,18 @@ from .models import Animal, AnimalImage, AnimalMegaphone
 
 @admin.register(Animal)
 class AnimalAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'center', 'breed', 'age', 'is_female', 'status', 'megaphone_count', 'found_location', 'admission_date', 'created_at']
-    list_filter = ['status', 'is_female', 'center__region', 'breed', 'admission_date']
+    list_display = ['id', 'name', 'center', 'breed', 'age', 'is_female', 'protection_status', 'adoption_status', 'megaphone_count', 'found_location', 'admission_date', 'created_at']
+    list_filter = ['protection_status', 'adoption_status', 'is_female', 'center__region', 'breed', 'admission_date']
     search_fields = ['name', 'breed', 'center__name', 'found_location']
     readonly_fields = ['created_at', 'updated_at', 'megaphone_count']
-    list_editable = ['status']
+    list_editable = ['protection_status', 'adoption_status']
     
     fieldsets = (
         ('기본 정보', {
             'fields': ('center', 'name', 'announce_number', 'breed', 'age', 'is_female', 'weight')
         }),
         ('상태 정보', {
-            'fields': ('status', 'neutering', 'vaccination', 'heartworm')
+            'fields': ('protection_status', 'adoption_status', 'neutering', 'vaccination', 'heartworm')
         }),
         ('상세 정보', {
             'fields': ('description', 'personality', 'health_notes', 'special_needs')
@@ -48,7 +48,7 @@ class AnimalImageAdmin(admin.ModelAdmin):
 @admin.register(AnimalMegaphone)
 class AnimalMegaphoneAdmin(admin.ModelAdmin):
     list_display = ['id', 'user', 'animal', 'animal_center', 'created_at']
-    list_filter = ['animal__status', 'animal__center__region', 'created_at']
+    list_filter = ['animal__protection_status', 'animal__adoption_status', 'animal__center__region', 'created_at']
     search_fields = ['user__username', 'animal__name', 'animal__center__name']
     readonly_fields = ['created_at', 'updated_at']
     date_hierarchy = 'created_at'

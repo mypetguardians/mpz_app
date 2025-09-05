@@ -54,8 +54,25 @@ async def send_phone_verification(request, data: SendPhoneVerificationIn):
         )
         
         # TODO: 실제로는 SMS API를 통해 인증번호를 발송해야 함
-        # 개발 환경에서는 콘솔에 출력
-        print(f"📱 [인증번호] {data.phone_number}로 발송: {verification_token}")
+        if not settings.DEBUG:
+            import requests
+            try:
+                response = requests.post(
+                    "https://blink-production-37f6.up.railway.app/v1/sms/eddb3903-746e-4833-ba19-e8f3aede8680/send",
+                    json={
+                        "phone_number": data.phone_number,
+                        "message": f"[마펫쯔] 인증번호: {verification_token}",
+                    },
+                    headers={
+                        "X-API-Key": settings.SMS_API_KEY,
+                        "Content-Type": "application/json",
+                    },
+                    timeout=5  # 5초 타임아웃 설정
+                )
+                response.raise_for_status()
+            except requests.exceptions.RequestException as e:
+                print(f"SMS 발송 실패: {e}")
+                # SMS 발송 실패해도 진행 - 개발환경에서는 콘솔 출력으로 확인 가능
         
         return {
             "success": True,

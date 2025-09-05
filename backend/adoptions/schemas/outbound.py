@@ -30,7 +30,8 @@ class AnimalInfoOut(Schema):
     """동물 정보 응답 스키마"""
     id: str = Field(..., description="동물 ID")
     name: str = Field(..., description="동물 이름")
-    status: str = Field(..., description="동물 상태 (보호중, 임시보호중, 입양완료 등)")
+    protection_status: str = Field(..., description="보호 상태 (보호중, 안락사, 자연사, 반환)")
+    adoption_status: str = Field(..., description="입양 상태 (입양가능, 입양진행중, 입양완료, 입양불가)")
     center_id: str = Field(..., description="센터 ID")
     center_name: str = Field(..., description="센터 이름")
 

@@ -62,7 +62,8 @@ class PublicDataSyncResponseOut(Schema):
 class PublicDataStatusOut(Schema):
     """공공데이터 상태 출력 스키마"""
     total_public_animals: int = Field(..., description="전체 공공데이터 동물 수")
-    status_distribution: List[dict] = Field(..., description="상태별 분포")
+    protection_status_distribution: List[dict] = Field(..., description="보호상태별 분포")
+    adoption_status_distribution: List[dict] = Field(..., description="입양상태별 분포")
     latest_update: Optional[str] = Field(None, description="최근 업데이트 시간")
 
 

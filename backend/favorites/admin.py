@@ -23,7 +23,7 @@ class CenterFavoriteAdmin(admin.ModelAdmin):
 @admin.register(AnimalFavorite)
 class AnimalFavoriteAdmin(admin.ModelAdmin):
     list_display = ['id', 'user', 'animal', 'animal_center', 'created_at']
-    list_filter = ['animal__status', 'animal__center__region']
+    list_filter = ['animal__protection_status', 'animal__adoption_status', 'animal__center__region']
     search_fields = ['user__username', 'animal__name', 'animal__center__name']
     readonly_fields = ['created_at', 'updated_at']
     

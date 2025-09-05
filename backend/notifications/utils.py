@@ -125,7 +125,6 @@ fcm_service = FCMPushNotificationService()
 async def create_and_send_notification(
     user_id: str,
     notification_type: str,
-    title: str,
     message: str,
     priority: str = "normal",
     action_url: Optional[str] = None,
@@ -138,7 +137,6 @@ async def create_and_send_notification(
     Args:
         user_id: 사용자 ID
         notification_type: 알림 타입
-        title: 알림 제목
         message: 알림 내용
         priority: 우선순위 (기본값: normal)
         action_url: 액션 URL (선택사항)
@@ -157,7 +155,6 @@ async def create_and_send_notification(
             notification = Notification.objects.create(
                 user=user,
                 notification_type=notification_type,
-                title=title,
                 message=message,
                 priority=priority,
                 action_url=action_url,
@@ -173,7 +170,7 @@ async def create_and_send_notification(
     
     # 푸시 알림 전송
     if send_push:
-        await send_push_notification_to_user(user_id, title, message, metadata)
+        await send_push_notification_to_user(user_id, message, message, metadata)
     
     return notification
 
@@ -319,7 +316,6 @@ async def send_broadcast_notification(notification_data: dict):
 
 async def send_adoption_update_notification(user_id: str, adoption_status: str, animal_name: str, adoption_id: str = None):
     """입양 상태 업데이트 알림"""
-    title = f"입양 상태 업데이트: {animal_name}"
     message = f"{animal_name}의 입양 상태가 '{adoption_status}'로 변경되었습니다."
     
     # action_url 설정 (입양 신청 상세 페이지로 이동)
@@ -329,8 +325,7 @@ async def send_adoption_update_notification(user_id: str, adoption_status: str, 
     
     await create_and_send_notification(
         user_id=user_id,
-        notification_type="adoption_update",
-        title=title,
+        notification_type="adoption",
         message=message,
         priority="high",
         action_url=action_url,
@@ -340,7 +335,6 @@ async def send_adoption_update_notification(user_id: str, adoption_status: str, 
 
 async def send_monitoring_reminder_notification(user_id: str, reminder_type: str, adoption_id: str = None):
     """모니터링 리마인더 알림"""
-    title = "모니터링 알림"
     message = f"{reminder_type} 모니터링 시간입니다."
     
     # action_url 설정 (모니터링 페이지로 이동)
@@ -350,8 +344,7 @@ async def send_monitoring_reminder_notification(user_id: str, reminder_type: str
     
     await create_and_send_notification(
         user_id=user_id,
-        notification_type="monitoring_reminder",
-        title=title,
+        notification_type="monitoring",
         message=message,
         priority="normal",
         action_url=action_url,
@@ -361,7 +354,6 @@ async def send_monitoring_reminder_notification(user_id: str, reminder_type: str
 
 async def send_center_update_notification(user_id: str, center_name: str, update_type: str, center_id: str = None):
     """센터 정보 업데이트 알림"""
-    title = f"센터 업데이트: {center_name}"
     message = f"{center_name}의 {update_type} 정보가 업데이트되었습니다."
     
     # action_url 설정 (센터 상세 페이지로 이동)
@@ -371,8 +363,7 @@ async def send_center_update_notification(user_id: str, center_name: str, update
     
     await create_and_send_notification(
         user_id=user_id,
-        notification_type="center_update",
-        title=title,
+        notification_type="other",
         message=message,
         priority="normal",
         action_url=action_url,
@@ -380,18 +371,17 @@ async def send_center_update_notification(user_id: str, center_name: str, update
     )
 
 
-async def send_system_notification(user_id: str, title: str, message: str):
+async def send_system_notification(user_id: str, message: str):
     """시스템 알림"""
     await create_and_send_notification(
         user_id=user_id,
-        notification_type="system",
-        title=title,
+        notification_type="other",
         message=message,
         priority="normal"
     )
 
 
-async def create_notification_for_center_users(center_id: str, notification_type: str, title: str, message: str, 
+async def create_notification_for_center_users(center_id: str, notification_type: str, message: str, 
                                              action_url: str = None, metadata: dict = None, priority: str = 'normal'):
     """센터의 모든 관리자에게 알림을 생성하고 FCM 푸시 알림을 전송합니다."""
     
@@ -409,7 +399,6 @@ async def create_notification_for_center_users(center_id: str, notification_type
             notification = Notification(
                 user=user,
                 notification_type=notification_type,
-                title=title,
                 message=message,
                 priority=priority,
                 action_url=action_url,
@@ -435,7 +424,7 @@ async def create_notification_for_center_users(center_id: str, notification_type
             fcm_service = FCMPushNotificationService()
             await fcm_service.send_push_notification(
                 user_tokens=push_tokens,
-                title=title,
+                title=message,
                 body=message,
                 data={
                     'notification_type': notification_type,
@@ -448,7 +437,6 @@ async def create_notification_for_center_users(center_id: str, notification_type
     
     # 실시간 WebSocket 알림 전송
     notification_data = {
-        "title": title,
         "message": message,
         "notification_type": notification_type,
         "priority": priority,
@@ -466,7 +454,7 @@ async def create_notification_for_center_users(center_id: str, notification_type
     return notification_count
 
 
-async def create_notification_for_user(user_id: str, notification_type: str, title: str, message: str,
+async def create_notification_for_user(user_id: str, notification_type: str, message: str,
                                      action_url: str = None, metadata: dict = None, priority: str = 'normal'):
     """특정 사용자에게 알림을 생성하고 FCM 푸시 알림을 전송합니다."""
     
@@ -475,7 +463,6 @@ async def create_notification_for_user(user_id: str, notification_type: str, tit
         notification = Notification.objects.create(
             user_id=user_id,
             notification_type=notification_type,
-            title=title,
             message=message,
             priority=priority,
             action_url=action_url,
@@ -495,7 +482,7 @@ async def create_notification_for_user(user_id: str, notification_type: str, tit
             fcm_service = FCMPushNotificationService()
             await fcm_service.send_push_notification(
                 user_tokens=push_tokens,
-                title=title,
+                title=message,
                 body=message,
                 data={
                     'notification_type': notification_type,
@@ -509,7 +496,6 @@ async def create_notification_for_user(user_id: str, notification_type: str, tit
     # 실시간 WebSocket 알림 전송
     notification_data = {
         "id": str(notification.id),
-        "title": title,
         "message": message,
         "notification_type": notification_type,
         "priority": priority,
@@ -536,7 +522,6 @@ async def notify_new_adoption_application(adoption_id: str):
     
     adoption = await get_adoption_info()
     
-    title = "새로운 입양 신청이 접수됐어요"
     message = f"{adoption.user.nickname}님이 {adoption.animal.name}의 입양을 신청했습니다."
     action_url = f"/adoptions/{adoption.id}"
     metadata = {
@@ -548,8 +533,7 @@ async def notify_new_adoption_application(adoption_id: str):
     
     await create_notification_for_center_users(
         center_id=str(adoption.animal.center.id),
-        notification_type='new_adoption_application',
-        title=title,
+        notification_type='adoption',
         message=message,
         action_url=action_url,
         metadata=metadata,
@@ -567,7 +551,6 @@ async def notify_new_temporary_protection(animal_id: str):
     
     animal = await get_animal_info()
     
-    title = "새로운 아이가 임시보호 등록됐어요"
     message = f"{animal.name}이(가) 임시보호로 등록되었습니다."
     action_url = f"/animals/{animal.id}"
     metadata = {
@@ -577,8 +560,7 @@ async def notify_new_temporary_protection(animal_id: str):
     
     await create_notification_for_center_users(
         center_id=str(animal.center.id),
-        notification_type='new_temporary_protection',
-        title=title,
+        notification_type='adoption',
         message=message,
         action_url=action_url,
         metadata=metadata,
@@ -596,7 +578,6 @@ async def notify_monitoring_delayed_for_center(adoption_id: str, delay_days: int
     
     adoption = await get_adoption_info()
     
-    title = f"모니터링이 {delay_days}일 지연됐어요"
     message = f"{adoption.user.nickname}님의 {adoption.animal.name} 모니터링이 {delay_days}일 지연되었습니다."
     action_url = f"/adoptions/{adoption.id}/monitoring"
     metadata = {
@@ -607,8 +588,7 @@ async def notify_monitoring_delayed_for_center(adoption_id: str, delay_days: int
     
     await create_notification_for_center_users(
         center_id=str(adoption.animal.center.id),
-        notification_type='monitoring_delayed',
-        title=title,
+        notification_type='monitoring',
         message=message,
         action_url=action_url,
         metadata=metadata,
@@ -626,7 +606,6 @@ async def notify_monitoring_delayed_for_user(adoption_id: str, delay_days: int):
     
     adoption = await get_adoption_info()
     
-    title = f"모니터링이 {delay_days}일 지연됐어요"
     message = f"{adoption.animal.name}의 모니터링이 {delay_days}일 지연되었습니다. 지금 바로 확인해보세요."
     action_url = f"/adoptions/my/{adoption.id}/monitoring"
     metadata = {
@@ -636,8 +615,7 @@ async def notify_monitoring_delayed_for_user(adoption_id: str, delay_days: int):
     
     await create_notification_for_user(
         user_id=str(adoption.user.id),
-        notification_type='monitoring_delayed_user',
-        title=title,
+        notification_type='monitoring',
         message=message,
         action_url=action_url,
         metadata=metadata,
@@ -659,7 +637,6 @@ async def notify_new_comment(comment_id: str):
     if comment.user.id == comment.post.user.id:
         return
     
-    title = "새로운 댓글이 달렸어요"
     message = f"{comment.user.nickname}님이 '{comment.post.title}'에 댓글을 달았습니다. 지금 바로 확인해보세요."
     action_url = f"/posts/{comment.post.id}"
     metadata = {
@@ -670,8 +647,7 @@ async def notify_new_comment(comment_id: str):
     
     await create_notification_for_user(
         user_id=str(comment.post.user.id),
-        notification_type='new_comment',
-        title=title,
+        notification_type='community',
         message=message,
         action_url=action_url,
         metadata=metadata,
@@ -693,7 +669,6 @@ async def notify_new_reply(reply_id: str):
     if reply.user.id == reply.comment.user.id:
         return
     
-    title = "새로운 대댓글이 달렸어요"
     message = f"{reply.user.nickname}님이 '{reply.comment.post.title}'의 댓글에 대댓글을 달았습니다. 지금 바로 확인해보세요."
     action_url = f"/posts/{reply.comment.post.id}"
     metadata = {
@@ -705,8 +680,7 @@ async def notify_new_reply(reply_id: str):
     
     await create_notification_for_user(
         user_id=str(reply.comment.user.id),
-        notification_type='new_reply',
-        title=title,
+        notification_type='community',
         message=message,
         action_url=action_url,
         metadata=metadata,

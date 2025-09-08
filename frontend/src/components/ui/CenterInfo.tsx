@@ -2,6 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Heart, SealCheck } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { MiniButton } from "./MiniButton";
@@ -34,6 +35,8 @@ export function CenterInfo({
   onShowLoginModal,
   imageUrl,
 }: CenterInfoProps) {
+  const router = useRouter();
+
   // 찜 상태 확인
   const { data: favoriteData, isLoading: isCheckingFavorite } =
     useCheckCenterFavorite(centerId);
@@ -52,6 +55,11 @@ export function CenterInfo({
     toggleCenterFavorite.mutate({ centerId });
   };
 
+  // 센터 프로필 클릭 핸들러
+  const handleCenterProfileClick = () => {
+    router.push(`/list/center/${centerId}`);
+  };
+
   return (
     <div
       className={cn(
@@ -61,7 +69,10 @@ export function CenterInfo({
     >
       {/* Profile Section */}
       <div className="flex items-center justify-between pt-5 pb-3">
-        <div className="flex items-center gap-3">
+        <div
+          className="flex items-center gap-3 cursor-pointer hover:opacity-70 transition-opacity"
+          onClick={handleCenterProfileClick}
+        >
           <div className="w-12 h-12 bg-gray-200 rounded-full flex-shrink-0 relative overflow-hidden">
             {imageUrl ? (
               <Image

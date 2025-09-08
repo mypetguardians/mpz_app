@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useParams } from "next/navigation";
 
 import { useGetCenterById } from "@/hooks/query/useGetCenters";
-import { useGetAnimals } from "@/hooks/query/useGetAnimals";
 import { useToggleCenterFavorite, useCheckCenterFavorite } from "@/hooks";
 import { Container } from "@/components/common/Container";
 import { CenterDetailHeader, CenterDetailTabs } from "./_components";
@@ -17,10 +16,6 @@ export default function CenterDetailPage() {
 
   // API 호출
   const { data: center, isLoading: centerLoading } = useGetCenterById(id);
-  const { data: animalsData, isLoading: animalsLoading } = useGetAnimals({
-    limit: 20,
-    centerId: id,
-  });
   const { data: favoriteStatus } = useCheckCenterFavorite(id);
   const toggleCenterFavorite = useToggleCenterFavorite();
 
@@ -36,7 +31,6 @@ export default function CenterDetailPage() {
   }, [searchParams]);
 
   // 데이터 준비
-  const animals = animalsData?.pages?.[0]?.animals || [];
   const isFavorite = favoriteStatus?.is_favorited || false;
 
   // 이벤트 핸들러
@@ -68,14 +62,16 @@ export default function CenterDetailPage() {
 
   return (
     <Container className="min-h-screen">
-      <CenterDetailHeader centerName={center.name} centerId={id} />
+      <CenterDetailHeader
+        centerName={center.name}
+        centerId={id}
+        verified={center.verified}
+      />
 
       <CenterDetailTabs
         activeTab={activeTab}
         onTabChange={handleTabChange}
         center={center}
-        animals={animals}
-        animalsLoading={animalsLoading}
         isFavorite={isFavorite}
         onFavoriteToggle={handleFavoriteToggle}
       />

@@ -21,33 +21,31 @@ interface GetMyCenterAnimalsParams {
   page_size?: number;
 }
 
-// API 응답의 실제 구조
+// API 응답의 실제 구조 (스키마에 맞게 수정)
 interface ApiAnimalResponse {
   id: string;
   name: string;
   is_female: boolean;
-  age: number | null;
-  weight: number | null;
-  color: string | null;
-  breed: string | null;
-  description: string | null;
+  age: number;
+  weight: number;
+  color: string;
+  breed: string;
+  description: string;
   status: string;
-  protection_status: string;
-  adoption_status: string;
-  waiting_days: number | null;
-  activity_level: string | null;
-  sensitivity: string | null;
-  sociability: string | null;
-  separation_anxiety: string | null;
-  special_notes: string | null;
-  health_notes: string | null;
-  basic_training: string | null;
-  trainer_comment: string | null;
-  announce_number: string | null;
-  announcement_date: string | null;
-  found_location: string | null;
-  admission_date: string | null;
-  personality: string | null;
+  waiting_days: number;
+  activity_level: number;
+  sensitivity: number;
+  sociability: number;
+  separation_anxiety: number;
+  special_notes: string;
+  health_notes: string;
+  basic_training: number;
+  trainer_comment: string;
+  announce_number: string;
+  announcement_date: string;
+  found_location: string;
+  admission_date: string;
+  personality: string;
   center_id: string;
   created_at: string;
   updated_at: string;
@@ -55,7 +53,7 @@ interface ApiAnimalResponse {
     id: string;
     image_url: string;
     order_index: number;
-  }> | null;
+  }>;
 }
 
 interface GetMyCenterAnimalsResponse {
@@ -68,29 +66,34 @@ interface GetMyCenterAnimalsResponse {
   data: ApiAnimalResponse[];
 }
 
-// API 응답을 Animal 타입으로 변환하는 함수
+// API 응답을 Animal 타입으로 변환하는 함수 (스키마에 맞게 수정)
 const transformApiResponseToAnimal = (apiAnimal: ApiAnimalResponse): Animal => {
   return {
     id: apiAnimal.id,
     name: apiAnimal.name,
     isFemale: apiAnimal.is_female,
-    age: apiAnimal.age || 0,
+    age: apiAnimal.age,
     weight: apiAnimal.weight,
     color: apiAnimal.color,
     breed: apiAnimal.breed,
     description: apiAnimal.description,
     status: apiAnimal.status as Animal["status"],
-    protection_status:
-      apiAnimal.protection_status as Animal["protection_status"],
-    adoption_status: apiAnimal.adoption_status as Animal["adoption_status"],
+    // 새로운 API 스키마에 없는 필드들은 status를 기반으로 추론
+    protection_status: apiAnimal.status === "보호중" ? "보호중" : "반환",
+    adoption_status:
+      apiAnimal.status === "입양완료"
+        ? "입양완료"
+        : apiAnimal.status === "입양대기"
+        ? "입양가능"
+        : "입양불가",
     waitingDays: apiAnimal.waiting_days,
-    activityLevel: apiAnimal.activity_level,
-    sensitivity: apiAnimal.sensitivity,
-    sociability: apiAnimal.sociability,
-    separationAnxiety: apiAnimal.separation_anxiety,
+    activityLevel: apiAnimal.activity_level.toString(), // 숫자를 문자열로 변환
+    sensitivity: apiAnimal.sensitivity.toString(), // 숫자를 문자열로 변환
+    sociability: apiAnimal.sociability.toString(), // 숫자를 문자열로 변환
+    separationAnxiety: apiAnimal.separation_anxiety.toString(), // 숫자를 문자열로 변환
     specialNotes: apiAnimal.special_notes,
     healthNotes: apiAnimal.health_notes,
-    basicTraining: apiAnimal.basic_training,
+    basicTraining: apiAnimal.basic_training.toString(), // 숫자를 문자열로 변환
     trainerComment: apiAnimal.trainer_comment,
     announceNumber: apiAnimal.announce_number,
     announcementDate: apiAnimal.announcement_date,
@@ -100,13 +103,11 @@ const transformApiResponseToAnimal = (apiAnimal: ApiAnimalResponse): Animal => {
     megaphoneCount: 0, // API에서 제공되지 않는 필드
     isMegaphoned: false, // API에서 제공되지 않는 필드
     centerId: apiAnimal.center_id,
-    animalImages: apiAnimal.animal_images
-      ? apiAnimal.animal_images.map((img) => ({
-          id: img.id,
-          imageUrl: img.image_url,
-          orderIndex: img.order_index,
-        }))
-      : null,
+    animalImages: apiAnimal.animal_images.map((img) => ({
+      id: img.id,
+      imageUrl: img.image_url,
+      orderIndex: img.order_index,
+    })),
     createdAt: apiAnimal.created_at,
     updatedAt: apiAnimal.updated_at,
   };
@@ -133,7 +134,7 @@ const getMyCenterAnimals = async (
     });
   }
 
-  const url = `/centers/animals?${searchParams.toString()}`;
+  const url = `/v1/centers/animals?${searchParams.toString()}`;
   const response = await instance.get<GetMyCenterAnimalsResponse>(url);
 
   // API 응답을 Animal 타입으로 변환

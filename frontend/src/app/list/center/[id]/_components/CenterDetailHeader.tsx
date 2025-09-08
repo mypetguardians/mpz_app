@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowLeft, ShareNetwork, Heart } from "@phosphor-icons/react";
+import {
+  ArrowLeft,
+  ShareNetwork,
+  Heart,
+  SealCheck,
+} from "@phosphor-icons/react";
 import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
 import { MiniButton } from "@/components/ui/MiniButton";
@@ -13,11 +18,13 @@ import { useCheckCenterFavorite, useToggleCenterFavorite } from "@/hooks";
 interface CenterDetailHeaderProps {
   centerName: string;
   centerId: string;
+  verified: boolean;
 }
 
 export function CenterDetailHeader({
   centerName,
   centerId,
+  verified,
 }: CenterDetailHeaderProps) {
   // 찜하기 상태 확인
   const { data: favoriteData, isLoading: isCheckingFavorite } =
@@ -169,9 +176,14 @@ export function CenterDetailHeader({
   const renderCenterInfo = () => (
     <div className="px-4 py-5">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-bk text-xl font-bold">
-          {centerName || "보호센터 정보 없음"}
-        </h2>
+        <div className="flex items-center gap-1">
+          <h2 className="text-bk text-xl font-bold">
+            {centerName || "보호센터 정보 없음"}
+          </h2>
+          {verified && (
+            <SealCheck size={14} className="text-brand-light" weight="fill" />
+          )}
+        </div>
         <MiniButton
           text="찜"
           variant="outline"

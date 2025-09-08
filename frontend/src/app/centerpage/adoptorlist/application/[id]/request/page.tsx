@@ -388,7 +388,7 @@ export default function AdoptionRequestPage({
               <BigButton
                 variant="primary"
                 onClick={() => setShowRejectModal(true)}
-                className="w-full py-4 bg-red"
+                className="w-full py-4 bg-white"
                 disabled={updateAdoptionStatus.isPending}
               >
                 {updateAdoptionStatus.isPending ? "처리 중..." : "거절"}

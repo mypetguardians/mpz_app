@@ -2,13 +2,13 @@
 
 import { ArrowLeft } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
 import { NotificationCard } from "./_components/NotificationCard";
-import { useGetNotifications } from "@/hooks/query/useGetNotifications";
+import { useGetNotificationsInfinite } from "@/hooks/query/useGetNotifications";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useNotificationSocket } from "@/hooks/useNotificationSocket";
 import {
@@ -23,8 +23,11 @@ export default function Notification() {
     data: notificationsData,
     isLoading,
     error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
     refetch,
-  } = useGetNotifications();
+  } = useGetNotificationsInfinite(20);
 
   // 소켓 알림 시스템 사용
   const {
@@ -39,15 +42,64 @@ export default function Notification() {
   const markAllNotificationsRead = useMarkAllNotificationsRead();
 
   // 소켓이 연결되어 있고 실시간 알림이 있으면 소켓 데이터 사용
+  // 무한스크롤 데이터를 평면화하여 사용
+  const allNotifications =
+    notificationsData?.pages?.flatMap((page) => page.data || []) || [];
   const notifications =
     socketConnected && socketNotifications.length > 0
       ? socketNotifications
-      : notificationsData?.data || [];
+      : allNotifications;
 
   // 소켓 연결 상태에 따른 데이터 소스 결정
   useEffect(() => {
     setUseSocketData(socketConnected && socketNotifications.length > 0);
   }, [socketConnected, socketNotifications.length]);
+
+  // 무한스크롤 함수
+  const loadMoreNotifications = useCallback(() => {
+    if (
+      isFetchingNextPage ||
+      !hasNextPage ||
+      (socketConnected && useSocketData)
+    )
+      return;
+    fetchNextPage();
+  }, [
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    socketConnected,
+    useSocketData,
+  ]);
+
+  // 스크롤 이벤트 처리
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
+    const handleScroll = () => {
+      // 기존 타이머 클리어
+      clearTimeout(timeoutId);
+
+      // 100ms 후에 스크롤 처리 실행 (디바운싱)
+      timeoutId = setTimeout(() => {
+        const scrollTop =
+          window.pageYOffset || document.documentElement.scrollTop;
+        const windowHeight = window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+
+        // 페이지 하단에서 800px 이내에 도달하면 다음 페이지 로드
+        if (scrollTop + windowHeight >= documentHeight - 800) {
+          loadMoreNotifications();
+        }
+      }, 100);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [loadMoreNotifications]);
 
   // 소켓이 연결되지 않은 경우에만 폴링으로 데이터 새로고침
   useEffect(() => {
@@ -245,19 +297,35 @@ export default function Notification() {
             </div>
           </div>
         ) : (
-          notifications.map((item) => (
-            <NotificationCard
-              key={item.id}
-              variant="primary"
-              message={item.message}
-              date={item.created_at}
-              type={item.notification_type}
-              isRead={item.is_read}
-              onClick={() =>
-                handleNotificationClick(item.id.toString(), item.is_read)
-              }
-            />
-          ))
+          <>
+            {notifications.map((item) => (
+              <NotificationCard
+                key={item.id}
+                variant="primary"
+                message={item.message}
+                date={item.created_at}
+                type={item.notification_type}
+                isRead={item.is_read}
+                onClick={() =>
+                  handleNotificationClick(item.id.toString(), item.is_read)
+                }
+              />
+            ))}
+
+            {/* 로딩 상태 표시 */}
+            {isFetchingNextPage && (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+              </div>
+            )}
+
+            {/* 모든 알림을 불러온 경우 */}
+            {!useSocketData && !hasNextPage && notifications.length > 0 && (
+              <div className="flex items-center justify-center py-8">
+                <p className="text-gray-500">모든 알림을 불러왔습니다.</p>
+              </div>
+            )}
+          </>
         )}
       </div>
     </Container>

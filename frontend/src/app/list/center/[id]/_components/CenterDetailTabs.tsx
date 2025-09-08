@@ -5,7 +5,6 @@ import { Container } from "@/components/common/Container";
 import { CenterAnimalsTab } from "./CenterAnimalsTab";
 import { CenterInfoTab } from "./CenterInfoTab";
 import type { TabType, CenterDetailProps } from "./types";
-import type { RawAnimalResponse } from "@/types/animal";
 
 interface CenterDetailTabsProps
   extends Omit<CenterDetailProps, "animals" | "animalsLoading"> {

@@ -2,7 +2,6 @@
 
 import React from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useMatchingStepStore } from "@/lib/stores/matchingStepStore";
 import { useAuth } from "@/components/providers/AuthProvider";
 
@@ -15,38 +14,36 @@ export interface StepProps {
 }
 
 export function Step9({ onNext }: StepProps) {
-  const [selectedGender, setSelectedGender] = React.useState<string | null>(
-    null
-  );
-  const { setStepAnswer } = useMatchingStepStore();
+  const [selectedSize, setSelectedSize] = React.useState<string | null>(null);
   const { user } = useAuth();
-  const router = useRouter();
+  const { setStepAnswer } = useMatchingStepStore(user?.id);
 
-  const handleNext = async () => {
-    if (selectedGender !== null) {
-      setStepAnswer(10, { type: "gender", value: selectedGender });
-
-      // onNext는 더 이상 사용하지 않지만 시그니처 유지를 위해 참조
-      void onNext;
-
-      // 로딩 페이지로 이동 (user id를 query로 전달)
-      router.push(`/matching/loading?result=${user?.id || "anonymous"}`);
+  const handleNext = () => {
+    if (selectedSize !== null) {
+      setStepAnswer(9, { type: "size", value: selectedSize });
+      onNext();
     }
   };
 
-  const genderOptions = [
+  const sizeOptions = [
     {
       id: 1,
-      icon: "/icon/gender01.png",
-      text: "암",
+      icon: "/icon/size01.svg",
+      text: "소형",
     },
     {
       id: 2,
-      icon: "/icon/gender02.png",
-      text: "수",
+      icon: "/icon/size02.svg",
+      text: "중형",
     },
     {
       id: 3,
+      icon: "/icon/size03.svg",
+      text: "대형",
+    },
+    {
+      id: 4,
+      icon: "/icon/age04.svg",
       text: "상관 없음",
     },
   ];
@@ -54,44 +51,30 @@ export function Step9({ onNext }: StepProps) {
   return (
     <>
       <Container className="min-h-screen pb-28">
-        <h4 className="text-brand-light">Q9.</h4>
+        <h4 className="text-brand-light">Q8.</h4>
         <h2 className="text-bk">선호하는 강아지 특징이 있다면 알려주세요!</h2>
-        <p className="body2 text-brand-light  mb-6">선호하는 성별이 궁금해요</p>
+        <p className="body2 text-brand-light mb-6">선호하는 크기가 궁금해요</p>
 
-        <div className="flex flex-col gap-2">
-          <div className="grid grid-cols-2 gap-2">
-            {genderOptions.slice(0, 2).map((option) => (
-              <SelectButton
-                key={option.id}
-                variant="3"
-                selected={selectedGender === option.text}
-                onClick={() => setSelectedGender(option.text)}
-                className="w-full text-center"
-                icon={
-                  option.icon ? (
-                    <Image
-                      src={option.icon}
-                      alt={`성별 ${option.id}`}
-                      width={50}
-                      height={50}
-                    />
-                  ) : undefined
-                }
-              >
-                <span className="text-sm">{option.text}</span>
-              </SelectButton>
-            ))}
-          </div>
-
-          {/* 하단: 상관 없음 버튼 */}
-          <SelectButton
-            variant="3"
-            selected={selectedGender === genderOptions[2].text}
-            onClick={() => setSelectedGender(genderOptions[2].text)}
-            className="w-full text-center"
-          >
-            <span className="text-sm">{genderOptions[2].text}</span>
-          </SelectButton>
+        <div className="grid grid-cols-2 gap-2">
+          {sizeOptions.map((option) => (
+            <SelectButton
+              key={option.id}
+              variant="3"
+              selected={selectedSize === option.text}
+              onClick={() => setSelectedSize(option.text)}
+              className="w-full text-left"
+              icon={
+                <Image
+                  src={option.icon}
+                  alt={`크기 ${option.id}`}
+                  width={50}
+                  height={50}
+                />
+              }
+            >
+              <span className="text-sm">{option.text}</span>
+            </SelectButton>
+          ))}
         </div>
       </Container>
 

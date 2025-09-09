@@ -44,6 +44,7 @@ def run_agent_recommendation(target_user_id: str, limit: int):
         import logging
         logger = logging.getLogger(__name__)
         logger.info(f"[AI 응답 원본] ai_response: {ai_response}")
+        print(f"[AI 응답 원본] ai_response: {ai_response}")
         
         # Pydantic Parser로 구조화된 응답 파싱 시도
         parser = PydanticOutputParser(pydantic_object=AIAnimalMatchingResponse)

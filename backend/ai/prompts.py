@@ -88,6 +88,7 @@ ANIMAL_MATCHING_ANALYSIS_PROMPT = """
 
 1. analysis_reason (성격 분석 사유):
    - 사용자의 성격 유형과 주요 특성 분석 (perfect/good/silent/unsuitable로 분류)
+   - **unsuitable 판단 기준 체크: 시간부족, 돌봄부담감, 경험부족, 스트레스민감 중 3개 이상 해당 시 unsuitable**
    - 라이프스타일과 반려동물 경험 수준 평가
    - **user_personality_type이 "unsuitable"인 경우 추천하지 않는 이유 설명**
 
@@ -147,6 +148,12 @@ SIMPLE_RECOMMENDATION_PROMPT = """
 
 ⚠️ **필수 규칙**:
 - user_personality_type을 perfect/good/silent/unsuitable 중 하나로 반드시 분류
+   ### unsuitable 판단 기준 (다음 4가지 중 3개 이상 해당 시):
+   1. **시간 부족**: "하루 8시간 이상" 또는 "불규칙적으로 집을 비우는 경우가 많다"
+   2. **돌봄 부담감**: "기본적인 돌봄만 해도 벅찰 것 같다" 또는 "아플까봐 걱정된다"고 답변
+   3. **경험 부족**: "반려동물 경험이 전혀 없다"고 답변
+   4. **스트레스 민감**: "낯선 상황은 불편하고 긴장된다" 또는 "가능하면 피하고 싶다"고 답변
+   ⚠️ **위 4개 조건 중 3개 이상 해당하면 반드시 "unsuitable"로 분류하세요.**
 - user_personality_type이 "unsuitable"이면 절대 동물을 추천하지 마세요
 - **user_personality_type이 "unsuitable"이 아니면 반드시 요청한 개수만큼 추천해야 합니다**
 - 모든 추천 동물에 실제 동물 ID 포함 필수

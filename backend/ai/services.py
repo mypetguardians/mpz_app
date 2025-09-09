@@ -39,8 +39,11 @@ def run_agent_recommendation(target_user_id: str, limit: int):
             config={"configurable": {"thread_id": thread_id}}
         )
         
-        # 응답에서 JSON 구조 추출 시도
+    # 응답에서 JSON 구조 추출 시도
         ai_response = result["messages"][-1].content
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"[AI 응답 원본] ai_response: {ai_response}")
         
         # Pydantic Parser로 구조화된 응답 파싱 시도
         parser = PydanticOutputParser(pydantic_object=AIAnimalMatchingResponse)

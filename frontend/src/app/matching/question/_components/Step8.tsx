@@ -3,6 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import { useMatchingStepStore } from "@/lib/stores/matchingStepStore";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 import { SelectButton } from "@/components/ui/SelectButton";
 import { Container } from "@/components/common/Container";
@@ -12,32 +13,33 @@ export interface StepProps {
   onNext: () => void;
 }
 
-export function Step9({ onNext }: StepProps) {
-  const [selectedSize, setSelectedSize] = React.useState<string | null>(null);
-  const { setStepAnswer } = useMatchingStepStore();
+export function Step8({ onNext }: StepProps) {
+  const [selectedAge, setSelectedAge] = React.useState<string | null>(null);
+  const { user } = useAuth();
+  const { setStepAnswer } = useMatchingStepStore(user?.id);
 
   const handleNext = () => {
-    if (selectedSize !== null) {
-      setStepAnswer(9, { type: "size", value: selectedSize });
+    if (selectedAge !== null) {
+      setStepAnswer(8, { type: "age", value: selectedAge });
       onNext();
     }
   };
 
-  const sizeOptions = [
+  const ageOptions = [
     {
       id: 1,
-      icon: "/icon/size01.svg",
-      text: "소형",
+      icon: "/icon/age01.svg",
+      text: "1년 미만 아가",
     },
     {
       id: 2,
-      icon: "/icon/size02.svg",
-      text: "중형",
+      icon: "/icon/age02.svg",
+      text: "3년 이하",
     },
     {
       id: 3,
-      icon: "/icon/size03.svg",
-      text: "대형",
+      icon: "/icon/age03.svg",
+      text: "7년 이하",
     },
     {
       id: 4,
@@ -49,22 +51,22 @@ export function Step9({ onNext }: StepProps) {
   return (
     <>
       <Container className="min-h-screen pb-28">
-        <h4 className="text-brand-light">Q8.</h4>
+        <h4 className="text-brand-light">Q7.</h4>
         <h2 className="text-bk">선호하는 강아지 특징이 있다면 알려주세요!</h2>
-        <p className="body2 text-brand-light mb-6">선호하는 크기가 궁금해요</p>
+        <p className="body2 text-brand-light mb-6">선호하는 나이가 궁금해요</p>
 
         <div className="grid grid-cols-2 gap-2">
-          {sizeOptions.map((option) => (
+          {ageOptions.map((option) => (
             <SelectButton
               key={option.id}
               variant="3"
-              selected={selectedSize === option.text}
-              onClick={() => setSelectedSize(option.text)}
+              selected={selectedAge === option.text}
+              onClick={() => setSelectedAge(option.text)}
               className="w-full text-left"
               icon={
                 <Image
                   src={option.icon}
-                  alt={`크기 ${option.id}`}
+                  alt={`나이 ${option.id}`}
                   width={50}
                   height={50}
                 />
@@ -85,4 +87,4 @@ export function Step9({ onNext }: StepProps) {
   );
 }
 
-export default Step9;
+export default Step8;

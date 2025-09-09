@@ -78,9 +78,18 @@ function MatchingLoadingContent() {
       };
       mutate(payload);
     } else {
-      console.log("resultParam이 없거나 answers가 없음:", {
+      console.log("=== AI 매칭 요청 조건 불충족 ===");
+      console.log("resultParam 존재:", !!resultParam);
+      console.log("answers 존재:", !!answers);
+      console.log(
+        "answers가 빈 객체인가:",
+        answers && Object.keys(answers).length === 0
+      );
+      console.log("상세 정보:", {
         resultParam,
         answers,
+        answersType: typeof answers,
+        answersKeys: answers ? Object.keys(answers) : null,
       });
     }
   }, [resultParam, mutate, answers]);

@@ -125,8 +125,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
     return () => {
       newSocket.disconnect();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, user, showToast]);
+  }, [isAuthenticated, user]);
 
   // 브라우저 알림 권한 요청 및 푸시 토큰 등록
   useEffect(() => {

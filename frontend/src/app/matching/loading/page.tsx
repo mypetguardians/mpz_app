@@ -43,33 +43,26 @@ function MatchingLoadingContent() {
 
   const { mutate, isPending, isSuccess, isError } = usePostAnimalMatching({
     onSuccess: (res) => {
-      console.log("AI 매칭 성공:", res);
       setAIMatchingResult(res);
       router.replace("/matching/result");
     },
     onError: (error) => {
-      console.error("AI 매칭 실패:", error);
       router.replace("/matching/result"); // 실패해도 결과 페이지로 이동
+      console.error("AI 매칭 실패:", error);
     },
   });
 
   // 페이지 진입 시 요청 실행
   useEffect(() => {
     if (resultParam && answers) {
-      console.log("AI 매칭 요청 시작:", resultParam);
-      console.log("사용자 답변 데이터:", answers);
-
       // 스토어의 답변 데이터를 preferences 형태로 변환
       const preferences: Record<string, string | number | boolean> = {};
 
-      Object.entries(answers).forEach(([stepNum, answer]) => {
+      Object.entries(answers).forEach(([, answer]) => {
         if (answer) {
           preferences[answer.type] = answer.value;
-          console.log(`Step ${stepNum}: ${answer.type} = ${answer.value}`);
         }
       });
-
-      console.log("변환된 preferences:", preferences);
 
       const payload: AIRecommendRequest = {
         user_id: resultParam,
@@ -77,20 +70,6 @@ function MatchingLoadingContent() {
         limit: 5,
       };
       mutate(payload);
-    } else {
-      console.log("=== AI 매칭 요청 조건 불충족 ===");
-      console.log("resultParam 존재:", !!resultParam);
-      console.log("answers 존재:", !!answers);
-      console.log(
-        "answers가 빈 객체인가:",
-        answers && Object.keys(answers).length === 0
-      );
-      console.log("상세 정보:", {
-        resultParam,
-        answers,
-        answersType: typeof answers,
-        answersKeys: answers ? Object.keys(answers) : null,
-      });
     }
   }, [resultParam, mutate, answers]);
 
@@ -110,7 +89,6 @@ function MatchingLoadingContent() {
   // API 요청 완료 시 결과 페이지로 이동하는 안전장치
   useEffect(() => {
     if (isSuccess || isError) {
-      console.log("API 요청 완료 감지 - 결과 페이지로 이동");
       setCurrentStep(matchingSteps.length - 1);
       const timer = setTimeout(() => {
         router.replace("/matching/result");

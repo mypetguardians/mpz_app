@@ -28,14 +28,11 @@ function AdoptorNotificationCard({
   isGrayscale = false,
   tabType = "adopter",
   apiStatus,
-  animalName,
   animalAdoptionStatus,
 }: AdoptorNotificationCardProps) {
   const router = useRouter();
 
   const handleCardClick = () => {
-    console.log("Card clicked:", { id, tabType, apiStatus });
-
     // API 상태에 따른 단계별 이동
     if (apiStatus) {
       switch (apiStatus) {
@@ -113,11 +110,6 @@ function AdoptorNotificationCard({
             <span className="text-sm font-medium text-gray-900 truncate">
               {userName}
             </span>
-            {animalName && (
-              <span className="text-xs text-gray-600 mt-0.5">
-                동물: {animalName}
-              </span>
-            )}
             <span className="text-xs text-gray-500 mt-1">{timeAgo}</span>
           </div>
 

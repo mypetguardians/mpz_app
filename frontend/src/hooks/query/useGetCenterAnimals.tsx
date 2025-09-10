@@ -134,7 +134,7 @@ const getMyCenterAnimals = async (
     });
   }
 
-  const url = `/v1/centers/animals?${searchParams.toString()}`;
+  const url = `/centers/animals?${searchParams.toString()}`;
   const response = await instance.get<GetMyCenterAnimalsResponse>(url);
 
   // API 응답을 Animal 타입으로 변환

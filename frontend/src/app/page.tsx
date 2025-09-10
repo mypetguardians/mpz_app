@@ -16,15 +16,23 @@ import { useGetBanners } from "@/hooks/query/useGetBanners";
 import { useMatchingStepStore } from "@/lib/stores/matchingStepStore";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { RawAnimalResponse } from "@/types/animal";
+import {
+  checkMatchingCompletion,
+  clearMatchingData,
+} from "@/lib/storage-utils";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
+  const router = useRouter();
   const [selectedLocation, setSelectedLocation] = useState<string>("");
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const { aiMatchingResult } = useMatchingStepStore();
+  const [showMatchingNotification, setShowMatchingNotification] =
+    useState(false);
+  const { aiMatchingResult, setAIMatchingResult } = useMatchingStepStore();
   const { data: banners, isLoading: bannerLoading } = useGetBanners({
     type: "main",
   });
@@ -48,6 +56,35 @@ export default function Home() {
 
   const handleLocationSelect = (location: string) => {
     setSelectedLocation(location);
+  };
+
+  // 매칭 완료 상태 확인 및 알림 표시
+  useEffect(() => {
+    const matchingStatus = checkMatchingCompletion();
+
+    if (matchingStatus.isCompleted && matchingStatus.result) {
+      // 매칭 결과를 스토어에 저장
+      setAIMatchingResult(matchingStatus.result);
+      setShowMatchingNotification(true);
+
+      // 5초 후 알림 자동 숨김
+      const timer = setTimeout(() => {
+        setShowMatchingNotification(false);
+        clearMatchingData(); // 스토리지 정리
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    } else if (matchingStatus.error) {
+      // 매칭 실패 시 에러 알림
+      console.error("매칭 처리 중 오류가 발생했습니다.");
+      clearMatchingData();
+    }
+  }, [setAIMatchingResult]);
+
+  const handleMatchingNotificationClick = () => {
+    setShowMatchingNotification(false);
+    clearMatchingData();
+    router.push("/matching/result");
   };
 
   // 자동 슬라이드 기능
@@ -112,6 +149,28 @@ export default function Home() {
   return (
     <Container>
       <HomeHeader isLoggedIn={isAuthenticated} />
+
+      {/* 매칭 완료 알림 */}
+      {showMatchingNotification && (
+        <div className="fixed top-20 left-4 right-4 z-50 bg-white border border-brand rounded-lg shadow-lg p-4 mx-auto max-w-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-3 h-3 bg-brand rounded-full animate-pulse"></div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-900">
+                매칭이 완료되었어요!
+              </p>
+              <p className="text-xs text-gray-600">결과를 확인해보세요</p>
+            </div>
+            <button
+              onClick={handleMatchingNotificationClick}
+              className="text-brand text-sm font-medium hover:text-brand-dark transition-colors"
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
+
       <div>
         {bannerLoading && (
           <div className="w-full h-[232px] bg-gray-200 animate-pulse" />

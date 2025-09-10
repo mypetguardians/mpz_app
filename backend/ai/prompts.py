@@ -133,6 +133,7 @@ SIMPLE_RECOMMENDATION_PROMPT = """
 2. get_available_animals 도구를 사용하여 입양 가능한 동물 목록을 가져와주세요
 3. filter_animals_by_characteristics 도구를 활용하여 사용자 성격에 맞는 동물들을 필터링해주세요
 4. **실제 조회된 동물 중에서만** 최대 {limit}마리를 추천하고 상세한 이유를 설명해주세요
+5. 3가지 꼭 모두 이용해 주세요.
 
 각 도구를 사용할 때:
 - get_user_personality_test_data: user_id 파라미터에 "{user_id}" 전달

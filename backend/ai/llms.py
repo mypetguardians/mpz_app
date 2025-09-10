@@ -21,5 +21,6 @@ def get_openai_model(model="gpt-5-nano"):
         model=model,
         temperature=0.7,  # 창의적인 매칭을 위해 약간의 변동성 추가
         max_retries=2,
+        max_tokens=4000,  # 충분한 응답 길이 보장 (기본값: ~1024)
         api_key=get_openai_api_key(), 
     )

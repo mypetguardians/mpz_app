@@ -202,3 +202,42 @@ export const isPrivateMode = async (): Promise<boolean> => {
     return true;
   }
 };
+
+/**
+ * 매칭 완료 상태 확인 함수
+ */
+export const checkMatchingCompletion = (): {
+  isCompleted: boolean;
+  result: any | null;
+  error: boolean;
+} => {
+  const isCompleted = safeGetItem("matchingCompleted") === "true";
+  const hasError = safeGetItem("matchingError") === "true";
+  let result = null;
+
+  if (isCompleted && !hasError) {
+    try {
+      const resultStr = safeGetItem("matchingResult");
+      if (resultStr) {
+        result = JSON.parse(resultStr);
+      }
+    } catch (error) {
+      console.error("매칭 결과 파싱 실패:", error);
+    }
+  }
+
+  return {
+    isCompleted,
+    result,
+    error: hasError,
+  };
+};
+
+/**
+ * 매칭 관련 스토리지 데이터 정리 함수
+ */
+export const clearMatchingData = (): void => {
+  safeRemoveItem("matchingCompleted");
+  safeRemoveItem("matchingResult");
+  safeRemoveItem("matchingError");
+};

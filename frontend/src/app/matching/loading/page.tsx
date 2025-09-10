@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
+import { X } from "@phosphor-icons/react";
 
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
@@ -10,6 +11,7 @@ import { usePostAnimalMatching } from "@/hooks/mutation/usePostAnimalMatching";
 import { useMatchingStepStore } from "@/lib/stores/matchingStepStore";
 import type { AIRecommendRequest } from "@/types/ai-matching";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { IconButton } from "@/components/ui/IconButton";
 
 // 매칭 진행 단계별 데이터
 const matchingSteps = [
@@ -38,17 +40,32 @@ function MatchingLoadingContent() {
   const searchParams = useSearchParams();
   const resultParam = searchParams.get("result");
   const [currentStep, setCurrentStep] = useState(0);
+  const [isNavigatingAway, setIsNavigatingAway] = useState(false);
   const { user } = useAuth();
   const { setAIMatchingResult, answers } = useMatchingStepStore(user?.id);
 
   const { mutate, isPending, isSuccess, isError } = usePostAnimalMatching({
     onSuccess: (res) => {
       setAIMatchingResult(res);
-      router.replace("/matching/result");
+      // 사용자가 다른 페이지로 이동한 경우에도 결과를 저장하고 알림
+      if (isNavigatingAway) {
+        // 로컬 스토리지에 매칭 완료 상태 저장
+        localStorage.setItem("matchingCompleted", "true");
+        localStorage.setItem("matchingResult", JSON.stringify(res));
+        // 브라우저 알림 또는 토스트 메시지 표시 가능
+        console.log("매칭이 완료되었습니다! 결과를 확인해보세요.");
+      } else {
+        router.replace("/matching/result");
+      }
     },
     onError: (error) => {
-      router.replace("/matching/result"); // 실패해도 결과 페이지로 이동
-      console.error("AI 매칭 실패:", error);
+      if (isNavigatingAway) {
+        localStorage.setItem("matchingError", "true");
+        console.error("AI 매칭 실패:", error);
+      } else {
+        router.replace("/matching/result"); // 실패해도 결과 페이지로 이동
+        console.error("AI 매칭 실패:", error);
+      }
     },
   });
 
@@ -72,6 +89,22 @@ function MatchingLoadingContent() {
       mutate(payload);
     }
   }, [resultParam, mutate, answers]);
+
+  // X 버튼 클릭 이벤트 리스너
+  useEffect(() => {
+    const handleNavigationAway = () => {
+      setIsNavigatingAway(true);
+    };
+
+    window.addEventListener("matchingNavigationAway", handleNavigationAway);
+
+    return () => {
+      window.removeEventListener(
+        "matchingNavigationAway",
+        handleNavigationAway
+      );
+    };
+  }, []);
 
   // 로딩 단계 애니메이션 - pending 상태일 때만 실행
   useEffect(() => {
@@ -147,9 +180,27 @@ function LoadingFallback() {
 }
 
 export default function MatchingLoadingPage() {
+  const router = useRouter();
+
+  const handleXButtonClick = () => {
+    // X 버튼 클릭 시 isNavigatingAway 상태를 true로 설정
+    const event = new CustomEvent("matchingNavigationAway");
+    window.dispatchEvent(event);
+    router.push("/");
+  };
+
   return (
     <Container className="min-h-screen flex flex-col bg-gradient-to-b from-brand-light/10 to-transparent">
-      <TopBar variant="variant6" />
+      <TopBar
+        variant="variant6"
+        right={
+          <IconButton
+            icon={({ size }) => <X size={size} weight="bold" />}
+            size="iconM"
+            onClick={handleXButtonClick}
+          />
+        }
+      />
       <Suspense fallback={<LoadingFallback />}>
         <MatchingLoadingContent />
       </Suspense>

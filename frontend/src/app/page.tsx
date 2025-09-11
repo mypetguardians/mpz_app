@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 
 import { Container } from "@/components/common/Container";
@@ -16,11 +16,24 @@ import { useGetBanners } from "@/hooks/query/useGetBanners";
 import { useMatchingStepStore } from "@/lib/stores/matchingStepStore";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { RawAnimalResponse } from "@/types/animal";
+import { AIRecommendResponse } from "@/types/ai-matching";
+import {
+  checkMatchingCompletion,
+  clearMatchingData,
+} from "@/lib/storage-utils";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
+  const router = useRouter();
   const [selectedLocation, setSelectedLocation] = useState<string>("");
-  const { aiMatchingResult } = useMatchingStepStore();
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [showMatchingNotification, setShowMatchingNotification] =
+    useState(false);
+  const { aiMatchingResult, setAIMatchingResult } = useMatchingStepStore();
   const { data: banners, isLoading: bannerLoading } = useGetBanners({
     type: "main",
   });
@@ -30,12 +43,12 @@ export default function Home() {
     isLoading,
     error,
   } = useGetAnimals({
-    limit: 100,
-    sortBy: "admission_date",
-    sortOrder: "desc",
+    page_size: 100,
+    sort_by: "admission_date",
+    sort_order: "desc",
+    region: selectedLocation || undefined,
   });
 
-  // page.data를 사용하여 데이터 추출 (실제 API 응답 구조)
   const animals: RawAnimalResponse[] =
     animalsData?.pages?.flatMap((page) => {
       return (page as { data?: RawAnimalResponse[] }).data || [];
@@ -47,30 +60,177 @@ export default function Home() {
     setSelectedLocation(location);
   };
 
+  // 매칭 완료 상태 확인 및 알림 표시
+  useEffect(() => {
+    const matchingStatus = checkMatchingCompletion();
+
+    if (matchingStatus.isCompleted && matchingStatus.result) {
+      // 매칭 결과를 스토어에 저장
+      setAIMatchingResult(matchingStatus.result as AIRecommendResponse);
+      setShowMatchingNotification(true);
+
+      // 5초 후 알림 자동 숨김
+      const timer = setTimeout(() => {
+        setShowMatchingNotification(false);
+        clearMatchingData(); // 스토리지 정리
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    } else if (matchingStatus.error) {
+      // 매칭 실패 시 에러 알림
+      console.error("매칭 처리 중 오류가 발생했습니다.");
+      clearMatchingData();
+    }
+  }, [setAIMatchingResult]);
+
+  const handleMatchingNotificationClick = () => {
+    setShowMatchingNotification(false);
+    clearMatchingData();
+    router.push("/matching/result");
+  };
+
+  // 자동 슬라이드 기능
+  useEffect(() => {
+    if (!banners || banners.data.length <= 1 || !isAutoPlaying) return;
+
+    const interval = setInterval(() => {
+      setCurrentBannerIndex(
+        (prevIndex) => (prevIndex + 1) % banners.data.length
+      );
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [banners, isAutoPlaying]);
+
+  // 배너 클릭 핸들러
+  const handleBannerClick = () => {
+    if (banners && banners.data[currentBannerIndex]?.link_url) {
+      window.open(banners.data[currentBannerIndex].link_url, "_blank");
+    }
+  };
+
+  // 인디케이터 클릭 핸들러
+  const handleIndicatorClick = (index: number) => {
+    setCurrentBannerIndex(index);
+  };
+
+  // 터치/스와이프 핸들러
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (!banners || banners.data.length <= 1) return;
+
+    if (isLeftSwipe) {
+      // 왼쪽 스와이프 - 다음 슬라이드
+      setCurrentBannerIndex(
+        (prevIndex) => (prevIndex + 1) % banners.data.length
+      );
+    } else if (isRightSwipe) {
+      // 오른쪽 스와이프 - 이전 슬라이드
+      setCurrentBannerIndex((prevIndex) =>
+        prevIndex === 0 ? banners.data.length - 1 : prevIndex - 1
+      );
+    }
+  };
+
   return (
     <Container>
       <HomeHeader isLoggedIn={isAuthenticated} />
+
+      {/* 매칭 완료 알림 */}
+      {showMatchingNotification && (
+        <div className="fixed top-20 left-4 right-4 z-50 bg-white border border-brand rounded-lg shadow-lg p-4 mx-auto max-w-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-3 h-3 bg-brand rounded-full animate-pulse"></div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-900">
+                매칭이 완료되었어요!
+              </p>
+              <p className="text-xs text-gray-600">결과를 확인해보세요</p>
+            </div>
+            <button
+              onClick={handleMatchingNotificationClick}
+              className="text-brand text-sm font-medium hover:text-brand-dark transition-colors"
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
+
       <div>
         {bannerLoading && (
           <div className="w-full h-[232px] bg-gray-200 animate-pulse" />
         )}
         {!bannerLoading && banners && banners.data.length > 0 && (
           <div
-            className="relative w-full h-[232px] cursor-pointer overflow-hidden"
-            onClick={() => {
-              if (banners.data[0].link_url) {
-                window.open(banners.data[0].link_url, "_blank");
-              }
-            }}
+            className="relative w-full h-[232px] overflow-hidden"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+            onMouseEnter={() => setIsAutoPlaying(false)}
+            onMouseLeave={() => setIsAutoPlaying(true)}
           >
-            <Image
-              src={banners.data[0].image_url}
-              alt={banners.data[0].alt}
-              fill
-              className="object-cover"
-              sizes="100vw"
-              priority
-            />
+            {/* 캐러셀 컨테이너 */}
+            <div
+              className="flex transition-transform duration-500 ease-in-out h-full"
+              style={{
+                transform: `translateX(-${currentBannerIndex * 100}%)`,
+              }}
+            >
+              {banners.data.map((banner, index) => (
+                <div
+                  key={banner.id || index}
+                  className="relative min-w-full h-full cursor-pointer flex-shrink-0"
+                  onClick={handleBannerClick}
+                >
+                  <Image
+                    src={banner.image_url}
+                    alt={banner.alt}
+                    fill
+                    className="object-cover"
+                    sizes="100vw"
+                    priority={index === 0}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* 인디케이터 */}
+            {banners.data.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                {banners.data.map((_, index) => (
+                  <button
+                    key={index}
+                    className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                      index === currentBannerIndex
+                        ? "bg-white scale-125"
+                        : "bg-white/50 hover:bg-white/70"
+                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleIndicatorClick(index);
+                    }}
+                    aria-label={`배너 ${index + 1}로 이동`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -1,12 +1,49 @@
 import React, { useMemo, useState } from "react";
 import Image from "next/image";
 
-import { ThumbsUp, ChatCircle } from "@phosphor-icons/react";
+import { ThumbsUp, ChatCircle, User } from "@phosphor-icons/react";
 import { ProfileInfo } from "./ProfileInfo";
 import { IconButton } from "./IconButton";
 import { BottomSheet } from "./BottomSheet";
 import type { Post } from "@/types/posts";
 import { getRelativeTime } from "@/lib/utils";
+import { useAuth } from "@/components/providers/AuthProvider";
+
+// 공용 폴백 이미지 컴포넌트를 외부로 이동
+const FallbackImage = ({
+  src,
+  alt,
+  className,
+  fill,
+}: {
+  src: string;
+  alt: string;
+  className?: string;
+  fill?: boolean;
+}) => {
+  const [hasError, setHasError] = useState(false);
+
+  if (hasError || !src || src === "") {
+    return (
+      <div
+        className={`bg-lg flex items-center justify-center rounded-full ${className}`}
+      >
+        <User size={24} weight="regular" className="text-gr" />
+      </div>
+    );
+  }
+
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      className={className}
+      {...(fill ? { fill: true } : {})}
+      unoptimized
+      onError={() => setHasError(true)}
+    />
+  );
+};
 
 interface User {
   id: string;
@@ -38,41 +75,19 @@ export function CommunityCard({
 }: CommunityCardProps) {
   const [isActionSheetOpen, setIsActionSheetOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  // 공용 폴백 이미지 컴포넌트
-  const FallbackImage = ({
-    src,
-    alt,
-    className,
-    fill,
-  }: {
-    src: string;
-    alt: string;
-    className?: string;
-    fill?: boolean;
-  }) => {
-    const [hasError, setHasError] = useState(false);
-    return (
-      <Image
-        src={hasError ? "/img/dummyImg.png" : src}
-        alt={alt}
-        className={className}
-        {...(fill ? { fill: true } : {})}
-        unoptimized
-        onError={() => setHasError(true)}
-      />
-    );
-  };
+  const { user } = useAuth();
 
   const {
     images,
     title,
     content,
-    postLikes,
-    commentCount,
-    createdAt,
-    userId,
-    userNickname,
-    userImage,
+    like_count,
+    comment_count,
+    created_at,
+    user_id,
+    user_nickname,
+    user_image,
+    is_liked,
   } = item;
 
   // images 배열에서 유효한 URL 추출 (API 키 케이스 다양성 대응: imageUrl, image_url, file_url, url)
@@ -104,13 +119,26 @@ export function CommunityCard({
   }, [images]);
 
   // like, comment, date를 Post 타입에 맞게 매핑
-  const like = postLikes?.length || 0;
-  const comment = commentCount || 0;
-  const date = createdAt;
+  const like = like_count || 0;
+  const comment = comment_count || 0;
+  const date = created_at;
 
-  const user = users.find((u) => u.id === userId);
-  const author = userNickname || user?.nickname || "알 수 없음";
-  const profileImage = userImage || user?.image || undefined;
+  const foundUser = users.find((u) => u.id === user_id);
+  const author = user_nickname || foundUser?.nickname || "알 수 없음";
+
+  // 현재 로그인된 사용자의 게시물인 경우 Auth context에서 이미지 가져오기
+  const isCurrentUserPost = user?.id === user_id;
+  const profileImage =
+    user_image && user_image.trim() && user_image !== "null"
+      ? user_image
+      : isCurrentUserPost &&
+        user?.image &&
+        user.image.trim() &&
+        user.image !== "null"
+      ? user.image
+      : foundUser?.image && foundUser.image.trim() && foundUser.image !== "null"
+      ? foundUser.image
+      : undefined;
 
   // const isMyPost = currentUserId && userId && currentUserId === userId;
 
@@ -184,7 +212,11 @@ export function CommunityCard({
           {date && <span>{getRelativeTime(date)}</span>}
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
-              <ThumbsUp size={16} />
+              <ThumbsUp
+                size={16}
+                weight={is_liked ? "fill" : "regular"}
+                className={is_liked ? "text-blue-500" : ""}
+              />
               {like}
             </span>
             <span className="flex items-center gap-1">
@@ -205,7 +237,7 @@ export function CommunityCard({
             author={author}
             profileImage={profileImage}
             size="md"
-            onClick={onUserClick ? () => onUserClick(userId) : undefined}
+            onClick={onUserClick ? () => onUserClick(user_id) : undefined}
           />
         </div>
         {renderGallery(100)}
@@ -215,7 +247,13 @@ export function CommunityCard({
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
               <IconButton
-                icon={({ size }) => <ThumbsUp size={size} />}
+                icon={({ size }) => (
+                  <ThumbsUp
+                    size={size}
+                    weight={is_liked ? "fill" : "regular"}
+                    className={is_liked ? "text-blue-500" : ""}
+                  />
+                )}
                 size="iconS"
               />
               {like}
@@ -245,7 +283,13 @@ export function CommunityCard({
         <div className="flex items-center gap-6 text-gray-400 mt-2">
           <div className="flex items-center gap-1">
             <IconButton
-              icon={({ size }) => <ThumbsUp size={size} />}
+              icon={({ size }) => (
+                <ThumbsUp
+                  size={size}
+                  weight={is_liked ? "fill" : "regular"}
+                  className={is_liked ? "text-blue-500" : ""}
+                />
+              )}
               size="iconS"
             />
             {like}
@@ -286,15 +330,21 @@ export function CommunityCard({
           <h4 className="text-bk">{title}</h4>
           <h6 className="text-gr line-clamp-2">{content}</h6>
         </div>
-        <div className="flex items-right gap-3 text-gr ml-auto">
-          <div className="flex items-center gap-1 text-h6b">
+        <div className="flex gap-3 text-gr">
+          <div className="flex items-center gap-0.5 text-h6b">
             <IconButton
-              icon={({ size }) => <ThumbsUp size={size} />}
+              icon={({ size }) => (
+                <ThumbsUp
+                  size={size}
+                  weight={is_liked ? "fill" : "regular"}
+                  className={is_liked ? "text-blue-500" : ""}
+                />
+              )}
               size="iconS"
             />
             {like}
           </div>
-          <div className="flex items-center gap-1 text-h6b">
+          <div className="flex items-center gap-0.5 text-h6b">
             <IconButton
               icon={({ size }) => <ChatCircle size={size} />}
               size="iconS"

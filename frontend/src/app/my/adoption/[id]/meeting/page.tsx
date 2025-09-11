@@ -172,6 +172,7 @@ export default function MeetingPage({
                 name={adoption.center_name}
                 location={adoption.center_location || "위치 정보 없음"}
                 phoneNumber="000-000-0000"
+                imageUrl={adoption.center_image_url}
                 className="mb-6"
               />
             </SectionLine>
@@ -185,7 +186,8 @@ export default function MeetingPage({
                   name: adoption.animal_name,
                   isFemale: adoption.animal_gender === "암컷",
                   breed: adoption.animal_breed || "종 미등록",
-                  status: "보호중" as const,
+                  protection_status: "보호중" as const,
+                  adoption_status: "입양진행중" as const,
                   centerId: adoption.center_id,
                   animalImages: adoption.animal_image
                     ? [

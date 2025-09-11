@@ -2,7 +2,7 @@
 
 import { useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
-import { Bell } from "@phosphor-icons/react";
+import { ArrowLeft } from "@phosphor-icons/react";
 
 import { Container } from "@/components/common/Container";
 import { NavBar } from "@/components/common/NavBar";
@@ -40,12 +40,15 @@ function FosterPageContent() {
     <Container className="min-h-screen pb-20">
       <TopBar
         variant="variant4"
-        left={<h4>입양자 목록</h4>}
-        right={
-          <IconButton
-            icon={({ size }) => <Bell size={size} weight="bold" />}
-            size="iconM"
-          />
+        left={
+          <div className="flex items-center gap-2">
+            <IconButton
+              icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
+              size="iconS"
+              onClick={() => router.push("/centerpage")}
+            />
+            <h4>입양자 관리</h4>
+          </div>
         }
       />
 

@@ -3,6 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import { useMatchingStepStore } from "@/lib/stores/matchingStepStore";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 import { SelectButton } from "@/components/ui/SelectButton";
 import { Container } from "@/components/common/Container";
@@ -16,7 +17,8 @@ export function Step3({ onNext }: StepProps) {
   const [selectedSensitivity, setSelectedSensitivity] = React.useState<
     string | null
   >(null);
-  const { setStepAnswer } = useMatchingStepStore();
+  const { user } = useAuth();
+  const { setStepAnswer } = useMatchingStepStore(user?.id);
 
   const handleNext = () => {
     if (selectedSensitivity !== null) {
@@ -73,7 +75,7 @@ export function Step3({ onNext }: StepProps) {
                 />
               }
             >
-              <span className="text-sm">{option.text}</span>
+              <span className="text-sm ml-2">{option.text}</span>
             </SelectButton>
           ))}
         </div>

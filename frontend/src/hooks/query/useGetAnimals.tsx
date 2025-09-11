@@ -21,19 +21,25 @@ const getAnimals = async (
   }
 
   const endpoint = `/animals/?${searchParams.toString()}`;
-  const response = await instance.get<ActualGetAnimalsResponse>(endpoint);
 
+  const response = await instance.get<ActualGetAnimalsResponse>(endpoint);
   return response.data;
 };
 
 export const useGetAnimals = (params?: GetAnimalsParams) => {
   return useInfiniteQuery({
-    queryKey: ["animals", params],
-    queryFn: ({ pageParam = 1 }) => getAnimals({ ...params, page: pageParam }),
+    queryKey: ["animals", params ? JSON.stringify(params) : null],
+    queryFn: ({ pageParam = 1 }) => {
+      return getAnimals({ ...params, page: pageParam });
+    },
     getNextPageParam: (lastPage) => {
-      if (lastPage.hasNext) {
-        return lastPage.page + 1;
+      // 백엔드 CustomPageNumberPagination 응답 구조에 맞게 처리
+      // nextPage가 명시적으로 제공되면 사용
+      if (lastPage.nextPage !== null && lastPage.nextPage !== undefined) {
+        return lastPage.nextPage;
       }
+
+      // nextPage가 null이면 더 이상 페이지가 없음
       return undefined;
     },
     initialPageParam: 1,
@@ -55,7 +61,7 @@ export const useGetBreeds = () => {
   });
 };
 
-export const useGetAnimalById = (animalId: string) => {
+export const useGetAnimalById = (animalId: string | null) => {
   return useQuery({
     queryKey: ["animals", animalId],
     queryFn: async (): Promise<RawAnimalResponse> => {

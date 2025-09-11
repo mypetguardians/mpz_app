@@ -4,6 +4,7 @@ import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useMatchingStepStore } from "@/lib/stores/matchingStepStore";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 import { SelectButton } from "@/components/ui/SelectButton";
 import { Container } from "@/components/common/Container";
@@ -17,16 +18,19 @@ export function Step10({ onNext }: StepProps) {
   const [selectedGender, setSelectedGender] = React.useState<string | null>(
     null
   );
-  const { setStepAnswer } = useMatchingStepStore();
+  const { user } = useAuth();
+  const { setStepAnswer } = useMatchingStepStore(user?.id);
   const router = useRouter();
 
   const handleNext = async () => {
     if (selectedGender !== null) {
       setStepAnswer(10, { type: "gender", value: selectedGender });
+
       // onNext는 더 이상 사용하지 않지만 시그니처 유지를 위해 참조
       void onNext;
-      // 결과 페이지에서 저장/요청을 수행하도록 이동만 처리
-      router.push("/matching/result?type=perfect");
+
+      // 로딩 페이지로 이동 (user id를 query로 전달)
+      router.push(`/matching/loading?result=${user?.id || "anonymous"}`);
     }
   };
 
@@ -55,7 +59,6 @@ export function Step10({ onNext }: StepProps) {
         <p className="body2 text-brand-light  mb-6">선호하는 성별이 궁금해요</p>
 
         <div className="flex flex-col gap-2">
-          {/* 상단: 암/수 버튼 */}
           <div className="grid grid-cols-2 gap-2">
             {genderOptions.slice(0, 2).map((option) => (
               <SelectButton

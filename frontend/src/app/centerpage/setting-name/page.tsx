@@ -10,12 +10,14 @@ import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
 import { ImageCard } from "@/components/ui/ImageCard";
 import { CustomInput } from "@/components/ui/CustomInput";
+import { SearchInput } from "@/components/ui/SearchInput";
 import { BigButton } from "@/components/ui/BigButton";
 import { InfoCard } from "@/components/ui/InfoCard";
 import { Toast } from "@/components/ui/Toast";
 import { useGetMyCenter } from "@/hooks/query/useGetMyCenter";
 import { useUpdateCenterSettings } from "@/hooks/mutation/useUpdateCenterSettings";
 import { useUploadSingleImage } from "@/hooks/mutation/useUploadSingleImage";
+import { openKakaoAddress } from "@/lib/openKakaoAddress";
 
 export default function CenterSettingName() {
   const router = useRouter();
@@ -29,6 +31,8 @@ export default function CenterSettingName() {
   const [centerNumber, setCenterNumber] = useState("");
   const [address, setAddress] = useState("");
   const [isPublicAddress, setIsPublicAddress] = useState("모두에게 공개");
+  const [isTemporaryAdoption, setIsTemporaryAdoption] = useState("가능");
+  const [isVolunteering, setIsVolunteering] = useState("가능");
   const [adoptionPrice, setAdoptionPrice] = useState("");
   const [centerImage, setCenterImage] = useState<string>("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -59,6 +63,8 @@ export default function CenterSettingName() {
         myCenter.adoptionPrice ? myCenter.adoptionPrice.toLocaleString() : ""
       );
       setCenterImage(myCenter.imageUrl || "");
+      setIsTemporaryAdoption(myCenter.hasFosterCare ? "가능" : "불가능");
+      setIsVolunteering(myCenter.hasVolunteer ? "가능" : "불가능");
     }
   }, [myCenter]);
 
@@ -107,6 +113,16 @@ export default function CenterSettingName() {
 
     if (!adoptionPrice.trim()) {
       showToastMessage("책임비를 입력해주세요.");
+      return;
+    }
+
+    if (!isTemporaryAdoption) {
+      showToastMessage("임시보호 가능 여부를 선택해주세요.");
+      return;
+    }
+
+    if (!isVolunteering) {
+      showToastMessage("봉사활동 가능 여부를 선택해주세요.");
       return;
     }
 
@@ -167,6 +183,8 @@ export default function CenterSettingName() {
         location: address.trim(),
         is_public: isPublicAddress === "모두에게 공개",
         adoption_price: adoptionPriceNumber,
+        has_foster_care: isTemporaryAdoption === "가능",
+        has_volunteer: isVolunteering === "가능",
         ...(shouldUpdateImage && { image_url: imageUrl }), // 이미지가 변경된 경우에만 포함
       };
 
@@ -200,6 +218,12 @@ export default function CenterSettingName() {
     } else {
       setAdoptionPrice("");
     }
+  };
+
+  const handleAddressSearch = () => {
+    openKakaoAddress((selectedAddress) => {
+      setAddress(selectedAddress);
+    });
   };
 
   if (isLoading) {
@@ -291,12 +315,12 @@ export default function CenterSettingName() {
           <h5 className="text-dg">
             보호센터 주소 <span className="text-brand">*</span>
           </h5>
-          <CustomInput
-            variant="primary"
+          <SearchInput
+            variant="variant2"
             placeholder="보호센터 주소를 입력해주세요."
-            required={true}
             value={address}
             onChange={(e) => setAddress(e.target.value)}
+            onSearch={handleAddressSearch}
           />
           {isSubscriber && (
             <CustomInput
@@ -316,28 +340,31 @@ export default function CenterSettingName() {
             onChange={(e) => handleAdoptionPriceChange(e.target.value)}
           />
           <InfoCard>책임비는 외부에 노출되지 않으니 안심하세요.</InfoCard>
+          <h5 className="text-dg">
+            임시보호 가능 여부 <span className="text-brand">*</span>
+          </h5>
+          {isSubscriber && (
+            <CustomInput
+              variant="Variant7"
+              value={isTemporaryAdoption}
+              onChangeOption={setIsTemporaryAdoption}
+              twoOptions={["가능", "불가능"]}
+              required={true}
+            />
+          )}
+          <h5 className="text-dg">
+            봉사활동 가능 여부 <span className="text-brand">*</span>
+          </h5>
+          {isSubscriber && (
+            <CustomInput
+              variant="Variant7"
+              value={isVolunteering}
+              onChangeOption={setIsVolunteering}
+              twoOptions={["가능", "불가능"]}
+              required={true}
+            />
+          )}
         </div>
-        {/* TODO DB컬럼 추가시 활성화 */}
-        {/* {isSubscriber && (
-          <div>
-            <CustomInput
-              variant="Variant7"
-              title="임시보호 가능 여부"
-              value={isPublicAddress}
-              onChangeOption={setIsPublicAddress}
-              twoOptions={["가능", "뷸가능"]}
-              required={true}
-            />
-            <CustomInput
-              variant="Variant7"
-              title="임시보호 가능 여부"
-              value={isPublicAddress}
-              onChangeOption={setIsPublicAddress}
-              twoOptions={["가능", "뷸가능"]}
-              required={true}
-            />
-          </div>
-        )} */}
       </div>
       <div className="sticky bottom-0 left-0 right-0 pb-6 pt-2 px-5">
         <BigButton

@@ -142,7 +142,7 @@ async def get_center_notices(request: HttpRequest, center_id: str):
             try:
                 center = Center.objects.get(id=center_id)
             except Center.DoesNotExist:
-                raise HttpError(404, "보호소를 찾을 수 없습니다")
+                raise HttpError(404, "보호소를 찾을 수 없습니다 !")
             
             # 공지사항 조회 (notices 앱에서)
             from notices.models import Notice

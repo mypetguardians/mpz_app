@@ -7,8 +7,9 @@ interface UpdatePostData {
   title: string;
   content: string;
   images?: string[];
-  contentTags?: string;
   tags?: string[];
+  animal_id?: string | null;
+  is_all_access?: boolean;
 }
 
 interface UpdatePostResponse {
@@ -36,10 +37,16 @@ export const useUpdatePost = () => {
     onSuccess: (data, variables) => {
       // 게시글 상세 정보와 목록을 새로고침
       queryClient.invalidateQueries({
-        queryKey: ["post", variables.postId],
+        queryKey: ["public-posts", variables.postId],
       });
       queryClient.invalidateQueries({
-        queryKey: ["posts"],
+        queryKey: ["center-posts", variables.postId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["public-posts"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["center-posts"],
       });
     },
     onError: (error) => {

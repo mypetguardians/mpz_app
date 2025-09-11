@@ -6,7 +6,8 @@ import { useRouter, useParams } from "next/navigation";
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
-import { useGetCenterNotices, useGetMyCenter } from "@/hooks/query";
+import { useCenterNotices, useGetMyCenter } from "@/hooks/query";
+import { getRelativeTime } from "@/lib/utils";
 
 export default function Notification() {
   const router = useRouter();
@@ -16,13 +17,13 @@ export default function Notification() {
   const centerId = myCenter?.id;
 
   const {
-    data: centerNotices,
+    data: centerNoticesData,
     isLoading,
     error,
-  } = useGetCenterNotices(centerId || "");
+  } = useCenterNotices({ centerId: centerId || "", enabled: !!centerId });
 
   // 특정 공지사항 찾기
-  const notice = centerNotices?.find((n) => n.id === noticeId);
+  const notice = centerNoticesData?.notices?.find((n) => n.id === noticeId);
 
   const handleBack = () => {
     router.back();
@@ -98,7 +99,7 @@ export default function Notification() {
       <div className="flex flex-col gap-6 p-4">
         <div className="flex flex-col items-start gap-2">
           <h2 className="text-bk">{notice.title}</h2>
-          <p className="body2 text-gr">{notice.createdAt}</p>
+          <p className="body2 text-gr">{getRelativeTime(notice.created_at)}</p>
         </div>
         <p className="body text-dg">{notice.content}</p>
       </div>

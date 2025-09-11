@@ -82,18 +82,9 @@ function AnimalTab() {
                 name: pet.name,
                 breed: pet.breed,
                 isFemale: pet.isFemale,
-                status: pet.status as
-                  | "보호중"
-                  | "입양완료"
-                  | "반환"
-                  | "방사"
-                  | "임시보호중"
-                  | "자연사"
-                  | "안락사"
-                  | "입양대기"
-                  | "취소"
-                  | "입양진행중",
-                animalImages: [],
+                protection_status: pet.protection_status || "보호중",
+                adoption_status: pet.adoption_status || "입양가능",
+                animalImages: pet.animalImages || [],
                 centerId: pet.centerId,
                 foundLocation: pet.centerName || "",
               }}

@@ -21,10 +21,10 @@ export const useGetBanners = (params?: BannerListParams) => {
       const response = await instance.get(url);
       return response.data;
     },
-    staleTime: 5 * 60 * 1000, // 5분
+    staleTime: 0,
     gcTime: 10 * 60 * 1000, // 10분
     retry: 1,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true, // 창 포커스 시 리페치
     enabled: true,
   });
 };

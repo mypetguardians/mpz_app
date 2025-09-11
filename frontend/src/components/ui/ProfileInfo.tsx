@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { User } from "@phosphor-icons/react";
 
@@ -17,10 +17,23 @@ export function ProfileInfo({
   className = "",
   onClick,
 }: ProfileInfoProps) {
+  const [hasImageError, setHasImageError] = useState(false);
+
+  // profileImage가 변경되면 에러 상태 초기화
+  useEffect(() => {
+    setHasImageError(false);
+  }, [profileImage]);
+
   const sizeClasses = {
     sm: "w-4 h-4",
     md: "w-6 h-6",
     lg: "w-8 h-8",
+  };
+
+  const iconSizes = {
+    sm: 16,
+    md: 24,
+    lg: 32,
   };
 
   const textSizes = {
@@ -39,18 +52,23 @@ export function ProfileInfo({
       <div
         className={`relative ${sizeClasses[size]} rounded-full overflow-hidden bg-lg  flex-shrink-0`}
       >
-        {profileImage ? (
+        {profileImage && !hasImageError ? (
           <Image
             src={profileImage}
             alt={author}
             fill
             className="object-cover"
+            unoptimized
+            onError={(e) => {
+              console.error("ProfileInfo Image load error:", e);
+              setHasImageError(true);
+            }}
           />
         ) : (
           <div
             className={`w-full h-full bg-lg flex items-center justify-center p-1`}
           >
-            <User size={sizeClasses[size]} weight="bold" className="text-gr" />
+            <User size={iconSizes[size]} weight="bold" className="text-gr" />
           </div>
         )}
       </div>

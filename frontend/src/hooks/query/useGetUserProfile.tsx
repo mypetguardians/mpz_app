@@ -4,7 +4,7 @@ import { UserProfile } from "@/types/auth";
 
 // 사용자 프로필 조회 API
 const getUserProfile = async (): Promise<UserProfile> => {
-  const response = await axiosInstance.get("/api/users/profile");
+  const response = await axiosInstance.get("/auth/me");
   return response.data;
 };
 

@@ -9,6 +9,7 @@ import { Chip } from "./Chip";
 import { cn, getRelativeTime } from "@/lib/utils";
 // 기존 호환성을 위한 타입 사용
 import { PetCardAnimal } from "@/types/animal";
+import { AdoptionStatus } from "@/types/adoption";
 
 // PetCard에서 실제로 사용하는 필드들만 포함하는 타입
 type PetCardVariant = "primary" | "variant2" | "variant3" | "variant4" | "edit";
@@ -23,7 +24,7 @@ interface PetCardProps {
   showLocation?: boolean;
   showUpdatedAt?: boolean;
   disableNavigation?: boolean;
-  adoptionStatus?: string; // 입양 상태를 표시할 때 사용
+  adoptionStatus?: AdoptionStatus | string; // 입양 상태를 표시할 때 사용
 }
 
 export function PetCard({
@@ -36,13 +37,15 @@ export function PetCard({
   showLocation = true,
   showUpdatedAt = false,
   disableNavigation = false,
+  adoptionStatus,
 }: PetCardProps) {
   const router = useRouter();
 
   const {
     animalImages,
     waitingDays,
-    status,
+    protection_status,
+    adoption_status,
     isFemale,
     foundLocation,
     description,
@@ -97,26 +100,75 @@ export function PetCard({
     }
   };
 
-  const getStatusColorClass = (status?: string) => {
-    switch (status) {
-      case "자연사":
-      case "안락사":
-        return "bg-orange-100/10";
-      case "입양대기":
-      case "입양진행중":
-      case "보호중":
-        return "bg-green/10 text-green";
-      case "입양완료":
-        return "bg-brand/10 text-brand";
-      case "임시보호중":
-        return "bg-yellow/10 text-yellow";
-      case "방사":
-      case "반환":
-      case "취소":
-        return "bg-gr/10 text-gr";
+  const getStatusInfo = (
+    protectionStatus?: string,
+    adoptionStatus?: string
+  ) => {
+    // 보호 상태가 "안락사"나 "자연사"인 경우 우선 표시
+    if (protectionStatus === "안락사" || protectionStatus === "자연사") {
+      return {
+        text: "🌈",
+        colorClass: "bg-orange-100/10",
+      };
+    }
 
+    // 보호 상태가 "반환"인 경우
+    if (protectionStatus === "반환") {
+      return {
+        text: protectionStatus,
+        colorClass: "bg-gr/10 text-gr",
+      };
+    }
+
+    // 입양 상태에 따른 표시
+    switch (adoptionStatus) {
+      case "입양완료":
+        return {
+          text: adoptionStatus,
+          colorClass: "bg-brand/10 text-brand",
+        };
+      case "입양진행중":
+        return {
+          text: adoptionStatus,
+          colorClass: "bg-blue/10 text-blue",
+        };
+      case "입양불가":
+        return {
+          text: adoptionStatus,
+          colorClass: "bg-red-100/10 text-red-600",
+        };
+      // 입양 현황에서 사용하는 구체적인 상태들
+      case "신청":
+        return {
+          text: "신청완료",
+          colorClass: "bg-yellow/10 text-yellow",
+        };
+      case "미팅":
+        return {
+          text: "미팅예정",
+          colorClass: "bg-blue/10 text-blue",
+        };
+      case "계약서작성":
+        return {
+          text: "계약진행",
+          colorClass: "bg-purple/10 text-purple",
+        };
+      case "모니터링":
+        return {
+          text: "모니터링",
+          colorClass: "bg-green/10 text-green",
+        };
+      case "취소":
+        return {
+          text: "취소됨",
+          colorClass: "bg-gray/10 text-gray",
+        };
+      case "입양가능":
       default:
-        return "bg-gray-300/10 text-gray-600";
+        return {
+          text: adoptionStatus || "입양가능",
+          colorClass: "bg-green/10 text-green",
+        };
     }
   };
 
@@ -149,7 +201,6 @@ export function PetCard({
                   alt={`순위 ${rank}`}
                   width={24}
                   height={24}
-                  className="w-6 h-6"
                 />
               </div>
             )}
@@ -163,34 +214,24 @@ export function PetCard({
         </div>
         <div className="flex flex-col flex-1 min-w-0">
           <div className="flex items-center mb-[6px] gap-1">
-            <Chip className={getStatusColorClass(status || "보호중")}>
-              {[
-                "보호중",
-                "입양완료",
-                "임시보호중",
-                "입양대기",
-                "입양진행중",
-                "반환",
-                "취소",
-              ].includes(status || "보호중")
-                ? status
-                : "🌈"}
-            </Chip>
+            {(() => {
+              const statusInfo = getStatusInfo(
+                protection_status,
+                adoption_status
+              );
+              return (
+                <Chip className={statusInfo.colorClass}>{statusInfo.text}</Chip>
+              );
+            })()}
             <h4 className="text-bk">
               {(breed || "종 미등록").length > 4
                 ? (breed || "종 미등록").slice(0, 4) + "..."
                 : breed || "종 미등록"}
             </h4>
             {isFemale ? (
-              <GenderFemale
-                className="text-red text-xl w-3 h-3"
-                weight="bold"
-              />
+              <GenderFemale className="text-red" weight="bold" size={12} />
             ) : (
-              <GenderMale
-                className="text-brand text-xl w-3 h-3"
-                weight="bold"
-              />
+              <GenderMale className="text-brand" weight="bold" size={12} />
             )}
           </div>
           <div className="text-gray-600 text-sm mb-3 line-clamp-2">
@@ -238,20 +279,15 @@ export function PetCard({
           />
         </div>
         <div className="flex items-center mb-[6px] gap-1">
-          <Chip className={getStatusColorClass(status || "보호중")}>
-            {[
-              "보호중",
-              "입양완료",
-              "임시보호중",
-              "입양대기",
-              "입양진행중",
-              "방사",
-              "반환",
-              "취소",
-            ].includes(status || "보호중")
-              ? status
-              : "🌈"}
-          </Chip>
+          {(() => {
+            const statusInfo = getStatusInfo(
+              protection_status,
+              adoption_status
+            );
+            return (
+              <Chip className={statusInfo.colorClass}>{statusInfo.text}</Chip>
+            );
+          })()}
           <h6 className="text-dg">{currentWaitingDays || 0}일 째</h6>
         </div>
         <h6 className="text-dg">{foundLocation || "위치 정보 없음"}</h6>
@@ -266,40 +302,30 @@ export function PetCard({
         )}
         onClick={handleCardClick}
       >
-        <Image
-          src={getImageUrl()}
-          alt={breed || "동물"}
-          width={48}
-          height={48}
-          className="w-13 h-13 object-cover"
-        />
+        <div className="relative w-[52px] h-[52px] rounded overflow-hidden flex-shrink-0">
+          <Image
+            src={getImageUrl()}
+            alt={breed || "동물"}
+            fill
+            className="object-cover"
+          />
+        </div>
         <div className="flex-1">
           <div className="flex items-center mb-[6px] gap-1">
-            <Chip className={getStatusColorClass(status || "보호중")}>
-              {[
-                "보호중",
-                "입양완료",
-                "임시보호중",
-                "입양대기",
-                "입양진행중",
-                "방사",
-                "반환",
-                "취소",
-              ].includes(status || "보호중")
-                ? status
-                : "🌈"}
-            </Chip>
+            {(() => {
+              const statusInfo = getStatusInfo(
+                protection_status,
+                adoption_status
+              );
+              return (
+                <Chip className={statusInfo.colorClass}>{statusInfo.text}</Chip>
+              );
+            })()}
             <h4 className="text-bk">{breed || "종 미등록"}</h4>
             {isFemale ? (
-              <GenderFemale
-                className="text-red text-xl w-3 h-3"
-                weight="bold"
-              />
+              <GenderFemale className="text-red" weight="bold" size={12} />
             ) : (
-              <GenderMale
-                className="text-brand text-xl w-3 h-3"
-                weight="bold"
-              />
+              <GenderMale className="text-brand" weight="bold" size={12} />
             )}
           </div>
           <p className="text-xs text-gray-500">
@@ -335,29 +361,24 @@ export function PetCard({
           )}
         </div>
         <div className="flex items-center mb-[6px] gap-1">
-          <Chip className={getStatusColorClass(status || "보호중")}>
-            {[
-              "보호중",
-              "입양완료",
-              "임시보호중",
-              "입양대기",
-              "입양진행중",
-              "방사",
-              "반환",
-              "취소",
-            ].includes(status || "보호중")
-              ? status
-              : "🌈"}
-          </Chip>
+          {(() => {
+            const statusInfo = getStatusInfo(
+              protection_status,
+              adoption_status
+            );
+            return (
+              <Chip className={statusInfo.colorClass}>{statusInfo.text}</Chip>
+            );
+          })()}
           <h4 className="text-bk">
             {(breed || "종 미등록").length > 4
               ? (breed || "종 미등록").slice(0, 4) + "..."
               : breed || "종 미등록"}
           </h4>
           {isFemale ? (
-            <GenderFemale className="text-red text-xl w-3 h-3" weight="bold" />
+            <GenderFemale className="text-red" weight="bold" />
           ) : (
-            <GenderMale className="text-brand text-xl w-3 h-3" weight="bold" />
+            <GenderMale className="text-brand" weight="bold" />
           )}
         </div>
         <h6 className="text-dg">{foundLocation || "위치 정보 없음"}</h6>
@@ -395,29 +416,23 @@ export function PetCard({
         )}
       </div>
       <div className="flex items-center mb-[6px] gap-1">
-        <Chip className={getStatusColorClass(status || "보호중")}>
-          {[
-            "보호중",
-            "입양완료",
-            "임시보호중",
-            "입양대기",
-            "입양진행중",
-            "방사",
-            "반환",
-            "취소",
-          ].includes(status || "보호중")
-            ? status
-            : "🌈"}
-        </Chip>
+        {(() => {
+          // adoptionStatus prop이 전달된 경우 우선 사용, 없으면 기본 adoption_status 사용
+          const statusToUse = adoptionStatus || adoption_status;
+          const statusInfo = getStatusInfo(protection_status, statusToUse);
+          return (
+            <Chip className={statusInfo.colorClass}>{statusInfo.text}</Chip>
+          );
+        })()}
         <h4 className="text-bk">
-          {(breed || "종 미등록").length > 4
-            ? (breed || "종 미등록").slice(0, 4) + "..."
+          {(breed || "종 미등록").length > 3
+            ? (breed || "종 미등록").slice(0, 3) + "..."
             : breed || "종 미등록"}
         </h4>
         {isFemale ? (
-          <GenderFemale className="text-red text-xl w-3 h-3" weight="bold" />
+          <GenderFemale className="text-red" weight="bold" />
         ) : (
-          <GenderMale className="text-brand text-xl w-3 h-3" weight="bold" />
+          <GenderMale className="text-brand" weight="bold" />
         )}
       </div>
       <h6 className="text-dg">{foundLocation || "위치 정보 없음"}</h6>

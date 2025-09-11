@@ -8,7 +8,7 @@ export const useGetCenterNotices = (centerId: string) => {
     queryKey: ["center-notices", centerId],
     queryFn: async (): Promise<NoticeResponse[]> => {
       const response = await instance.get<NoticeResponse[]>(
-        `/center-admin/centers/${centerId}/notices`
+        `/centers/${centerId}/notices`
       );
       return response.data;
     },

@@ -1,33 +1,34 @@
 // 백엔드 API 응답 구조에 맞춘 타입 정의
 
-// 사용자 입양 신청 목록 조회 응답 타입 (GET /adoptions/my)
+// 사용자 입양 신청 목록 조회 응답 타입 (GET /v1/adoptions/my)
 export interface UserAdoptionOut {
   id: string;
   user_id: string;
-  user_name: string | null;
-  user_nickname: string | null;
-  user_phoneNumber: string | null;
+  user_name: string;
+  user_nickname: string;
+  user_phoneNumber: string;
   animal_id: string;
   animal_name: string;
-  animal_image: string | null;
-  animal_breed: string | null;
+  animal_image: string;
+  animal_breed: string;
   animal_is_female: boolean;
-  animal_status: string | null;
+  animal_status: string;
   center_id: string;
   center_name: string;
-  center_location: string | null;
-  center_centerNumber: string | null;
-  status: "신청" | "미팅" | "계약서작성" | "입양완료" | "모니터링" | "취소";
-  notes: string | null;
-  center_notes: string | null;
+  center_location: string;
+  center_centerNumber: string;
+  center_image_url?: string | null;
+  status: string;
+  notes: string;
+  center_notes: string;
   monitoring_agreement: boolean;
   guidelines_agreement: boolean;
-  meeting_scheduled_at: string | null;
-  contract_sent_at: string | null;
-  adoption_completed_at: string | null;
-  monitoring_started_at: string | null;
-  monitoring_next_check_at: string | null;
-  monitoring_status: string | null;
+  meeting_scheduled_at: string;
+  contract_sent_at: string;
+  adoption_completed_at: string;
+  monitoring_started_at: string;
+  monitoring_next_check_at: string;
+  monitoring_status: string;
   created_at: string;
   updated_at: string;
 }
@@ -46,6 +47,7 @@ export interface UserAdoptionDetailOut {
   center_id: string;
   center_name: string;
   center_location: string | null;
+  center_image_url?: string | null;
   status: "신청" | "미팅" | "계약서작성" | "입양완료" | "모니터링" | "취소";
   notes: string | null;
   center_notes: string | null;

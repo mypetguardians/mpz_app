@@ -163,6 +163,7 @@ export default function AdoptionCompletePage({
                 name={adoption.center_name}
                 location={adoption.center_location || "위치 정보 없음"}
                 phoneNumber="000-000-0000"
+                imageUrl={adoption.center_image_url}
                 className="mb-6"
               />
             </SectionLine>
@@ -176,7 +177,8 @@ export default function AdoptionCompletePage({
                   name: adoption.animal_name,
                   isFemale: adoption.animal_gender === "암컷",
                   breed: adoption.animal_breed || "종 미등록",
-                  status: "보호중" as const,
+                  protection_status: "보호중" as const,
+                  adoption_status: "입양완료" as const,
                   centerId: adoption.center_id,
                   animalImages: adoption.animal_image
                     ? [
@@ -272,20 +274,7 @@ export default function AdoptionCompletePage({
               <BigButton
                 variant="variant5"
                 onClick={() => {
-                  const contractData = {
-                    adoptionId: id,
-                    animalName: adoption.animal_name,
-                    centerName: adoption.center_name,
-                    contractContent:
-                      adoptionDetail.contract?.contract_content ||
-                      "계약서 내용이 준비되지 않았습니다.",
-                  };
-                  const encodedData = encodeURIComponent(
-                    JSON.stringify(contractData)
-                  );
-                  router.push(
-                    `/my/adoption/${id}/contract?data=${encodedData}`
-                  );
+                  router.push(`/adoption/contract?adoptionId=${id}`);
                 }}
                 className="w-full py-4 my-3"
               >

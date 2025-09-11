@@ -17,6 +17,9 @@ interface AdoptorData {
   isGrayscale?: boolean;
   region?: string;
   createdAt?: string;
+  animalName?: string;
+  animalAdoptionStatus?: string;
+  animalProtectionStatus?: string;
 }
 
 // API 상태를 UI 상태로 매핑하는 함수
@@ -68,6 +71,9 @@ const transformApiDataToUI = (
     region: "서울", // API에서 지역 정보가 없으므로 기본값
     createdAt: adoption.created_at,
     apiStatus: adoption.status, // API 상태값 추가
+    animalName: adoption.animal_name, // 동물 이름 추가
+    animalAdoptionStatus: adoption.animal_adoption_status, // 동물 입양 상태 추가
+    animalProtectionStatus: adoption.animal_protection_status, // 동물 보호 상태 추가
   };
 };
 
@@ -205,6 +211,9 @@ function AdoptorListTab() {
           isGrayscale={adoptor.isGrayscale}
           tabType={tabType}
           apiStatus={adoptor.apiStatus}
+          animalName={adoptor.animalName}
+          animalAdoptionStatus={adoptor.animalAdoptionStatus}
+          animalProtectionStatus={adoptor.animalProtectionStatus}
         />
       ))}
     </div>

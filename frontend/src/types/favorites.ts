@@ -15,10 +15,23 @@ export interface AnimalFavorite {
   breed: string | null;
   age: number;
   isFemale: boolean;
-  status: "보호중" | "입양완료" | "무지개다리" | "임시보호중" | "반환" | "방사";
+  status?:
+    | "보호중"
+    | "입양완료"
+    | "무지개다리"
+    | "임시보호중"
+    | "반환"
+    | "방사";
+  protection_status: "보호중" | "안락사" | "자연사" | "반환";
+  adoption_status: "입양가능" | "입양진행중" | "입양완료" | "입양불가";
   personality: string | null;
   centerId: string;
   centerName: string;
+  animalImages: Array<{
+    id: string;
+    imageUrl: string;
+    orderIndex: number;
+  }> | null;
   isFavorited: boolean;
   favoritedAt: string;
 }
@@ -52,10 +65,23 @@ export interface ApiAnimalFavorite {
   breed: string | null;
   age: number;
   isFemale: boolean;
-  status: "보호중" | "입양완료" | "무지개다리" | "임시보호중" | "반환" | "방사";
+  status?:
+    | "보호중"
+    | "입양완료"
+    | "무지개다리"
+    | "임시보호중"
+    | "반환"
+    | "방사";
+  protection_status: "보호중" | "안락사" | "자연사" | "반환";
+  adoption_status: "입양가능" | "입양진행중" | "입양완료" | "입양불가";
   personality: string | null;
   centerId: string;
   centerName: string;
+  animalImages: Array<{
+    id: string;
+    imageUrl: string;
+    orderIndex: number;
+  }> | null;
   isFavorited: boolean;
   favoritedAt: string;
 }

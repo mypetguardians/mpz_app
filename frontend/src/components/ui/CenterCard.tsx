@@ -25,8 +25,6 @@ function CenterCard({
 }: CenterCardProps) {
   const router = useRouter();
 
-  console.log(`CenterCard ${name}: isLiked =`, isLiked);
-
   const handleCardClick = () => {
     if (centerId) {
       router.push(`/list/center/${centerId}`);

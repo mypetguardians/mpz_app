@@ -135,7 +135,7 @@ def filter_animals_by_characteristics(
     basic_training_min: Optional[int] = None,
     is_female: Optional[bool] = None,
     size_category: Optional[str] = None,
-    max_age: Optional[int] = None
+    max_age: Optional[int] = None,
 ) -> List[Dict[str, Any]]:
     """
     특정 특성을 가진 동물들을 필터링합니다.
@@ -173,7 +173,6 @@ def filter_animals_by_characteristics(
             protection_status="보호중",
             adoption_status="입양가능"
         ).select_related('center')
-        
         # 성격 키워드 필터링
         if personality_traits:
             personality_q = Q()

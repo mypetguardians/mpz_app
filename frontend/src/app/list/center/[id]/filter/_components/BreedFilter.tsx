@@ -47,7 +47,7 @@ export default function BreedFilter({
     isLoading,
     error,
   } = useGetAnimals({
-    limit: 50,
+    page_size: 50,
     breed: breedSearchTerm || undefined,
   });
 

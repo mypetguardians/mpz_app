@@ -19,8 +19,8 @@ export const transformRawPostToPost = (raw: ApiPostResponse): Post => {
     user_image: raw.user_image,
     tags: raw.tags.map((tag) => ({
       id: tag.id,
-      tag_name: tag.tag_name || tag.tagName,
-      created_at: tag.created_at || tag.createdAt,
+      tag_name: tag.tag_name,
+      created_at: tag.created_at,
     })),
     images: raw.images.map((img) => ({
       id: img.id,

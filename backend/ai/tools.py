@@ -317,7 +317,6 @@ personality_tools = [
 animal_tools = [
     get_available_animals,
     filter_animals_by_characteristics,
-    get_animal_by_id
 ]
 
 # 전체 동물 매칭 도구

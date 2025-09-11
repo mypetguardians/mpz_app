@@ -38,7 +38,7 @@ export default function Notification() {
           <div className="flex items-center gap-2">
             <IconButton
               icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
-              size="iconM"
+              size="iconS"
               onClick={handleBack}
             />
             <h4>
@@ -75,8 +75,9 @@ export default function Notification() {
               key={item.id}
               id={item.id}
               variant="primary"
-              message={item.content}
+              message={item.title}
               date={getRelativeTime(item.created_at)}
+              isImportant={item.is_important}
               onClick={() => handleNotificationClick(item.id)}
             />
           ))

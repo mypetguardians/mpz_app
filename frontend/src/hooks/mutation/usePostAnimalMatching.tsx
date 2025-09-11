@@ -20,7 +20,7 @@ export const usePostAnimalMatching = (
   return useMutation<AIRecommendResponse, Error, AIRecommendRequest>({
     mutationFn: async (data: AIRecommendRequest) => {
       const response = await instance.post<AIRecommendResponse>(
-        "/ai/personality-test",
+        "/ai/recommend",
         data
       );
       return response.data;

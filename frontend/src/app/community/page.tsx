@@ -16,9 +16,12 @@ import { IconButton } from "@/components/ui/IconButton";
 import { useGetPublicPosts } from "@/hooks/query/useGetPublicPosts";
 import { useGetCenterPosts } from "@/hooks/query/useGetCenterPosts";
 import { useGetSystemTags } from "@/hooks/query/useGetSystemTags";
+import { useGetComments } from "@/hooks/query/useGetComments";
+import { useGetNotifications } from "@/hooks/query/useGetNotifications";
 import { useDeletePost } from "@/hooks/mutation/useDeletePost";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { useNotificationSocket } from "@/hooks/useNotificationSocket";
 import { CustomModal } from "@/components/ui/CustomModal";
 import { Toast } from "@/components/ui/Toast";
 import { useGetBanners } from "@/hooks/query/useGetBanners";
@@ -32,12 +35,34 @@ export default function CommunityPage() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
-  const { data: banners, isLoading: bannersLoading } = useGetBanners({
+  // 알림 관련 hooks (메인페이지와 동일한 로직)
+  const { data: notificationsData } = useGetNotifications();
+  const { unreadCount: socketUnreadCount, isConnected } =
+    useNotificationSocket();
+
+  // 읽지 않은 알림이 있는지 확인 (소켓 연결 시 소켓 데이터 우선, 아니면 API 데이터)
+  const hasUnreadNotifications = isAuthenticated
+    ? isConnected && socketUnreadCount > 0
+      ? true
+      : notificationsData?.data?.some(
+          (notification) => notification.is_read === false
+        )
+    : false;
+
+  const {
+    data: banners,
+    isLoading: bannersLoading,
+    refetch: refetchBanners,
+  } = useGetBanners({
     type: "sub",
   });
 
   // 시스템 태그 가져오기
-  const { data: systemTags, isLoading: tagsLoading } = useGetSystemTags();
+  const {
+    data: systemTags,
+    isLoading: tagsLoading,
+    refetch: refetchSystemTags,
+  } = useGetSystemTags();
 
   // 배너 섹션 컴포넌트
   const BannerSection = () => {
@@ -117,6 +142,7 @@ export default function CommunityPage() {
     data: centerPostsData,
     isLoading: centerPostsLoading,
     error: centerPostsError,
+    refetch: refetchCenterPosts,
   } = useGetCenterPosts({
     tags: activeTab !== "latest" ? [activeTab] : undefined,
   });
@@ -126,6 +152,7 @@ export default function CommunityPage() {
     data: publicPostsData,
     isLoading: publicPostsLoading,
     error: publicPostsError,
+    refetch: refetchPublicPosts,
   } = useGetPublicPosts({
     tags: activeTab !== "latest" ? [activeTab] : undefined,
   });
@@ -136,25 +163,104 @@ export default function CommunityPage() {
   // 일반 사용자인 경우 전체공개 게시글만 필터링
   if (!isCenterUser && publicPostsData?.data) {
     const filteredAllAccess = publicPostsData.data.filter(
-      (post) => post.isAllAccess
+      (post) => post.is_all_access
     );
     postsData = {
       ...publicPostsData,
       data: filteredAllAccess,
-      posts: filteredAllAccess,
     };
   }
 
   const isLoading = isCenterUser ? centerPostsLoading : publicPostsLoading;
   const error = isCenterUser ? centerPostsError : publicPostsError;
 
+  // 페이지 마운트 시 및 사용자 타입 변경 시 모든 데이터 새로고침
+  useEffect(() => {
+    const refreshAllData = async () => {
+      try {
+        // 모든 데이터를 병렬로 새로고침
+        await Promise.all([
+          refetchBanners(),
+          refetchSystemTags(),
+          isCenterUser ? refetchCenterPosts() : refetchPublicPosts(),
+        ]);
+      } catch (error) {
+        console.error("데이터 새로고침 실패:", error);
+      }
+    };
+
+    refreshAllData();
+  }, [
+    isCenterUser,
+    refetchBanners,
+    refetchSystemTags,
+    refetchCenterPosts,
+    refetchPublicPosts,
+  ]); // 사용자 타입 변경 시에도 실행
+
   // 게시글 삭제 훅
   const deletePostMutation = useDeletePost();
 
   const posts: Post[] = useMemo(() => {
-    const list = (postsData?.posts ?? postsData?.data) as Post[] | undefined;
+    const list = postsData?.data as Post[] | undefined;
     return list ?? [];
   }, [postsData]);
+
+  // 댓글 수를 포함한 CommunityCard 컴포넌트
+  const CommunityCardWithComments = ({
+    post,
+    index,
+  }: {
+    post: Post;
+    index: number;
+  }) => {
+    const { data: commentsData } = useGetComments(post.id);
+
+    // 실제 댓글 수 계산 (메인 댓글 + 대댓글)
+    const actualCommentCount = useMemo(() => {
+      if (!commentsData?.data) return post.comment_count || 0;
+
+      const mainComments = commentsData.data.length;
+      const repliesCount = commentsData.data.reduce(
+        (total, comment) => total + (comment.replies?.length || 0),
+        0
+      );
+
+      return mainComments + repliesCount;
+    }, [commentsData, post.comment_count]);
+
+    // Post 객체에 계산된 댓글 수를 적용
+    const postWithCorrectCount = {
+      ...post,
+      comment_count: actualCommentCount,
+    };
+
+    return (
+      <div key={post.id}>
+        {(index === 0 || (index + 1) % 3 === 0) && <BannerSection />}
+        <div className="pt-4">
+          <a href={`/community/${post.id}`} className="block">
+            <CommunityCard
+              item={postWithCorrectCount}
+              users={[
+                {
+                  id: post.user_id,
+                  nickname: post.user_nickname,
+                  image: post.user_image,
+                  createdAt: post.created_at,
+                },
+              ]}
+              variant="variant3"
+              onUserClick={handleUserClick}
+              currentUserId={currentUserId}
+              onEditPost={handleEditPost}
+              onDeletePost={handleDeletePost}
+            />
+          </a>
+        </div>
+      </div>
+    );
+  };
 
   type TagLike =
     | string
@@ -226,12 +332,26 @@ export default function CommunityPage() {
           variant="variant5"
           left={<h2>커뮤니티</h2>}
           right={
-            <Link href="/community/notifications">
-              <IconButton
-                icon={({ size }) => <Bell size={size} weight="bold" />}
-                size="iconM"
-              />
-            </Link>
+            isAuthenticated ? (
+              <Link href="/notifications">
+                <div className="relative">
+                  <IconButton
+                    icon={({ size }) => <Bell size={size} weight="bold" />}
+                    size="iconM"
+                  />
+                  {hasUnreadNotifications && (
+                    <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red rounded-full"></div>
+                  )}
+                </div>
+              </Link>
+            ) : (
+              <Link href="/login">
+                <IconButton
+                  icon={({ size }) => <Bell size={size} weight="bold" />}
+                  size="iconM"
+                />
+              </Link>
+            )
           }
         />
         <div className="w-full overflow-x-auto scrollbar-hide">
@@ -242,12 +362,12 @@ export default function CommunityPage() {
             <div className="w-20 h-10 bg-gray-200 rounded-lg animate-pulse" />
           </div>
         </div>
-        <div className="flex-1 mx-4 overflow-y-auto">
+        <div className="flex-1 mx-4 overflow-y-auto scrollbar-hide">
           {/* 게시글 스켈레톤 */}
           <div className="space-y-4">
             {[...Array(5)].map((_, index) => (
               <div key={index}>
-                {(index === 0 || (index + 1) % 3 === 0) && <BannerSection />}
+                {(index === 0 || (index + 1) % 4 === 0) && <BannerSection />}
                 <div className="pt-4">
                   <CommunityCardSkeleton />
                 </div>
@@ -268,10 +388,26 @@ export default function CommunityPage() {
           variant="variant5"
           left={<h2>커뮤니티</h2>}
           right={
-            <IconButton
-              icon={({ size }) => <Bell size={size} weight="bold" />}
-              size="iconM"
-            />
+            isAuthenticated ? (
+              <Link href="/notifications">
+                <div className="relative">
+                  <IconButton
+                    icon={({ size }) => <Bell size={size} weight="bold" />}
+                    size="iconM"
+                  />
+                  {hasUnreadNotifications && (
+                    <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red rounded-full"></div>
+                  )}
+                </div>
+              </Link>
+            ) : (
+              <Link href="/login">
+                <IconButton
+                  icon={({ size }) => <Bell size={size} weight="bold" />}
+                  size="iconM"
+                />
+              </Link>
+            )
           }
         />
         <div className="flex items-center justify-center flex-1">
@@ -298,10 +434,26 @@ export default function CommunityPage() {
         variant="variant5"
         left={<h2>커뮤니티</h2>}
         right={
-          <IconButton
-            icon={({ size }) => <Bell size={size} weight="bold" />}
-            size="iconM"
-          />
+          isAuthenticated ? (
+            <Link href="/notifications">
+              <div className="relative">
+                <IconButton
+                  icon={({ size }) => <Bell size={size} weight="bold" />}
+                  size="iconM"
+                />
+                {hasUnreadNotifications && (
+                  <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red rounded-full"></div>
+                )}
+              </div>
+            </Link>
+          ) : (
+            <Link href="/login">
+              <IconButton
+                icon={({ size }) => <Bell size={size} weight="bold" />}
+                size="iconM"
+              />
+            </Link>
+          )
         }
       />
       <div className="w-full overflow-x-auto scrollbar-hide">
@@ -315,7 +467,7 @@ export default function CommunityPage() {
           return null;
         })()}
       </div>
-      <div className="flex-1 mx-4 overflow-y-auto">
+      <div className="flex-1 mx-4 overflow-y-auto scrollbar-hide">
         {isLoading ? (
           // 로딩 중일 때 스켈레톤 표시
           <div className="space-y-4">
@@ -338,29 +490,11 @@ export default function CommunityPage() {
         ) : (
           <div className="cursor-pointer">
             {filteredPosts.map((post, index) => (
-              <div key={post.id}>
-                {(index === 0 || (index + 1) % 3 === 0) && <BannerSection />}
-                <div className="pt-4">
-                  <a href={`/community/${post.id}`} className="block">
-                    <CommunityCard
-                      item={post}
-                      users={[
-                        {
-                          id: post.userId,
-                          nickname: post.userNickname,
-                          image: post.userImage,
-                          createdAt: post.createdAt,
-                        },
-                      ]}
-                      variant="variant3"
-                      onUserClick={handleUserClick}
-                      currentUserId={currentUserId}
-                      onEditPost={handleEditPost}
-                      onDeletePost={handleDeletePost}
-                    />
-                  </a>
-                </div>
-              </div>
+              <CommunityCardWithComments
+                key={post.id}
+                post={post}
+                index={index}
+              />
             ))}
           </div>
         )}

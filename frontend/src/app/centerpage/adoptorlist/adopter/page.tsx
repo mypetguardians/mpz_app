@@ -58,14 +58,15 @@ function AdopterPageContent() {
   return (
     <Container className="min-h-screen pb-20">
       <TopBar
+        variant="variant4"
         left={
           <div className="flex items-center gap-2">
             <IconButton
-              icon={ArrowLeft}
+              icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
+              size="iconS"
               onClick={() => router.push("/centerpage")}
-              label="뒤로가기"
             />
-            <h4>입양자 목록</h4>
+            <h4>입양자 관리</h4>
           </div>
         }
       />

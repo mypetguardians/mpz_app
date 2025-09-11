@@ -141,7 +141,7 @@ export default function MyPage() {
                   </div>
                 ) : (
                   <span className="font-medium text-black">
-                    센터 이름 불러오기에 실패했습니다..
+                    센터 정보를 불러오는 중입니다...
                   </span>
                 )}
                 {isSubscriber && (

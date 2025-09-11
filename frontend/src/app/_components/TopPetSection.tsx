@@ -48,13 +48,10 @@ export function TopPetSection({
   } = useGeolocation();
   const [userLocation, setUserLocation] = useState<string>("");
 
-  // 위치정보가 변경될 때마다 사용자 위치 기반 지역을 계산
   useEffect(() => {
     if (latitude && longitude && isValidLocation(latitude, longitude)) {
       const region = getLocationBasedRegion(latitude, longitude);
       setUserLocation(region);
-      console.log("사용자 위치 기반 지역:", region);
-      // 위치정보가 성공적으로 가져와졌고, 현재 "내 주변"이 선택되어 있다면 자동으로 필터 적용
       if (selectedLocation === "내 주변") {
         onLocationSelect?.(region);
       }
@@ -66,7 +63,6 @@ export function TopPetSection({
     if (userLocation) {
       onLocationSelect?.(userLocation);
     } else {
-      // 위치정보가 아직 없는 경우 "내 주변" 상태로 설정하고 위치정보 요청
       onLocationSelect?.("내 주변");
       requestLocation();
     }
@@ -75,8 +71,6 @@ export function TopPetSection({
   // 위치정보 에러가 있는 경우 처리
   useEffect(() => {
     if (locationError) {
-      console.error("위치정보 에러:", locationError);
-      // 에러 발생 시 사용자에게 알림 (실제 앱에서는 토스트나 모달로 표시)
       alert(
         "위치정보를 가져올 수 없습니다. 브라우저 설정에서 위치정보 접근을 허용해주세요."
       );
@@ -121,7 +115,7 @@ export function TopPetSection({
     }
 
     const analysisAnimals = (animals || [])
-      .filter((animal) => animal?.status === "보호중")
+      .filter((animal) => animal?.protection_status === "보호중")
       .sort((a, b) => {
         if (a.admission_date && b.admission_date) {
           return (
@@ -169,8 +163,10 @@ export function TopPetSection({
   }
 
   // 보호중인 동물만 필터링하고 admission_date 높은 순서대로 정렬
-  const limitedAnimals = (animals || [])
-    .filter((animal) => animal?.status === "보호중")
+  // 서버에서 이미 필터링된 데이터이므로 클라이언트에서는 정렬만 수행
+  const displayAnimals = (animals || [])
+    .filter((animal) => animal?.protection_status === "보호중")
+    .filter((animal) => animal?.adoption_status === "입양가능")
     .sort((a, b) => {
       if (a.admission_date && b.admission_date) {
         return (
@@ -181,26 +177,6 @@ export function TopPetSection({
       return (b.waiting_days || 0) - (a.waiting_days || 0);
     });
 
-  // 지역 필터링
-  let filteredAnimals = limitedAnimals;
-  if (selectedLocation && selectedLocation !== "") {
-    filteredAnimals = limitedAnimals.filter((animal) => {
-      const animalLocation = animal.found_location || "";
-      // "내 주변" 또는 사용자 위치 기반 필터링인 경우
-      if (selectedLocation === "내 주변" || selectedLocation === userLocation) {
-        return userLocation ? animalLocation.includes(userLocation) : false;
-      }
-      // 일반 지역 필터링
-      return animalLocation.includes(selectedLocation);
-    });
-  }
-
-  // 필터가 적용된 경우 필터링된 결과를 모두 표시, 필터가 없는 경우 상위 10개만 표시
-  const displayAnimals =
-    selectedLocation && selectedLocation !== ""
-      ? filteredAnimals
-      : filteredAnimals.slice(0, 10);
-
   return (
     <MainSection
       title={title}
@@ -209,7 +185,7 @@ export function TopPetSection({
     >
       {/* 지역 필터 */}
       {showLocationFilter && (
-        <div className="flex items-center overflow-x-auto gap-[6px] -mx-4 px-4">
+        <div className="flex items-center overflow-x-auto scrollbar-hide gap-[6px] -mx-4 px-4">
           <MiniButton
             key="location"
             leftIcon={<MapPin size={16} />}
@@ -242,7 +218,7 @@ export function TopPetSection({
 
       {/* 동물 카드 목록 */}
       <div
-        className={`flex gap-3 overflow-x-auto flex-nowrap -mx-4 px-4 ${
+        className={`flex gap-3 overflow-x-auto scrollbar-hide flex-nowrap -mx-4 px-4 ${
           variant === "variant2" ? "flex-col" : ""
         } ${
           variant === "variant3"

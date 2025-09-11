@@ -113,6 +113,10 @@ export interface AIRecommendResponse {
       center_name: string;
       matching_reason: string;
       matching_score: number;
+      activity_level?: number;
+      sensitivity?: number;
+      sociability?: number;
+      separation_anxiety?: number;
     }>;
     matching_report: {
       analysis_criteria: string[];

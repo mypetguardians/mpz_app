@@ -2,14 +2,14 @@
 
 import React from "react";
 import Image from "next/image";
-import { X, ShareNetwork, ArrowClockwise } from "@phosphor-icons/react";
+import { X, ArrowClockwise } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 
 import { IconButton } from "@/components/ui/IconButton";
 import { TopBar } from "@/components/common/TopBar";
 import { Container } from "@/components/common/Container";
 import { PetCard } from "@/components/ui/PetCard";
-import { BigButton } from "@/components/ui/BigButton";
+// import { BigButton } from "@/components/ui/BigButton";
 import { MiniButton } from "@/components/ui/MiniButton";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useMatchingStepStore } from "@/lib/stores/matchingStepStore";
@@ -20,8 +20,8 @@ import { AIRecommendResponse } from "@/types/ai-matching";
 type MatchingResultType =
   | "perfect" // 완벽한 매칭
   | "good" // 좋은 매칭
-  | "moderate" // 적당한 매칭
-  | "silent"; // 조용한
+  | "silent" // 조용한
+  | "unsuitable"; // 부적합한 매칭
 
 // 매칭 결과별 데이터
 const matchingResults = {
@@ -33,18 +33,18 @@ const matchingResults = {
     imageAlt: "결과1 일러스트",
   },
   good: {
-    message: "반려동물과의 삶은 소중하지만 \n쉬운 일만은 아니에요.",
-    subtitle:
-      "배변훈련, 건강관리, 예상치 못한 병원비까지...\n함께 잘 할 수 있을까?\n스스로에게 한번 더 물어봐주세요\n충분히 고민해보고, 여유가 생겼을 때 다시 만나는 것도 괜찮아요.",
-    image: "/illust/result02.svg",
-    imageAlt: "결과2 일러스트",
-  },
-  moderate: {
     message: "당신의 에너지가\n누군가에게 큰 선물이 될 수 있어요.",
     subtitle:
       "함께 달리고, 함께 배우고, \n매일을 모험처럼 살아가는 걸 좋아하는 아이가 있어요.\n활기찬 하루를 함께 나눌 친구를 소개해드릴게요.",
-    image: "/illust/result03.svg",
-    imageAlt: "결과3 일러스트",
+    image: "/illust/result02.svg",
+    imageAlt: "결과2 일러스트",
+  },
+  unsuitable: {
+    message: "반려동물과의 삶은 소중하지만 \n쉬운 일만은 아니에요.",
+    subtitle:
+      "배변훈련, 건강관리, 예상치 못한 병원비까지...\n함께 잘 할 수 있을까? 스스로에게 한번 더 물어봐주세요\n충분히 고민해보고, 여유가 생겼을 때 다시 만나는 것도 괜찮아요.",
+    image: "/illust/result02.svg",
+    imageAlt: "결과2 일러스트",
   },
   silent: {
     message: "조용한 일상을 즐기는 당신\n그리고 그런 아이들이 있어요.",
@@ -63,36 +63,60 @@ const loadingImages = [
   "/illust/result04.svg",
 ];
 
-// 매칭된 동물 목록 데이터는 컴포넌트 내에서 동적으로 가져옴
-
 // AI 매칭 결과를 기반으로 매칭 타입 결정하는 함수
 function getMatchingTypeFromAIResult(
   aiResult: AIRecommendResponse | null
-): MatchingResultType {
-  if (!aiResult?.data?.matching_report) return "perfect";
+): MatchingResultType | null {
+  if (!aiResult?.data?.analysis_reason?.user_personality_type) return null;
 
-  const { confidence_level, recommended_count } = aiResult.data.matching_report;
+  const personalityType = aiResult.data.analysis_reason.user_personality_type;
 
-  // 신뢰도와 추천 수를 기반으로 매칭 타입 결정
-  if (confidence_level === "높음" && recommended_count >= 4) return "perfect";
-  if (confidence_level === "높음" && recommended_count >= 2) return "good";
-  if (confidence_level === "보통" && recommended_count >= 2) return "moderate";
-  return "silent";
+  // user_personality_type에 따라 매칭 타입 결정
+  switch (personalityType) {
+    case "perfect":
+      return "perfect";
+    case "good":
+      return "good";
+    case "silent":
+      return "silent";
+    case "unsuitable":
+      return "unsuitable";
+    default:
+      return null;
+  }
 }
 
 // 매칭 결과 컴포넌트
 function MatchingResult({
   type,
-  aiResult,
-}: {
-  type: MatchingResultType;
+}: //aiResult,
+{
+  type: MatchingResultType | null;
   aiResult: AIRecommendResponse | null;
 }) {
   const { user } = useAuth();
-  const result = matchingResults[type];
 
+  // 매칭 타입이 없으면 기본 메시지 표시
+  if (!type) {
+    return (
+      <div className="flex flex-col gap-2 items-center">
+        <h6 className="text-brand">{user?.name} 님의 매칭 결과</h6>
+        <h2 className="text-bk text-center">
+          매칭 분석을 위해
+          <br />
+          성향 테스트를 완료해주세요
+        </h2>
+        <h6 className="text-dg text-center">
+          더 정확한 매칭을 위해
+          <br />
+          성향 테스트 결과가 필요합니다
+        </h6>
+      </div>
+    );
+  }
+
+  const result = matchingResults[type];
   // AI 매칭 결과가 있으면 분석 이유 정보 사용
-  const analysisReason = aiResult?.data?.analysis_reason;
 
   return (
     <div className="flex flex-col gap-2 items-center">
@@ -113,21 +137,7 @@ function MatchingResult({
           </span>
         ))}
       </h6>
-      {/* 디버깅용 */}
-      {analysisReason && (
-        <div className="mt-4 p-4 bg-white rounded-lg border border-gray-200 max-w-sm">
-          <h6 className="text-sm font-semibold text-bk mb-2">AI 분석 결과</h6>
-          <p className="text-xs text-dg mb-2">
-            <strong>성격 유형:</strong> {analysisReason.user_personality_type}
-          </p>
-          <p className="text-xs text-dg mb-2">
-            <strong>라이프스타일:</strong> {analysisReason.lifestyle_match}
-          </p>
-          <p className="text-xs text-dg">
-            <strong>경험 수준:</strong> {analysisReason.experience_level}
-          </p>
-        </div>
-      )}
+      {/* AI 분석 결과 표시 */}
     </div>
   );
 }
@@ -175,23 +185,21 @@ function MatchedPetsList({
           {user?.nickname || "사용자"} 님과
           <br />꼭 맞는 아이들이에요!
         </h2>
-        <p className="text-dg text-sm">결과는 매일 업데이트 돼요.</p>
-        {/* 디버깅용 */}
-        {aiMatchingResult?.data?.matching_report && (
-          <div className="mt-2 p-3 bg-brand-light/10 rounded-lg">
-            <p className="text-xs text-brand">
-              <strong>매칭 신뢰도:</strong>{" "}
-              {aiMatchingResult.data.matching_report.confidence_level}
-            </p>
-          </div>
-        )}
       </div>
 
       <div className="flex flex-col gap-3">
         {animals.map((animal: unknown, index: number) => {
-          // AI 매칭 결과인지 mainPetInfo인지 확인
           const animalData = animal as Record<string, unknown>;
           const isAIMatching = animalData.animal_id;
+
+          // 디버깅용 로그
+          console.log(`Animal ${index + 1}:`, {
+            isAIMatching,
+            activity_level: animalData.activity_level,
+            sensitivity: animalData.sensitivity,
+            sociability: animalData.sociability,
+            separation_anxiety: animalData.separation_anxiety,
+          });
 
           if (isAIMatching) {
             // AI 매칭 결과 데이터
@@ -203,7 +211,8 @@ function MatchedPetsList({
                   name: String(animalData.animal_name),
                   breed: String(animalData.breed || "믹스견"),
                   isFemale: String(animalData.gender) === "암",
-                  status: "보호중" as const,
+                  protection_status: "보호중" as const,
+                  adoption_status: "입양가능" as const,
                   centerId: String(animalData.center_name || "AI 매칭"),
                   animalImages: [
                     {
@@ -215,6 +224,19 @@ function MatchedPetsList({
                   foundLocation: String(
                     animalData.found_location || "AI 매칭 추천"
                   ),
+                  // 성향 정보 추가
+                  activityLevel: animalData.activity_level
+                    ? String(animalData.activity_level)
+                    : null,
+                  sensitivity: animalData.sensitivity
+                    ? String(animalData.sensitivity)
+                    : null,
+                  sociability: animalData.sociability
+                    ? String(animalData.sociability)
+                    : null,
+                  separationAnxiety: animalData.separation_anxiety
+                    ? String(animalData.separation_anxiety)
+                    : null,
                 }}
                 variant="variant2"
                 rank={index + 1}
@@ -231,7 +253,8 @@ function MatchedPetsList({
                   name: petInfo.name,
                   breed: petInfo.color || "",
                   isFemale: petInfo.isFemale,
-                  status: "보호중" as const,
+                  protection_status: "보호중" as const,
+                  adoption_status: "입양가능" as const,
                   centerId: petInfo.center,
                   animalImages: petInfo.imageUrls.map(
                     (img: string, imgIndex: number) => ({
@@ -258,10 +281,10 @@ function MatchingResultImage({
   type,
   isLoading = false,
 }: {
-  type: MatchingResultType;
+  type: MatchingResultType | null;
   isLoading?: boolean;
 }) {
-  const result = matchingResults[type];
+  const result = type ? matchingResults[type] : null;
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
 
   React.useEffect(() => {
@@ -280,10 +303,10 @@ function MatchingResultImage({
 
   const currentImage = isLoading
     ? loadingImages[currentImageIndex]
-    : result.image;
+    : result?.image || "/illust/matching.svg"; // 기본 이미지
   const currentAlt = isLoading
     ? `로딩 중 일러스트 ${currentImageIndex + 1}`
-    : result.imageAlt;
+    : result?.imageAlt || "매칭 대기 이미지";
 
   return (
     <div className="flex justify-center">
@@ -302,10 +325,14 @@ function MatchingResultImage({
 export default function MatchingCompletePage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = React.useState(true);
-  const { aiMatchingResult } = useMatchingStepStore();
+  const { user } = useAuth();
+  const userStore = useMatchingStepStore(user?.id);
+  const anonStore = useMatchingStepStore();
+  const aiMatchingResult =
+    userStore.aiMatchingResult || anonStore.aiMatchingResult;
 
   // AI 매칭 결과를 기반으로 매칭 타입 결정
-  const matchingType: MatchingResultType =
+  const matchingType: MatchingResultType | null =
     getMatchingTypeFromAIResult(aiMatchingResult);
 
   React.useEffect(() => {
@@ -341,14 +368,15 @@ export default function MatchingCompletePage() {
         />
 
         <div className="flex flex-col gap-3 w-full mt-8">
-          <BigButton
+          {/* TODO 공유 기능 추가 필요 - 현재 '내 결과'만 접근 가능 */}
+          {/* <BigButton
             variant="variant5"
             left={<ShareNetwork size={20} />}
             className="w-full py-4"
           >
             결과 공유하기
-          </BigButton>
-          <div className="flex justify-center">
+          </BigButton> */}
+          <div className="flex justify-center gap-2">
             <MiniButton
               text="다시 해보기"
               leftIcon={<ArrowClockwise size={16} />}

@@ -31,8 +31,9 @@ import {
   useToggleAnimalFavorite,
   useToggleAnimalRecommend,
 } from "@/hooks";
+import { useGetMyProfile } from "@/hooks/query/useGetMyProfile";
+import { useAdoptionVerificationStore } from "@/lib/stores";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { Toast } from "@/components/ui/Toast";
 import { NotificationToast } from "@/components/ui/NotificationToast";
 import { CustomModal } from "@/components/ui/CustomModal";
 import { BottomSheet } from "@/components/ui/BottomSheet";
@@ -80,7 +81,7 @@ interface AnimalDetailPageProps {
 export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
   const router = useRouter();
   const { id } = use(params);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const {
     data: animal,
     isLoading,
@@ -99,6 +100,12 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
   // 센터의 구독 상태 확인 (공고를 올린 센터가 구독자인지)
   const isCenterSubscriber = center?.isSubscriber === true;
 
+  // 사용자 프로필 정보 가져오기 (전화번호 인증 상태 확인용)
+  const { data: userProfile } = useGetMyProfile();
+
+  // 입양 신청 스토어 초기화
+  const adoptionStore = useAdoptionVerificationStore(user?.id);
+
   // 찜하기 관련
   const { data: favoriteData, isLoading: favoriteLoading } =
     useCheckAnimalFavorite(id, isAuthenticated);
@@ -116,6 +123,7 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
   // 토스트 상태
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState<"success" | "error">("success");
 
   // 로그인 유도 모달 상태
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -152,11 +160,13 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
           setToastMessage(
             isFavorited ? "찜이 추가되었습니다" : "찜이 취소되었습니다"
           );
+          setToastType("success");
           setShowToast(true);
         },
         onError: (error) => {
           setLocalIsFavorited(currentState);
           setToastMessage("찜하기 처리 중 오류가 발생했습니다");
+          setToastType("error");
           setShowToast(true);
           console.error(error);
         },
@@ -185,11 +195,13 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
           setToastMessage(
             isMegaphonedFromApi ? "추천되었습니다" : "추천이 취소되었습니다"
           );
+          setToastType("success");
           setShowToast(true);
         },
         onError: (error) => {
           setIsMegaphoned(currentState);
           setToastMessage("추천하기 처리 중 오류가 발생했습니다");
+          setToastType("error");
           setShowToast(true);
           console.error(error);
         },
@@ -203,6 +215,37 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
       setShowLoginModal(true);
       return;
     }
+
+    // 구독 센터인 경우 전화번호 인증 상태에 따라 다른 경로로 이동
+    if (isCenterSubscriber) {
+      // 스토어에 동물 정보 설정
+      const centerId = animal?.center_id || center?.id || "";
+      adoptionStore.setAnimalInfo(id, centerId);
+
+      // 사용자 정보를 스토어에 로드
+      if (userProfile) {
+        adoptionStore.loadUserData({
+          phone: userProfile.phoneNumber || undefined,
+          phoneVerification: userProfile.isPhoneVerified || false,
+          name: userProfile.name || undefined,
+          birth: userProfile.birth || undefined,
+          address: userProfile.address || undefined,
+        });
+      }
+
+      const isPhoneVerified = userProfile?.isPhoneVerified === true;
+
+      if (isPhoneVerified) {
+        // 전화번호 인증이 완료된 경우 step5로 이동
+        router.push(`/adoption/verification/5`);
+      } else {
+        // 전화번호 인증이 안된 경우 step1부터 시작
+        router.push(`/adoption/verification/1`);
+      }
+      return;
+    }
+
+    // 일반 센터인 경우 기존 바텀시트 표시
     setShowAdoptionBottomSheet(true);
   };
 
@@ -335,7 +378,8 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
   const relatedAnimals: RawAnimalResponse[] = (relatedAnimalsData || []).map(
     (item) => ({
       ...item,
-      status: item.status as RawAnimalResponse["status"],
+      protection_status: item.protection_status,
+      adoption_status: item.adoption_status,
       weight: item.weight,
       color: item.color,
       breed: item.breed,
@@ -367,7 +411,8 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
         />
 
         <AnimalBasicInfo
-          tag={animal.status}
+          protection_status={animal.protection_status}
+          adoption_status={animal.adoption_status}
           name={animal.name}
           isFemale={animal.is_female}
           age={animal.age}
@@ -410,6 +455,8 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
           currentPet={{
             ...animal,
             isFemale: animal.is_female,
+            status:
+              animal.protection_status === "보호중" ? "보호중" : "입양완료",
             animalImages:
               animal.animal_images?.map((img) => ({
                 id: img.id,
@@ -487,7 +534,13 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
         onRightIcon2Click={handleFavoriteToggle}
       />
 
-      {showToast && <Toast>{toastMessage}</Toast>}
+      {showToast && (
+        <NotificationToast
+          message={toastMessage}
+          type={toastType}
+          onClose={() => setShowToast(false)}
+        />
+      )}
 
       {showShareBottomSheet && animal && (
         <CustomModal
@@ -504,7 +557,8 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
                 id: animal.id,
                 name: animal.name || "",
                 isFemale: animal.is_female,
-                status: animal.status,
+                protection_status: animal.protection_status,
+                adoption_status: animal.adoption_status,
                 breed: animal.breed || "",
                 centerId: animal.center_id,
                 animalImages:

@@ -4,8 +4,7 @@ export interface ApiPostResponse {
   title: string;
   content: string;
   user_id: string;
-  animal_id: string;
-  adoption_id: string;
+  animal_id: string | null;
   content_tags: Record<string, unknown>;
   like_count: number;
   comment_count: number;
@@ -17,16 +16,14 @@ export interface ApiPostResponse {
   user_image: string;
   tags: Array<{
     id: string;
-    postId: string;
-    tagName: string;
-    createdAt: string;
+    tag_name: string;
+    created_at: string;
   }>;
   images: Array<{
     id: string;
-    postId: string;
-    imageUrl: string;
-    orderIndex: number;
-    createdAt: string;
+    image_url: string;
+    order_index: number;
+    created_at: string;
   }>;
 }
 
@@ -41,40 +38,32 @@ export interface ApiPostsResponse {
   data: ApiPostResponse[];
 }
 
-// 기존 Post 타입 (클라이언트에서 사용)
+// Post 타입 (API 응답 구조 그대로 사용)
 export interface Post {
   id: string;
   title: string;
   content: string;
-  userId: string;
-  animalId: string | null;
-  adoptionId: string | null;
-  contentTags: Record<string, unknown> | null;
-  likeCount: number;
-  commentCount: number;
-  isAllAccess: boolean;
-  createdAt: string;
-  updatedAt: string;
-  userNickname: string;
-  userImage: string | null;
+  user_id: string;
+  animal_id: string | null;
+  content_tags: Record<string, unknown>;
+  like_count: number;
+  comment_count: number;
+  is_liked: boolean;
+  is_all_access: boolean;
+  created_at: string;
+  updated_at: string;
+  user_nickname: string;
+  user_image: string;
   tags: Array<{
     id: string;
-    postId: string;
-    tagName: string;
-    createdAt: string;
+    tag_name: string;
+    created_at: string;
   }>;
   images: Array<{
     id: string;
-    postId: string;
-    imageUrl: string;
-    orderIndex: number;
-    createdAt: string;
-  }>;
-  postLikes?: Array<{
-    id: string;
-    postId: string;
-    userId: string;
-    createdAt: string;
+    image_url: string;
+    order_index: number;
+    created_at: string;
   }>;
 }
 
@@ -98,11 +87,13 @@ export interface PostDetailResponse {
 
 // 게시글 목록 조회 파라미터
 export interface GetPostsParams {
+  user_id?: string;
+  is_all_access?: boolean;
+  sort_by?: string;
   page?: number;
   page_size?: number;
   search?: string;
   tags?: string[];
-  userId?: string;
   animalId?: string;
   adoptionId?: string;
 }

@@ -18,6 +18,7 @@ import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Toast } from "@/components/ui/Toast";
 
 import { useAuth } from "@/components/providers/AuthProvider";
+import { useLogout } from "@/hooks/mutation";
 import { useGetUserAdoptions } from "@/hooks/query/useGetUserAdoptions";
 
 // 메뉴 아이템 타입
@@ -32,7 +33,8 @@ export default function MyPage() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isLogoutSheetOpen, setIsLogoutSheetOpen] = useState(false);
   const [showLogoutToast, setShowLogoutToast] = useState(false);
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const { mutate: logoutMutate } = useLogout();
   const router = useRouter();
 
   // 실제 사용자의 입양 목록 가져오기
@@ -65,18 +67,14 @@ export default function MyPage() {
   };
 
   // 로그아웃 처리 함수
-  const handleLogout = async () => {
-    try {
-      await logout();
-      setIsLogoutSheetOpen(false);
-      setShowLogoutToast(true);
-      // 3초 후 토스트 숨기기
-      setTimeout(() => {
-        setShowLogoutToast(false);
-      }, 3000);
-    } catch (error) {
-      console.error("로그아웃 중 오류:", error);
-    }
+  const handleLogout = () => {
+    // UI 우선 업데이트 후 서버 로그아웃 트리거
+    setIsLogoutSheetOpen(false);
+    setShowLogoutToast(true);
+    setTimeout(() => {
+      setShowLogoutToast(false);
+    }, 3000);
+    logoutMutate();
   };
 
   // 메뉴 아이템들
@@ -237,12 +235,16 @@ export default function MyPage() {
                   >
                     <div className="flex items-center gap-3 mb-4">
                       {/* 동물 이미지 */}
-                      <div className="relative overflow-hidden w-18 h-18">
+                      <div className="relative overflow-hidden w-16 h-16 rounded-lg bg-gray-100">
                         <Image
                           src={adoption.animal_image || "/img/dummyImg.png"}
-                          alt={adoption.animal_name}
+                          alt={adoption.animal_name || "동물"}
                           fill
                           className="object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = "/img/dummyImg.png";
+                          }}
                         />
                       </div>
                       {/* 텍스트와 화살표 */}

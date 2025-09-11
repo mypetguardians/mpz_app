@@ -40,16 +40,8 @@ const getCenterPostDetail = async (
     `/posts/center/${postId}`
   );
 
-  // API 응답을 Post 타입으로 변환
-  const transformedPost = transformRawPostToPost(response.data.post);
-
   return {
-    post: {
-      ...transformedPost,
-      tags: response.data.post.tags,
-      images: response.data.post.images,
-      postLikes: response.data.post.postLikes,
-    },
+    post: transformRawPostToPost(response.data.post),
   };
 };
 
@@ -74,10 +66,10 @@ export const useGetCenterPosts = (params?: GetPostsParams) => {
         },
       };
     },
-    staleTime: 3 * 60 * 1000, // 3분
+    staleTime: 0,
     gcTime: 10 * 60 * 1000, // 10분
     retry: 1,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -87,7 +79,8 @@ export const useGetCenterPostDetail = (postId: string) => {
     queryKey: ["center-posts", postId],
     queryFn: () => getCenterPostDetail(postId),
     enabled: !!postId,
-    staleTime: 3 * 60 * 1000, // 3분
+    staleTime: 0, // 항상 최신 데이터 요청
     gcTime: 10 * 60 * 1000, // 10분
+    refetchOnWindowFocus: true,
   });
 };

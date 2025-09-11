@@ -3,11 +3,11 @@ import { cn } from "@/lib/utils";
 
 interface NotificationCardProps {
   variant?: "primary" | "pressed";
-  title: string;
-  message?: string;
+  message: string;
   date: string;
   type?: string;
   isRead?: boolean;
+  onClick?: () => void;
 }
 
 // 시간 계산 유틸 함수
@@ -30,10 +30,11 @@ const getTimeAgo = (dateString: string): string => {
 
 function NotificationCard({
   variant = "primary",
-  title,
+  message,
   date,
   type,
   isRead = true,
+  onClick,
 }: NotificationCardProps) {
   const isPressed = variant === "pressed";
 
@@ -75,7 +76,7 @@ function NotificationCard({
   return (
     <div
       className={cn(
-        "flex gap-2 items-start w-full",
+        "flex gap-2 items-start w-full border-b border-b-bg cursor-pointer hover:bg-gray-50 transition-colors",
         isPressed ? "bg-white shadow-md" : "bg-transparent"
       )}
       style={{
@@ -83,13 +84,14 @@ function NotificationCard({
         backgroundColor:
           isRead === false ? "rgba(0, 44, 222, 0.04)" : "transparent",
       }}
+      onClick={onClick}
     >
       <div className="flex flex-col gap-1 p-4">
         <div className="flex gap-2">
           <Bell className={cn("mt-1", getBellColor())} size={16} />
           <div className="flex flex-col">
             <h6 className="text-dg">{getNotificationTypeText(type || "")}</h6>
-            <h6 className="text-bk">{title}</h6>
+            <h6 className="text-bk">{message}</h6>
             <h6 className="text-gr mt-1">{getTimeAgo(date)}</h6>
           </div>
         </div>

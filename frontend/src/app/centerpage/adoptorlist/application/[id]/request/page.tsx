@@ -226,7 +226,8 @@ export default function AdoptionRequestPage({
                   name: currentAdoption.animal_name,
                   isFemale: false, // API에서 제공되지 않는 정보
                   breed: "종 미등록",
-                  status: "보호중" as const,
+                  protection_status: "보호중" as const,
+                  adoption_status: "입양진행중" as const,
                   centerId: "", // 필수 필드이지만 API에서 제공되지 않음
                   animalImages: [],
                   foundLocation: null,
@@ -387,7 +388,7 @@ export default function AdoptionRequestPage({
               <BigButton
                 variant="primary"
                 onClick={() => setShowRejectModal(true)}
-                className="w-full py-4 bg-red"
+                className="w-full py-4 bg-white"
                 disabled={updateAdoptionStatus.isPending}
               >
                 {updateAdoptionStatus.isPending ? "처리 중..." : "거절"}

@@ -1,6 +1,8 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Heart, SealCheck } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { MiniButton } from "./MiniButton";
@@ -17,6 +19,7 @@ interface CenterInfoProps {
   className?: string;
   isAuthenticated?: boolean;
   onShowLoginModal?: () => void;
+  imageUrl?: string | null; // 센터 이미지 URL 추가
 }
 
 export function CenterInfo({
@@ -30,7 +33,10 @@ export function CenterInfo({
   className,
   isAuthenticated = true,
   onShowLoginModal,
+  imageUrl,
 }: CenterInfoProps) {
+  const router = useRouter();
+
   // 찜 상태 확인
   const { data: favoriteData, isLoading: isCheckingFavorite } =
     useCheckCenterFavorite(centerId);
@@ -49,6 +55,11 @@ export function CenterInfo({
     toggleCenterFavorite.mutate({ centerId });
   };
 
+  // 센터 프로필 클릭 핸들러
+  const handleCenterProfileClick = () => {
+    router.push(`/list/center/${centerId}`);
+  };
+
   return (
     <div
       className={cn(
@@ -58,8 +69,22 @@ export function CenterInfo({
     >
       {/* Profile Section */}
       <div className="flex items-center justify-between pt-5 pb-3">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gray-200 rounded-full flex-shrink-0" />
+        <div
+          className="flex items-center gap-3 cursor-pointer hover:opacity-70 transition-opacity"
+          onClick={handleCenterProfileClick}
+        >
+          <div className="w-12 h-12 bg-gray-200 rounded-full flex-shrink-0 relative overflow-hidden">
+            {imageUrl ? (
+              <Image
+                src={imageUrl}
+                alt={`${name} 센터 이미지`}
+                fill
+                className="object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gray-200 rounded-full" />
+            )}
+          </div>
           <div className="flex items-center gap-2">
             <span className="font-semibold text-gray-900">{name}</span>
             {variant === "subscriber" && isVerified && (

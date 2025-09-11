@@ -5,13 +5,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { PetCard } from "@/components/ui/PetCard";
 import { MiniButton } from "@/components/ui/MiniButton";
 import { CaretDown } from "@phosphor-icons/react";
+import { useGetAnimals } from "@/hooks/query/useGetAnimals";
 import type { Animal } from "./types";
+import { transformRawAnimalToAnimal } from "@/types/animal";
 
 interface CenterAnimalsTabProps {
-  animals: Animal[];
-  isLoading: boolean;
   showFilters?: boolean;
-  centerId?: string;
+  centerId: string;
   variant?: "simple" | "detailed";
   className?: string;
 }
@@ -34,8 +34,6 @@ interface FilterOption {
 }
 
 export function CenterAnimalsTab({
-  animals,
-  isLoading,
   showFilters = false,
   centerId,
   variant = "simple",
@@ -44,6 +42,25 @@ export function CenterAnimalsTab({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [filteredAnimals, setFilteredAnimals] = useState<Animal[]>([]);
+
+  // 센터 동물 데이터 가져오기
+  const {
+    data: animalsData,
+    isLoading,
+    error,
+  } = useGetAnimals({
+    center_id: centerId,
+    page: 1,
+    page_size: 50,
+  });
+
+  // animals 배열을 useMemo로 감싸서 성능 최적화
+  const animals = useMemo(() => {
+    if (!animalsData?.pages) return [];
+    return animalsData.pages.flatMap((page) =>
+      (page.data || []).map(transformRawAnimalToAnimal)
+    );
+  }, [animalsData]);
 
   // URL 파라미터에서 필터 상태 읽기
   const filters = useMemo((): FilterState | null => {
@@ -194,9 +211,16 @@ export function CenterAnimalsTab({
   const renderEmptyState = () => (
     <div className={`px-4 py-8 ${className}`}>
       <div className="text-center text-gray-500">
-        {variant === "simple"
-          ? "현재 보호 중인 동물이 없습니다."
-          : "등록된 동물이 없습니다"}
+        {error ? (
+          <div>
+            <div className="mb-2">동물 정보를 불러오는데 실패했습니다.</div>
+            <div className="text-sm text-red-500">{error.message}</div>
+          </div>
+        ) : variant === "simple" ? (
+          "현재 보호 중인 동물이 없습니다."
+        ) : (
+          "등록된 동물이 없습니다"
+        )}
       </div>
     </div>
   );
@@ -236,7 +260,8 @@ export function CenterAnimalsTab({
               name: animal.name || "",
               breed: animal.breed || "",
               isFemale: animal.isFemale,
-              status: animal.status,
+              protection_status: animal.protection_status || "보호중",
+              adoption_status: animal.adoption_status || "입양가능",
               centerId: animal.centerId,
               animalImages: animal.animalImages || [],
               foundLocation: animal.foundLocation || "",
@@ -263,7 +288,8 @@ export function CenterAnimalsTab({
               name: animal.name || "",
               breed: animal.breed || "",
               isFemale: animal.isFemale,
-              status: animal.status,
+              protection_status: animal.protection_status || "보호중",
+              adoption_status: animal.adoption_status || "입양가능",
               centerId: animal.centerId,
               animalImages: animal.animalImages || [],
               foundLocation: animal.foundLocation || "",

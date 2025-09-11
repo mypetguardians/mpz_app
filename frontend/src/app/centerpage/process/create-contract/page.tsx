@@ -120,13 +120,7 @@ export default function CenterProcessCreateContract() {
         >
           {isLoading ? "저장 중..." : "저장하기"}
         </BigButton>
-        {/* 디버깅용 정보 */}
-        <div className="text-xs text-gray-500 mt-2 text-center">
-          제목: &quot;{title}&quot; (길이: {title.length}) | 내용: &quot;
-          {content}&quot; (길이: {content.length})
-        </div>
       </div>
-
       {toast.show && (
         <NotificationToast
           message={toast.message}

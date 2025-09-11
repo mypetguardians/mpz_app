@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { X } from "@phosphor-icons/react";
 
 import { TopBar } from "@/components/common/TopBar";
@@ -9,6 +10,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { Container } from "@/components/common/Container";
 import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
 import { BottomSheet } from "@/components/ui/BottomSheet";
+import { useGetUserAdoptionDetail } from "@/hooks/query/useGetUserAdoptionDetail";
 
 interface ContractData {
   adoptionId: string;
@@ -19,23 +21,38 @@ interface ContractData {
 }
 
 function ContractContent() {
+  const router = useRouter();
   const [openSignSheet, setOpenSignSheet] = useState(false);
-  const [contractData, setContractData] = useState<ContractData | null>(null);
   const [userSignature, setUserSignature] = useState("");
   const [isSigned, setIsSigned] = useState(false);
   const searchParams = useSearchParams();
 
-  useEffect(() => {
-    const dataParam = searchParams.get("data");
-    if (dataParam) {
-      try {
-        const decodedData = JSON.parse(decodeURIComponent(dataParam));
-        setContractData(decodedData);
-      } catch (error) {
-        console.error("계약서 데이터 파싱 오류:", error);
+  // URL에서 adoptionId 가져오기
+  const adoptionId = searchParams.get("adoptionId");
+
+  // API에서 입양 신청 상세 정보 가져오기
+  const {
+    data: adoptionDetail,
+    isLoading,
+    error,
+  } = useGetUserAdoptionDetail({
+    adoptionId: adoptionId || "",
+  });
+
+  // 계약서 데이터 구성
+  const contractData: ContractData | null = adoptionDetail
+    ? {
+        adoptionId: adoptionDetail.adoption.id,
+        animalName: adoptionDetail.adoption.animal_name,
+        centerName: adoptionDetail.adoption.center_name,
+        contractContent:
+          adoptionDetail.contract?.contract_content ||
+          "계약서 내용이 준비되지 않았습니다.",
+        guidelinesContent:
+          adoptionDetail.contract?.guidelines_content ||
+          "동의서 내용이 준비되지 않았습니다.",
       }
-    }
-  }, [searchParams]);
+    : null;
 
   const handleNext = () => {
     if (isSigned) {
@@ -52,12 +69,42 @@ function ContractContent() {
     }
   };
 
-  if (!contractData) {
+  // 로딩 상태
+  if (isLoading || !adoptionId) {
     return (
       <Container className="min-h-screen">
         <TopBar variant="variant6" />
         <div className="px-4 py-8">
           <p className="text-center text-gr">계약서 데이터를 불러오는 중...</p>
+        </div>
+      </Container>
+    );
+  }
+
+  // 에러 상태
+  if (error) {
+    return (
+      <Container className="min-h-screen">
+        <TopBar variant="variant6" />
+        <div className="px-4 py-8">
+          <p className="text-center text-red-500">
+            계약서 데이터를 불러오는 중 오류가 발생했습니다.
+          </p>
+          <p className="text-center text-gr text-sm mt-2">{error.message}</p>
+        </div>
+      </Container>
+    );
+  }
+
+  // 계약서 데이터가 없는 경우
+  if (!contractData || !adoptionDetail?.contract) {
+    return (
+      <Container className="min-h-screen">
+        <TopBar variant="variant6" />
+        <div className="px-4 py-8">
+          <p className="text-center text-gr">
+            계약서가 아직 준비되지 않았습니다.
+          </p>
         </div>
       </Container>
     );
@@ -72,6 +119,7 @@ function ContractContent() {
             <IconButton
               icon={({ size }) => <X size={size} weight="bold" />}
               size="iconM"
+              onClick={() => router.back()}
             />
           }
         />

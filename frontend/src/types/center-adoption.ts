@@ -30,6 +30,8 @@ export const CenterAdoptionDataSchema = z.object({
   user_id: z.string(),
   animal_id: z.string(),
   animal_name: z.string(),
+  animal_protection_status: z.string().optional(),
+  animal_adoption_status: z.string().optional(),
   status: z.string(),
   notes: z.string(),
   center_notes: z.string(),

@@ -6,6 +6,7 @@ import { useRouter, useParams } from "next/navigation";
 import { matchingStepConfig } from "@/lib/matchingStepConfig";
 import { X, ArrowLeft } from "@phosphor-icons/react";
 import { useMatchingStepStore } from "@/lib/stores/matchingStepStore";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 import { TopBar } from "@/components/common/TopBar";
 import { Container } from "@/components/common/Container";
@@ -26,9 +27,10 @@ export default function MatchingQuestionPage() {
   const router = useRouter();
   const { step } = useParams();
   const currentStep = Number(step);
+  const { user } = useAuth();
 
   const { setCurrentStep, markStepCompleted, goToNextStep, canGoToStep } =
-    useMatchingStepStore();
+    useMatchingStepStore(user?.id);
 
   useEffect(() => {
     if (currentStep && canGoToStep(currentStep)) {
@@ -55,7 +57,7 @@ export default function MatchingQuestionPage() {
     7: <Step7 onNext={handleNext} />,
     8: <Step8 onNext={handleNext} />,
     9: <Step9 onNext={handleNext} />,
-    10: <Step10 onNext={() => router.push("/matching/loading")} />,
+    10: <Step10 onNext={() => {}} />,
   };
 
   if (!stepsMap[currentStep]) {
@@ -80,7 +82,7 @@ export default function MatchingQuestionPage() {
           </Link>
         }
         right={
-          <Link href="/">
+          <Link href="/list/animal">
             <IconButton
               icon={({ size }) => <X size={size} weight="bold" />}
               size="iconM"

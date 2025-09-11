@@ -36,3 +36,30 @@ export interface CenterNoticesResponse {
   notices: CenterNotice[];
   total: number;
 }
+
+// 알림 생성 요청 타입
+export interface CreateNotificationRequest {
+  user_id: string;
+  notification_type: string;
+  title: string;
+  message: string;
+  priority?: "normal" | "high" | "low";
+  action_url?: string;
+  send_push?: boolean;
+}
+
+// 푸시 토큰 관련 타입
+export type Platform = "android" | "ios" | "web";
+
+export interface PushTokenRequest {
+  token: string;
+  platform: Platform;
+}
+
+export interface DeletePushTokenRequest {
+  platform: Platform;
+}
+
+export interface PushTokenResponse {
+  message: string;
+}

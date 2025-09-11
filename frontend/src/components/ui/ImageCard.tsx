@@ -51,7 +51,7 @@ export function ImageCard({
       {onRemove && (
         <button
           type="button"
-          className="absolute top-[-10px] right-[-10px] bg-black text-white rounded-full w-5 h-5 flex items-center justify-center z-10"
+          className="absolute top-[-10px] right-[-10px] bg-black text-white rounded-full w-5 h-5 flex items-center justify-center z-50"
           onClick={(e) => {
             e.stopPropagation();
             onRemove();

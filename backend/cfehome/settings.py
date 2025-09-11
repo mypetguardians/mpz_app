@@ -281,7 +281,7 @@ LOGGING = {
             'style': '{',
         },
         'simple': {
-            'format': '{levelname} {asctime} {message}',
+            'format': '[{levelname}] {asctime} {name}: {message}',
             'style': '{',
         },
     },
@@ -290,6 +290,7 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'level': 'INFO',
             'formatter': 'simple',
+            'stream': 'ext://sys.stdout',
         },
         'file': {
             'class': 'logging.FileHandler',
@@ -320,6 +321,11 @@ LOGGING = {
             'propagate': False,
         },
         'ai.services': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'ai.tools': {
             'handlers': ['console', 'file'],
             'level': 'INFO',
             'propagate': False,

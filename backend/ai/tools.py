@@ -3,6 +3,10 @@ from typing import List, Dict, Any, Optional
 from django.db import transaction
 from asgiref.sync import sync_to_async
 import json
+import logging
+
+# AI 모듈 전용 로거 설정
+logger = logging.getLogger('ai.tools')
 
 
 @tool
@@ -152,6 +156,17 @@ def filter_animals_by_characteristics(
     from animals.models import Animal
     from django.db.models import Q
     
+    # 툴 호출 파라미터 로깅
+    logger.info(f"filter_animals_by_characteristics 호출됨 - "
+                f"personality_traits: {personality_traits}, "
+                f"activity_level_range: {activity_level_range}, "
+                f"sociability_min: {sociability_min}, "
+                f"separation_anxiety_max: {separation_anxiety_max}, "
+                f"basic_training_min: {basic_training_min}, "
+                f"is_female: {is_female}, "
+                f"size_category: {size_category}, "
+                f"max_age: {max_age}")
+    
     try:
         queryset = Animal.objects.filter(
             is_public=True,
@@ -227,6 +242,9 @@ def filter_animals_by_characteristics(
                 "adoption_status": animal.adoption_status,
             }
             animal_list.append(animal_data)
+        
+        # 결과 로깅
+        logger.info(f"filter_animals_by_characteristics 결과 - 총 {len(animal_list)}마리 동물 반환: {animal_list}")
         
         return animal_list
         

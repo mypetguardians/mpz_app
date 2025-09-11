@@ -81,7 +81,7 @@ def get_available_animals(
         if animal_type:
             queryset = queryset.filter(animal_type=animal_type)
         
-        animals = queryset[:limit]
+        animals = queryset.order_by('?')[:limit]
         
         animal_list = []
         for animal in animals:
@@ -129,7 +129,8 @@ def filter_animals_by_characteristics(
     sociability_min: Optional[int] = None,
     separation_anxiety_max: Optional[int] = None,
     basic_training_min: Optional[int] = None,
-    is_female: Optional[bool] = None
+    is_female: Optional[bool] = None,
+    size_category: Optional[str] = None
 ) -> List[Dict[str, Any]]:
     """
     특정 특성을 가진 동물들을 필터링합니다.
@@ -141,6 +142,7 @@ def filter_animals_by_characteristics(
         separation_anxiety_max: 최대 분리불안 점수
         basic_training_min: 최소 기본 훈련 점수
         is_female: 성별 필터 (True: 암컷, False: 수컷, None: 전체)
+        size_category: 체형 필터 ("소형": 10kg 미만, "중형": 10-25kg, "대형": 25kg 이상, None: 전체)
         
     Returns:
         Filtered list of animals
@@ -185,6 +187,15 @@ def filter_animals_by_characteristics(
         # 성별 필터링
         if is_female is not None:
             queryset = queryset.filter(is_female=is_female)
+        
+        # 체형(몸무게) 필터링
+        if size_category:
+            if size_category == "소형":
+                queryset = queryset.filter(weight__lt=10.0)
+            elif size_category == "중형":
+                queryset = queryset.filter(weight__gte=10.0, weight__lt=25.0)
+            elif size_category == "대형":
+                queryset = queryset.filter(weight__gte=25.0)
         
         animals = queryset.order_by('?')[:10]  # 상위 10개만
         

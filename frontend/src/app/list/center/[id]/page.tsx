@@ -5,6 +5,7 @@ import { useSearchParams, useParams } from "next/navigation";
 
 import { useGetCenterById } from "@/hooks/query/useGetCenters";
 import { useToggleCenterFavorite, useCheckCenterFavorite } from "@/hooks";
+import { useKakaoSDK } from "@/hooks/useKakaoSDK";
 import { Container } from "@/components/common/Container";
 import { CenterDetailHeader, CenterDetailTabs } from "./_components";
 import type { TabType } from "./_components/types";
@@ -13,6 +14,7 @@ export default function CenterDetailPage() {
   const params = useParams();
   const id = params.id as string;
   const searchParams = useSearchParams();
+  const { isLoaded, isInitialized } = useKakaoSDK();
 
   // API 호출
   const { data: center, isLoading: centerLoading } = useGetCenterById(id);
@@ -66,6 +68,8 @@ export default function CenterDetailPage() {
         centerName={center.name}
         centerId={id}
         verified={center.verified}
+        isKakaoLoaded={isLoaded}
+        isKakaoInitialized={isInitialized}
       />
 
       <CenterDetailTabs

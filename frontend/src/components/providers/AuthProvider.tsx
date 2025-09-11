@@ -162,16 +162,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // 로그아웃 처리
   const logout = async () => {
     try {
-      const response = await instance.delete("/auth/logout");
+      const response = await instance.post("/auth/logout");
 
       if (response.status === 200) {
-        // 클라이언트 쿠키도 삭제
-        document.cookie =
-          "better-auth.session_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        Cookies.remove("access");
+        Cookies.remove("refresh");
+        Cookies.remove("access_token");
+        Cookies.remove("refresh_token");
 
-        // 로컬 스토리지 토큰 제거
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("refresh_token");
+        }
+
         delete instance.defaults.headers.common["Authorization"];
 
         // 사용자 상태 초기화
@@ -183,17 +186,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         console.error("로그아웃 실패:", response.statusText);
         // 에러가 발생해도 클라이언트 상태는 초기화
-        setUser(null);
-        setIsAuthenticated(false);
+        clearAuthState();
         router.push("/");
       }
     } catch (error) {
       console.error("로그아웃 중 오류:", error);
       // 에러가 발생해도 클라이언트 상태는 초기화
-      setUser(null);
-      setIsAuthenticated(false);
+      clearAuthState();
       router.push("/");
     }
+  };
+
+  // 인증 상태 초기화 함수
+  const clearAuthState = () => {
+    // 모든 토큰 관련 쿠키 삭제
+    Cookies.remove("access");
+    Cookies.remove("refresh");
+    Cookies.remove("access_token");
+    Cookies.remove("refresh_token");
+
+    // 로컬 스토리지 토큰 제거
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+    }
+
+    // Axios 헤더에서 Authorization 제거
+    delete instance.defaults.headers.common["Authorization"];
+
+    // 사용자 상태 초기화
+    setUser(null);
+    setIsAuthenticated(false);
   };
 
   // 사용자 정보 업데이트

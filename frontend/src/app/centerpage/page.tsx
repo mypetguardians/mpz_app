@@ -36,15 +36,23 @@ export default function MyPage() {
   // 로그아웃 처리 함수
   const handleLogout = async () => {
     try {
-      await logout();
       setShowLogoutModal(false);
       setShowLogoutToast(true);
+
+      // 로그아웃 실행
+      await logout();
+
       // 3초 후 토스트 숨기기
       setTimeout(() => {
         setShowLogoutToast(false);
       }, 3000);
     } catch (error) {
       console.error("로그아웃 중 오류:", error);
+      // 에러가 발생해도 토스트는 표시 (로그아웃은 실행됨)
+      setShowLogoutToast(true);
+      setTimeout(() => {
+        setShowLogoutToast(false);
+      }, 3000);
     }
   };
 

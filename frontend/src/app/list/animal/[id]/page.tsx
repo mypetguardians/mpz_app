@@ -34,43 +34,11 @@ import {
 import { useGetMyProfile } from "@/hooks/query/useGetMyProfile";
 import { useAdoptionVerificationStore } from "@/lib/stores";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { useKakaoSDK } from "@/hooks/useKakaoSDK";
 import { NotificationToast } from "@/components/ui/NotificationToast";
 import { CustomModal } from "@/components/ui/CustomModal";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { useRouter } from "next/navigation";
-
-// Kakao 타입 정의
-declare global {
-  interface Window {
-    Kakao: {
-      init: (key: string) => void;
-      Link: {
-        sendDefault: (options: {
-          objectType: string;
-          content: {
-            title: string;
-            description: string;
-            imageUrl: string;
-            link: {
-              mobileWebUrl: string;
-              webUrl: string;
-            };
-          };
-          buttons: Array<{
-            title: string;
-            link: {
-              mobileWebUrl: string;
-              webUrl: string;
-            };
-          }>;
-        }) => void;
-      };
-      Share: {
-        sendScrap: (options: { requestUrl: string }) => void;
-      };
-    };
-  }
-}
 
 interface AnimalDetailPageProps {
   params: Promise<{
@@ -82,6 +50,7 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
   const router = useRouter();
   const { id } = use(params);
   const { isAuthenticated, user } = useAuth();
+  const { isLoaded, isInitialized } = useKakaoSDK();
   const {
     data: animal,
     isLoading,
@@ -276,15 +245,38 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
   };
 
   const handleKakaoShare = () => {
-    if (typeof window !== "undefined" && window.Kakao) {
-      const animalUrl = `${window.location.origin}/list/animal/${id}`;
-      window.Kakao.Share.sendScrap({ requestUrl: animalUrl });
-
-      setShowShareBottomSheet(false);
-    } else {
-      setShareToastMessage("카카오톡 공유를 사용할 수 없습니다.");
+    if (!isLoaded || !isInitialized) {
+      setShareToastMessage(
+        "카카오톡을 사용할 수 없습니다. 잠시 후 다시 시도해주세요."
+      );
       setShareToastType("error");
       setShowShareToast(true);
+      setShowShareBottomSheet(false);
+      return;
+    }
+
+    if (
+      typeof window !== "undefined" &&
+      window.Kakao &&
+      window.Kakao.Share &&
+      window.Kakao.Share.sendScrap
+    ) {
+      try {
+        const animalUrl = `${window.location.origin}/list/animal/${id}`;
+        window.Kakao.Share.sendScrap({ requestUrl: animalUrl });
+        setShowShareBottomSheet(false);
+      } catch (error) {
+        console.error("카카오톡 공유 실패:", error);
+        setShareToastMessage("카카오톡 공유에 실패했습니다.");
+        setShareToastType("error");
+        setShowShareToast(true);
+        setShowShareBottomSheet(false);
+      }
+    } else {
+      setShareToastMessage("카카오톡과 연결되어 있지 않습니다.");
+      setShareToastType("error");
+      setShowShareToast(true);
+      setShowShareBottomSheet(false);
     }
   };
 

@@ -21,11 +21,13 @@ import { useGetCenterPostDetail } from "@/hooks/query/useGetCenterPosts";
 import { useGetComments } from "@/hooks/query/useGetComments";
 import { useDeletePost } from "@/hooks/mutation/useDeletePost";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { useKakaoSDK } from "@/hooks/useKakaoSDK";
 
 export default function CommunityDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
+  const { isLoaded, isInitialized } = useKakaoSDK();
 
   const [showBottomSheet, setShowBottomSheet] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -119,7 +121,20 @@ export default function CommunityDetailPage() {
 
   // 공유 관련 함수들
   const handleKakaoShare = () => {
-    if (typeof window !== "undefined" && window.Kakao) {
+    if (!isLoaded || !isInitialized) {
+      setShowToast(true);
+      setToastMessage(
+        "카카오톡을 사용할 수 없습니다. 잠시 후 다시 시도해주세요."
+      );
+      return;
+    }
+
+    if (
+      typeof window !== "undefined" &&
+      window.Kakao &&
+      window.Kakao.Link &&
+      window.Kakao.Link.sendDefault
+    ) {
       try {
         // 이미지 URL 추출: 문자열/객체(image_url, imageUrl 등) 모두 지원
         const firstImageUrl = (() => {

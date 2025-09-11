@@ -1,1 +1,21 @@
-
+{
+  "name": "MPZ - 반려동물 입양 플랫폼",
+  "short_name": "MPZ",
+  "description": "반려동물 입양을 위한 통합 플랫폼",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["lifestyle", "social"],
+  "lang": "ko",
+  "dir": "ltr"
+}

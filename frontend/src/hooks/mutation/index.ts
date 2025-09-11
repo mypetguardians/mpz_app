@@ -6,7 +6,6 @@ export { useCreateComment } from "./useCreateComment";
 export { useCreateReply } from "./useCreateReply";
 export { useUpdateProfile } from "./useUpdateProfile";
 export { useDeleteKakaoAccount } from "./useDeleteKakaoAccount";
-export { useLogout } from "./useLogout";
 export { useToggleAnimalFavorite } from "./useToggleAnimalFavorite";
 export { useToggleAnimalRecommend } from "./useToggleAnimalRecommend";
 export { useToggleCenterFavorite } from "./useToggleCenterFavorite";

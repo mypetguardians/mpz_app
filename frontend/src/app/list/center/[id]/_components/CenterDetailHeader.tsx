@@ -14,18 +14,30 @@ import { CustomModal } from "@/components/ui/CustomModal";
 import { Toast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
 import { useCheckCenterFavorite, useToggleCenterFavorite } from "@/hooks";
+import { useKakaoSDK } from "@/hooks/useKakaoSDK";
 
 interface CenterDetailHeaderProps {
   centerName: string;
   centerId: string;
   verified: boolean;
+  isKakaoLoaded?: boolean;
+  isKakaoInitialized?: boolean;
 }
 
 export function CenterDetailHeader({
   centerName,
   centerId,
   verified,
+  isKakaoLoaded,
+  isKakaoInitialized,
 }: CenterDetailHeaderProps) {
+  const { isLoaded: hookIsLoaded, isInitialized: hookIsInitialized } =
+    useKakaoSDK();
+
+  // props가 전달되면 사용하고, 아니면 훅에서 가져온 값 사용
+  const isLoaded = isKakaoLoaded ?? hookIsLoaded;
+  const isInitialized = isKakaoInitialized ?? hookIsInitialized;
+
   // 찜하기 상태 확인
   const { data: favoriteData, isLoading: isCheckingFavorite } =
     useCheckCenterFavorite(centerId);
@@ -56,7 +68,21 @@ export function CenterDetailHeader({
 
   // 카카오톡 공유 함수
   const handleKakaoShare = () => {
-    if (typeof window !== "undefined" && window.Kakao) {
+    if (!isLoaded || !isInitialized) {
+      setShowToast(true);
+      setToastMessage(
+        "카카오톡을 사용할 수 없습니다. 잠시 후 다시 시도해주세요."
+      );
+      setShowShareModal(false);
+      return;
+    }
+
+    if (
+      typeof window !== "undefined" &&
+      window.Kakao &&
+      window.Kakao.Link &&
+      window.Kakao.Link.sendDefault
+    ) {
       try {
         const centerUrl = `${window.location.origin}/list/center/${centerId}`;
 
@@ -92,7 +118,7 @@ export function CenterDetailHeader({
       }
     } else {
       setShowToast(true);
-      setToastMessage("카카오톡을 사용할 수 없습니다.");
+      setToastMessage("카카오톡과 연결되어 있지 않습니다.");
       setShowShareModal(false);
     }
   };

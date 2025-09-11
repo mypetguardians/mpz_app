@@ -79,9 +79,6 @@ export function KakaoMap({
       if (!mapRef.current) return;
 
       try {
-        console.log("지도 로딩 시작:", address);
-        console.log("카카오 맵 API 사용 가능 여부:", !!window.kakao?.maps);
-
         const mapOption = {
           center: new window.kakao.maps.LatLng(37.5665, 126.978), // 서울 시청 기본 위치
           level: 3,
@@ -93,8 +90,6 @@ export function KakaoMap({
         geocoder.addressSearch(
           address,
           (result: kakaoGeocoderResult[], status: string) => {
-            console.log("주소 검색 결과:", { result, status });
-
             if (status === window.kakao.maps.services.Status.OK) {
               const coords = new window.kakao.maps.LatLng(
                 parseFloat(result[0].y),
@@ -128,8 +123,6 @@ export function KakaoMap({
         loadMap();
       });
     } else {
-      console.log("카카오 맵 API 로드 대기 중...");
-      // 스크립트가 로드될 때까지 기다림
       const interval = setInterval(() => {
         if (window.kakao?.maps?.load) {
           console.log("카카오 맵 API 로드 완료, 지도 생성 시작");

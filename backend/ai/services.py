@@ -20,6 +20,8 @@ from animals.models import Animal
 
 def sanitize_recommendations(ai_result):
     """AI 추천 결과의 동물 정보를 실제 DB 값으로 검증 및 덮어쓰기"""
+    from animals.models import AnimalImage
+    
     for rec in ai_result.get("animal_recommendations", []):
         db_animal = Animal.objects.filter(id=rec["animal_id"]).first()
         if db_animal:
@@ -39,6 +41,17 @@ def sanitize_recommendations(ai_result):
             rec["description"] = db_animal.description
             rec["health_notes"] = db_animal.health_notes
             rec["special_needs"] = db_animal.special_needs
+            
+            # 동물 이미지 URL 추가
+            animal_images = AnimalImage.objects.filter(animal=db_animal).order_by('-is_primary', 'sequence')
+            if animal_images.exists():
+                # 모든 이미지 URL 리스트 제공
+                all_images = [img.image_url for img in animal_images]
+                rec["image_urls"] = all_images
+            else:
+                # 이미지가 없는 경우 빈 리스트
+                rec["image_urls"] = []
+                
         else:
             # 존재하지 않는 동물 ID인 경우 로그나 처리
             print(f"Warning: Animal ID {rec.get('animal_id')} not found in database")

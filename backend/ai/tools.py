@@ -128,7 +128,8 @@ def filter_animals_by_characteristics(
     activity_level_range: Optional[tuple] = None,
     sociability_min: Optional[int] = None,
     separation_anxiety_max: Optional[int] = None,
-    basic_training_min: Optional[int] = None
+    basic_training_min: Optional[int] = None,
+    is_female: Optional[bool] = None
 ) -> List[Dict[str, Any]]:
     """
     특정 특성을 가진 동물들을 필터링합니다.
@@ -139,6 +140,7 @@ def filter_animals_by_characteristics(
         sociability_min: 최소 사회성 점수
         separation_anxiety_max: 최대 분리불안 점수
         basic_training_min: 최소 기본 훈련 점수
+        is_female: 성별 필터 (True: 암컷, False: 수컷, None: 전체)
         
     Returns:
         Filtered list of animals
@@ -180,7 +182,11 @@ def filter_animals_by_characteristics(
         if basic_training_min is not None:
             queryset = queryset.filter(basic_training__gte=basic_training_min)
         
-        animals = queryset[:10]  # 상위 10개만
+        # 성별 필터링
+        if is_female is not None:
+            queryset = queryset.filter(is_female=is_female)
+        
+        animals = queryset.order_by('?')[:10]  # 상위 10개만
         
         animal_list = []
         for animal in animals:
@@ -189,6 +195,7 @@ def filter_animals_by_characteristics(
                 "name": animal.name,
                 "breed": animal.breed,
                 "age": animal.age,
+                "is_female": animal.is_female,
                 "personality": animal.personality,
                 "activity_level": animal.activity_level,
                 "sensitivity": animal.sensitivity,

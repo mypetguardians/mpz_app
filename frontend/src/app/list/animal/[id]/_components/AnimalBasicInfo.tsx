@@ -11,7 +11,8 @@ import {
 } from "@phosphor-icons/react";
 
 interface AnimalBasicInfoProps {
-  tag: string;
+  protection_status: string;
+  adoption_status: string;
   name: string;
   isFemale: boolean;
   age: number;
@@ -22,7 +23,8 @@ interface AnimalBasicInfoProps {
 }
 
 export default function AnimalBasicInfo({
-  tag,
+  protection_status,
+  adoption_status,
   name,
   isFemale,
   age,
@@ -35,25 +37,50 @@ export default function AnimalBasicInfo({
   const validImageUrls = imageUrls.filter((url) => url && url.trim() !== "");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  // 상태에 따른 색상 클래스 반환
-  const getStatusColorClass = (status?: string) => {
-    switch (status) {
-      case "자연사":
-      case "안락사":
-        return "bg-orange-100/10";
-      case "입양대기":
-      case "입양진행중":
-      case "보호중":
-        return "bg-green/10 text-green";
+  // 상태 정보 반환 (표시할 텍스트와 색상)
+  const getStatusInfo = (
+    protectionStatus?: string,
+    adoptionStatus?: string
+  ) => {
+    // 보호 상태가 "안락사"나 "자연사"인 경우 우선 표시
+    if (protectionStatus === "안락사" || protectionStatus === "자연사") {
+      return {
+        text: "🌈",
+        colorClass: "bg-orange-100/10",
+      };
+    }
+
+    // 보호 상태가 "반환"인 경우
+    if (protectionStatus === "반환") {
+      return {
+        text: protectionStatus,
+        colorClass: "bg-gr/10 text-gr",
+      };
+    }
+
+    // 입양 상태에 따른 표시
+    switch (adoptionStatus) {
       case "입양완료":
-        return "bg-brand/10 text-brand";
-      case "임시보호중":
-        return "bg-yellow/10 text-yellow";
-      case "방사":
-      case "반환":
-        return "bg-gr/10 text-gr";
+        return {
+          text: adoptionStatus,
+          colorClass: "bg-brand/10 text-brand",
+        };
+      case "입양진행중":
+        return {
+          text: adoptionStatus,
+          colorClass: "bg-blue/10 text-blue",
+        };
+      case "입양불가":
+        return {
+          text: adoptionStatus,
+          colorClass: "bg-red-100/10 text-red-600",
+        };
+      case "입양가능":
       default:
-        return "bg-gray-300/10 text-gray-600";
+        return {
+          text: adoptionStatus || "입양가능",
+          colorClass: "bg-green/10 text-green",
+        };
     }
   };
 
@@ -115,19 +142,15 @@ export default function AnimalBasicInfo({
       {/* 기본 정보 섹션 */}
       <div className="mx-4 py-4 border-b border-lg">
         <div className="flex items-center gap-2 mb-3">
-          <Chip className={getStatusColorClass(tag)}>
-            {[
-              "보호중",
-              "입양완료",
-              "임시보호중",
-              "입양대기",
-              "입양진행중",
-              "방사",
-              "반환",
-            ].includes(tag)
-              ? tag
-              : "🌈"}
-          </Chip>
+          {(() => {
+            const statusInfo = getStatusInfo(
+              protection_status,
+              adoption_status
+            );
+            return (
+              <Chip className={statusInfo.colorClass}>{statusInfo.text}</Chip>
+            );
+          })()}
           <h3 className="text-bk">{breed}</h3>
           {isFemale ? (
             <span className="text-red">
@@ -140,10 +163,9 @@ export default function AnimalBasicInfo({
           )}
         </div>
         <div className="flex items-center body2 text-dg gap-2">
-          {/* 중성화여부 하드코딩 */}
           <span>{isFemale ? "암컷" : "수컷"} (중성화 완료)</span>
           <span className="text-gray-300">|</span>
-          <span>{age}살 추정</span>
+          <span>{Math.trunc(age / 12)}살 추정</span>
           <span className="text-gray-300">|</span>
           <span>{weight}kg</span>
           <span className="text-gray-300">|</span>

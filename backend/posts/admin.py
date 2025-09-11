@@ -9,10 +9,11 @@ class PostAdmin(admin.ModelAdmin):
     search_fields = ['user__username', 'title', 'content']
     list_editable = ['is_all_access']
     readonly_fields = ['created_at', 'updated_at']
+    list_select_related = False  # 명시적으로 비활성화
     
     fieldsets = (
         ('기본 정보', {
-            'fields': ('user', 'title', 'content', 'animal', 'adoption', 'content_tags', 'is_all_access')
+            'fields': ('user', 'title', 'content', 'animal', 'content_tags', 'is_all_access')
         }),
         ('시간 정보', {
             'fields': ('created_at', 'updated_at'),

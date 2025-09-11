@@ -53,6 +53,12 @@ class Center(BaseModel):
     image_url = models.CharField(max_length=500, blank=True, null=True, help_text="센터 이미지 URL")
     is_subscribed = models.BooleanField(default=False, help_text="구독 여부")
     
+    # 센터 서비스 관련 필드
+    has_volunteer = models.BooleanField(default=False, help_text="봉사활동 여부")
+    has_foster_care = models.BooleanField(default=False, help_text="임시보호 여부")
+    show_phone_number = models.BooleanField(default=True, help_text="전화번호 노출 여부")
+    show_location = models.BooleanField(default=True, help_text="위치 노출 여부")
+    
     # 공공데이터 관련 필드 (최소한만 유지)
     public_reg_no = models.CharField(max_length=50, blank=True, null=True, help_text="공공데이터 보호소번호", unique=True)
     
@@ -82,6 +88,24 @@ class AdoptionContractTemplate(BaseModel):
         db_table = 'adoption_contract_templates'
         verbose_name = '입양 계약서 템플릿'
         verbose_name_plural = '입양 계약서 템플릿들'
+    
+    def __str__(self):
+        return f"{self.center.name} - {self.title}"
+
+
+class AdoptionConsent(BaseModel):
+    """센터별 입양 동의서"""
+    
+    center = models.ForeignKey(Center, on_delete=models.CASCADE, help_text="관련 센터")
+    title = models.CharField(max_length=200, help_text="동의서 제목")
+    description = models.TextField(blank=True, null=True, help_text="동의서 설명/목적")
+    content = models.TextField(help_text="동의서 본문 내용")
+    is_active = models.BooleanField(default=True, help_text="활성화 여부")
+    
+    class Meta:
+        db_table = 'adoption_consents'
+        verbose_name = '입양 동의서'
+        verbose_name_plural = '입양 동의서들'
     
     def __str__(self):
         return f"{self.center.name} - {self.title}"

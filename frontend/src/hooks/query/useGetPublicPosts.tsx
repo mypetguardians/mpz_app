@@ -4,8 +4,9 @@ import {
   ApiPostsResponse,
   GetPostsParams,
   PostDetailResponse,
+  ApiPostResponse,
 } from "@/types/posts";
-import { transformRawPostToPost, ApiPostDetailResponse } from "./posts/utils";
+import { transformRawPostToPost } from "./posts/utils";
 
 const getPublicPosts = async (
   params?: GetPostsParams
@@ -16,8 +17,11 @@ const getPublicPosts = async (
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
         if (key === "tags" && Array.isArray(value)) {
-          // tags 배열을 개별 파라미터로 변환
           value.forEach((tag) => searchParams.append("tags", tag));
+        } else if (key === "animalId") {
+          searchParams.append("animal_id", value.toString());
+        } else if (key === "adoptionId") {
+          searchParams.append("adoption_id", value.toString());
         } else {
           searchParams.append(key, value.toString());
         }
@@ -34,47 +38,36 @@ const getPublicPosts = async (
 const getPublicPostDetail = async (
   postId: string
 ): Promise<PostDetailResponse> => {
-  const response = await instance.get<ApiPostDetailResponse>(
-    `/posts/all/${postId}`
-  );
+  // 먼저 전체공개 글에서 시도
+  try {
+    const response = await instance.get<{ post: ApiPostResponse }>(
+      `/posts/all/${postId}`
+    );
 
-  // API 응답을 Post 타입으로 변환
-  const transformedPost = transformRawPostToPost(response.data.post);
+    return {
+      post: transformRawPostToPost(response.data.post),
+    };
+  } catch (error) {
+    // 전체공개에서 찾을 수 없으면 센터공개에서 시도
+    console.log("전체공개에서 찾을 수 없음, 센터공개에서 시도:", error);
+    const response = await instance.get<{ post: ApiPostResponse }>(
+      `/posts/center/${postId}`
+    );
 
-  return {
-    post: {
-      ...transformedPost,
-      tags: response.data.post.tags,
-      images: response.data.post.images,
-      postLikes: response.data.post.postLikes,
-    },
-  };
+    return {
+      post: transformRawPostToPost(response.data.post),
+    };
+  }
 };
 
 export const useGetPublicPosts = (params?: GetPostsParams) => {
   return useQuery({
     queryKey: ["public-posts", params],
     queryFn: () => getPublicPosts(params),
-    select: (data: ApiPostsResponse) => {
-      const transformedPosts = data.data.map(transformRawPostToPost);
-
-      return {
-        data: transformedPosts, // API 응답 구조와 일치하도록 data로 변경
-        posts: transformedPosts, // 기존 호환성을 위해 posts도 유지
-        pagination: {
-          count: data.count,
-          totalCnt: data.totalCnt,
-          pageCnt: data.pageCnt,
-          curPage: data.curPage,
-          nextPage: data.nextPage,
-          previousPage: data.previousPage,
-        },
-      };
-    },
-    staleTime: 3 * 60 * 1000, // 3분
-    gcTime: 10 * 60 * 1000, // 10분
+    staleTime: 0,
+    gcTime: 10 * 60 * 1000,
     retry: 1,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -83,7 +76,8 @@ export const useGetPublicPostDetail = (postId: string) => {
     queryKey: ["public-posts", postId],
     queryFn: () => getPublicPostDetail(postId),
     enabled: !!postId,
-    staleTime: 3 * 60 * 1000, // 3분
+    staleTime: 0, // 항상 최신 데이터 요청
     gcTime: 10 * 60 * 1000, // 10분
+    refetchOnWindowFocus: true,
   });
 };

@@ -9,8 +9,8 @@ interface PostLikeRequest {
 
 interface PostLikeResponse {
   message: string;
-  isLiked: boolean;
-  likeCount: number;
+  is_liked: boolean;
+  total_likes: number;
 }
 
 export const useToggleLike = () => {
@@ -21,14 +21,14 @@ export const useToggleLike = () => {
       const response = await instance.post<PostLikeResponse>(
         `/posts/${data.postId}/like/toggle`
       );
-      const { isLiked, likeCount, message } =
+      const { is_liked, total_likes, message } =
         response.data ?? ({} as Partial<PostLikeResponse>);
       return {
         message: message ?? "",
-        isLiked: Boolean(isLiked),
-        likeCount:
-          typeof likeCount === "number" && Number.isFinite(likeCount)
-            ? likeCount
+        is_liked: Boolean(is_liked),
+        total_likes:
+          typeof total_likes === "number" && Number.isFinite(total_likes)
+            ? total_likes
             : 0,
       };
     },

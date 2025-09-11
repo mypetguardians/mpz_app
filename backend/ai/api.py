@@ -79,20 +79,53 @@ async def recommend_animals(request: HttpRequest, data: AnimalRecommendationRequ
         current_user = request.auth
         target_user_id = str(current_user.id)
         
+        # 요청 데이터 로깅
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"🔍 AI 추천 요청 받음 - 사용자 ID: {target_user_id}")
+        logger.info(f"📝 받은 preferences 데이터: {data.preferences}")
+        logger.info(f"📊 preferences 타입: {type(data.preferences)}")
+        logger.info(f"📏 preferences 길이: {len(data.preferences) if data.preferences else 0}")
+        logger.info(f"🔢 요청 추천 수: {data.limit}")
+        
+        # preferences 내용 상세 로깅
+        if data.preferences:
+            for key, value in data.preferences.items():
+                logger.info(f"  - {key}: {value} (타입: {type(value)})")
+        else:
+            logger.warning("⚠️ preferences가 비어있습니다!")
+        
         # 권한 체크: 자신의 추천만 받을 수 있음 (일반 사용자의 경우)
         if current_user.user_type == "일반사용자" and target_user_id != str(current_user.id):
+            logger.warning(f"❌ 권한 오류 - 사용자 {current_user.id}가 다른 사용자 {target_user_id}의 추천 요청")
             raise HttpError(403, "자신의 동물 추천만 받을 수 있습니다")
         
         # PersonalityTest 업데이트 실행
+        logger.info("🔄 PersonalityTest 업데이트 시작...")
         personality_update_result = await update_personality_test(current_user, data.preferences)
-
+        logger.info(f"✅ PersonalityTest 업데이트 완료: {personality_update_result}")
+        
         # AI 추천 실행
+        logger.info("🤖 AI 추천 실행 시작...")
         ai_result = await run_agent_recommendation(target_user_id, data.limit)
+        logger.info(f"🎯 AI 추천 완료. 결과 타입: {type(ai_result)}")
+        
+        # 추천 결과에서 동물 수 로깅
+        if isinstance(ai_result, dict) and "animal_recommendations" in ai_result:
+            animal_count = len(ai_result["animal_recommendations"])
+            logger.info(f"🐕 추천된 동물 수: {animal_count}마리")
+            for i, animal in enumerate(ai_result["animal_recommendations"]):
+                animal_name = animal.get("animal_name", "이름없음")
+                animal_id = animal.get("animal_id", "ID없음")
+                logger.info(f"  {i+1}. {animal_name} (ID: {animal_id})")
+        else:
+            logger.warning(f"⚠️ 예상과 다른 AI 결과 형식: {ai_result}")
         
         # 추천 결과 저장 실행
+        logger.info("💾 추천 결과 저장 시작...")
         save_result = await save_recommendation_result(target_user_id, ai_result, data.preferences, data.limit)
-        
-        # 응답 구성
+        logger.info(f"💾 추천 결과 저장 완료: {save_result}")        # 응답 구성
+        logger.info("📦 최종 응답 구성 중...")
         response_data = {
             "success": True,
             "data": ai_result,
@@ -109,6 +142,7 @@ async def recommend_animals(request: HttpRequest, data: AnimalRecommendationRequ
             }
         }
         
+        logger.info("🎉 AI 추천 API 처리 완료!")
         return response_data
         
     except HttpError:
@@ -116,7 +150,11 @@ async def recommend_animals(request: HttpRequest, data: AnimalRecommendationRequ
     except Exception as e:
         import logging
         logger = logging.getLogger(__name__)
-        logger.error(f"AI 동물 추천 중 오류: {str(e)}")
+        logger.error(f"❌ AI 동물 추천 중 오류 발생!")
+        logger.error(f"❌ 오류 메시지: {str(e)}")
+        logger.error(f"❌ 요청 데이터 - preferences: {getattr(data, 'preferences', 'N/A')}")
+        logger.error(f"❌ 요청 데이터 - limit: {getattr(data, 'limit', 'N/A')}")
+        logger.error(f"❌ 사용자 ID: {target_user_id if 'target_user_id' in locals() else 'N/A'}")
         raise HttpError(500, f"AI 추천 중 오류가 발생했습니다: {str(e)}")
 
 

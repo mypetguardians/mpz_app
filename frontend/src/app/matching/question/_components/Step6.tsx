@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useMatchingStepStore } from "@/lib/stores/matchingStepStore";
+import { useAuth } from "@/components/providers/AuthProvider";
 
 import { SelectButton } from "@/components/ui/SelectButton";
 import { Container } from "@/components/common/Container";
@@ -15,7 +16,8 @@ export function Step6({ onNext }: StepProps) {
   const [selectedNurture, setSelectedNurture] = React.useState<string | null>(
     null
   );
-  const { setStepAnswer } = useMatchingStepStore();
+  const { user } = useAuth();
+  const { setStepAnswer } = useMatchingStepStore(user?.id);
 
   const handleNext = () => {
     if (selectedNurture !== null) {

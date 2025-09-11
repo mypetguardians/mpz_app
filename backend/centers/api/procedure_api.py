@@ -65,14 +65,21 @@ async def get_procedure_settings(request: HttpRequest):
             current_user = request.auth
             
             # 센터 관리자 권한 확인
-            if current_user.user_type != "센터관리자":
-                raise HttpError(403, "센터 관리자만 접근할 수 있습니다")
+            if current_user.user_type not in ["센터관리자", "센터최고관리자"]:
+                raise HttpError(403, "센터 관리자 이상의 권한이 필요합니다")
             
-            # 사용자의 센터 조회
+            # 사용자의 센터 조회 (owner 또는 center 필드로 연결된 센터)
             try:
+                # 먼저 owner로 조회 시도
                 user_center = Center.objects.get(owner=current_user)
             except Center.DoesNotExist:
-                raise HttpError(400, "등록된 센터가 없습니다")
+                # owner가 아니면 center 필드로 조회
+                try:
+                    user_center = current_user.center
+                    if not user_center:
+                        raise HttpError(400, "등록된 센터가 없습니다")
+                except AttributeError:
+                    raise HttpError(400, "등록된 센터가 없습니다")
             
             # 계약서 템플릿들 조회
             contract_templates = AdoptionContractTemplate.objects.filter(
@@ -88,6 +95,45 @@ async def get_procedure_settings(request: HttpRequest):
         raise
     except Exception as e:
         raise HttpError(500, f"프로시저 설정 조회 중 오류가 발생했습니다: {str(e)}")
+
+
+@router.get(
+    "/center/{center_id}",
+    summary="[R] 특정 센터의 프로시저 설정 조회",
+    description="center_id를 받아서 해당 센터의 프로시저 설정을 조회합니다. 인증이 필요하지 않은 공개 API입니다.",
+    response={
+        200: ProcedureSettingsOut,
+        400: ErrorOut,
+        404: ErrorOut,
+        500: ErrorOut,
+    },
+)
+async def get_procedure_settings_by_center(request: HttpRequest, center_id: str):
+    """특정 센터의 프로시저 설정을 조회합니다."""
+    try:
+        @sync_to_async
+        def get_center_settings():
+            # center_id로 센터 조회
+            try:
+                center = Center.objects.get(id=center_id)
+            except Center.DoesNotExist:
+                raise HttpError(404, "센터를 찾을 수 없습니다")
+            
+            # 계약서 템플릿들 조회 (활성화된 것만)
+            contract_templates = AdoptionContractTemplate.objects.filter(
+                center=center,
+                is_active=True
+            ).order_by('-created_at')
+            
+            # 응답 데이터 변환
+            return _build_procedure_settings_response(center, contract_templates)
+        
+        return await get_center_settings()
+        
+    except HttpError:
+        raise
+    except Exception as e:
+        raise HttpError(500, f"특정 센터의 프로시저 설정 조회 중 오류가 발생했습니다: {str(e)}")
 
 
 @router.post(
@@ -116,14 +162,21 @@ async def create_procedure_settings(request: HttpRequest, data: ProcedureSetting
             current_user = request.auth
             
             # 센터 관리자 권한 확인
-            if current_user.user_type != "센터관리자":
-                raise HttpError(403, "센터 관리자만 접근할 수 있습니다")
+            if current_user.user_type not in ["센터관리자", "센터최고관리자"]:
+                raise HttpError(403, "센터 관리자 이상의 권한이 필요합니다")
             
-            # 사용자의 센터 조회
+            # 사용자의 센터 조회 (owner 또는 center 필드로 연결된 센터)
             try:
+                # 먼저 owner로 조회 시도
                 user_center = Center.objects.get(owner=current_user)
             except Center.DoesNotExist:
-                raise HttpError(400, "등록된 센터가 없습니다")
+                # owner가 아니면 center 필드로 조회
+                try:
+                    user_center = current_user.center
+                    if not user_center:
+                        raise HttpError(400, "등록된 센터가 없습니다")
+                except AttributeError:
+                    raise HttpError(400, "등록된 센터가 없습니다")
             
             # 업데이트할 데이터 준비
             update_data = {}
@@ -191,14 +244,21 @@ async def update_procedure_settings(request: HttpRequest, data: ProcedureSetting
             current_user = request.auth
             
             # 센터 관리자 권한 확인
-            if current_user.user_type != "센터관리자":
-                raise HttpError(403, "센터 관리자만 접근할 수 있습니다")
+            if current_user.user_type not in ["센터관리자", "센터최고관리자"]:
+                raise HttpError(403, "센터 관리자 이상의 권한이 필요합니다")
             
-            # 사용자의 센터 조회
+            # 사용자의 센터 조회 (owner 또는 center 필드로 연결된 센터)
             try:
+                # 먼저 owner로 조회 시도
                 user_center = Center.objects.get(owner=current_user)
             except Center.DoesNotExist:
-                raise HttpError(400, "등록된 센터가 없습니다")
+                # owner가 아니면 center 필드로 조회
+                try:
+                    user_center = current_user.center
+                    if not user_center:
+                        raise HttpError(400, "등록된 센터가 없습니다")
+                except AttributeError:
+                    raise HttpError(400, "등록된 센터가 없습니다")
             
             # 업데이트할 데이터만 필터링하여 업데이트
             update_fields = {

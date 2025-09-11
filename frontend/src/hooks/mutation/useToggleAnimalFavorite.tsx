@@ -26,9 +26,9 @@ export const useToggleAnimalFavorite = () => {
   return useMutation({
     mutationFn: toggleAnimalFavorite,
     onSuccess: (data, variables) => {
-      // 찜한 동물 목록 캐시 무효화
+      // 찜한 동물 목록 캐시 무효화 (올바른 쿼리 키 사용)
       queryClient.invalidateQueries({
-        queryKey: ["animal-favorites"],
+        queryKey: ["animalFavorites"],
       });
 
       // 찜하기 상태 캐시 즉시 업데이트
@@ -39,7 +39,7 @@ export const useToggleAnimalFavorite = () => {
 
       // 동물 상세 정보 캐시 무효화 (찜 개수 업데이트를 위해)
       queryClient.invalidateQueries({
-        queryKey: ["animal", variables.animalId],
+        queryKey: ["animals", variables.animalId],
       });
 
       // 전체 동물 목록 캐시 무효화 (찜 개수 업데이트를 위해)

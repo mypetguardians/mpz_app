@@ -1,13 +1,14 @@
 from django.contrib import admin
+from django.db import models
 from centers.models import Center, AdoptionContractTemplate, QuestionForm
 
 
 @admin.register(Center)
 class CenterAdmin(admin.ModelAdmin):
-    list_display = ['name', 'owner', 'region', 'verified', 'is_public', 'is_subscribed', 'created_at']
-    list_filter = ['region', 'verified', 'is_public', 'is_subscribed', 'has_monitoring']
+    list_display = ['name', 'owner', 'region', 'verified', 'is_public', 'is_subscribed', 'has_volunteer', 'has_foster_care', 'show_phone_number', 'show_location', 'created_at']
+    list_filter = ['region', 'verified', 'is_public', 'is_subscribed', 'has_monitoring', 'has_volunteer', 'has_foster_care', 'show_phone_number', 'show_location']
     search_fields = ['name', 'owner__username', 'center_number']
-    list_editable = ['verified', 'is_public', 'is_subscribed']
+    list_editable = ['verified', 'is_public', 'is_subscribed', 'has_volunteer', 'has_foster_care', 'show_phone_number', 'show_location']
     readonly_fields = ['created_at', 'updated_at']
     
     fieldsets = (
@@ -15,13 +16,16 @@ class CenterAdmin(admin.ModelAdmin):
             'fields': ('owner', 'name', 'center_number', 'description', 'image_url')
         }),
         ('위치 정보', {
-            'fields': ('location', 'region', 'phone_number')
+            'fields': ('location', 'region', 'phone_number', 'show_location', 'show_phone_number')
         }),
         ('입양 관련', {
             'fields': ('adoption_procedure', 'adoption_guidelines', 'adoption_price')
         }),
         ('모니터링', {
             'fields': ('has_monitoring', 'monitoring_period_months', 'monitoring_interval_days', 'monitoring_description')
+        }),
+        ('서비스', {
+            'fields': ('has_volunteer', 'has_foster_care')
         }),
         ('상태', {
             'fields': ('verified', 'is_public', 'is_subscribed')
@@ -49,9 +53,10 @@ class CenterAdmin(admin.ModelAdmin):
         """owner 필드에 대한 안전한 폼 필드 설정"""
         if db_field.name == "owner":
             from user.models import User
+            # 올바른 user_type 선택지 사용 ('최고관리자' -> '센터최고관리자')
             kwargs["queryset"] = User.objects.filter(
-                user_type__in=['센터관리자', '최고관리자']
-            ).exclude(owned_center__isnull=False)
+                user_type__in=['센터관리자', '센터최고관리자']
+            )
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 

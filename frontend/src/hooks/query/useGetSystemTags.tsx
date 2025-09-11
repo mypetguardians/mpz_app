@@ -13,9 +13,9 @@ export const useGetSystemTags = () => {
   return useQuery({
     queryKey: ["system-tags"],
     queryFn: getSystemTags,
-    staleTime: 10 * 60 * 1000, // 10분 (태그는 자주 변경되지 않음)
+    staleTime: 0, // 항상 최신 데이터 요청
     gcTime: 30 * 60 * 1000, // 30분
     retry: 1,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true, // 창 포커스 시 리페치
   });
 };

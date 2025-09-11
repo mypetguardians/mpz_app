@@ -18,6 +18,8 @@ import { useGetAdoptionMonitoringPosts } from "@/hooks/query/useGetAdoptionMonit
 import { transformRawAnimalToPetCard } from "@/types/animal";
 import { useGetAnimalById } from "@/hooks/query/useGetAnimals";
 import { useUpdateAdoptionStatus } from "@/hooks/mutation/useUpdateAdoptionStatus";
+import { useSendContract } from "@/hooks/mutation/useSendContract";
+import { useGetCenterProcedureSettings } from "@/hooks/query/useGetCenterProcedureSettings";
 
 interface AdoptionMeetingPageProps {
   params: Promise<{ id: string }>;
@@ -33,6 +35,10 @@ export default function AdoptionMeetingPage({
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [centerNotes, setCenterNotes] = useState<string>("");
   const [meetingScheduledAt, setMeetingScheduledAt] = useState<string>("");
+  const [showContractModal, setShowContractModal] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
+  const [customContent, setCustomContent] = useState<string>("");
+  const [contractNotes, setContractNotes] = useState<string>("");
 
   const { id } = use(params);
 
@@ -68,6 +74,13 @@ export default function AdoptionMeetingPage({
 
   // 입양 상태 변경 훅
   const updateStatusMutation = useUpdateAdoptionStatus();
+
+  // 계약서 전송 훅
+  const sendContractMutation = useSendContract();
+
+  // 센터 절차 설정 (계약서 템플릿 목록)
+  const { data: procedureSettings, isLoading: isLoadingSettings } =
+    useGetCenterProcedureSettings();
 
   const handleWithdrawConfirm = () => {
     setShowWithdrawModal(false);
@@ -129,21 +142,38 @@ export default function AdoptionMeetingPage({
   };
 
   const handleContractSend = () => {
-    updateStatusMutation.mutate(
+    setShowContractModal(true);
+  };
+
+  const handleContractSendConfirm = () => {
+    if (!selectedTemplateId) {
+      alert("계약서 템플릿을 선택해주세요.");
+      return;
+    }
+
+    sendContractMutation.mutate(
       {
-        adoption_id: id,
-        status: "계약서작성",
-        center_notes: centerNotes || null,
-        meeting_scheduled_at: null,
+        adoptionId: id,
+        templateId: selectedTemplateId,
+        customContent: customContent || undefined,
+        centerNotes: contractNotes || undefined,
       },
       {
         onSuccess: () => {
+          setShowContractModal(false);
           setShowToast(true);
           setTimeout(() => setShowToast(false), 3000);
+          // 상태도 자동으로 "계약서작성"으로 변경
+          updateStatusMutation.mutate({
+            adoption_id: id,
+            status: "계약서작성",
+            center_notes: contractNotes || null,
+            meeting_scheduled_at: null,
+          });
         },
         onError: (error) => {
-          console.error("상태 변경 실패:", error);
-          // 에러 처리 로직 추가 가능
+          console.error("계약서 전송 실패:", error);
+          alert("계약서 전송에 실패했습니다.");
         },
       }
     );
@@ -239,7 +269,7 @@ export default function AdoptionMeetingPage({
           <div className="p-4">
             {/* Main Title */}
             <h2 className="flex itemx-center justify-center text-bk mb-6">
-              미팅이 팔요하다면 진행해주세요!
+              미팅이 필요하다면 진행해주세요!
             </h2>
 
             {/* Progress Bar */}
@@ -470,13 +500,93 @@ export default function AdoptionMeetingPage({
           onRightClick={handleWithdrawConfirm}
         />
 
+        {/* Contract Send Modal */}
+        <BottomSheet
+          open={showContractModal}
+          onClose={() => setShowContractModal(false)}
+          variant="variant5"
+          title="계약서 전송"
+          description="입양자에게 전송할 계약서를 선택하세요"
+          confirmButtonText={
+            sendContractMutation.isPending ? "전송 중..." : "전송"
+          }
+          onConfirm={handleContractSendConfirm}
+          confirmButtonDisabled={
+            !selectedTemplateId || sendContractMutation.isPending
+          }
+        >
+          <div className="p-4 space-y-4">
+            {/* 계약서 템플릿 선택 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                계약서 템플릿 선택 *
+              </label>
+              {isLoadingSettings ? (
+                <div className="text-sm text-gray-500">
+                  템플릿을 불러오는 중...
+                </div>
+              ) : procedureSettings?.contract_templates &&
+                procedureSettings.contract_templates.length > 0 ? (
+                <div className="space-y-2">
+                  {procedureSettings.contract_templates.map((template) => (
+                    <label
+                      key={template.id}
+                      className="flex items-center space-x-2"
+                    >
+                      <input
+                        type="radio"
+                        name="contractTemplate"
+                        value={template.id}
+                        checked={selectedTemplateId === template.id}
+                        onChange={(e) => setSelectedTemplateId(e.target.value)}
+                        className="text-blue-600"
+                      />
+                      <span className="text-sm">{template.title}</span>
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-sm text-red-500">
+                  등록된 계약서 템플릿이 없습니다.
+                </div>
+              )}
+            </div>
+
+            {/* 커스텀 내용 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                추가 계약 내용 (선택)
+              </label>
+              <textarea
+                value={customContent}
+                onChange={(e) => setCustomContent(e.target.value)}
+                placeholder="추가할 계약 내용이 있다면 입력하세요..."
+                className="w-full p-2 border border-gray-300 rounded-md h-20 text-sm"
+              />
+            </div>
+
+            {/* 센터 메모 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                센터 메모 (선택)
+              </label>
+              <textarea
+                value={contractNotes}
+                onChange={(e) => setContractNotes(e.target.value)}
+                placeholder="내부 메모를 입력하세요..."
+                className="w-full p-2 border border-gray-300 rounded-md h-20 text-sm"
+              />
+            </div>
+          </div>
+        </BottomSheet>
+
         {/* Toast */}
         {showToast && (
           <div className="fixed bottom-4 left-4 right-4 z-[10000]">
             <Toast>
               {selectedStatus === "취소"
                 ? "입양 신청이 거절되었습니다."
-                : selectedStatus === "계약서작성"
+                : sendContractMutation.isSuccess
                 ? "입양자에게 계약서를 전송했습니다."
                 : "계약서를 전송했습니다."}
             </Toast>

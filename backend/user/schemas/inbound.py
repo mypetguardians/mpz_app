@@ -1,4 +1,5 @@
 from ninja import Schema, Field
+from typing import Optional
 
 class UserSignupIn(Schema):
     username: str = Field(..., min_length=3, max_length=30, description="사용자 아이디 (3-30자)")
@@ -11,10 +12,12 @@ class UserSignupIn(Schema):
 
 
 class UserUpdateIn(Schema):
-    nickname: str = Field(None, min_length=1, max_length=50, description="닉네임 (1-50자)")
-    name: str = Field(None, max_length=100, description="실명")
-    phone_number: str = Field(None, max_length=20, description="전화번호")
-    image: str = Field(None, max_length=500, description="프로필 이미지 URL")
+    nickname: Optional[str] = Field(None, max_length=50, description="닉네임 (1-50자)")
+    name: Optional[str] = Field(None, max_length=100, description="실명")
+    phone_number: Optional[str] = Field(None, max_length=20, description="전화번호")
+    image: Optional[str] = Field(None, max_length=500, description="프로필 이미지 URL")
+    birth: Optional[str] = Field(None, max_length=10, description="생년월일 (YYYY-MM-DD)")
+    address: Optional[str] = Field(None, description="주소")
 
 
 class UserLoginIn(Schema):

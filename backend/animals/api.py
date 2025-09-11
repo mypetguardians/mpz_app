@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.db.models import Q
 from asgiref.sync import sync_to_async
 from typing import List
-from .models import Animal, AnimalMegaphone
+from .models import Animal, AnimalMegaphone, AnimalImage
 from animals.schemas.inbound import (
     AnimalCreateIn, AnimalUpdateIn, AnimalStatusUpdateIn,
     AnimalListQueryIn, MegaphoneToggleIn, RelatedAnimalsQueryIn
@@ -33,6 +33,7 @@ router = Router(tags=["Animals"])
     summary="[C] 동물 등록",
     description="새로운 동물을 등록합니다. 센터 관리자 이상의 권한이 필요합니다.",
     response={
+        200: AnimalOut,
         201: AnimalOut,
         400: ErrorOut,
         401: ErrorOut,
@@ -53,15 +54,34 @@ async def create_animal(request: HttpRequest, data: AnimalCreateIn):
         center_id = None
         if user.user_type == "센터관리자":
             # 센터 관리자는 자신의 센터에만 등록 가능
-            user_center = await sync_to_async(Center.objects.filter(user=user).first)()
-            if not user_center:
+            # 먼저 owner로 조회 시도
+            try:
+                user_center = await sync_to_async(Center.objects.get)(owner=user)
+                center_id = user_center.id
+            except Center.DoesNotExist:
+                # owner가 아니면 center 필드로 조회
+                try:
+                    user_center = await sync_to_async(lambda: user.center)()
+                    if not user_center:
+                        raise HttpError(400, "등록된 센터가 없습니다")
+                    center_id = user_center.id
+                except AttributeError:
+                    raise HttpError(400, "등록된 센터가 없습니다")
+        elif user.user_type == "센터최고관리자":
+            # 센터 최고관리자는 자신이 소유한 센터에 등록 가능
+            try:
+                user_center = await sync_to_async(Center.objects.get)(owner=user)
+                center_id = user_center.id
+            except Center.DoesNotExist:
                 raise HttpError(400, "등록된 센터가 없습니다")
-            center_id = user_center.id
-        else:
-            # 훈련사나 최고관리자는 센터 ID를 요청에서 받아야 함
-            center_id = request.GET.get("center_id")
+        elif user.user_type == "훈련사":
+            # 훈련사는 센터 ID를 요청 body에서 받아야 함
+            center_id = data.center_id
             if not center_id:
                 raise HttpError(400, "센터 ID가 필요합니다")
+        else:
+            # 예상하지 못한 사용자 타입
+            raise HttpError(403, f"동물 등록 권한이 없습니다. 현재 사용자 타입: {user.user_type}")
         
         # 동물 정보 생성 (실제 모델 필드만 사용)
         animal_data = {
@@ -72,7 +92,8 @@ async def create_animal(request: HttpRequest, data: AnimalCreateIn):
             "weight": data.weight,
             "breed": data.breed,
             "description": data.description,
-            "status": data.status or "보호중",
+            "protection_status": data.protection_status or "보호중",
+            "adoption_status": data.adoption_status or "입양가능",
             "personality": data.personality,
             "health_notes": data.health_notes,
             "special_needs": data.special_notes,  # special_notes를 special_needs에 매핑
@@ -85,6 +106,30 @@ async def create_animal(request: HttpRequest, data: AnimalCreateIn):
         # DB에 동물 정보 삽입
         animal = await sync_to_async(Animal.objects.create)(**animal_data)
         
+        # 이미지 처리
+        animal_images = []
+        if data.image_urls:
+            @sync_to_async
+            def create_animal_images():
+                images = []
+                for idx, image_url in enumerate(data.image_urls):
+                    if image_url and image_url.strip():
+                        image = AnimalImage.objects.create(
+                            animal=animal,
+                            image_url=image_url.strip(),
+                            is_primary=(idx == 0),  # 첫 번째 이미지를 대표 이미지로 설정
+                            sequence=idx
+                        )
+                        images.append({
+                            "id": str(image.id),
+                            "image_url": image.image_url,
+                            "is_primary": image.is_primary,
+                            "sequence": image.sequence
+                        })
+                return images
+            
+            animal_images = await create_animal_images()
+        
         # 응답 데이터 변환
         response_data = AnimalOut(
             id=str(animal.id),
@@ -92,29 +137,30 @@ async def create_animal(request: HttpRequest, data: AnimalCreateIn):
             is_female=animal.is_female,
             age=animal.age,
             weight=animal.weight,
-            color=animal.color,
+
             breed=animal.breed,
             description=animal.description,
-            status=animal.status,
+            protection_status=animal.protection_status,
+            adoption_status=animal.adoption_status,
             waiting_days=0,
             activity_level=animal.activity_level,
             sensitivity=animal.sensitivity,
             sociability=animal.sociability,
             separation_anxiety=animal.separation_anxiety,
-            special_notes=animal.special_notes,
+            special_notes=animal.special_needs,
             health_notes=animal.health_notes,
             basic_training=animal.basic_training,
             trainer_comment=animal.trainer_comment,
             announce_number=animal.announce_number,
             display_notice_number=animal.display_notice_number,  # 표시용 공고번호
-            announcement_date=animal.announcement_date,
+            announcement_date=animal.admission_date.isoformat() if animal.admission_date else None,
             found_location=animal.found_location,
             admission_date=animal.admission_date.isoformat() if animal.admission_date else None,
             personality=animal.personality,
             megaphone_count=animal.megaphone_count,
             is_megaphoned=False,  # 새로 생성된 동물은 기본값
             center_id=str(animal.center_id),
-            animal_images=[],
+            animal_images=animal_images,
             created_at=animal.created_at.isoformat(),
             updated_at=animal.updated_at.isoformat(),
             
@@ -162,7 +208,11 @@ async def get_animals(request: HttpRequest, filters: AnimalListQueryIn = Query(A
             
             # 필터 조건 적용
             if filters.status:
-                queryset = queryset.filter(status=filters.status)
+                # 기존 status 필터를 protection_status와 adoption_status로 분리
+                if filters.status in ['보호중', '안락사', '자연사', '반환']:
+                    queryset = queryset.filter(protection_status=filters.status)
+                elif filters.status in ['입양가능', '입양진행중', '입양완료', '입양불가']:
+                    queryset = queryset.filter(adoption_status=filters.status)
             if filters.center_id:
                 queryset = queryset.filter(center_id=filters.center_id)
             if filters.gender:
@@ -210,11 +260,31 @@ async def get_animals(request: HttpRequest, filters: AnimalListQueryIn = Query(A
         # 동물 목록 조회
         animals_list = await get_animals_list()
         
+        # 현재 사용자 정보 가져오기
+        current_user = None
+        if hasattr(request, 'auth') and request.auth:
+            current_user = request.auth
+            if hasattr(current_user, '__await__'):
+                current_user = await current_user
+        
         # 응답 데이터 변환
         animals_response = []
         for animal in animals_list:
             # 이미지 처리 (prefetch_related로 가져온 데이터 사용)
             images = list(animal.animalimage_set.all())
+            
+            # 현재 사용자의 확성기 상태 확인
+            is_megaphoned = False
+            if current_user:
+                try:
+                    from .models import AnimalMegaphone
+                    megaphone_exists = await AnimalMegaphone.objects.filter(
+                        user=current_user,
+                        animal=animal
+                    ).aexists()
+                    is_megaphoned = megaphone_exists
+                except Exception:
+                    is_megaphoned = False
             
             animal_data = AnimalOut(
                 id=str(animal.id),
@@ -225,7 +295,8 @@ async def get_animals(request: HttpRequest, filters: AnimalListQueryIn = Query(A
                 color=None,  # Animal 모델에 없는 필드
                 breed=animal.breed,
                 description=animal.description,
-                status=animal.status,
+                protection_status=animal.protection_status,
+            adoption_status=animal.adoption_status,
                 waiting_days=0,
                 activity_level=None,  # Animal 모델에 없는 필드
                 sensitivity=None,  # Animal 모델에 없는 필드
@@ -242,7 +313,7 @@ async def get_animals(request: HttpRequest, filters: AnimalListQueryIn = Query(A
                 admission_date=animal.admission_date.isoformat() if animal.admission_date else None,
                 personality=animal.personality,
                 megaphone_count=animal.megaphone_count,
-                is_megaphoned=False,  # 목록 조회에서는 기본값
+                is_megaphoned=is_megaphoned,  # 사용자별 동적 상태
                 center_id=str(animal.center_id),
                 animal_images=[
                     {
@@ -312,6 +383,18 @@ async def get_breeds(request: HttpRequest):
 async def get_animal_by_id(request: HttpRequest, animal_id: str):
     """특정 동물의 상세 정보를 조회합니다."""
     try:
+        # 현재 사용자 확인 (로그인된 경우) - 선택적 JWT 인증
+        current_user = None
+        try:
+            auth_header = request.headers.get('Authorization')
+            if auth_header and auth_header.startswith('Bearer '):
+                from user import utils
+                # JWT 토큰 수동 파싱
+                current_user = await utils.decodeJWT(auth_header)
+        except Exception:
+            # 인증 실패 시 로그인하지 않은 사용자로 처리
+            current_user = None
+
         @sync_to_async
         def get_animal_detail():
             try:
@@ -323,15 +406,34 @@ async def get_animal_by_id(request: HttpRequest, animal_id: str):
                     'id', 'image_url', 'is_primary', 'sequence'
                 ))
                 
-                return animal, images
+                # 사용자의 메가폰 상태 확인
+                is_megaphoned = False
+                if current_user:
+                    megaphone_count = AnimalMegaphone.objects.filter(
+                        user=current_user,
+                        animal=animal
+                    ).count()
+                    is_megaphoned = megaphone_count > 0
+                    print(f"🔍 User {current_user.id} megaphone count for animal {animal.id}: {megaphone_count}")
+                    print(f"🔍 is_megaphoned: {is_megaphoned}")
+                    
+                    # 전체 메가폰 현황도 확인
+                    total_megaphones = AnimalMegaphone.objects.filter(animal=animal).count()
+                    print(f"🔍 Total megaphones for animal {animal.id}: {total_megaphones}")
+                else:
+                    print(f"🔍 No current user found")
+                
+                return animal, images, is_megaphoned
             except Animal.DoesNotExist:
-                return None, None
+                return None, None, False
         
         result = await get_animal_detail()
         if result[0] is None:
             raise HttpError(404, "동물을 찾을 수 없습니다")
         
-        animal, images = result
+        animal, images, is_megaphoned = result
+        
+        # 확성기 상태는 이미 get_animal_detail()에서 확인했으므로 중복 제거
         
         response_data = AnimalOut(
             id=str(animal.id),
@@ -342,7 +444,8 @@ async def get_animal_by_id(request: HttpRequest, animal_id: str):
             color=None,  # Animal 모델에 없는 필드
             breed=animal.breed,
             description=animal.description,
-            status=animal.status,
+            protection_status=animal.protection_status,
+            adoption_status=animal.adoption_status,
             waiting_days=0,
             activity_level=None,  # Animal 모델에 없는 필드
             sensitivity=None,  # Animal 모델에 없는 필드
@@ -359,7 +462,7 @@ async def get_animal_by_id(request: HttpRequest, animal_id: str):
             admission_date=animal.admission_date.isoformat() if animal.admission_date else None,
             personality=animal.personality,
             megaphone_count=animal.megaphone_count,
-            is_megaphoned=False,  # 상세 조회에서는 기본값
+            is_megaphoned=is_megaphoned,  # 사용자별 동적 상태
             center_id=str(animal.center_id),
             animal_images=[
                 {
@@ -415,7 +518,21 @@ async def update_animal(request: HttpRequest, animal_id: str, data: AnimalUpdate
         
         # 센터 관리자인 경우 자신의 센터 동물인지 확인
         if user.user_type == "센터관리자":
-            raise HttpError(403, "해당 동물에 대한 권한이 없습니다")
+            # 센터 관리자는 자신의 센터 동물만 수정 가능
+            user_center_id = None
+            try:
+                user_center = await sync_to_async(Center.objects.get)(owner=user)
+                user_center_id = user_center.id
+            except Center.DoesNotExist:
+                try:
+                    user_center = await sync_to_async(lambda: user.center)()
+                    if user_center:
+                        user_center_id = user_center.id
+                except AttributeError:
+                    pass
+            
+            if not user_center_id or animal.center_id != user_center_id:
+                raise HttpError(403, "해당 동물에 대한 권한이 없습니다")
         
         # 업데이트할 데이터 준비
         update_data = {}
@@ -427,8 +544,7 @@ async def update_animal(request: HttpRequest, animal_id: str, data: AnimalUpdate
             update_data["age"] = data.age
         if data.weight is not None:
             update_data["weight"] = data.weight
-        if data.color is not None:
-            update_data["color"] = data.color
+
         if data.breed is not None:
             update_data["breed"] = data.breed
         if data.description is not None:
@@ -444,7 +560,7 @@ async def update_animal(request: HttpRequest, animal_id: str, data: AnimalUpdate
         if data.separation_anxiety is not None:
             update_data["separation_anxiety"] = data.separation_anxiety
         if data.special_notes is not None:
-            update_data["special_notes"] = data.special_notes
+            update_data["special_needs"] = data.special_notes
         if data.health_notes is not None:
             update_data["health_notes"] = data.health_notes
         if data.basic_training is not None:
@@ -472,16 +588,17 @@ async def update_animal(request: HttpRequest, animal_id: str, data: AnimalUpdate
             is_female=animal.is_female,
             age=animal.age,
             weight=animal.weight,
-            color=animal.color,
+
             breed=animal.breed,
             description=animal.description,
-            status=animal.status,
+            protection_status=animal.protection_status,
+            adoption_status=animal.adoption_status,
             waiting_days=0,
             activity_level=animal.activity_level,
             sensitivity=animal.sensitivity,
             sociability=animal.sociability,
             separation_anxiety=animal.separation_anxiety,
-            special_notes=animal.special_notes,
+            special_notes=animal.special_needs,
             health_notes=animal.health_notes,
             basic_training=animal.basic_training,
             trainer_comment=animal.trainer_comment,
@@ -600,7 +717,21 @@ async def delete_animal(request: HttpRequest, animal_id: str):
         
         # 센터 관리자인 경우 자신의 센터 동물인지 확인
         if user.user_type == "센터관리자":
-            raise HttpError(403, "해당 동물에 대한 권한이 없습니다")
+            # 센터 관리자는 자신의 센터 동물만 삭제 가능
+            user_center_id = None
+            try:
+                user_center = await sync_to_async(Center.objects.get)(owner=user)
+                user_center_id = user_center.id
+            except Center.DoesNotExist:
+                try:
+                    user_center = await sync_to_async(lambda: user.center)()
+                    if user_center:
+                        user_center_id = user_center.id
+                except AttributeError:
+                    pass
+            
+            if not user_center_id or animal.center_id != user_center_id:
+                raise HttpError(403, "해당 동물에 대한 권한이 없습니다")
         
         # 동물 정보 삭제
         await sync_to_async(animal.delete)()
@@ -643,22 +774,46 @@ async def update_animal_status(request: HttpRequest, animal_id: str, data: Anima
         
         # 센터 관리자인 경우 자신의 센터 동물인지 확인
         if user.user_type == "센터관리자":
-            raise HttpError(403, "해당 동물에 대한 권한이 없습니다")
+            # 센터 관리자는 자신의 센터 동물만 상태 변경 가능
+            user_center_id = None
+            try:
+                user_center = await sync_to_async(Center.objects.get)(owner=user)
+                user_center_id = user_center.id
+            except Center.DoesNotExist:
+                try:
+                    user_center = await sync_to_async(lambda: user.center)()
+                    if user_center:
+                        user_center_id = user_center.id
+                except AttributeError:
+                    pass
+            
+            if not user_center_id or animal.center_id != user_center_id:
+                raise HttpError(403, "해당 동물에 대한 권한이 없습니다")
         
         # 상태 변경 로직
-        previous_status = animal.status
-        new_status = data.status
+        previous_protection_status = animal.protection_status
+        previous_adoption_status = animal.adoption_status
+        changes_made = []
         
-        # 동일한 상태로 변경하려는 경우 체크
-        if previous_status == new_status:
-            raise HttpError(400, f"동물의 상태가 이미 '{new_status}'입니다")
+        # 보호 상태 변경
+        if data.protection_status and data.protection_status != previous_protection_status:
+            animal.protection_status = data.protection_status
+            changes_made.append(f"보호상태: '{previous_protection_status}' → '{data.protection_status}'")
+        
+        # 입양 상태 변경
+        if data.adoption_status and data.adoption_status != previous_adoption_status:
+            animal.adoption_status = data.adoption_status
+            changes_made.append(f"입양상태: '{previous_adoption_status}' → '{data.adoption_status}'")
+        
+        # 변경사항이 없으면 에러
+        if not changes_made:
+            raise HttpError(400, "변경할 상태가 없습니다")
         
         # 상태 업데이트
-        animal.status = new_status
         await sync_to_async(animal.save)()
         
         # 상태 변경 로그
-        status_change_message = f"{animal.name}의 상태가 '{previous_status}'에서 '{new_status}'로 변경되었습니다"
+        status_change_message = f"{animal.name}의 상태가 변경되었습니다: {', '.join(changes_made)}"
         
         if data.reason:
             print(f"[상태 변경] {status_change_message} (사유: {data.reason})")
@@ -668,8 +823,10 @@ async def update_animal_status(request: HttpRequest, animal_id: str, data: Anima
         response_data = AnimalStatusUpdateOut(
             id=str(animal.id),
             name=animal.name,
-            previous_status=previous_status,
-            new_status=new_status,
+            previous_protection_status=previous_protection_status,
+            new_protection_status=data.protection_status,
+            previous_adoption_status=previous_adoption_status,
+            new_adoption_status=data.adoption_status,
             updated_at=timezone.now().isoformat(),
             message=status_change_message,
         )
@@ -736,7 +893,8 @@ async def get_related_animals_by_distance(
                 color=None,  # Animal 모델에 없는 필드
                 breed=related_animal.breed,
                 description=related_animal.description,
-                status=related_animal.status,
+                protection_status=related_animal.protection_status,
+                adoption_status=related_animal.adoption_status,
                 waiting_days=0,
                 activity_level=None,  # Animal 모델에 없는 필드
                 sensitivity=None,  # Animal 모델에 없는 필드
@@ -747,13 +905,22 @@ async def get_related_animals_by_distance(
                 basic_training=None,  # Animal 모델에 없는 필드
                 trainer_comment=None,  # Animal 모델에 없는 필드
                 announce_number=related_animal.announce_number,
+                display_notice_number=related_animal.display_notice_number,  # 표시용 공고번호
                 announcement_date=None,  # Animal 모델에 없는 필드
-                found_location=None,  # Animal 모델에 없는 필드
+                found_location=related_animal.found_location,
+                admission_date=related_animal.admission_date.isoformat() if related_animal.admission_date else None,
                 personality=related_animal.personality,
+                megaphone_count=related_animal.megaphone_count,
+                is_megaphoned=False,  # 관련 동물 조회에서는 기본값
                 center_id=str(related_animal.center_id),
                 animal_images=[],  # 빈 배열 임시설정
                 created_at=related_animal.created_at.isoformat(),
                 updated_at=related_animal.updated_at.isoformat(),
+                
+                # 공공데이터 관련 필드
+                is_public_data=related_animal.is_public_data,
+                public_notice_number=related_animal.public_notice_number,
+                comment=related_animal.comment,  # 공공데이터 특이사항 코멘트
             )
             animals_response.append(animal_data)
         
@@ -768,7 +935,7 @@ async def get_related_animals_by_distance(
 @router.get(
     "/public-data/sync",
     summary="[R] 공공데이터 동기화",
-    description="공공데이터 API에서 유기동물 정보를 가져와서 DB에 동기화합니다. (관리자 전용 또는 qstash 스케줄러용)",
+    description="공공데이터 API에서 유기동물 정보를 가져와서 DB에 동기화합니다. (QStash 스케줄러용)",
     response={
         200: PublicDataSyncResponseOut,
         400: PublicDataErrorOut,
@@ -776,7 +943,6 @@ async def get_related_animals_by_distance(
         403: PublicDataErrorOut,
         500: PublicDataErrorOut,
     },
-    auth=jwt_auth,
 )
 async def sync_public_data(
     request: HttpRequest,
@@ -790,22 +956,33 @@ async def sync_public_data(
 ):
     """공공데이터 API에서 유기동물 정보를 동기화합니다."""
     try:
-        # 관리자 권한 확인
-        current_user = request.auth
-        if current_user.user_type not in ["최고관리자", "센터관리자"]:
-            raise HttpError(403, "관리자 권한이 필요합니다")
+        # 헤더 기반 인증 확인 (QStash용)
+        x_api_key = request.headers.get('X-API-Key')
+        expected_api_key = getattr(settings, 'PUBLIC_DATA_SERVICE_KEY', None)
+        
+        # 디버깅용 로그
+        print(f"🔍 디버깅 정보:")
+        print(f"   받은 X-API-Key: {x_api_key}")
+        print(f"   설정된 API Key: {expected_api_key}")
+        print(f"   키 일치 여부: {x_api_key == expected_api_key}")
+        
+        if not expected_api_key:
+            raise HttpError(500, "공공데이터 API 키가 설정되지 않았습니다")
+        
+        if not x_api_key or x_api_key != expected_api_key:
+            raise HttpError(401, f"유효하지 않은 API 키입니다. 받은 키: {x_api_key}, 예상 키: {expected_api_key}")
         
         # 서비스 키 확인
         service_key = getattr(settings, 'PUBLIC_DATA_SERVICE_KEY', None)
         if not service_key:
             raise HttpError(500, "공공데이터 서비스 키가 설정되지 않았습니다")
         
-        # 날짜 자동 설정
+        # 날짜 설정 (전체 데이터 가져오기)
         if not bgnde:
-            yesterday = timezone.now().date() - timedelta(days=1)
-            bgnde = yesterday.strftime('%Y%m%d')
+            # 날짜를 지정하지 않으면 모든 데이터 가져오기
+            bgnde = None
         if not endde:
-            endde = bgnde
+            endde = None
         
         # 동기화 전략에 따른 설정
         is_initial_sync = False
@@ -818,13 +995,18 @@ async def sync_public_data(
         
         # 연도별 상태 자동 설정
         if not state:
-            start_year = int(bgnde[:4])
-            if 2019 <= start_year <= 2022:
-                state = "protect"  # 2019-2022년은 보호중만
+            if bgnde:
+                start_year = int(bgnde[:4])
+                if 2019 <= start_year <= 2022:
+                    state = "protect"  # 2019-2022년은 보호중만
+                else:
+                    state = "protect"  # 2023년 이후는 기본값
             else:
-                state = "protect"  # 2023년 이후는 기본값
+                # 날짜가 지정되지 않은 경우 전체 데이터이므로 상태 필터 없음
+                state = None
         
-        print(f"{start_year}년 이후 데이터이므로 모든 상태 허용: {bgnde}, 상태: {state}")
+        print(f"📅 데이터 가져오기 설정: 날짜={bgnde or '전체'}, 상태={state or '전체'}")
+        print(f"🔍 동기화 전략: {sync_strategy}, 초기 동기화: {is_initial_sync}")
         
         # 공공데이터 서비스 초기화
         public_data_service = PublicDataService(service_key)
@@ -891,12 +1073,19 @@ async def get_public_data_status(request: HttpRequest):
         # 공공데이터 동물 통계
         total_public_animals = await Animal.objects.filter(is_public_data=True).acount()
         
-        # 상태별 통계
-        status_stats = await Animal.objects.filter(
+        # 보호상태별 통계
+        protection_status_stats = await Animal.objects.filter(
             is_public_data=True
-        ).values('status').annotate(
+        ).values('protection_status').annotate(
             count=Count('id')
-        ).order_by('status')
+        ).order_by('protection_status')
+        
+        # 입양상태별 통계
+        adoption_status_stats = await Animal.objects.filter(
+            is_public_data=True
+        ).values('adoption_status').annotate(
+            count=Count('id')
+        ).order_by('adoption_status')
         
         # 최근 업데이트 시간
         latest_update = await Animal.objects.filter(
@@ -905,7 +1094,8 @@ async def get_public_data_status(request: HttpRequest):
         
         return 200, PublicDataStatusOut(
             total_public_animals=total_public_animals,
-            status_distribution=list(status_stats),
+            protection_status_distribution=list(protection_status_stats),
+            adoption_status_distribution=list(adoption_status_stats),
             latest_update=latest_update.isoformat() if latest_update else None
         )
         

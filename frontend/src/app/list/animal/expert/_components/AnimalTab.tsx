@@ -89,7 +89,8 @@ function AnimalTab() {
                 name: pet.name || "",
                 breed: pet.breed || "",
                 isFemale: pet.is_female,
-                status: pet.status,
+                protection_status: pet.protection_status || "보호중",
+                adoption_status: pet.adoption_status || "입양가능",
                 centerId: pet.center_id,
                 animalImages:
                   pet.animal_images?.map((img) => ({

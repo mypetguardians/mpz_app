@@ -32,7 +32,7 @@ export function NotificationToast({
       <XCircle size={20} className="text-red flex-shrink-0" />
     );
 
-  const bgColor = type === "success" ? "bg-wh" : "bg-red";
+  const bgColor = type === "success" && "bg-wh";
   const borderColor = type === "success" ? "border-brand" : "border-red";
   const textColor = type === "success" ? "text-brand" : "text-red";
 

@@ -207,25 +207,25 @@ export default function AdoptionPage() {
                     name: adoption.animal_name || "이름 없음",
                     isFemale: adoption.animal_is_female,
                     breed: adoption.animal_breed || "종 미등록",
-                    status: (() => {
-                      // 입양 신청 상태에 따라 동물 상태를 결정
+                    protection_status: "보호중",
+                    adoption_status: (() => {
+                      // adoption status를 기준으로 표시할 상태 결정
                       const adoptionStatus = adoption.status;
-                      if (adoptionStatus === "취소") {
-                        return "취소";
-                      } else if (adoptionStatus === "입양완료") {
-                        return "입양완료";
-                      } else {
-                        // 그 외의 경우 동물의 원래 상태를 사용
-                        const status = adoption.animal_status || "보호중";
-                        return status as
-                          | "보호중"
-                          | "입양완료"
-                          | "임시보호중"
-                          | "입양대기"
-                          | "입양진행중"
-                          | "방사"
-                          | "반환"
-                          | "취소";
+                      switch (adoptionStatus) {
+                        case "신청":
+                          return "입양진행중";
+                        case "미팅":
+                          return "입양진행중";
+                        case "계약서작성":
+                          return "입양진행중";
+                        case "입양완료":
+                          return "입양완료";
+                        case "모니터링":
+                          return "입양완료";
+                        case "취소":
+                          return "입양가능";
+                        default:
+                          return "입양가능";
                       }
                     })(),
                     centerId: adoption.center_id,
@@ -240,6 +240,7 @@ export default function AdoptionPage() {
                       : [],
                     foundLocation: adoption.center_location || "",
                   }}
+                  adoptionStatus={adoption.status} // adoption status 전달
                   showLocation={false}
                 />
               </div>

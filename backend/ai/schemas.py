@@ -12,6 +12,14 @@ class MatchingScore(int, Enum):
     EXCELLENT = 5
 
 
+class PersonalityType(str, Enum):
+    """사용자 성격 유형"""
+    PERFECT = "perfect"
+    GOOD = "good"
+    UNSUITABLE = "unsuitable"
+    SILENT = "silent"
+
+
 class AnimalRecommendation(BaseModel):
     """개별 동물 추천 정보"""
     animal_id: str = Field(..., description="동물 ID")
@@ -41,7 +49,7 @@ class AnimalRecommendation(BaseModel):
 
 class PersonalityAnalysis(BaseModel):
     """성격 분석 결과"""
-    user_personality_type: str = Field(..., description="사용자 성격 유형")
+    user_personality_type: PersonalityType = Field(..., description="사용자 성격 유형 (perfect/good/unsuitable/silent)")
     key_traits: List[str] = Field(..., description="주요 성격 특성")
     lifestyle_match: str = Field(..., description="라이프스타일 매칭 분석")
     experience_level: str = Field(..., description="반려동물 경험 수준")
@@ -68,7 +76,7 @@ class AIAnimalMatchingResponse(BaseModel):
         json_schema_extra = {
             "example": {
                 "analysis_reason": {
-                    "user_personality_type": "외향적이고 활동적인 성격",
+                    "user_personality_type": "perfect",
                     "key_traits": ["활발함", "사교적", "책임감 강함"],
                     "lifestyle_match": "활동적인 라이프스타일에 적합",
                     "experience_level": "중급자",
@@ -102,7 +110,16 @@ class AIAnimalMatchingResponse(BaseModel):
                             "사회화 훈련 지속"
                         ],
                         "center_name": "서울 동물보호센터",
-                        "adoption_fee": 150000
+                        "adoption_fee": 150000,
+                        "activity_level": 4,
+                        "sensitivity": None,
+                        "sociability": 5,
+                        "separation_anxiety": 2,
+                        "basic_training": 4,
+                        "description": "활발하고 친근한 성격의 골든 리트리버",
+                        "personality": None,
+                        "health_notes": "건강상태 양호",
+                        "special_needs": None
                     }
                 ]
             }

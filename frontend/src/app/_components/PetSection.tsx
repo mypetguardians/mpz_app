@@ -60,7 +60,7 @@ export function PetSection({
         </div>
 
         {showLocationFilter && (
-          <div className="flex items-center overflow-x-auto gap-[6px]">
+          <div className="flex items-center overflow-x-auto scrollbar-hide gap-[6px]">
             {locations.map((loc) => (
               <MiniButton key={loc} text={loc} variant="outline" />
             ))}
@@ -108,7 +108,7 @@ export function PetSection({
 
   // 보호중인 동물만 필터링하고 admission_date 높은 순서대로 정렬, 상위 6개만 표시
   const limitedAnimals = (animals || [])
-    .filter((animal) => animal?.status === "보호중")
+    .filter((animal) => animal?.protection_status === "보호중")
     .sort((a, b) => {
       // admission_date가 있으면 admission_date 기준으로 정렬, 없으면 waiting_days 기준
       if (a.admission_date && b.admission_date) {
@@ -150,7 +150,7 @@ export function PetSection({
   return (
     <MainSection title={title} rightSlot={rightSlot}>
       {showLocationFilter && (
-        <div className="flex items-center overflow-x-auto gap-[6px] -mx-4 px-4">
+        <div className="flex items-center overflow-x-auto scrollbar-hide gap-[6px] -mx-4 px-4">
           {locations.map((loc) => (
             <MiniButton
               key={loc}

@@ -7,6 +7,8 @@ import { SearchInput } from "@/components/ui/SearchInput";
 import { InfoCard } from "@/components/ui/InfoCard";
 import { Container } from "@/components/common/Container";
 import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
+import { NotificationToast } from "@/components/ui/NotificationToast";
+import { openKakaoAddress } from "@/lib/openKakaoAddress";
 
 export interface StepProps {
   onNext: () => void;
@@ -16,10 +18,49 @@ export function Step4({ onNext }: StepProps) {
   const [address, setAddress] = React.useState("");
   const [visibility, setVisibility] = React.useState("");
 
+  // toast state
+  const [showToast, setShowToast] = React.useState(false);
+  const [toastMessage, setToastMessage] = React.useState("");
+
+  const showErrorToast = (message: string) => {
+    setToastMessage(message);
+    setShowToast(true);
+  };
+
+  const handleAddressSearch = () => {
+    try {
+      openKakaoAddress((selectedAddress) => {
+        setAddress(selectedAddress);
+      });
+    } catch (error) {
+      console.error("주소 검색 실패:", error);
+      showErrorToast("주소 검색에 실패했습니다. 다시 시도해주세요.");
+    }
+  };
+
   const isAddressValid = address.trim().length > 0;
   const isVisibilityValid =
     visibility === "공개함" || visibility === "공개안함";
   const isValid = isAddressValid && isVisibilityValid;
+
+  const handleNext = () => {
+    if (!isAddressValid) {
+      showErrorToast("주소를 입력해주세요.");
+      return;
+    }
+    if (!isVisibilityValid) {
+      showErrorToast("공개여부를 선택해주세요.");
+      return;
+    }
+    try {
+      sessionStorage.setItem("verification.address", address);
+      sessionStorage.setItem("verification.addressVisibility", visibility);
+      onNext();
+    } catch (error) {
+      console.error("주소 정보 저장 실패:", error);
+      showErrorToast("정보 저장에 실패했습니다. 다시 시도해주세요.");
+    }
+  };
 
   return (
     <>
@@ -33,6 +74,7 @@ export function Step4({ onNext }: StepProps) {
               placeholder="도로명 주소로 검색해주세요."
               value={address}
               onChange={(e) => setAddress(e.target.value)}
+              onSearch={handleAddressSearch}
             />
             <Input
               variant="Variant7"
@@ -55,9 +97,17 @@ export function Step4({ onNext }: StepProps) {
       <FixedBottomBar
         variant="variant1"
         primaryButtonText="확인"
-        onPrimaryButtonClick={onNext}
+        onPrimaryButtonClick={handleNext}
         primaryButtonDisabled={!isValid}
       />
+
+      {showToast && (
+        <NotificationToast
+          message={toastMessage}
+          type="error"
+          onClose={() => setShowToast(false)}
+        />
+      )}
     </>
   );
 }

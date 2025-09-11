@@ -103,7 +103,7 @@ for origin in ENV_CORS_ALLOWED_ORIGINS.split(","):
 # cors & csrf
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SAMESITE = "None"
+SESSION_COOKIE_SAMESITE = config("SESSION_COOKIE_SAMESITE", default="None")
 CSRF_COOKIE_SAMESITE = "None"
 
 # Cookie settings
@@ -257,6 +257,8 @@ if LANGCHAIN_TRACING_V2:
         os.environ["LANGCHAIN_API_KEY"] = LANGCHAIN_API_KEY
     os.environ["LANGCHAIN_ENDPOINT"] = LANGCHAIN_ENDPOINT
 
+SMS_API_KEY=config("SMS_API_KEY", default="")
+
 # Django Channels Settings
 ASGI_APPLICATION = "cfehome.asgi.application"
 
@@ -265,6 +267,62 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
             "hosts": config("REDIS_URL", default=None),
+        },
+    },
+}
+
+# Logging Configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {asctime} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'level': 'INFO',
+            'formatter': 'simple',
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'django.log',
+            'level': 'INFO',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'ai': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # AI 모듈 전용 로거
+        'ai.api': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'ai.services': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
         },
     },
 }

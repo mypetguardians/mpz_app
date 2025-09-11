@@ -49,6 +49,7 @@ export default function CommunityDetailPage() {
     data: centerPostDetailData,
     isLoading: isCenterPostLoading,
     error: centerPostError,
+    refetch: refetchCenterPost,
   } = useGetCenterPostDetail(params.id as string);
 
   // 일반 사용자용 게시글 상세조회
@@ -56,6 +57,7 @@ export default function CommunityDetailPage() {
     data: publicPostDetailData,
     isLoading: isPublicPostLoading,
     error: publicPostError,
+    refetch: refetchPublicPost,
   } = useGetPublicPostDetail(params.id as string);
 
   // 권한에 따라 적절한 데이터 선택
@@ -67,9 +69,11 @@ export default function CommunityDetailPage() {
     : isPublicPostLoading;
   const postError = isCenterUser ? centerPostError : publicPostError;
 
-  const { data: commentsData, isLoading: isCommentsLoading } = useGetComments(
-    params.id as string
-  );
+  const {
+    data: commentsData,
+    isLoading: isCommentsLoading,
+    refetch: refetchComments,
+  } = useGetComments(params.id as string);
 
   const deletePostMutation = useDeletePost();
 
@@ -83,6 +87,22 @@ export default function CommunityDetailPage() {
     }
   }, [postDetailData, post]);
 
+  // 페이지 마운트 시 데이터 새로고침
+  useEffect(() => {
+    const refreshData = async () => {
+      try {
+        await Promise.all([
+          isCenterUser ? refetchCenterPost() : refetchPublicPost(),
+          refetchComments(),
+        ]);
+      } catch (error) {
+        console.error("데이터 새로고침 실패:", error);
+      }
+    };
+
+    refreshData();
+  }, [isCenterUser, refetchCenterPost, refetchPublicPost, refetchComments]);
+
   const pagination = commentsData
     ? {
         count: commentsData.count,
@@ -95,7 +115,7 @@ export default function CommunityDetailPage() {
     : undefined;
 
   // 현재 사용자가 게시글 작성자인지 확인 (실제 로그인된 유저 기준)
-  const isMyPost = user?.id && post?.userId && user.id === post.userId;
+  const isMyPost = user?.id && post?.user_id && user.id === post.user_id;
 
   // 공유 관련 함수들
   const handleKakaoShare = () => {
@@ -186,13 +206,6 @@ export default function CommunityDetailPage() {
 
   // 로딩 상태 또는 데이터가 없을 때 스켈레톤 표시
   if (isLoading || isPostLoading || !postDetailData || !post) {
-    console.log("스켈레톤 렌더링 중:", {
-      isLoading,
-      isPostLoading,
-      hasPostDetailData: !!postDetailData,
-      hasPost: !!post,
-    });
-
     return (
       <Container className="min-h-screen bg-white">
         <TopBar
@@ -217,7 +230,7 @@ export default function CommunityDetailPage() {
           }
         />
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto scrollbar-hide">
           {/* 게시글 내용 스켈레톤 */}
           <div className="py-3">
             <CommunityDetailSkeleton />
@@ -366,16 +379,16 @@ export default function CommunityDetailPage() {
         }
       />
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto scrollbar-hide">
         {/* 게시글 내용 */}
         <div className="py-3">
           <CommunityDetail
             post={post}
             users={[
               {
-                id: post.userId,
-                nickname: post.userNickname || "사용자",
-                profileImg: post.userImage || "/img/dummyImg.png",
+                id: post.user_id,
+                nickname: post.user_nickname || "사용자",
+                profileImg: post.user_image || "",
               },
             ]}
             isMyPost={isMyPost || false}

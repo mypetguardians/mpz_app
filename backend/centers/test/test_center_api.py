@@ -537,3 +537,148 @@ class TestCenterAPI(TestCase):
         self.assertEqual(response_data["total"], 1)
         self.assertEqual(len(response_data["notices"]), 1)
         self.assertEqual(response_data["notices"][0]["content"], "이것은 활성화된 공지사항입니다.")
+        
+        # title 필드가 포함되어 있는지 확인
+        notice = response_data["notices"][0]
+        self.assertIn("title", notice)
+        self.assertEqual(notice["title"], "활성 공지사항")
+
+    async def test_center_notice_title_field(self):
+        """센터 공지사항 title 필드 테스트"""
+        # 다양한 title을 가진 공지사항들 생성
+        from notices.models import Notice
+        
+        @sync_to_async
+        def create_notices_with_titles():
+            notices = []
+            titles = [
+                "중요 공지사항",
+                "이벤트 안내",
+                "시스템 점검 예정",
+                "입양 절차 변경 안내"
+            ]
+            
+            for i, title in enumerate(titles):
+                notice = Notice.objects.create(
+                    center=self.center,
+                    title=title,
+                    content=f"이것은 {title} 내용입니다.",
+                    is_published=True
+                )
+                notices.append(notice)
+            
+            return notices
+        
+        await create_notices_with_titles()
+        
+        # 공지사항 목록 조회
+        response = await self.client.get(f"/{self.center.id}/notices")
+        self.assertEqual(response.status_code, 200)
+        
+        # 응답 데이터 확인
+        response_data = response.json()
+        self.assertEqual(response_data["total"], 4)
+        self.assertEqual(len(response_data["notices"]), 4)
+        
+        # 모든 공지사항에 title 필드가 있는지 확인
+        for notice in response_data["notices"]:
+            self.assertIn("title", notice)
+            self.assertIsNotNone(notice["title"])
+            self.assertGreater(len(notice["title"]), 0)
+        
+        # 특정 title 확인
+        titles = [notice["title"] for notice in response_data["notices"]]
+        self.assertIn("중요 공지사항", titles)
+        self.assertIn("이벤트 안내", titles)
+        self.assertIn("시스템 점검 예정", titles)
+        self.assertIn("입양 절차 변경 안내", titles)
+
+    async def test_center_new_boolean_fields(self):
+        """센터 새로운 불린 필드 테스트"""
+        # 센터에 새로운 불린 필드들 설정
+        @sync_to_async
+        def update_center_fields():
+            self.center.has_volunteer = True
+            self.center.has_foster_care = True
+            self.center.show_phone_number = False
+            self.center.show_location = False
+            self.center.save()
+        
+        await update_center_fields()
+        
+        # 센터 정보 조회
+        response = await self.client.get(f"/{self.center.id}")
+        self.assertEqual(response.status_code, 200)
+        
+        # 응답 데이터 확인
+        center_data = response.json()
+        self.assertTrue(center_data["has_volunteer"])
+        self.assertTrue(center_data["has_foster_care"])
+        self.assertFalse(center_data["show_phone_number"])
+        self.assertFalse(center_data["show_location"])
+        
+        # 전화번호와 위치가 노출되지 않아야 함 (show_phone_number=False, show_location=False)
+        self.assertIsNone(center_data["phone_number"])
+        self.assertIsNone(center_data["location"])
+
+    async def test_center_update_new_boolean_fields(self):
+        """센터 새로운 불린 필드 업데이트 테스트"""
+        headers = await self.authenticate()
+        
+        # 센터 정보 업데이트 데이터
+        update_data = {
+            "has_volunteer": True,
+            "has_foster_care": True,
+            "show_phone_number": False,
+            "show_location": False
+        }
+        
+        # 센터 정보 업데이트 (center_auth_router 사용)
+        response = await self.auth_client.put("/update", json=update_data, headers=headers)
+        self.assertEqual(response.status_code, 200)
+        
+        # 응답 데이터 확인
+        center_data = response.json()
+        self.assertTrue(center_data["has_volunteer"])
+        self.assertTrue(center_data["has_foster_care"])
+        self.assertFalse(center_data["show_phone_number"])
+        self.assertFalse(center_data["show_location"])
+
+    async def test_center_visibility_logic(self):
+        """센터 정보 노출 로직 테스트"""
+        # 센터를 공개로 설정하고 노출 필드들을 True로 설정
+        @sync_to_async
+        def setup_center():
+            self.center.is_public = True
+            self.center.show_phone_number = True
+            self.center.show_location = True
+            self.center.save()
+        
+        await setup_center()
+        
+        # 공개 센터 정보 조회
+        response = await self.client.get(f"/{self.center.id}")
+        self.assertEqual(response.status_code, 200)
+        
+        # 응답 데이터 확인 - 전화번호와 위치가 노출되어야 함
+        center_data = response.json()
+        self.assertEqual(center_data["phone_number"], self.center.phone_number)
+        self.assertEqual(center_data["location"], self.center.location)
+        
+        # 노출 필드들을 False로 변경
+        @sync_to_async
+        def hide_center_info():
+            self.center.show_phone_number = False
+            self.center.show_location = False
+            self.center.save()
+        
+        await hide_center_info()
+        
+        # 다시 센터 정보 조회
+        response = await self.client.get(f"/{self.center.id}")
+        self.assertEqual(response.status_code, 200)
+        
+        # 응답 데이터 확인 - 전화번호와 위치가 노출되지 않아야 함
+        center_data = response.json()
+        self.assertIsNone(center_data["phone_number"])
+        self.assertIsNone(center_data["location"])

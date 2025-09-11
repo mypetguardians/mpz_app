@@ -8,7 +8,13 @@ interface DropdownBottomSheetProps {
   onSelect: (value: string) => void;
 }
 
-export function DropdownBottomSheet({ open, onClose, options, selectedValue, onSelect }: DropdownBottomSheetProps) {
+export function DropdownBottomSheet({
+  open,
+  onClose,
+  options,
+  selectedValue,
+  onSelect,
+}: DropdownBottomSheetProps) {
   if (!open) return null;
 
   return (
@@ -19,13 +25,15 @@ export function DropdownBottomSheet({ open, onClose, options, selectedValue, onS
 
         <div className="flex flex-col px-4 pt-4 pb-5 h-full">
           {/* 옵션 목록 */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto scrollbar-hide">
             {options.map((option) => (
               <button
                 key={option}
                 type="button"
                 onClick={() => onSelect(option)}
-                className={`w-full h-[50px] py-3 text-left body ${selectedValue === option ? "text-brand" : "text-bk"}`}
+                className={`w-full h-[50px] py-3 text-left body ${
+                  selectedValue === option ? "text-brand" : "text-bk"
+                }`}
               >
                 {option}
               </button>

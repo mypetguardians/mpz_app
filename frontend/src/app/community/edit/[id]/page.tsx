@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, use } from "react";
+import { useState, useMemo, useEffect, useCallback, use } from "react";
 import { useRouter } from "next/navigation";
 
 import { Container } from "@/components/common/Container";
@@ -12,6 +12,7 @@ import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
 import { PetCard } from "@/components/ui/PetCard";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { ImageCard } from "@/components/ui/ImageCard";
+import { getFullImageUrl } from "@/lib/utils";
 import {
   ArrowLeft,
   X,
@@ -27,8 +28,9 @@ import {
   useGetAnimalFavorites,
   useUploadImages,
   useGetPublicPostDetail,
+  useGetAnimalById,
 } from "@/hooks";
-import type { PetCardAnimal } from "@/types/animal";
+import type { PetCardAnimal, RawAnimalResponse } from "@/types/animal";
 import type { UserAdoptionOut } from "@/types/adoption";
 
 // PetCardAnimal을 확장한 타입 (adoptionId 포함)
@@ -53,8 +55,11 @@ export default function CommunityEditPage({
     null
   );
 
-  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
+  // 기존 이미지와 새 이미지를 분리하여 관리
+  const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
+  const [newImageUrls, setNewImageUrls] = useState<string[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [deletedImageUrls, setDeletedImageUrls] = useState<string[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [showPetSelection, setShowPetSelection] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
@@ -62,13 +67,50 @@ export default function CommunityEditPage({
   const [activeTab, setActiveTab] = useState("adoption");
   const [publicType, setPublicType] = useState<PublicType>("center");
 
-  const { data: postData } = useGetPublicPostDetail(postId);
+  const {
+    data: postData,
+    isLoading: isLoadingPost,
+    error: postError,
+  } = useGetPublicPostDetail(postId);
 
-  const { mutate: updatePost } = useUpdatePost();
-  const { mutate: uploadImages } = useUploadImages();
+  const { mutateAsync: updatePost } = useUpdatePost();
+  const { mutateAsync: uploadImages } = useUploadImages();
 
   const { user } = useAuth();
   const isAdmin = user?.userType !== "일반사용자";
+
+  // 포스트에 animal_id가 있을 때만 동물 정보 불러오기
+  const { data: animalData } = useGetAnimalById(
+    postData?.post?.animal_id || null
+  );
+
+  // 동물 데이터를 PetCardAnimal 형태로 변환하는 헬퍼 함수
+  const convertAnimalToPetCard = useCallback(
+    (rawAnimal: RawAnimalResponse | null): ExtendedPetCardAnimal | null => {
+      if (!rawAnimal) return null;
+
+      return {
+        id: rawAnimal.id,
+        name: rawAnimal.name,
+        breed: rawAnimal.breed || null,
+        isFemale: rawAnimal.is_female,
+        protection_status: "보호중",
+        adoption_status: "입양가능",
+        centerId: rawAnimal.center_id,
+        animalImages:
+          rawAnimal.animal_images?.map((img) => ({
+            id: img.id,
+            imageUrl: img.image_url,
+            orderIndex: img.order_index,
+          })) || [],
+        foundLocation: rawAnimal.found_location || "위치 정보 확인 불가",
+        adoptionId: undefined,
+        waitingDays: rawAnimal.waiting_days,
+        admissionDate: rawAnimal.admission_date,
+      };
+    },
+    []
+  );
 
   // 기존 포스트 데이터를 초기값으로 설정
   useEffect(() => {
@@ -76,40 +118,58 @@ export default function CommunityEditPage({
       setTitle(postData.post.title || "");
       setContent(postData.post.content || "");
 
-      // 기존 태그를 tagName 또는 tag_name 필드에서 추출
+      // 기존 태그를 tag_name 필드에서 추출 (API 응답 구조에 맞게 수정)
       const existingTags =
-        postData.post.tags
-          ?.map(
-            (tag: { tagName?: string; tag_name?: string }) =>
-              tag.tagName || tag.tag_name || ""
-          )
-          .filter(Boolean) || [];
-
+        postData.post.tags?.map((tag) => tag.tag_name).filter(Boolean) || [];
       setTags(existingTags);
-      setPublicType(postData.post.adoptionId ? "center" : "public");
+
+      // 공개 범위 설정 - is_all_access 필드를 확인
+      const newPublicType = postData.post.is_all_access ? "public" : "center";
+      setPublicType(newPublicType);
 
       // 기존 이미지가 있다면 설정
       if (postData.post.images && postData.post.images.length > 0) {
-        setUploadedImageUrls(postData.post.images.map((img) => img.imageUrl));
+        // 이미지 객체의 구조를 확인하여 올바른 속성명 사용
+        const imageUrls = postData.post.images
+          .map((img) => img.image_url)
+          .filter((url): url is string => Boolean(url));
+
+        setExistingImageUrls(imageUrls);
+      } else {
+        setExistingImageUrls([]);
       }
 
-      // 기존 adoption_id가 있다면 설정
-      if (postData.post.adoptionId) {
-        setSelectedAdoptionId(postData.post.adoptionId);
-        // adoptionAnimals에서 해당 동물 찾기
-        // 이 부분은 adoptionAnimals가 로드된 후에 처리해야 함
-      }
+      // 새 이미지 관련 상태 초기화
+      setNewImageUrls([]);
+      setUploadedFiles([]);
+      setDeletedImageUrls([]);
+
+      // adoptionId 설정 (필드 제거됨)
+      setSelectedAdoptionId(null);
     }
   }, [postData]);
 
-  // 사용자 타입에 따라 초기 공개 범위를 지정
+  // animalData가 로드되었을 때 동물 정보를 selectedPet으로 설정
+  useEffect(() => {
+    if (postData?.post?.animal_id && animalData) {
+      const convertedAnimal = convertAnimalToPetCard(animalData);
+      if (convertedAnimal) {
+        setSelectedPet(convertedAnimal);
+      }
+    } else if (!postData?.post?.animal_id) {
+      setSelectedPet(null);
+    }
+  }, [animalData, postData?.post?.animal_id, convertAnimalToPetCard]);
+
+  // 사용자 타입에 따라 초기 공개 범위를 지정 (새 포스트일 때만)
   useEffect(() => {
     if (!user) return;
-    if (!postData) {
-      // 기존 데이터가 없을 때만 설정
-      setPublicType(isAdmin ? "center" : "public");
+    // 기존 포스트 데이터가 없고, 아직 publicType이 초기값일 때만 설정
+    if (!postData && publicType === "center") {
+      const initialPublicType = isAdmin ? "center" : "public";
+      setPublicType(initialPublicType);
     }
-  }, [isAdmin, user, postData]);
+  }, [isAdmin, user, postData, publicType]);
 
   const { data: adoptionsData } = useGetUserAdoptions({
     filters: {
@@ -128,7 +188,8 @@ export default function CommunityEditPage({
       name: adoption.animal_name,
       breed: adoption.animal_breed,
       isFemale: adoption.animal_is_female,
-      status: adoption.animal_status as PetCardAnimal["status"],
+      protection_status: "보호중",
+      adoption_status: "입양진행중",
       centerId: adoption.center_id,
       animalImages: adoption.animal_image
         ? [
@@ -146,18 +207,19 @@ export default function CommunityEditPage({
     return transformedAnimals as PetCardAnimal[];
   }, [adoptionsData]);
 
-  // 기존 adoption_id가 있을 때 해당 동물을 selectedPet으로 설정
+  // adoptionId가 있을 때 해당 동물을 찾아서 설정 (입양 진행 중인 경우)
   useEffect(() => {
-    if (selectedAdoptionId && adoptionAnimals.length > 0 && !selectedPet) {
+    if (selectedAdoptionId && adoptionAnimals.length > 0) {
       const matchingPet = adoptionAnimals.find(
         (pet) =>
           (pet as ExtendedPetCardAnimal).adoptionId === selectedAdoptionId
       );
+
       if (matchingPet) {
         setSelectedPet(matchingPet as ExtendedPetCardAnimal);
       }
     }
-  }, [selectedAdoptionId, adoptionAnimals, selectedPet]);
+  }, [selectedAdoptionId, adoptionAnimals]);
 
   // 찜한 동물 목록
   const { data: favoriteAnimalsData } = useGetAnimalFavorites(1, 100);
@@ -173,11 +235,10 @@ export default function CommunityEditPage({
         name: favoriteAnimal.name,
         breed: favoriteAnimal.breed,
         isFemale: favoriteAnimal.isFemale,
-        status: favoriteAnimal.status,
+        protection_status: "보호중",
+        adoption_status: "입양가능",
         centerId: favoriteAnimal.centerId,
-        animalImages: [
-          { id: "1", imageUrl: "/img/dummyImg.png", orderIndex: 1 },
-        ],
+        animalImages: [],
         foundLocation: "위치 정보 확인 불가", // 기본 지역 설정
       };
     }) as PetCardAnimal[];
@@ -200,14 +261,23 @@ export default function CommunityEditPage({
     const files = event.target.files;
     if (files) {
       const newFiles = Array.from(files);
-      const newImageUrls = newFiles.map((file) => URL.createObjectURL(file));
+      const newUrls = newFiles.map((file) => URL.createObjectURL(file));
       setUploadedFiles((prev) => [...prev, ...newFiles]);
-      setUploadedImageUrls((prev) => [...prev, ...newImageUrls]);
+      setNewImageUrls((prev) => [...prev, ...newUrls]);
     }
   };
 
-  const removeImage = (index: number) => {
-    setUploadedImageUrls((prev) => prev.filter((_, i) => i !== index));
+  const removeExistingImage = (index: number) => {
+    const imageToRemove = existingImageUrls[index];
+    // 삭제 목록에 추가
+    setDeletedImageUrls((prev) => [...prev, imageToRemove]);
+    // UI에서 제거
+    setExistingImageUrls((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const removeNewImage = (index: number) => {
+    // 새 이미지와 파일 목록에서 제거
+    setNewImageUrls((prev) => prev.filter((_, i) => i !== index));
     setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
@@ -265,73 +335,136 @@ export default function CommunityEditPage({
     const newContent = e.target.value;
     setContent(newContent);
 
-    // 기존 태그와 새로 추출된 태그를 합침
+    // 새로 추출된 태그만 설정 (기존 태그는 이미 초기화 시에 설정됨)
     const extractedTags = extractTags(newContent);
-    const existingTags =
-      postData?.post?.tags
-        ?.map(
-          (tag: { tagName?: string; tag_name?: string }) =>
-            tag.tagName || tag.tag_name || ""
-        )
-        .filter(Boolean) || [];
 
-    // 기존 태그와 새로 입력한 태그를 모두 포함, 유효한 문자열만 필터링
-    const allTags = [...new Set([...existingTags, ...extractedTags])].filter(
-      (tag) => typeof tag === "string" && tag.length > 0
-    );
-    setTags(allTags);
+    setTags(extractedTags);
   };
 
-  const handleConfirmSave = () => {
-    // 먼저 포스트를 수정
-    updatePost(
-      {
-        postId: postId,
-        data: {
-          title,
-          content,
-          tags,
-          images: [],
-        },
-      },
-      {
-        onSuccess: (response) => {
-          console.log("포스트 수정 성공:", response);
-          // 포스트 수정 성공 후 새로 업로드된 이미지가 있으면 업로드
-          if (uploadedFiles.length > 0) {
-            uploadImages(
-              {
-                postId: postId,
-                images: uploadedFiles,
-              },
-              {
-                onSuccess: () => {
-                  setShowSaveModal(false);
-                  router.back();
-                },
-                onError: (error) => {
-                  console.error("이미지 업로드 실패:", error);
-                },
-              }
-            );
-          } else {
-            // 새로 업로드된 이미지가 없으면 바로 뒤로가기
-            setShowSaveModal(false);
-            router.back();
-          }
-        },
-        onError: (error) => {
-          console.error("포스트 수정 실패:", error);
-          console.error("에러 상세:", error.message);
-        },
+  const handleConfirmSave = async () => {
+    try {
+      setShowSaveModal(false);
+
+      // 1. 새로 업로드할 파일이 있으면 먼저 업로드
+      let uploadedImageUrls: string[] = [];
+      if (uploadedFiles.length > 0) {
+        const uploadResult = await uploadImages({
+          postId: postId,
+          images: uploadedFiles,
+        });
+        uploadedImageUrls = uploadResult.images;
       }
-    );
+
+      // 2. 최종 이미지 목록 계산
+      // 기존 이미지 중 삭제되지 않은 것들만 유지
+      const remainingExistingUrls = existingImageUrls.filter(
+        (url) => url && url.trim() !== "" && !deletedImageUrls.includes(url)
+      );
+
+      // 업로드된 이미지 중 유효한 것들만 필터링
+      const validUploadedUrls = uploadedImageUrls.filter(
+        (url) => url && url.trim() !== ""
+      );
+
+      // 최종 이미지 배열: 남은 기존 이미지 + 새로 업로드된 이미지
+      const finalImageUrls = [...remainingExistingUrls, ...validUploadedUrls];
+
+      // 빈 배열인 경우 undefined로 전송 (null 배열 방지)
+      const imagesToSend = finalImageUrls.length > 0 ? finalImageUrls : [];
+
+      // 3. 포스트 수정
+      const updateData = {
+        title,
+        content,
+        tags,
+        animal_id: selectedPet?.id || null,
+        is_all_access: publicType === "public",
+        images: imagesToSend.length > 0 ? imagesToSend : [],
+      };
+
+      await updatePost({
+        postId: postId,
+        data: updateData,
+      });
+
+      router.back();
+    } catch (error) {
+      console.error("저장 실패:", error);
+      setShowSaveModal(true); // 모달 다시 열기
+      alert("저장에 실패했습니다. 다시 시도해주세요.");
+    }
   };
 
   const handleConfirmBack = () => {
     setShowBackConfirmSheet(false);
     router.back();
   };
+
+  // postId가 없을 때 처리
+  if (!postId) {
+    router.push("/community");
+    return null;
+  }
+
+  // 로딩 중이거나 에러가 있을 때 처리
+  if (isLoadingPost) {
+    return (
+      <Container className="min-h-screen bg-white">
+        <TopBar
+          variant="variant4"
+          left={
+            <div className="flex items-center gap-2">
+              <IconButton
+                icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
+                size="iconM"
+                onClick={handleBack}
+              />
+              <h3>글 수정하기</h3>
+            </div>
+          }
+        />
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand mx-auto mb-4"></div>
+            <p className="text-gr">글을 불러오는 중...</p>
+          </div>
+        </div>
+      </Container>
+    );
+  }
+
+  if (postError) {
+    return (
+      <Container className="min-h-screen bg-white">
+        <TopBar
+          variant="variant4"
+          left={
+            <div className="flex items-center gap-2">
+              <IconButton
+                icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
+                size="iconM"
+                onClick={() => router.push("/community")}
+              />
+              <h3>글 수정하기</h3>
+            </div>
+          }
+        />
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <p className="text-red-500 mb-4">
+              글을 불러오는 중 오류가 발생했습니다.
+            </p>
+            <button
+              onClick={() => router.back()}
+              className="px-4 py-2 bg-brand text-white rounded-md"
+            >
+              돌아가기
+            </button>
+          </div>
+        </div>
+      </Container>
+    );
+  }
 
   return (
     <Container className="min-h-screen bg-white">
@@ -360,6 +493,7 @@ export default function CommunityEditPage({
               setTitle(e.target.value)
             }
             variant="primary"
+            className="focus:outline-none focus:border-brand"
           />
         </div>
 
@@ -440,13 +574,25 @@ export default function CommunityEditPage({
             </label>
 
             {/* 기존 이미지들 */}
-            {uploadedImageUrls.map((imageUrl, index) => (
+            {existingImageUrls.map((imageUrl, index) => (
               <ImageCard
-                key={index}
-                src={imageUrl}
-                alt={`이미지 ${index + 1}`}
+                key={`existing-${index}`}
+                src={getFullImageUrl(imageUrl)}
+                alt={`기존 이미지 ${index + 1}`}
                 variant="primary"
-                onRemove={() => removeImage(index)}
+                onRemove={() => removeExistingImage(index)}
+                className="w-20 h-20"
+              />
+            ))}
+
+            {/* 새로 업로드된 이미지들 */}
+            {newImageUrls.map((imageUrl, index) => (
+              <ImageCard
+                key={`new-${index}`}
+                src={imageUrl}
+                alt={`새 이미지 ${index + 1}`}
+                variant="primary"
+                onRemove={() => removeNewImage(index)}
                 className="w-20 h-20"
               />
             ))}
@@ -478,19 +624,21 @@ export default function CommunityEditPage({
         activeTab={activeTab}
         onTabChange={setActiveTab}
       >
-        <div className="h-[480px] overflow-y-auto">
+        <div className="h-[480px] overflow-y-auto scrollbar-hide">
           {animals.length > 0 ? (
             <>
-              <div className="flex flex-wrap justify-start gap-2 px-4">
+              <div className="flex flex-wrap justify-start gap-2">
                 {animals.map((pet: PetCardAnimal) => (
                   <div
                     key={pet.id}
-                    onClick={() =>
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
                       handlePetSelect(
                         pet,
                         (pet as ExtendedPetCardAnimal).adoptionId || ""
-                      )
-                    }
+                      );
+                    }}
                     className="cursor-pointer w-[calc(50%-4px)]"
                   >
                     <PetCard
@@ -498,6 +646,7 @@ export default function CommunityEditPage({
                       variant="primary"
                       imageSize="full"
                       className="w-full"
+                      disableNavigation={true}
                     />
                   </div>
                 ))}
@@ -528,7 +677,7 @@ export default function CommunityEditPage({
         open={showBackConfirmSheet}
         onClose={() => setShowBackConfirmSheet(false)}
         variant="primary"
-        title="잠을 닫으면 저장되지 않아요!"
+        title="창을 닫으면 저장되지 않아요!"
         description="작성한 내용은 저장 및 복구가 불가능해요."
         leftButtonText="취소"
         rightButtonText="괜찮아요"

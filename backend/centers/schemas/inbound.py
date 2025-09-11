@@ -18,6 +18,22 @@ class ContractTemplateUpdateIn(Schema):
     is_active: Optional[bool] = Field(None, description="활성화 상태")
 
 
+class ConsentCreateIn(Schema):
+    """동의서 생성 입력 스키마"""
+    title: str = Field(..., min_length=1, max_length=200, description="동의서 제목")
+    description: Optional[str] = Field(None, max_length=500, description="동의서 설명")
+    content: str = Field(..., min_length=1, description="동의서 내용")
+    is_active: Optional[bool] = Field(True, description="활성화 상태")
+
+
+class ConsentUpdateIn(Schema):
+    """동의서 수정 입력 스키마"""
+    title: Optional[str] = Field(None, min_length=1, max_length=200, description="동의서 제목")
+    description: Optional[str] = Field(None, max_length=500, description="동의서 설명")
+    content: Optional[str] = Field(None, min_length=1, description="동의서 내용")
+    is_active: Optional[bool] = Field(None, description="활성화 상태")
+
+
 class ProcedureSettingsCreateIn(Schema):
     """프로시저 설정 생성 입력 스키마"""
     has_monitoring: Optional[bool] = Field(None, description="모니터링 실시 여부")
@@ -61,6 +77,10 @@ class CenterUpdateIn(Schema):
     is_public: Optional[bool] = Field(None, description="공개 센터 여부")
     adoption_price: Optional[int] = Field(None, ge=0, description="입양비 (원)")
     image_url: Optional[str] = Field(None, max_length=500, description="센터 이미지 URL")
+    has_volunteer: Optional[bool] = Field(None, description="봉사활동 여부")
+    has_foster_care: Optional[bool] = Field(None, description="임시보호 여부")
+    show_phone_number: Optional[bool] = Field(None, description="전화번호 노출 여부")
+    show_location: Optional[bool] = Field(None, description="위치 노출 여부")
 
 
 class CenterAnimalsQueryIn(Schema):

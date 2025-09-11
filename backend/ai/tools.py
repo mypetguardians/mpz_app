@@ -52,7 +52,8 @@ def get_user_personality_test_data(user_id: str) -> Dict[str, Any]:
 
 @tool
 def get_available_animals(
-    status: Optional[str] = "보호중",
+    protection_status: Optional[str] = "보호중",
+    adoption_status: Optional[str] = "입양가능",
     animal_type: Optional[str] = None,
     limit: int = 20
 ) -> List[Dict[str, Any]]:
@@ -60,7 +61,8 @@ def get_available_animals(
     입양 가능한 동물 목록을 조회합니다.
     
     Args:
-        status: 동물 상태 (기본값: 보호중)
+        protection_status: 보호 상태 (기본값: 보호중)
+        adoption_status: 입양 상태 (기본값: 입양가능)
         animal_type: 동물 종류 필터
         limit: 조회할 최대 개수
         
@@ -72,7 +74,8 @@ def get_available_animals(
     try:
         queryset = Animal.objects.filter(
             is_public=True,
-            status=status or "보호중"
+            protection_status=protection_status or "보호중",
+            adoption_status=adoption_status or "입양가능"
         ).select_related('center')
         
         if animal_type:
@@ -105,6 +108,8 @@ def get_available_animals(
                 "adoption_fee": animal.adoption_fee,
                 "found_location": animal.found_location,
                 "admission_date": animal.admission_date.isoformat() if animal.admission_date else None,
+                "protection_status": animal.protection_status,
+                "adoption_status": animal.adoption_status,
             }
             animal_list.append(animal_data)
         
@@ -144,7 +149,8 @@ def filter_animals_by_characteristics(
     try:
         queryset = Animal.objects.filter(
             is_public=True,
-            status="보호중"
+            protection_status="보호중",
+            adoption_status="입양가능"
         ).select_related('center')
         
         # 성격 키워드 필터링
@@ -191,6 +197,8 @@ def filter_animals_by_characteristics(
                 "basic_training": animal.basic_training,
                 "trainer_comment": animal.trainer_comment,
                 "center_name": animal.center.name if animal.center else None,
+                "protection_status": animal.protection_status,
+                "adoption_status": animal.adoption_status,
             }
             animal_list.append(animal_data)
         

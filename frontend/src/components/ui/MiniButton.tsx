@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 interface MiniButtonProps {
   text: React.ReactNode;
-  variant?: "primary" | "outline" | "filterOff" | "filterOn";
+  variant?: "primary" | "outline" | "filterOff" | "filterOn" | "nomargin";
   className?: string;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
@@ -12,10 +12,11 @@ interface MiniButtonProps {
 }
 
 const variantClass = {
-  primary: "bg-wh text-dg border-0 shadow-none",
-  outline: "bg-transparent text-dg border border-lg",
-  filterOff: "bg-transparent text-gr border border-lg",
-  filterOn: "bg-transparent text-brand border border-brand",
+  primary: "bg-wh text-dg border-0 shadow-none px-3",
+  outline: "bg-transparent text-dg border border-lg px-3",
+  filterOff: "bg-transparent text-gr border border-lg px-3",
+  filterOn: "bg-brand/10 text-brand border border-brand px-3",
+  nomargin: "bg-wh text-dg border-0 shadow-none px-0",
 };
 
 export function MiniButton({
@@ -34,7 +35,7 @@ export function MiniButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "flex items-center text-h6b justify-center rounded-full py-[6px] px-3 transition-all duration-150 min-w-0 h-auto cursor-pointer",
+        "flex items-center text-h6b justify-center rounded-full py-[6px] transition-all duration-150 min-w-0 h-auto cursor-pointer",
         variantClass[variant],
         className
       )}

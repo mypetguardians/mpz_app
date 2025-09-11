@@ -7,6 +7,7 @@ import { Bell } from "@phosphor-icons/react";
 import { IconButton } from "@/components/ui/IconButton";
 import { TopBar } from "@/components/common/TopBar";
 import { useGetNotifications } from "@/hooks/query/useGetNotifications";
+import { useNotificationSocket } from "@/hooks/useNotificationSocket";
 
 interface HomeHeaderProps {
   isLoggedIn: boolean;
@@ -14,11 +15,16 @@ interface HomeHeaderProps {
 
 export function HomeHeader({ isLoggedIn }: HomeHeaderProps) {
   const { data: notificationsData } = useGetNotifications();
+  const { unreadCount: socketUnreadCount, isConnected } =
+    useNotificationSocket();
 
-  // 읽지 않은 알림이 있는지 확인
-  const hasUnreadNotifications = notificationsData?.data?.some(
-    (notification) => notification.is_read === false
-  );
+  // 읽지 않은 알림이 있는지 확인 (소켓 연결 시 소켓 데이터 우선, 아니면 API 데이터)
+  const hasUnreadNotifications =
+    isConnected && socketUnreadCount > 0
+      ? true
+      : notificationsData?.data?.some(
+          (notification) => notification.is_read === false
+        );
 
   return (
     <TopBar
@@ -37,7 +43,7 @@ export function HomeHeader({ isLoggedIn }: HomeHeaderProps) {
                 size="iconM"
               />
               {hasUnreadNotifications && (
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
+                <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red rounded-full"></div>
               )}
             </div>
           </Link>

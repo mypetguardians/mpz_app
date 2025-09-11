@@ -5,11 +5,13 @@ interface UserProfile {
   id: string;
   name: string;
   email: string;
-  nickname: string | null;
-  phoneNumber: string | null;
+  birth?: string | null;
+  address?: string | null;
+  nickname?: string | null;
+  phoneNumber?: string | null;
   userType: "일반사용자" | "센터관리자" | "훈련사" | "센터최고관리자" | null;
   isPhoneVerified: boolean | null;
-  image: string | null;
+  image?: string | null;
   createdAt: string;
 }
 
@@ -17,7 +19,7 @@ export const useGetMyProfile = () => {
   return useQuery<UserProfile>({
     queryKey: ["myProfile"],
     queryFn: async () => {
-      const response = await instance.get<UserProfile>("/users/profile");
+      const response = await instance.get<UserProfile>("/auth/me");
       return response.data;
     },
     retry: false, // 401 에러 시 재시도하지 않음

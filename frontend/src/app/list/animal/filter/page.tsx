@@ -9,7 +9,6 @@ import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
 import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
 import { InfoCard } from "@/components/ui/InfoCard";
-import { location } from "@/app/mock";
 import { FilterState } from "@/lib/filter-utils";
 
 import BreedFilter from "./_components/BreedFilter";
@@ -20,14 +19,12 @@ import {
   genderOptions,
   protectionStatusOptions,
   expertOpinionOptions,
-} from "@/app/mock";
-import { useGetMyCenter } from "@/hooks/query/useGetMyCenter";
+  regionOptions,
+} from "@/data/filterOptions";
 
 function AnimalFilterContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { data: center } = useGetMyCenter();
-  const isSubscriber = center?.isSubscriber;
 
   const [selectedBreed, setSelectedBreed] = useState("");
   const [breedSearchTerm, setBreedSearchTerm] = useState("");
@@ -227,7 +224,7 @@ function AnimalFilterContent() {
         {/* 지역 (Region) */}
         <MultiSelectFilter
           title="지역"
-          options={location}
+          options={regionOptions}
           selectedValues={selectedRegions}
           onSelectionChange={setSelectedRegions}
           layout="grid"
@@ -270,15 +267,12 @@ function AnimalFilterContent() {
         )}
 
         {/* 전문가 분석 의견 (Expert Analysis Opinion) */}
-        {/* 구독자용 디자인 추가 필요 */}
-        {isSubscriber && (
-          <MultiSelectFilter
-            title="전문가 분석 의견"
-            options={expertOpinionOptions}
-            selectedValues={selectedExpertOpinion}
-            onSelectionChange={setSelectedExpertOpinion}
-          />
-        )}
+        <MultiSelectFilter
+          title="전문가 분석 의견"
+          options={expertOpinionOptions}
+          selectedValues={selectedExpertOpinion}
+          onSelectionChange={setSelectedExpertOpinion}
+        />
       </div>
 
       {/* Fixed Bottom Bar */}

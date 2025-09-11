@@ -35,10 +35,13 @@ const transformAnimalFavorites = (apiResponse: AnimalFavoritesApiResponse) => {
       breed: item.breed,
       age: item.age,
       isFemale: item.isFemale,
-      status: item.status,
+      status: item.status || item.protection_status, // status가 없으면 protection_status 사용
+      protection_status: item.protection_status,
+      adoption_status: item.adoption_status,
       personality: item.personality,
       centerId: item.centerId,
       centerName: item.centerName,
+      animalImages: item.animalImages || [],
       isFavorited: item.isFavorited,
       favoritedAt: item.favoritedAt,
     })),
@@ -87,8 +90,10 @@ export const useGetAnimalFavorites = (page?: number, limit?: number) => {
     queryKey: ["animalFavorites", page, limit],
     queryFn: () => fetchAnimalFavorites(page, limit),
     select: transformAnimalFavorites,
-    staleTime: 5 * 60 * 1000, // 5분
+    staleTime: 1 * 60 * 1000, // 1분으로 단축 (더 자주 업데이트)
     gcTime: 10 * 60 * 1000, // 10분
+    refetchOnWindowFocus: true, // 윈도우 포커스 시 refetch
+    refetchOnMount: true, // 마운트 시 refetch
   });
 };
 

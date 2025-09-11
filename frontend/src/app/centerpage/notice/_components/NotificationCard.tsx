@@ -6,6 +6,7 @@ interface NotificationCardProps {
   message?: string;
   date: string;
   id?: string;
+  isImportant?: boolean;
   onClick?: () => void;
 }
 
@@ -13,6 +14,7 @@ function NotificationCard({
   variant = "primary",
   message,
   date,
+  isImportant = false,
   onClick,
 }: NotificationCardProps) {
   const isPressed = variant === "pressed";
@@ -26,7 +28,10 @@ function NotificationCard({
       style={{ width: isPressed ? 480 : "auto" }}
       onClick={onClick}
     >
-      <Bell className={cn("mt-1", "text-brand")} size={16} />
+      <Bell
+        className={cn("mt-1", isImportant ? "text-red" : "text-brand")}
+        size={16}
+      />
       <div className="flex flex-col gap-1">
         <div className="flex flex-col">
           <h6 className="text-dg">공지</h6>

@@ -103,7 +103,8 @@ export default function AdoptorlistDetailPage({
     name: adopterDetail.animal.name,
     breed: adopterDetail.animal.breed,
     isFemale: adopterDetail.animal.isFemale,
-    status: adopterDetail.animal.status as PetCardAnimal["status"],
+    protection_status: "보호중",
+    adoption_status: "입양진행중",
     centerId: "", // 센터 ID는 여기서 필요하지 않음
     animalImages: adopterDetail.animal.imageUrls.map((url, index) => ({
       id: `temp-${index}`,
@@ -174,17 +175,30 @@ export default function AdoptorlistDetailPage({
                 name: adopterDetail.animal.name,
                 breed: adopterDetail.animal.breed,
                 isFemale: adopterDetail.animal.isFemale,
-                status: adopterDetail.animal.status as
-                  | "보호중"
-                  | "입양완료"
-                  | "임시보호중"
-                  | "반환"
-                  | "방사"
-                  | "자연사"
-                  | "안락사"
-                  | "입양대기"
-                  | "취소"
-                  | "입양진행중",
+                status: (() => {
+                  const originalStatus = adopterDetail.animal.status;
+                  // Animal 타입의 status 필드에 맞게 매핑
+                  switch (originalStatus) {
+                    case "안락사":
+                    case "자연사":
+                      return "무지개다리";
+                    case "취소":
+                      return "보호중";
+                    case "입양진행중":
+                      return "입양대기";
+                    default:
+                      return originalStatus as
+                        | "보호중"
+                        | "입양대기"
+                        | "입양완료"
+                        | "무지개다리"
+                        | "임시보호중"
+                        | "반환"
+                        | "방사";
+                  }
+                })(),
+                protection_status: "보호중",
+                adoption_status: "입양진행중",
                 age: adopterDetail.animal.age,
                 weight: adopterDetail.animal.weight,
                 color: adopterDetail.animal.color,

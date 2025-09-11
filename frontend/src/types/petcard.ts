@@ -260,7 +260,7 @@ export const defaultTransformRawAnimalToPetCard: TransformFunction<
   waitingDays: raw.waiting_days,
   activityLevel: raw.activity_level?.toString() || null,
   sensitivity: raw.sensitivity?.toString() || null,
-  sociability: raw.sensitivity?.toString() || null,
+  sociability: raw.sociability?.toString() || null,
   separationAnxiety: raw.separation_anxiety?.toString() || null,
   basicTraining: raw.basic_training?.toString() || null,
   personality: raw.personality,

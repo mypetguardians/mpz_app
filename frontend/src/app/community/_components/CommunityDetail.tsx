@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 
-import { ThumbsUp, DotsThree, Bell } from "@phosphor-icons/react";
+import { ThumbsUp, DotsThree, Bell, User } from "@phosphor-icons/react";
 import { IconButton } from "@/components/ui/IconButton";
 import { MiniButton } from "@/components/ui/MiniButton";
 import type { Post } from "@/types/posts";
@@ -40,38 +40,49 @@ export function CommunityDetail({
   onLoginRequired,
   isAuthorSubscriber,
 }: CommunityDetailProps) {
-  const { images, title, content, createdAt, userId, tags, likeCount } = post;
+  const {
+    images,
+    title,
+    content,
+    created_at,
+    user_id,
+    tags,
+    like_count,
+    is_liked,
+  } = post;
   const { isAuthenticated } = useAuth();
-  const [currentLikeCount, setCurrentLikeCount] = useState(likeCount || 0);
-  const [isLiked, setIsLiked] = useState(false);
+  const [currentLikeCount, setCurrentLikeCount] = useState(like_count || 0);
+  const [isLiked, setIsLiked] = useState(is_liked || false);
 
   const toggleLikeMutation = useToggleLike();
   const { data: likeData, isLoading: isLikeLoading } = useCheckPostLike(
-    post.id
+    post.id,
+    isAuthenticated
   );
 
-  const user = users.find((u) => u.id === userId);
+  const user = users.find((u) => u.id === user_id);
   const author = user?.nickname || "사용자";
   const profileImage = user?.profileImg;
 
   // 좋아요 상태 초기화
   useEffect(() => {
-    if (likeData) {
-      setIsLiked(likeData.isLiked);
-      setCurrentLikeCount(likeData.likeCount);
+    if (isAuthenticated && likeData) {
+      setIsLiked(likeData.is_liked);
+      setCurrentLikeCount(likeData.total_likes);
+    } else {
+      setIsLiked(is_liked || false);
+      setCurrentLikeCount(like_count || 0);
     }
-  }, [likeData]);
-
-  // 게시글의 기본 좋아요 개수로 초기화
-  useEffect(() => {
-    if (likeCount !== undefined) {
-      setCurrentLikeCount(likeCount);
-    }
-  }, [likeCount]);
+  }, [isAuthenticated, likeData, is_liked, like_count]);
 
   const handleLikeToggle = async () => {
     if (!isAuthenticated) {
       onLoginRequired?.();
+      return;
+    }
+
+    // 로딩 중이면 중복 요청 방지
+    if (toggleLikeMutation.isPending || isLikeLoading) {
       return;
     }
 
@@ -81,15 +92,18 @@ export function CommunityDetail({
         ? currentLikeCount + 1
         : currentLikeCount - 1;
 
+      // 낙관적 업데이트
       setIsLiked(newIsLiked);
       setCurrentLikeCount(newLikeCount);
 
       const result = await toggleLikeMutation.mutateAsync({ postId: post.id });
 
-      setIsLiked(result.isLiked);
-      setCurrentLikeCount(result.likeCount);
+      // 서버 응답으로 최종 상태 업데이트
+      setIsLiked(result.is_liked);
+      setCurrentLikeCount(result.total_likes);
     } catch (error) {
       console.error("좋아요 처리 실패:", error);
+      // 실패 시 이전 상태로 롤백
       setIsLiked(!isLiked);
       setCurrentLikeCount(
         isLiked ? currentLikeCount - 1 : currentLikeCount + 1
@@ -160,22 +174,34 @@ export function CommunityDetail({
   return (
     <div className="w-full">
       {/* 사용자 정보 */}
-      <div className="flex items-center justify-between mb-3 px-4">
+      <div className="flex items-center justify-between pb-3 px-4">
         <div
           className={`flex items-center gap-3 ${
             onUserClick
               ? "cursor-pointer hover:opacity-70 transition-opacity"
               : ""
           }`}
-          onClick={onUserClick ? () => onUserClick(userId) : undefined}
+          onClick={onUserClick ? () => onUserClick(user_id) : undefined}
         >
           <div className="relative w-10 h-10 rounded-full overflow-hidden">
-            <Image
-              src={profileImage || "/img/dummyImg.png"}
-              alt={author}
-              fill
-              className="object-cover"
-            />
+            {profileImage && profileImage !== "" ? (
+              <Image
+                src={profileImage}
+                alt={author}
+                fill
+                className="object-cover rounded-full w-10 h-10"
+                unoptimized
+                onError={(e) => {
+                  console.error("ProfileInfo Image load error:", e);
+                }}
+              />
+            ) : (
+              <div
+                className={`w-10 h-10 bg-lg flex items-center justify-center p-1 rounded-full`}
+              >
+                <User size={28} weight="regular" className="text-gr" />
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <h4 className="font-semibold text-sm">{author}</h4>
@@ -203,7 +229,7 @@ export function CommunityDetail({
               text="신고하기"
               leftIcon={<Bell size={20} />}
               onClick={onReport}
-              className="text-sm text-gray-500 py-1"
+              variant="nomargin"
             />
           )}
         </div>
@@ -211,19 +237,19 @@ export function CommunityDetail({
 
       {/* 이미지 갤러리 */}
       {renderGallery()}
-      <div className="flex flex-col gap-1 items-start mb-2 px-4">
+      <div className="flex flex-col gap-2 items-start px-4">
         {/* 제목 */}
-        <h4 className="text-black">{title}</h4>
+        <h4 className="text-black mt-3">{title}</h4>
 
         {/* 내용 */}
-        <p className="text-gray-800 leading-relaxed">
+        <p className="text-dg body2">
           {content.replace(/#[ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9_-]+/g, "")}
         </p>
 
         {/* 날짜 */}
-        {createdAt && (
+        {created_at && (
           <div className="text-gray-500 text-sm">
-            {getRelativeTime(createdAt)}
+            {getRelativeTime(created_at)}
           </div>
         )}
       </div>
@@ -235,9 +261,13 @@ export function CommunityDetail({
           leftIcon={<ThumbsUp />}
           variant={isLiked ? "filterOn" : "filterOff"}
           onClick={handleLikeToggle}
-          disabled={toggleLikeMutation.isPending || isLikeLoading}
+          disabled={
+            !isAuthenticated || toggleLikeMutation.isPending || isLikeLoading
+          }
           className={
-            toggleLikeMutation.isPending ? "opacity-50 cursor-not-allowed" : ""
+            !isAuthenticated || toggleLikeMutation.isPending || isLikeLoading
+              ? "cursor-not-allowed opacity-50"
+              : ""
           }
         />
         {tags &&

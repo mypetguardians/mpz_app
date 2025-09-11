@@ -27,9 +27,9 @@ def _build_center_response(center, show_private_location=False):
         name=center.name,
         center_number=center.center_number,
         description=center.description,
-        location=center.location if (show_private_location or center.is_public) else None,
+        location=center.location if (show_private_location or (center.is_public and center.show_location)) else None,
         region=center.region,
-        phone_number=center.phone_number,
+        phone_number=center.phone_number if (show_private_location or (center.is_public and center.show_phone_number)) else None,
         adoption_procedure=center.adoption_procedure,
         adoption_guidelines=center.adoption_guidelines,
         has_monitoring=center.has_monitoring,
@@ -41,6 +41,10 @@ def _build_center_response(center, show_private_location=False):
         adoption_price=center.adoption_price,
         image_url=center.image_url,
         is_subscribed=center.is_subscribed,
+        has_volunteer=center.has_volunteer,
+        has_foster_care=center.has_foster_care,
+        show_phone_number=center.show_phone_number,
+        show_location=center.show_location,
         created_at=center.created_at.isoformat(),
         updated_at=center.updated_at.isoformat(),
     )
@@ -138,7 +142,7 @@ async def get_center_notices(request: HttpRequest, center_id: str):
             try:
                 center = Center.objects.get(id=center_id)
             except Center.DoesNotExist:
-                raise HttpError(404, "보호소를 찾을 수 없습니다")
+                raise HttpError(404, "보호소를 찾을 수 없습니다 !")
             
             # 공지사항 조회 (notices 앱에서)
             from notices.models import Notice
@@ -151,6 +155,7 @@ async def get_center_notices(request: HttpRequest, center_id: str):
             notices_response = [
                 CenterNoticeOut(
                     id=str(notice.id),
+                    title=notice.title,
                     content=notice.content,
                     is_important=notice.notice_type in ['important', 'urgent'],
                     created_at=notice.created_at.isoformat(),

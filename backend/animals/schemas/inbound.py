@@ -1,5 +1,5 @@
 from ninja import Schema, Field
-from typing import Optional
+from typing import Optional, List
 from datetime import date
 from decimal import Decimal
 
@@ -7,13 +7,15 @@ from decimal import Decimal
 class AnimalCreateIn(Schema):
     """동물 등록 입력 스키마"""
     name: str = Field(..., min_length=1, max_length=50, description="동물 이름")
+    center_id: Optional[str] = Field(None, description="센터 ID (훈련사가 동물을 등록할 때 필요)")
     is_female: bool = Field(..., description="암컷 여부")
     age: Optional[int] = Field(None, ge=0, le=300, description="나이 (개월 단위, 0-300개월)")
     weight: Optional[Decimal] = Field(None, ge=Decimal('0.01'), le=Decimal('999.99'), description="체중 (kg, 0.01-999.99kg)")
     color: Optional[str] = Field(None, max_length=50, description="색상")
     breed: Optional[str] = Field(None, max_length=50, description="품종")
     description: Optional[str] = Field(None, max_length=1000, description="동물 설명")
-    status: Optional[str] = Field("보호중", description="동물 상태 (보호중, 입양대기, 입양완료)")
+    protection_status: Optional[str] = Field("보호중", description="보호 상태 (보호중, 안락사, 자연사, 반환)")
+    adoption_status: Optional[str] = Field("입양가능", description="입양 상태 (입양가능, 입양진행중, 입양완료, 입양불가)")
     activity_level: Optional[str] = Field(None, max_length=50, description="활동량 수준")
     sensitivity: Optional[str] = Field(None, max_length=50, description="예민함 정도")
     sociability: Optional[str] = Field(None, max_length=50, description="사회성")
@@ -27,6 +29,16 @@ class AnimalCreateIn(Schema):
     found_location: Optional[str] = Field(None, max_length=200, description="발견 장소")
     personality: Optional[str] = Field(None, max_length=500, description="성격")
     comment: Optional[str] = Field(None, max_length=1000, description="공공데이터 특이사항 코멘트")
+    
+    # 이미지 관련 필드
+    image_urls: Optional[List[str]] = Field(None, description="동물 이미지 URL 목록")
+
+
+class AnimalImageCreateIn(Schema):
+    """동물 이미지 생성 입력 스키마"""
+    image_url: str = Field(..., max_length=500, description="이미지 URL")
+    is_primary: Optional[bool] = Field(False, description="대표 이미지 여부")
+    sequence: Optional[int] = Field(0, description="이미지 순서")
 
 
 class AnimalUpdateIn(Schema):
@@ -38,7 +50,8 @@ class AnimalUpdateIn(Schema):
     color: Optional[str] = Field(None, max_length=50, description="색상")
     breed: Optional[str] = Field(None, max_length=50, description="품종")
     description: Optional[str] = Field(None, max_length=1000, description="동물 설명")
-    status: Optional[str] = Field(None, description="동물 상태 (보호중, 입양대기, 입양완료)")
+    protection_status: Optional[str] = Field(None, description="보호 상태 (보호중, 안락사, 자연사, 반환)")
+    adoption_status: Optional[str] = Field(None, description="입양 상태 (입양가능, 입양진행중, 입양완료, 입양불가)")
     activity_level: Optional[str] = Field(None, max_length=50, description="활동량 수준")
     sensitivity: Optional[str] = Field(None, max_length=50, description="예민함 정도")
     sociability: Optional[str] = Field(None, max_length=50, description="사회성")
@@ -55,7 +68,8 @@ class AnimalUpdateIn(Schema):
 
 class AnimalStatusUpdateIn(Schema):
     """동물 상태 변경 입력 스키마"""
-    status: str = Field(..., description="새로운 상태")
+    protection_status: Optional[str] = Field(None, description="새로운 보호 상태")
+    adoption_status: Optional[str] = Field(None, description="새로운 입양 상태")
 
 
 class AnimalListQueryIn(Schema):

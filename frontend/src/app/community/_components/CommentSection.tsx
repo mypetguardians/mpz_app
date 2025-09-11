@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { CommentInput } from "./CommentInput";
 import { CommentItem } from "./CommentItem";
 import type { Comment } from "@/types/posts";
@@ -29,13 +29,48 @@ export function CommentSection({
   comments,
   postId,
   isLoading = false,
-  pagination,
 }: CommentSectionProps) {
   const { isAuthenticated } = useAuth();
   const [showReplies, setShowReplies] = useState<Record<string, boolean>>({});
   const [replyInputStates, setReplyInputStates] = useState<
     Record<string, boolean>
   >({});
+
+  // 모든 사용자 정보를 수집 (댓글과 대댓글에서)
+  const allUsers = React.useMemo(() => {
+    const userMap = new Map();
+
+    comments.forEach((comment) => {
+      if (comment.user) {
+        userMap.set(comment.user_id, comment.user);
+      }
+
+      comment.replies?.forEach((reply) => {
+        if (reply.user) {
+          userMap.set(reply.user_id, reply.user);
+        }
+      });
+    });
+
+    return userMap;
+  }, [comments]);
+
+  // 대댓글에 사용자 정보가 없는 경우 보완
+  const enhancedComments = React.useMemo(() => {
+    return comments.map((comment) => ({
+      ...comment,
+      replies:
+        comment.replies?.map((reply) => ({
+          ...reply,
+          user: reply.user ||
+            allUsers.get(reply.user_id) || {
+              id: reply.user_id,
+              nickname: `사용자${reply.user_id?.slice(-4) || ""}`,
+              image: "",
+            },
+        })) || [],
+    }));
+  }, [comments, allUsers]);
 
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [toast, setToast] = useState<{
@@ -133,15 +168,28 @@ export function CommentSection({
           {(() => {
             // 메인 댓글 수
             const mainCommentCount = comments.length;
-            // 대댓글 수 계산
-            const replyCount = comments.reduce(
-              (total, comment) => total + (comment.replies?.length || 0),
-              0
-            );
-            // 총 댓글 수
-            const totalCommentCount = mainCommentCount + replyCount;
+            // 대댓글 수 계산 (replies가 존재하는 경우만)
+            const replyCount = comments.reduce((total, comment) => {
+              const repliesLength = comment.replies?.length || 0;
+              return total + repliesLength;
+            }, 0);
+            // 총 댓글 수 = 메인 댓글 + 모든 대댓글
+            const totalCount = mainCommentCount + replyCount;
 
-            return pagination?.totalCnt || totalCommentCount;
+            // 디버깅용 로그 (개발환경에서만)
+            if (process.env.NODE_ENV === "development") {
+              console.log("댓글 수 계산:", {
+                mainCommentCount,
+                replyCount,
+                totalCount,
+                comments: comments.map((c) => ({
+                  id: c.id,
+                  repliesCount: c.replies?.length || 0,
+                })),
+              });
+            }
+
+            return totalCount;
           })()}
         </h4>
 
@@ -156,7 +204,7 @@ export function CommentSection({
 
         {/* 댓글 목록 */}
         <div className="space-y-4">
-          {comments.map((comment) => (
+          {enhancedComments.map((comment) => (
             <div key={comment.id} className="space-y-3">
               {/* 메인 댓글 */}
               <CommentItem

@@ -200,7 +200,8 @@ function MatchedPetsList({
                   name: String(animalData.animal_name),
                   breed: String(animalData.breed || "믹스견"),
                   isFemale: String(animalData.gender) === "암",
-                  status: "보호중" as const,
+                  protection_status: "보호중" as const,
+                  adoption_status: "입양가능" as const,
                   centerId: String(animalData.center_name || "AI 매칭"),
                   animalImages: [
                     {
@@ -228,7 +229,8 @@ function MatchedPetsList({
                   name: petInfo.name,
                   breed: petInfo.color || "",
                   isFemale: petInfo.isFemale,
-                  status: "보호중" as const,
+                  protection_status: "보호중" as const,
+                  adoption_status: "입양가능" as const,
                   centerId: petInfo.center,
                   animalImages: petInfo.imageUrls.map(
                     (img: string, imgIndex: number) => ({
@@ -301,7 +303,7 @@ export default function MatchingCompletePage() {
   const [isLoading, setIsLoading] = React.useState(true);
   const { user } = useAuth();
   const { aiMatchingResult, answers, setAIMatchingResult } =
-    useMatchingStepStore();
+    useMatchingStepStore(user?.id);
 
   const { mutate: postAnimalMatching } = usePostAnimalMatching({
     onSuccess: (data) => {
@@ -312,7 +314,8 @@ export default function MatchingCompletePage() {
     },
   });
 
-  // const aiTestQuery = useGetUserAIPersonalityTest(user?.id ?? "");
+  // useGetUserAIPersonalityTest로 AI 테스트 결과 가져오기 (필요시 사용)
+  // const { data: aiTestResult } = useGetUserAIPersonalityTest(user?.id ?? "");
 
   // AI 매칭 결과를 기반으로 매칭 타입 결정
   const matchingType: MatchingResultType =

@@ -25,7 +25,7 @@ export function PetSectionError({
       </div>
 
       {showLocationFilter && (
-        <div className="flex items-center overflow-x-auto gap-[6px] mb-4">
+        <div className="flex items-center overflow-x-auto scrollbar-hide gap-[6px] mb-4">
           {locations.map((loc) => (
             <button
               key={loc}

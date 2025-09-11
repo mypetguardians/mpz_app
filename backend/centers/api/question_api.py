@@ -63,14 +63,21 @@ async def get_question_forms(request: HttpRequest):
         @sync_to_async
         def get_questions_list():
             # 센터 관리자 권한 확인
-            if current_user.user_type != "센터관리자":
-                raise HttpError(403, "센터 관리자만 접근할 수 있습니다")
+            if current_user.user_type not in ["센터관리자", "센터최고관리자"]:
+                raise HttpError(403, "센터 관리자 이상의 권한이 필요합니다")
 
-            # 사용자의 센터 조회
+            # 사용자의 센터 조회 (owner 또는 center 필드로 연결된 센터)
             try:
+                # 먼저 owner로 조회 시도
                 user_center = Center.objects.get(owner=current_user)
             except Center.DoesNotExist:
-                raise HttpError(400, "등록된 센터가 없습니다")
+                # owner가 아니면 center 필드로 조회
+                try:
+                    user_center = current_user.center
+                    if not user_center:
+                        raise HttpError(400, "등록된 센터가 없습니다")
+                except AttributeError:
+                    raise HttpError(400, "등록된 센터가 없습니다")
 
             # 센터의 질문 폼들을 순서대로 조회
             questions = QuestionForm.objects.filter(
@@ -91,6 +98,49 @@ async def get_question_forms(request: HttpRequest):
         raise
     except Exception as e:
         raise HttpError(500, f"질문 폼 목록 조회 중 오류가 발생했습니다: {str(e)}")
+
+
+@router.get(
+    "/center/{center_id}",
+    summary="[R] 특정 센터의 질문 폼 목록 조회",
+    description="center_id를 받아서 해당 센터의 질문 폼 목록을 조회합니다. 인증이 필요하지 않은 공개 API입니다.",
+    response={
+        200: QuestionFormListOut,
+        400: ErrorOut,
+        404: ErrorOut,
+        500: ErrorOut,
+    },
+)
+async def get_question_forms_by_center(request: HttpRequest, center_id: str):
+    """특정 센터의 질문 폼 목록을 조회합니다."""
+    try:
+        @sync_to_async
+        def get_center_questions():
+            # center_id로 센터 조회
+            try:
+                center = Center.objects.get(id=center_id)
+            except Center.DoesNotExist:
+                raise HttpError(404, "센터를 찾을 수 없습니다")
+            
+            # 해당 센터의 모든 질문 폼 조회 (순서대로)
+            questions = QuestionForm.objects.filter(
+                center=center
+            ).order_by('sequence')
+            
+            # 응답 데이터 변환
+            questions_response = [
+                _build_question_response(question)
+                for question in questions
+            ]
+            
+            return {"questions": questions_response}
+        
+        return await get_center_questions()
+        
+    except HttpError:
+        raise
+    except Exception as e:
+        raise HttpError(500, f"특정 센터의 질문 폼 목록 조회 중 오류가 발생했습니다: {str(e)}")
 
 
 @router.post(
@@ -120,14 +170,21 @@ async def create_question_form(request: HttpRequest, data: QuestionFormCreateIn)
         @sync_to_async
         def create_question():
             # 센터 관리자 권한 확인
-            if current_user.user_type != "센터관리자":
-                raise HttpError(403, "센터 관리자만 접근할 수 있습니다")
+            if current_user.user_type not in ["센터관리자", "센터최고관리자"]:
+                raise HttpError(403, "센터 관리자 이상의 권한이 필요합니다")
 
-            # 사용자의 센터 조회
+            # 사용자의 센터 조회 (owner 또는 center 필드로 연결된 센터)
             try:
+                # 먼저 owner로 조회 시도
                 user_center = Center.objects.get(owner=current_user)
             except Center.DoesNotExist:
-                raise HttpError(400, "등록된 센터가 없습니다")
+                # owner가 아니면 center 필드로 조회
+                try:
+                    user_center = current_user.center
+                    if not user_center:
+                        raise HttpError(400, "등록된 센터가 없습니다")
+                except AttributeError:
+                    raise HttpError(400, "등록된 센터가 없습니다")
 
             # sequence가 제공되지 않은 경우 자동으로 마지막 순서 + 1로 설정
             sequence = data.sequence
@@ -186,14 +243,21 @@ async def update_question_form(request: HttpRequest, question_id: str, data: Que
         @sync_to_async
         def update_question():
             # 센터 관리자 권한 확인
-            if current_user.user_type != "센터관리자":
-                raise HttpError(403, "센터 관리자만 접근할 수 있습니다")
+            if current_user.user_type not in ["센터관리자", "센터최고관리자"]:
+                raise HttpError(403, "센터 관리자 이상의 권한이 필요합니다")
 
-            # 사용자의 센터 조회
+            # 사용자의 센터 조회 (owner 또는 center 필드로 연결된 센터)
             try:
+                # 먼저 owner로 조회 시도
                 user_center = Center.objects.get(owner=current_user)
             except Center.DoesNotExist:
-                raise HttpError(400, "등록된 센터가 없습니다")
+                # owner가 아니면 center 필드로 조회
+                try:
+                    user_center = current_user.center
+                    if not user_center:
+                        raise HttpError(400, "등록된 센터가 없습니다")
+                except AttributeError:
+                    raise HttpError(400, "등록된 센터가 없습니다")
 
             # 질문이 존재하고 사용자의 센터에 속하는지 확인
             try:
@@ -260,14 +324,21 @@ async def update_question_sequence(request: HttpRequest, question_id: str, data:
         @sync_to_async
         def update_sequence():
             # 센터 관리자 권한 확인
-            if current_user.user_type != "센터관리자":
-                raise HttpError(403, "센터 관리자만 접근할 수 있습니다")
+            if current_user.user_type not in ["센터관리자", "센터최고관리자"]:
+                raise HttpError(403, "센터 관리자 이상의 권한이 필요합니다")
 
-            # 사용자의 센터 조회
+            # 사용자의 센터 조회 (owner 또는 center 필드로 연결된 센터)
             try:
+                # 먼저 owner로 조회 시도
                 user_center = Center.objects.get(owner=current_user)
             except Center.DoesNotExist:
-                raise HttpError(400, "등록된 센터가 없습니다")
+                # owner가 아니면 center 필드로 조회
+                try:
+                    user_center = current_user.center
+                    if not user_center:
+                        raise HttpError(400, "등록된 센터가 없습니다")
+                except AttributeError:
+                    raise HttpError(400, "등록된 센터가 없습니다")
 
             # 질문이 존재하고 사용자의 센터에 속하는지 확인
             try:
@@ -346,14 +417,21 @@ async def delete_question_form(request: HttpRequest, question_id: str):
         @sync_to_async
         def delete_question():
             # 센터 관리자 권한 확인
-            if current_user.user_type != "센터관리자":
-                raise HttpError(403, "센터 관리자만 접근할 수 있습니다")
+            if current_user.user_type not in ["센터관리자", "센터최고관리자"]:
+                raise HttpError(403, "센터 관리자 이상의 권한이 필요합니다")
 
-            # 사용자의 센터 조회
+            # 사용자의 센터 조회 (owner 또는 center 필드로 연결된 센터)
             try:
+                # 먼저 owner로 조회 시도
                 user_center = Center.objects.get(owner=current_user)
             except Center.DoesNotExist:
-                raise HttpError(400, "등록된 센터가 없습니다")
+                # owner가 아니면 center 필드로 조회
+                try:
+                    user_center = current_user.center
+                    if not user_center:
+                        raise HttpError(400, "등록된 센터가 없습니다")
+                except AttributeError:
+                    raise HttpError(400, "등록된 센터가 없습니다")
 
             # 질문이 존재하고 사용자의 센터에 속하는지 확인
             try:

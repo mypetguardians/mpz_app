@@ -39,12 +39,6 @@ type PublicType = "center" | "public";
 const uploadFormSchema = z.object({
   title: z.string().min(1, "제목을 입력해주세요"),
   content: z.string().min(1, "내용을 입력해주세요"),
-  selectedPet: z
-    .object({})
-    .nullable()
-    .refine((val) => val !== null, "관련 공고를 선택해주세요"),
-  uploadedImages: z.array(z.string()).optional(),
-  tags: z.array(z.string()).optional(),
 });
 
 export default function CommunityUploadPage() {
@@ -52,9 +46,6 @@ export default function CommunityUploadPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [selectedPet, setSelectedPet] = useState<ExtendedPetCardAnimal | null>(
-    null
-  );
-  const [selectedAdoptionId, setSelectedAdoptionId] = useState<string | null>(
     null
   );
 
@@ -96,7 +87,8 @@ export default function CommunityUploadPage() {
       name: adoption.animal_name,
       breed: adoption.animal_breed,
       isFemale: adoption.animal_is_female,
-      status: adoption.animal_status as PetCardAnimal["status"],
+      protection_status: "보호중",
+      adoption_status: "입양진행중",
       centerId: adoption.center_id,
       animalImages: adoption.animal_image
         ? [
@@ -128,11 +120,10 @@ export default function CommunityUploadPage() {
         name: favoriteAnimal.name,
         breed: favoriteAnimal.breed,
         isFemale: favoriteAnimal.isFemale,
-        status: favoriteAnimal.status,
+        protection_status: "보호중",
+        adoption_status: "입양가능",
         centerId: favoriteAnimal.centerId,
-        animalImages: [
-          { id: "1", imageUrl: "/img/dummyImg.png", orderIndex: 1 },
-        ],
+        animalImages: [],
         foundLocation: "위치 정보 확인 불가", // 기본 지역 설정
       };
     }) as PetCardAnimal[];
@@ -180,9 +171,8 @@ export default function CommunityUploadPage() {
     setSelectedPet(null);
   };
 
-  const handlePetSelect = (pet: PetCardAnimal, adoptionId: string) => {
+  const handlePetSelect = (pet: PetCardAnimal) => {
     setSelectedPet(pet);
-    setSelectedAdoptionId(adoptionId);
     setShowPetSelection(false);
   };
 
@@ -234,9 +224,6 @@ export default function CommunityUploadPage() {
     const formData = {
       title,
       content,
-      selectedPet,
-      uploadedImages: uploadedImageUrls,
-      tags,
     };
 
     try {
@@ -245,7 +232,7 @@ export default function CommunityUploadPage() {
     } catch {
       return false;
     }
-  }, [title, content, selectedPet, uploadedImageUrls, tags]);
+  }, [title, content]);
 
   const handleConfirmSave = async () => {
     try {
@@ -286,8 +273,8 @@ export default function CommunityUploadPage() {
         content,
         tags,
         images: imageUrls,
-        adoption_id: selectedAdoptionId || undefined,
-        is_all_access: publicType === "public", // 전체공개 = true, 센터공개 = false
+        animal_id: selectedPet?.id || undefined,
+        is_all_access: publicType === "public",
       };
 
       console.log("전송할 포스트 데이터:", postData);
@@ -470,19 +457,14 @@ export default function CommunityUploadPage() {
         activeTab={activeTab}
         onTabChange={setActiveTab}
       >
-        <div className="h-[480px] overflow-y-auto">
+        <div className="h-[480px] overflow-y-auto scrollbar-hide">
           {animals.length > 0 ? (
             <>
-              <div className="flex flex-wrap justify-start gap-2 px-4">
+              <div className="flex flex-wrap justify-start gap-2">
                 {animals.map((pet: PetCardAnimal) => (
                   <div
                     key={pet.id}
-                    onClick={() =>
-                      handlePetSelect(
-                        pet,
-                        (pet as ExtendedPetCardAnimal).adoptionId || ""
-                      )
-                    }
+                    onClick={() => handlePetSelect(pet)}
                     className="cursor-pointer w-[calc(50%-4px)]"
                   >
                     <PetCard
@@ -521,7 +503,7 @@ export default function CommunityUploadPage() {
         open={showBackConfirmSheet}
         onClose={() => setShowBackConfirmSheet(false)}
         variant="primary"
-        title="잠을 닫으면 저장되지 않아요!"
+        title="창을 닫으면 저장되지 않아요!"
         description="작성한 내용은 저장 및 복구가 불가능해요."
         leftButtonText="취소"
         rightButtonText="괜찮아요"

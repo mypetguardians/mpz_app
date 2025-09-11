@@ -15,6 +15,18 @@ class ContractTemplateOut(Schema):
     updated_at: str = Field(..., description="수정일시 (ISO 형식)")
 
 
+class ConsentOut(Schema):
+    """동의서 출력 스키마"""
+    id: str = Field(..., description="동의서 ID")
+    center_id: str = Field(..., description="센터 ID")
+    title: str = Field(..., description="동의서 제목")
+    description: Optional[str] = Field(None, description="동의서 설명")
+    content: str = Field(..., description="동의서 내용")
+    is_active: bool = Field(..., description="활성화 상태")
+    created_at: str = Field(..., description="생성일시 (ISO 형식)")
+    updated_at: str = Field(..., description="수정일시 (ISO 형식)")
+
+
 class SuccessOut(Schema):
     """성공 응답 스키마"""
     message: str = Field(..., description="성공 메시지")
@@ -57,6 +69,10 @@ class CenterOut(Schema):
     adoption_price: Optional[int] = Field(None, description="입양비 (원)")
     image_url: Optional[str] = Field(None, description="센터 이미지 URL")
     is_subscribed: Optional[bool] = Field(None, description="구독 여부")
+    has_volunteer: Optional[bool] = Field(None, description="봉사활동 여부")
+    has_foster_care: Optional[bool] = Field(None, description="임시보호 여부")
+    show_phone_number: Optional[bool] = Field(None, description="전화번호 노출 여부")
+    show_location: Optional[bool] = Field(None, description="위치 노출 여부")
     created_at: str = Field(..., description="생성일시 (ISO 형식)")
     updated_at: str = Field(..., description="수정일시 (ISO 형식)")
 
@@ -133,6 +149,7 @@ class QuestionFormDeleteOut(Schema):
 class CenterNoticeOut(Schema):
     """센터 공지사항 출력 스키마"""
     id: str = Field(..., description="공지사항 ID")
+    title: str = Field(..., description="공지사항 제목")
     content: str = Field(..., description="공지사항 내용")
     is_important: bool = Field(..., description="중요 공지사항 여부")
     created_at: str = Field(..., description="생성일시 (ISO 형식)")

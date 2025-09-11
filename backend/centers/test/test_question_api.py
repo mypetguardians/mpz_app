@@ -277,3 +277,42 @@ class TestQuestionAPI(TestCase):
         
         response = await self.client.post("/", json=data, headers=headers)
         self.assertEqual(response.status_code, 422)  # Validation error
+
+    async def test_get_question_forms_by_center_success(self):
+        """특정 센터의 질문 폼 목록 조회 성공 테스트 (공개 API)"""
+        # 인증 없이 직접 조회
+        response = await self.client.get(f"/center/{self.center.id}")
+        
+        # 200 OK
+        self.assertEqual(response.status_code, 200)
+        
+        # 응답 데이터 확인
+        data = response.json()
+        self.assertIn("questions", data)
+        questions = data["questions"]
+        self.assertIsInstance(questions, list)
+        self.assertEqual(len(questions), 2)
+        
+        # 첫 번째 질문 확인 (sequence 순서대로)
+        question1 = questions[0]
+        self.assertEqual(question1['question'], "당신의 직업은 무엇입니까?")
+        self.assertEqual(question1['type'], "text")
+        self.assertEqual(question1['sequence'], 1)
+        self.assertTrue(question1['is_required'])
+        
+        # 두 번째 질문 확인
+        question2 = questions[1]
+        self.assertEqual(question2['question'], "가족 구성원은 몇 명입니까?")
+        self.assertEqual(question2['type'], "single_choice")
+        self.assertEqual(question2['sequence'], 2)
+        self.assertEqual(question2['options'], ["1명", "2명", "3명", "4명 이상"])
+
+    async def test_get_question_forms_by_center_not_found(self):
+        """존재하지 않는 센터의 질문 폼 목록 조회 테스트 (공개 API)"""
+        fake_center_id = "00000000-0000-0000-0000-000000000000"
+        response = await self.client.get(f"/center/{fake_center_id}")
+        
+        # 404 Not Found
+        self.assertEqual(response.status_code, 404)
+        error = response.json()
+        self.assertIn("센터를 찾을 수 없습니다", error['detail'])

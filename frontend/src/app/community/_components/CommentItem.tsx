@@ -3,7 +3,11 @@
 import Image from "next/image";
 
 import { Avatar } from "@/components/ui/avatar";
-import { ArrowBendDownLeft, ArrowBendDownRight } from "@phosphor-icons/react";
+import {
+  ArrowBendDownLeft,
+  ArrowBendDownRight,
+  User,
+} from "@phosphor-icons/react";
 import { CommentInput } from "@/components/ui/CommentInput";
 import type { Comment, Reply } from "@/types/posts";
 
@@ -24,9 +28,10 @@ export function CommentItem({
   onAddReply,
   onSubmitReply,
 }: CommentItemProps) {
-  // 사용자 정보 가져오기
-  const nickname = comment.user?.nickname || "사용자";
-  const profileImg = comment.user?.image || "/img/dummyImg.png";
+  // 사용자 정보 가져오기 (대댓글에서 user 정보가 없을 경우 대비)
+  const nickname =
+    comment.user?.nickname || `사용자${comment.user_id?.slice(-4) || ""}`;
+  const profileImg = comment.user?.image;
 
   const renderContent = () => {
     switch (variant) {
@@ -34,12 +39,24 @@ export function CommentItem({
         return (
           <div className="flex gap-3">
             <Avatar className="w-8 h-8">
-              <Image
-                src={profileImg}
-                alt={nickname}
-                fill
-                className="object-cover"
-              />
+              {profileImg && profileImg !== "" ? (
+                <Image
+                  src={profileImg}
+                  alt={nickname}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                  onError={(e) => {
+                    console.error("ProfileInfo Image load error:", e);
+                  }}
+                />
+              ) : (
+                <div
+                  className={`w-full h-full bg-lg flex items-center justify-center p-1 rounded-full`}
+                >
+                  <User size={20} weight="regular" className="text-gr" />
+                </div>
+              )}
             </Avatar>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
@@ -76,12 +93,24 @@ export function CommentItem({
             <div className="flex items-center gap-2">
               <ArrowBendDownRight size={16} className="text-gray-400" />
               <Avatar className="w-6 h-6">
-                <Image
-                  src={profileImg}
-                  alt={nickname}
-                  fill
-                  className="object-cover"
-                />
+                {profileImg && profileImg !== "" ? (
+                  <Image
+                    src={profileImg}
+                    alt={nickname}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                    onError={(e) => {
+                      console.error("ProfileInfo Image load error:", e);
+                    }}
+                  />
+                ) : (
+                  <div
+                    className={`w-full h-full bg-lg flex items-center justify-center p-1 rounded-full`}
+                  >
+                    <User size={16} weight="regular" className="text-gr" />
+                  </div>
+                )}
               </Avatar>
             </div>
             <div className="flex-1">
@@ -101,12 +130,24 @@ export function CommentItem({
             <div className="flex items-center gap-2">
               <ArrowBendDownLeft size={16} className="text-lg" />
               <Avatar className="w-6 h-6">
-                <Image
-                  src={profileImg}
-                  alt={nickname}
-                  fill
-                  className="object-cover"
-                />
+                {profileImg && profileImg !== "" ? (
+                  <Image
+                    src={profileImg}
+                    alt={nickname}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                    onError={(e) => {
+                      console.error("ProfileInfo Image load error:", e);
+                    }}
+                  />
+                ) : (
+                  <div
+                    className={`w-full h-full bg-lg flex items-center justify-center p-1 rounded-full`}
+                  >
+                    <User size={16} weight="regular" className="text-gr" />
+                  </div>
+                )}
               </Avatar>
             </div>
             <div className="flex-1">

@@ -31,7 +31,7 @@ function CenterTab() {
     const currentFavorite =
       localFavorites[centerId] !== undefined
         ? localFavorites[centerId]
-        : centers.find((c) => c.id === centerId)?.is_fav || false;
+        : centers.find((c) => c.id === centerId)?.isFavorited || false;
 
     // 즉시 로컬 상태 업데이트 (optimistic update) - 현재 상태의 반대
     setLocalFavorites((prev) => ({
@@ -116,7 +116,7 @@ function CenterTab() {
           const isLiked =
             localFavorites[center.id] !== undefined
               ? localFavorites[center.id]
-              : center.is_fav;
+              : center.isFavorited;
 
           return (
             <div key={center.id}>

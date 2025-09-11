@@ -143,7 +143,9 @@ export function FixedBottomBar({
           {showDivider && <div className="mx-1 h-6 w-px bg-gray-200" />}
           {rightIcon1 && (
             <IconButton
-              icon={() => rightIcon1}
+              icon={({ className }) => (
+                <div className={cn(className, "text-gr")}>{rightIcon1}</div>
+              )}
               size="iconM"
               onClick={onRightIcon1Click}
               className="text-gr"
@@ -151,7 +153,9 @@ export function FixedBottomBar({
           )}
           {rightIcon2 && (
             <IconButton
-              icon={() => rightIcon2}
+              icon={({ className }) => (
+                <div className={cn(className, "text-gr")}>{rightIcon2}</div>
+              )}
               size="iconM"
               onClick={onRightIcon2Click}
               className="text-gr"

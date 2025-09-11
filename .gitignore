@@ -6,6 +6,11 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.so
+*.pyc
+*.pyo
+**/__pycache__/
+**/*.pyc
+**/*.pyo
 .Python
 build/
 develop-eggs/

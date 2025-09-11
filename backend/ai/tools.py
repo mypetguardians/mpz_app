@@ -173,12 +173,18 @@ def filter_animals_by_characteristics(
             protection_status="보호중",
             adoption_status="입양가능"
         ).select_related('center')
+        
+        # 기본 쿼리 결과 로깅
+        initial_count = queryset.count()
+        logger.info(f"기본 조건 후 동물 수: {initial_count}마리")
+        
         # 성격 키워드 필터링
         if personality_traits:
             personality_q = Q()
             for trait in personality_traits:
                 personality_q |= Q(personality__icontains=trait)
             queryset = queryset.filter(personality_q)
+            logger.info(f"성격 필터 후 동물 수: {queryset.count()}마리 (조건: {personality_traits})")
         
         # 활동량 필터링
         if activity_level_range:
@@ -187,22 +193,28 @@ def filter_animals_by_characteristics(
                 activity_level__gte=min_activity,
                 activity_level__lte=max_activity
             )
+            logger.info(f"활동량 필터 후 동물 수: {queryset.count()}마리 (범위: {min_activity}-{max_activity})")
         
         # 사회성 필터링
         if sociability_min is not None:
             queryset = queryset.filter(sociability__gte=sociability_min)
+            logger.info(f"사회성 필터 후 동물 수: {queryset.count()}마리 (최소: {sociability_min})")
         
         # 분리불안 필터링
         if separation_anxiety_max is not None:
             queryset = queryset.filter(separation_anxiety__lte=separation_anxiety_max)
+            logger.info(f"분리불안 필터 후 동물 수: {queryset.count()}마리 (최대: {separation_anxiety_max})")
         
         # 기본 훈련 필터링
         if basic_training_min is not None:
             queryset = queryset.filter(basic_training__gte=basic_training_min)
+            logger.info(f"기본훈련 필터 후 동물 수: {queryset.count()}마리 (최소: {basic_training_min})")
         
         # 성별 필터링
         if is_female is not None:
             queryset = queryset.filter(is_female=is_female)
+            gender_str = "암컷" if is_female else "수컷"
+            logger.info(f"성별 필터 후 동물 수: {queryset.count()}마리 (성별: {gender_str})")
         
         # 체형(몸무게) 필터링
         if size_category:
@@ -212,15 +224,17 @@ def filter_animals_by_characteristics(
                 queryset = queryset.filter(weight__gte=10.0, weight__lt=25.0)
             elif size_category == "대형":
                 queryset = queryset.filter(weight__gte=25.0)
+            logger.info(f"체형 필터 후 동물 수: {queryset.count()}마리 (체형: {size_category})")
         
         # 나이 필터링 (년 단위를 개월수로 변환, 해당 나이 이하)
         if max_age is not None:
             # 년을 개월로 변환 (1년 = 12개월)
             max_age_months = max_age * 12
             queryset = queryset.filter(age__lte=max_age_months)
-        
-        animals = queryset.order_by('?')[:10]  # 상위 10개만
-        
+            logger.info(f"나이 필터 후 동물 수: {queryset.count()}마리 (최대: {max_age}년/{max_age_months}개월)")
+
+        animals = queryset.order_by('?')[:20]  # 상위 20개만
+
         animal_list = []
         for animal in animals:
             animal_data = {
@@ -315,7 +329,6 @@ personality_tools = [
 ]
 
 animal_tools = [
-    get_available_animals,
     filter_animals_by_characteristics,
 ]
 

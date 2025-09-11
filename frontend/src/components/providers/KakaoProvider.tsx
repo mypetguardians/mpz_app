@@ -3,21 +3,14 @@
 import Script from "next/script";
 import { useEffect } from "react";
 
-declare global {
-  interface Window {
-    Kakao: any;
-  }
-}
-
 export function KakaoProvider() {
   const kakaoKey = "06b1ee860fa3d10d88b67258d93243cf";
 
-  if (!kakaoKey) {
-    console.error("NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY가 설정되지 않았습니다.");
-    return null;
-  }
-
   useEffect(() => {
+    if (!kakaoKey) {
+      console.error("NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY가 설정되지 않았습니다.");
+      return;
+    }
     // SDK가 이미 로드되어 있는 경우를 대비한 초기화
     const initializeKakao = () => {
       if (typeof window !== "undefined" && window.Kakao) {

@@ -179,12 +179,12 @@ def filter_animals_by_characteristics(
         logger.info(f"기본 조건 후 동물 수: {initial_count}마리")
         
         # 성격 키워드 필터링
-        if personality_traits:
-            personality_q = Q()
-            for trait in personality_traits:
-                personality_q |= Q(personality__icontains=trait)
-            queryset = queryset.filter(personality_q)
-            logger.info(f"성격 필터 후 동물 수: {queryset.count()}마리 (조건: {personality_traits})")
+        # if personality_traits:
+        #     personality_q = Q()
+        #     for trait in personality_traits:
+        #         personality_q |= Q(personality__icontains=trait)
+        #     queryset = queryset.filter(personality_q)
+        #     logger.info(f"성격 필터 후 동물 수: {queryset.count()}마리 (조건: {personality_traits})")
         
         # 활동량 필터링
         if activity_level_range:

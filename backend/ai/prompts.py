@@ -130,9 +130,10 @@ SIMPLE_RECOMMENDATION_PROMPT = """
 
 다음 단계로 진행해주세요:
 1. get_user_personality_test_data 도구를 사용하여 사용자 ID {user_id}의 personality.answers를 조회해주세요
+2. get_available_animals 도구를 사용하여 입양 가능한 동물 목록을 가져와주세요
 3. filter_animals_by_characteristics 도구를 활용하여 사용자 성격에 맞는 동물들을 필터링해주세요
 4. **실제 조회된 동물 중에서만** 최대 {limit}마리를 추천하고 상세한 이유를 설명해주세요
-5. 2가지 꼭 모두 이용해 주세요.
+5. 3가지 꼭 모두 이용해 주세요.
 
 **사용자 선택사항을 정확히 반영하세요:**
 - answers에서 "size": "소형"/"중형"/"대형" → filter_animals_by_characteristics의 size_category 파라미터로 전달
@@ -142,6 +143,7 @@ SIMPLE_RECOMMENDATION_PROMPT = """
 
 각 도구를 사용할 때:
 - get_user_personality_test_data: user_id 파라미터에 "{user_id}" 전달
+- get_available_animals: limit 파라미터에 적절한 수량 (20-30개) 전달
 - filter_animals_by_characteristics: **사용자의 구체적인 선택사항을 포함하여** 성격 테스트 결과를 바탕으로 필터링
 
 ⚠️ **데이터 보존 규칙 - 매우 중요**:

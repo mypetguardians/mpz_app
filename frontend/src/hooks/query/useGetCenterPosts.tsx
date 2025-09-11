@@ -4,7 +4,6 @@ import {
   ApiPostsResponse,
   GetPostsParams,
   PostDetailResponse,
-  Post,
 } from "@/types/posts";
 import { transformRawPostToPost, ApiPostDetailResponse } from "./posts/utils";
 

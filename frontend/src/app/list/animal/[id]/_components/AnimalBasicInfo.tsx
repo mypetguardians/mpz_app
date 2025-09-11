@@ -111,6 +111,12 @@ export default function AnimalBasicInfo({
           alt={`${name} - 이미지 ${currentImageIndex + 1}`}
           fill
           className="object-cover"
+          unoptimized={currentImageUrl.includes("openapi.animal.go.kr")}
+          onError={(e) => {
+            console.warn("이미지 로딩 실패:", currentImageUrl);
+            // 에러 시 기본 이미지로 대체
+            e.currentTarget.src = "/img/dummyImg.png";
+          }}
         />
 
         {/* 이미지 인디케이터 */}

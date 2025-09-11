@@ -209,6 +209,12 @@ export function PetCard({
               alt={breed || "동물"}
               fill
               className="object-cover"
+              unoptimized={getImageUrl().includes("openapi.animal.go.kr")}
+              onError={(e) => {
+                console.warn("이미지 로딩 실패:", getImageUrl());
+                // 에러 시 기본 이미지로 대체
+                e.currentTarget.src = "/img/dummyImg.png";
+              }}
             />
           </div>
         </div>

@@ -135,10 +135,16 @@ SIMPLE_RECOMMENDATION_PROMPT = """
 4. **실제 조회된 동물 중에서만** 최대 {limit}마리를 추천하고 상세한 이유를 설명해주세요
 5. 3가지 꼭 모두 이용해 주세요.
 
+**사용자 선택사항을 정확히 반영하세요:**
+- answers에서 "size": "소형"/"중형"/"대형" → filter_animals_by_characteristics의 size_category 파라미터로 전달
+- answers에서 "gender": "수"/"암" → filter_animals_by_characteristics의 is_female 파라미터로 전달 ("수"=False, "암"=True)
+- answers에서 "age": "1년 이하","3년 이하" 등 → 몇년 이하인지 숫자 파악 후 filter_animals_by_characteristics의 max_age 파라미터로 전달 (년 단위)
+- 다른 답변들을 바탕으로 personality_traits, activity_level_range, sociability_min 등 설정
+
 각 도구를 사용할 때:
 - get_user_personality_test_data: user_id 파라미터에 "{user_id}" 전달
 - get_available_animals: limit 파라미터에 적절한 수량 (20-30개) 전달
-- filter_animals_by_characteristics: 성격 테스트 결과를 바탕으로 필터링
+- filter_animals_by_characteristics: **사용자의 구체적인 선택사항을 포함하여** 성격 테스트 결과를 바탕으로 필터링
 
 ⚠️ **데이터 보존 규칙 - 매우 중요**:
 - filter_animals_by_characteristics에서 조회한 모든 값을 원본 그대로 복사해서 사용

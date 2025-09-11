@@ -25,7 +25,6 @@ def sanitize_recommendations(ai_result):
         if db_animal:
             # DB 값으로 덮어쓰기 (이름, 품종 등 모든 필드)
             rec["animal_name"] = db_animal.name
-            rec["animal_type"] = db_animal.animal_type
             rec["breed"] = db_animal.breed
             rec["age"] = db_animal.age
             rec["gender"] = "수컷" if not db_animal.is_female else "암컷"

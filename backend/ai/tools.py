@@ -130,7 +130,8 @@ def filter_animals_by_characteristics(
     separation_anxiety_max: Optional[int] = None,
     basic_training_min: Optional[int] = None,
     is_female: Optional[bool] = None,
-    size_category: Optional[str] = None
+    size_category: Optional[str] = None,
+    max_age: Optional[int] = None
 ) -> List[Dict[str, Any]]:
     """
     특정 특성을 가진 동물들을 필터링합니다.
@@ -143,6 +144,7 @@ def filter_animals_by_characteristics(
         basic_training_min: 최소 기본 훈련 점수
         is_female: 성별 필터 (True: 암컷, False: 수컷, None: 전체)
         size_category: 체형 필터 ("소형": 10kg 미만, "중형": 10-25kg, "대형": 25kg 이상, None: 전체)
+        max_age: 최대 나이 (년 단위, 해당 나이 이하의 동물들을 필터링)
         
     Returns:
         Filtered list of animals
@@ -196,6 +198,12 @@ def filter_animals_by_characteristics(
                 queryset = queryset.filter(weight__gte=10.0, weight__lt=25.0)
             elif size_category == "대형":
                 queryset = queryset.filter(weight__gte=25.0)
+        
+        # 나이 필터링 (년 단위를 개월수로 변환, 해당 나이 이하)
+        if max_age is not None:
+            # 년을 개월로 변환 (1년 = 12개월)
+            max_age_months = max_age * 12
+            queryset = queryset.filter(age__lte=max_age_months)
         
         animals = queryset.order_by('?')[:10]  # 상위 10개만
         

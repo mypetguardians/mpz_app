@@ -34,6 +34,8 @@ class AnimalRecommendation(BaseModel):
     care_tips: List[str] = Field(..., description="케어 팁")
     center_name: Optional[str] = Field(None, description="보호센터명")
     adoption_fee: Optional[int] = Field(None, description="입양비")
+    # 이미지 관련 필드
+    image_urls: List[str] = Field(default_factory=list, description="동물 이미지 URL 리스트")
     # 동물 특성 levels 추가
     activity_level: Optional[int] = Field(None, description="활동량 수준 (1-5)")
     sensitivity: Optional[int] = Field(None, description="예민함 정도 (1-5)")
@@ -111,6 +113,11 @@ class AIAnimalMatchingResponse(BaseModel):
                         ],
                         "center_name": "서울 동물보호센터",
                         "adoption_fee": 150000,
+                        "image_urls": [
+                            "https://example.com/images/animal_12345_main.jpg",
+                            "https://example.com/images/animal_12345_side.jpg",
+                            "https://example.com/images/animal_12345_play.jpg"
+                        ],
                         "activity_level": 4,
                         "sensitivity": None,
                         "sociability": 5,

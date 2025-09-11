@@ -3,7 +3,7 @@
 import Script from "next/script";
 
 export function KakaoProvider() {
-  const kakaoKey = process.env.NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY;
+  const kakaoKey = "06b1ee860fa3d10d88b67258d93243cf";
 
   if (!kakaoKey) {
     console.error("NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY가 설정되지 않았습니다.");

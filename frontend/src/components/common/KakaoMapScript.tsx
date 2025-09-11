@@ -4,7 +4,7 @@ import Script from "next/script";
 let loaded = false;
 
 export default function KakaoMapScript() {
-  const mapKey = process.env.NEXT_PUBLIC_KAKAO_MAP_KEY;
+  const mapKey = "06b1ee860fa3d10d88b67258d93243cf";
 
   if (!mapKey) {
     console.error("NEXT_PUBLIC_KAKAO_MAP_KEY가 설정되지 않았습니다.");

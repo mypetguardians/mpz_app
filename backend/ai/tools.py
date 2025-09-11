@@ -186,46 +186,29 @@ def filter_animals_by_characteristics(
         #     queryset = queryset.filter(personality_q)
         #     logger.info(f"성격 필터 후 동물 수: {queryset.count()}마리 (조건: {personality_traits})")
         
-        # 활동량 필터링 (0값 처리 개선)
+        # 활동량 필터링
         if activity_level_range:
             min_activity, max_activity = activity_level_range
-            # 활동량이 0인 경우 최소값으로 간주하여 포함
-            if min_activity > 0:
-                queryset = queryset.filter(
-                    Q(activity_level__gte=min_activity, activity_level__lte=max_activity) |
-                    Q(activity_level=0)  # 0값도 포함
-                )
-            else:
-                queryset = queryset.filter(
-                    activity_level__gte=min_activity,
-                    activity_level__lte=max_activity
-                )
-            logger.info(f"활동량 필터 후 동물 수: {queryset.count()}마리 (범위: {min_activity}-{max_activity}, 0값 포함)")
+            queryset = queryset.filter(
+                activity_level__gte=min_activity,
+                activity_level__lte=max_activity
+            )
+            logger.info(f"활동량 필터 후 동물 수: {queryset.count()}마리 (범위: {min_activity}-{max_activity})")
         
-        # 사회성 필터링 (0값 처리 개선)
+        # 사회성 필터링
         if sociability_min is not None:
-            if sociability_min > 0:
-                queryset = queryset.filter(
-                    Q(sociability__gte=sociability_min) | Q(sociability=0)
-                )
-            else:
-                queryset = queryset.filter(sociability__gte=sociability_min)
-            logger.info(f"사회성 필터 후 동물 수: {queryset.count()}마리 (최소: {sociability_min}, 0값 포함)")
+            queryset = queryset.filter(sociability__gte=sociability_min)
+            logger.info(f"사회성 필터 후 동물 수: {queryset.count()}마리 (최소: {sociability_min})")
         
-        # 분리불안 필터링 (기존 로직 유지 - 낮을수록 좋음)
+        # 분리불안 필터링
         if separation_anxiety_max is not None:
             queryset = queryset.filter(separation_anxiety__lte=separation_anxiety_max)
             logger.info(f"분리불안 필터 후 동물 수: {queryset.count()}마리 (최대: {separation_anxiety_max})")
         
-        # 기본 훈련 필터링 (0값 처리 개선)
+        # 기본 훈련 필터링
         if basic_training_min is not None:
-            if basic_training_min > 0:
-                queryset = queryset.filter(
-                    Q(basic_training__gte=basic_training_min) | Q(basic_training=0)
-                )
-            else:
-                queryset = queryset.filter(basic_training__gte=basic_training_min)
-            logger.info(f"기본훈련 필터 후 동물 수: {queryset.count()}마리 (최소: {basic_training_min}, 0값 포함)")
+            queryset = queryset.filter(basic_training__gte=basic_training_min)
+            logger.info(f"기본훈련 필터 후 동물 수: {queryset.count()}마리 (최소: {basic_training_min})")
         
         # 성별 필터링
         if is_female is not None:

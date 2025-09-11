@@ -51,7 +51,10 @@ export function useKakaoSDK() {
           try {
             const kakaoKey = "06b1ee860fa3d10d88b67258d93243cf";
             window.Kakao.init(kakaoKey);
-            setIsInitialized(true);
+            // 초기화 후 다시 확인
+            if (window.Kakao.isInitialized && window.Kakao.isInitialized()) {
+              setIsInitialized(true);
+            }
           } catch (error) {
             console.error("카카오 SDK 초기화 실패:", error);
           }
@@ -63,12 +66,12 @@ export function useKakaoSDK() {
     checkKakaoSDK();
 
     // 주기적으로 확인 (SDK 로드가 늦을 수 있음)
-    const interval = setInterval(checkKakaoSDK, 100);
+    const interval = setInterval(checkKakaoSDK, 200);
 
-    // 5초 후에는 포기
+    // 10초 후에는 포기
     const timeout = setTimeout(() => {
       clearInterval(interval);
-    }, 5000);
+    }, 10000);
 
     return () => {
       clearInterval(interval);

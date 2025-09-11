@@ -80,35 +80,12 @@ export function CenterDetailHeader({
     if (
       typeof window !== "undefined" &&
       window.Kakao &&
-      window.Kakao.Link &&
-      window.Kakao.Link.sendDefault
+      window.Kakao.Share &&
+      window.Kakao.Share.sendScrap
     ) {
       try {
         const centerUrl = `${window.location.origin}/list/center/${centerId}`;
-
-        window.Kakao.Link.sendDefault({
-          objectType: "feed",
-          content: {
-            title: centerName || "보호센터 정보",
-            description: "이 보호센터의 정보를 확인해보세요!",
-            imageUrl: "",
-            link: {
-              mobileWebUrl: centerUrl,
-              webUrl: centerUrl,
-            },
-          },
-          buttons: [
-            {
-              title: "자세히 보기",
-              link: {
-                mobileWebUrl: centerUrl,
-                webUrl: centerUrl,
-              },
-            },
-          ],
-        });
-        setShowToast(true);
-        setToastMessage("카카오톡으로 공유되었습니다!");
+        window.Kakao.Share.sendScrap({ requestUrl: centerUrl });
         setShowShareModal(false);
       } catch (error) {
         console.error("카카오톡 공유 실패:", error);

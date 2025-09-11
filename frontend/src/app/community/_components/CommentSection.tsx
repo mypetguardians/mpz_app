@@ -176,18 +176,6 @@ export function CommentSection({
             // 총 댓글 수 = 메인 댓글 + 모든 대댓글
             const totalCount = mainCommentCount + replyCount;
 
-            // 디버깅용 로그 (개발환경에서만)
-            if (process.env.NODE_ENV === "development") {
-              console.log("댓글 수 계산:", {
-                mainCommentCount,
-                replyCount,
-                totalCount,
-                comments: comments.map((c) => ({
-                  id: c.id,
-                  repliesCount: c.replies?.length || 0,
-                })),
-              });
-            }
 
             return totalCount;
           })()}

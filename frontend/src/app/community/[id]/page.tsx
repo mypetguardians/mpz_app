@@ -126,73 +126,30 @@ export default function CommunityDetailPage() {
       setToastMessage(
         "카카오톡을 사용할 수 없습니다. 잠시 후 다시 시도해주세요."
       );
+      setShowShareModal(false);
       return;
     }
 
     if (
       typeof window !== "undefined" &&
       window.Kakao &&
-      window.Kakao.Link &&
-      window.Kakao.Link.sendDefault
+      window.Kakao.Share &&
+      window.Kakao.Share.sendScrap
     ) {
       try {
-        // 이미지 URL 추출: 문자열/객체(image_url, imageUrl 등) 모두 지원
-        const firstImageUrl = (() => {
-          const imgs = post?.images;
-          if (!imgs || imgs.length === 0) return "";
-          const first = imgs[0] as unknown;
-          if (typeof first === "string") return first;
-          if (typeof first === "object" && first !== null) {
-            const obj = first as {
-              image_url?: unknown;
-              imageUrl?: unknown;
-              url?: unknown;
-              file_url?: unknown;
-            };
-            const candidate =
-              (obj.image_url as string | undefined) ??
-              (obj.imageUrl as string | undefined) ??
-              (obj.file_url as string | undefined) ??
-              (obj.url as string | undefined);
-            return typeof candidate === "string" ? candidate : "";
-          }
-          return "";
-        })();
-
-        window.Kakao.Link.sendDefault({
-          objectType: "feed",
-          content: {
-            title: post?.title || "커뮤니티 게시글",
-            description:
-              post?.content?.substring(0, 100) ||
-              "흥미로운 게시글을 확인해보세요!",
-            imageUrl: firstImageUrl || "",
-            link: {
-              mobileWebUrl: window.location.href,
-              webUrl: window.location.href,
-            },
-          },
-          buttons: [
-            {
-              title: "자세히 보기",
-              link: {
-                mobileWebUrl: window.location.href,
-                webUrl: window.location.href,
-              },
-            },
-          ],
-        });
-        setShowToast(true);
-        setToastMessage("카카오톡으로 공유되었습니다!");
+        const communityUrl = window.location.href;
+        window.Kakao.Share.sendScrap({ requestUrl: communityUrl });
         setShowShareModal(false);
       } catch (error) {
         console.error("카카오톡 공유 실패:", error);
         setShowToast(true);
         setToastMessage("카카오톡 공유에 실패했습니다.");
+        setShowShareModal(false);
       }
     } else {
       setShowToast(true);
       setToastMessage("카카오톡과 연결되어 있지 않습니다.");
+      setShowShareModal(false);
     }
   };
 

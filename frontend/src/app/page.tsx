@@ -13,6 +13,7 @@ import { CommunitySection } from "@/app/_components/CommunitySection";
 import { FooterSection } from "@/app/_components/FooterSection";
 import { useGetAnimals } from "@/hooks/query/useGetAnimals";
 import { useGetBanners } from "@/hooks/query/useGetBanners";
+import { useGetAnimalCount } from "@/hooks/query/useGetAnimalCount";
 import { useMatchingStepStore } from "@/lib/stores/matchingStepStore";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { RawAnimalResponse } from "@/types/animal";
@@ -38,6 +39,8 @@ export default function Home() {
     type: "main",
   });
 
+  const { data: animalCountData } = useGetAnimalCount();
+
   const {
     data: animalsData,
     isLoading,
@@ -54,7 +57,7 @@ export default function Home() {
       return (page as { data?: RawAnimalResponse[] }).data || [];
     }) || [];
 
-  const totalPets = animals.length;
+  const totalPets = animalCountData?.total || animals.length;
 
   const handleLocationSelect = (location: string) => {
     setSelectedLocation(location);
@@ -154,9 +157,9 @@ export default function Home() {
 
       {/* 매칭 완료 알림 */}
       {showMatchingNotification && (
-        <div className="fixed top-20 left-4 right-4 z-50 bg-white border border-brand rounded-lg shadow-lg p-4 mx-auto max-w-sm">
+        <div className="fixed z-50 max-w-sm p-4 mx-auto bg-white border rounded-lg shadow-lg top-20 left-4 right-4 border-brand">
           <div className="flex items-center gap-3">
-            <div className="w-3 h-3 bg-brand rounded-full animate-pulse"></div>
+            <div className="w-3 h-3 rounded-full bg-brand animate-pulse"></div>
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-900">
                 매칭이 완료되었어요!
@@ -165,7 +168,7 @@ export default function Home() {
             </div>
             <button
               onClick={handleMatchingNotificationClick}
-              className="text-brand text-sm font-medium hover:text-brand-dark transition-colors"
+              className="text-sm font-medium transition-colors text-brand hover:text-brand-dark"
             >
               확인
             </button>
@@ -188,7 +191,7 @@ export default function Home() {
           >
             {/* 캐러셀 컨테이너 */}
             <div
-              className="flex transition-transform duration-500 ease-in-out h-full"
+              className="flex h-full transition-transform duration-500 ease-in-out"
               style={{
                 transform: `translateX(-${currentBannerIndex * 100}%)`,
               }}
@@ -196,7 +199,7 @@ export default function Home() {
               {banners.data.map((banner, index) => (
                 <div
                   key={banner.id || index}
-                  className="relative min-w-full h-full cursor-pointer flex-shrink-0"
+                  className="relative flex-shrink-0 h-full min-w-full cursor-pointer"
                   onClick={handleBannerClick}
                 >
                   <Image
@@ -213,7 +216,7 @@ export default function Home() {
 
             {/* 인디케이터 */}
             {banners.data.length > 1 && (
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+              <div className="absolute flex space-x-2 transform -translate-x-1/2 bottom-4 left-1/2">
                 {banners.data.map((_, index) => (
                   <button
                     key={index}

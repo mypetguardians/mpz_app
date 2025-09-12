@@ -55,7 +55,6 @@ export function PetCard({
     breed,
     admissionDate,
   } = pet;
-
   // admissionDate 기준으로 waitingDays 계산
   const calculateWaitingDays = () => {
     if (!admissionDate) return waitingDays || 0;
@@ -195,7 +194,7 @@ export function PetCard({
         <div className="flex-shrink-0">
           <div className="relative w-[120px] h-[154px] overflow-hidden">
             {rank && (
-              <div className="absolute top-2 left-2 z-10">
+              <div className="absolute z-10 top-2 left-2">
                 <Image
                   src={`/icon/Badge0${rank}.svg`}
                   alt={`순위 ${rank}`}
@@ -240,26 +239,26 @@ export function PetCard({
               <GenderMale className="text-brand" weight="bold" size={12} />
             )}
           </div>
-          <div className="text-gray-600 text-sm mb-3 line-clamp-2">
+          <div className="mb-3 text-sm text-gray-600 line-clamp-2">
             {description || "설명이 없습니다"}
           </div>
-          <div className="flex flex-col gap-1 text-gray-700 text-sm">
+          <div className="flex flex-col gap-1 text-sm text-gray-700">
             <div className="flex items-center">
-              <span className="font-medium mr-2 w-12">활동량</span>
+              <span className="w-12 mr-2 font-medium">활동량</span>
               <DotsIndicator
                 count={parseInt(activityLevel?.toString() || "0")}
                 color="bg-brand"
               />
             </div>
             <div className="flex items-center">
-              <span className="font-medium mr-2 w-12">민감도</span>
+              <span className="w-12 mr-2 font-medium">민감도</span>
               <DotsIndicator
                 count={parseInt(sensitivity?.toString() || "0")}
                 color="bg-yellow"
               />
             </div>
             <div className="flex items-center">
-              <span className="font-medium mr-2 w-12">사교성</span>
+              <span className="w-12 mr-2 font-medium">사교성</span>
               <DotsIndicator
                 count={parseInt(sociability?.toString() || "0")}
                 color="bg-green"

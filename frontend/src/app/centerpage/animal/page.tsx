@@ -52,7 +52,6 @@ export default function CenterAnimal() {
       enabled: shouldFetchAnimals,
     }
   );
-
   // 모든 페이지의 동물들을 하나의 배열로 합치기
   const allAnimals =
     data?.pages.flatMap((page: { animals: Animal[] }) => page.animals) || [];
@@ -123,7 +122,7 @@ export default function CenterAnimal() {
       setIsRefreshing(false);
     }
   };
-
+ console.log(allAnimals); 
   const handleAdoptionClick = (pet: Animal) => {
     const animalUrl = `${window.location.origin}/list/animal/${pet.id}`;
 
@@ -206,7 +205,7 @@ export default function CenterAnimal() {
         </Link>
 
         {centerError && (
-          <div className="text-center py-4 w-full">
+          <div className="w-full py-4 text-center">
             <div className="text-red-500">
               센터 정보를 불러오는데 실패했습니다
             </div>
@@ -214,7 +213,7 @@ export default function CenterAnimal() {
         )}
 
         {centerData && !centerData.id && (
-          <div className="text-center py-4 w-full">
+          <div className="w-full py-4 text-center">
             <div className="text-orange-500">
               등록된 센터가 없습니다. 센터를 먼저 등록해주세요.
             </div>
@@ -222,11 +221,11 @@ export default function CenterAnimal() {
         )}
 
         {error && (
-          <div className="text-center py-4 w-full">
+          <div className="w-full py-4 text-center">
             <div className="text-red-500">
               동물 목록을 불러오는데 실패했습니다
             </div>
-            <div className="text-sm text-gray-500 mt-2">{error.message}</div>
+            <div className="mt-2 text-sm text-gray-500">{error.message}</div>
           </div>
         )}
 
@@ -269,14 +268,14 @@ export default function CenterAnimal() {
 
             {/* 초기 로딩 */}
             {isLoading && allAnimals.length === 0 && (
-              <div className="text-center py-4 w-full">
+              <div className="w-full py-4 text-center">
                 <div className="text-gray-500">로딩 중...</div>
               </div>
             )}
 
             {/* 데이터가 없을 때 */}
             {!isLoading && allAnimals.length === 0 && !error && (
-              <div className="text-center py-8 w-full">
+              <div className="w-full py-8 text-center">
                 <div className="text-gray-500">등록된 동물이 없습니다.</div>
               </div>
             )}

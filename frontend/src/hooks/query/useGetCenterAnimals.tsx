@@ -49,6 +49,8 @@ interface ApiAnimalResponse {
   center_id: string;
   created_at: string;
   updated_at: string;
+  protection_status: string;
+  adoption_status: string;
   animal_images: Array<{
     id: string;
     image_url: string;
@@ -79,13 +81,8 @@ const transformApiResponseToAnimal = (apiAnimal: ApiAnimalResponse): Animal => {
     description: apiAnimal.description,
     status: apiAnimal.status as Animal["status"],
     // 새로운 API 스키마에 없는 필드들은 status를 기반으로 추론
-    protection_status: apiAnimal.status === "보호중" ? "보호중" : "반환",
-    adoption_status:
-      apiAnimal.status === "입양완료"
-        ? "입양완료"
-        : apiAnimal.status === "입양대기"
-        ? "입양가능"
-        : "입양불가",
+    protection_status: apiAnimal.protection_status as Animal["protection_status"],
+    adoption_status: apiAnimal.adoption_status as Animal["adoption_status"],
     waitingDays: apiAnimal.waiting_days,
     activityLevel: apiAnimal.activity_level.toString(), // 숫자를 문자열로 변환
     sensitivity: apiAnimal.sensitivity.toString(), // 숫자를 문자열로 변환

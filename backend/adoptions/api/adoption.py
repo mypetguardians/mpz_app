@@ -14,7 +14,7 @@ from adoptions.models import (
 )
 from user.models import User
 from animals.models import Animal
-from centers.models import AdoptionContractTemplate
+from centers.models import AdoptionContractTemplate, QuestionForm
 from api.security import jwt_auth
 
 router = Router(tags=["Adoption"])
@@ -81,7 +81,10 @@ async def get_adoption_pre_check(request, animal_id: str):
                 user_settings_data.address
             )
         
-        # 센터의 입양 질문들 조회
+        # 센터의 입양 질문들 조회 (AdoptionQuestion과 QuestionForm 모두)
+        adoption_questions = []
+        
+        # 1. AdoptionQuestion에서 조회
         adoption_questions_data = await sync_to_async(list)(
             AdoptionQuestion.objects.filter(
                 center=animal.center,
@@ -89,13 +92,37 @@ async def get_adoption_pre_check(request, animal_id: str):
             ).order_by('sequence').values('id', 'content', 'sequence')
         )
         
-        adoption_questions = [
-            AdoptionQuestionOut(
-                id=str(q['id']),
-                content=q['content'],
-                sequence=q['sequence']
-            ) for q in adoption_questions_data
-        ]
+        for q in adoption_questions_data:
+            adoption_questions.append(
+                AdoptionQuestionOut(
+                    id=str(q['id']),
+                    content=q['content'],
+                    sequence=q['sequence']
+                )
+            )
+        
+        # 2. QuestionForm에서도 조회 (AdoptionQuestion에 없는 것들)
+        question_forms_data = await sync_to_async(list)(
+            QuestionForm.objects.filter(
+                center=animal.center
+            ).order_by('sequence').values('id', 'question', 'sequence')
+        )
+        
+        # 이미 AdoptionQuestion으로 변환된 것들을 제외
+        existing_contents = {q['content'] for q in adoption_questions_data}
+        
+        for q in question_forms_data:
+            if q['question'] not in existing_contents:
+                adoption_questions.append(
+                    AdoptionQuestionOut(
+                        id=str(q['id']),
+                        content=q['question'],
+                        sequence=q['sequence']
+                    )
+                )
+        
+        # 순서대로 정렬
+        adoption_questions.sort(key=lambda x: x.sequence)
         
         # 센터의 계약서 템플릿 조회
         try:
@@ -215,9 +242,47 @@ async def submit_adoption_application(request, data: AdoptionApplicationIn):
         if data.question_responses:
             question_response_values = []
             for response in data.question_responses:
-                # AdoptionQuestion 객체 조회
+                # QuestionForm ID를 그대로 사용해서 질문 내용을 저장
+                question_content = ""
+                question_sequence = 0
+                
                 try:
-                    question = await AdoptionQuestion.objects.aget(id=response.question_id)
+                    # 1. AdoptionQuestion에서 찾기
+                    adoption_question = await AdoptionQuestion.objects.aget(id=response.question_id)
+                    question_content = adoption_question.content
+                    question_sequence = adoption_question.sequence
+                    
+                except AdoptionQuestion.DoesNotExist:
+                    try:
+                        # 2. QuestionForm에서 찾기
+                        question_form = await QuestionForm.objects.aget(id=response.question_id)
+                        question_content = question_form.question
+                        question_sequence = question_form.sequence
+                        
+                    except QuestionForm.DoesNotExist:
+                        # 질문이 존재하지 않는 경우 건너뛰기
+                        continue
+                    except Exception as e:
+                        # 기타 오류 발생 시 건너뛰기
+                        print(f"QuestionForm 조회 오류: {e}")
+                        continue
+                except Exception as e:
+                    # 기타 오류 발생 시 건너뛰기
+                    print(f"AdoptionQuestion 조회 오류: {e}")
+                    continue
+                
+                if question_content:
+                    # QuestionForm ID를 원본 질문 ID로 저장할 수 있도록 질문 생성/조회
+                    question, created = await AdoptionQuestion.objects.aget_or_create(
+                        id=response.question_id,  # 원본 QuestionForm ID 사용
+                        defaults={
+                            'center': animal.center,
+                            'content': question_content,
+                            'sequence': question_sequence,
+                            'is_active': True
+                        }
+                    )
+                    
                     question_response_values.append(
                         AdoptionQuestionResponse(
                             adoption=adoption,
@@ -225,9 +290,6 @@ async def submit_adoption_application(request, data: AdoptionApplicationIn):
                             answer=response.answer,
                         )
                     )
-                except AdoptionQuestion.DoesNotExist:
-                    # 질문이 존재하지 않는 경우 건너뛰기
-                    continue
             
             if question_response_values:
                 await AdoptionQuestionResponse.objects.abulk_create(question_response_values)

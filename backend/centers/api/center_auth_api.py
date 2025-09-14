@@ -257,7 +257,17 @@ async def get_center_animals(request: HttpRequest, filters: CenterAnimalsQueryIn
             
             # 필터링
             if filters.status:
-                queryset = queryset.filter(status=filters.status)
+                # 기존 status 필터를 protection_status와 adoption_status로 분리
+                if filters.status in ['보호중', '안락사', '자연사', '반환']:
+                    queryset = queryset.filter(protection_status=filters.status)
+                elif filters.status in ['입양가능', '입양진행중', '입양완료', '입양불가']:
+                    queryset = queryset.filter(adoption_status=filters.status)
+                else:
+                    # 기타 상태는 두 필드 모두에서 검색
+                    from django.db.models import Q
+                    queryset = queryset.filter(
+                        Q(protection_status=filters.status) | Q(adoption_status=filters.status)
+                    )
             
             if filters.breed:
                 queryset = queryset.filter(breed__icontains=filters.breed)

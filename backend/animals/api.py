@@ -14,7 +14,7 @@ from animals.schemas.inbound import (
 from animals.schemas.outbound import (
     AnimalOut, AnimalStatusUpdateOut,
     BreedsOut, SuccessOut, 
-    ErrorOut, MegaphoneToggleOut
+    ErrorOut, MegaphoneToggleOut, AdoptionStatusCountOut
 )
 from api.security import jwt_auth
 from centers.models import Center
@@ -868,7 +868,7 @@ async def get_related_animals_by_distance(
                 # 실제 거리 계산이 어려우므로 같은 지역 내에서 최신순으로 정렬
                 related_animals = Animal.objects.filter(
                     center_id=animal.center_id,  # 같은 보호소
-                    status="보호중"  # 보호중인 동물만
+                    protection_status="보호중"  # 보호중인 동물만
                 ).exclude(id=animal_id).order_by('-created_at')[:query.limit]
                 
                 return list(related_animals), animal
@@ -1102,3 +1102,48 @@ async def get_public_data_status(request: HttpRequest):
     except Exception as e:
         print(f"공공데이터 상태 조회 오류: {e}")
         raise HttpError(500, "공공데이터 상태 조회 중 오류가 발생했습니다")
+
+
+@router.get(
+    "/list/count",
+    summary="[R] 입양 상태별 동물 카운트",
+    description="입양 상태별 전체 동물 수를 조회합니다.",
+    response={
+        200: AdoptionStatusCountOut,
+        500: ErrorOut,
+    },
+)
+async def get_adoption_status_count(request: HttpRequest):
+    """입양 상태별 전체 동물 수를 조회합니다."""
+    try:
+        @sync_to_async
+        def get_adoption_counts():
+            # 입양가능 동물 수
+            adoption_available = Animal.objects.filter(adoption_status="입양가능").count()
+            
+            # 입양진행중 동물 수
+            adoption_in_progress = Animal.objects.filter(adoption_status="입양진행중").count()
+            
+            # 입양완료 동물 수
+            adoption_completed = Animal.objects.filter(adoption_status="입양완료").count()
+            
+            # 입양불가 동물 수
+            adoption_unavailable = Animal.objects.filter(adoption_status="입양불가").count()
+            
+            # 전체 입양 관련 동물 수
+            total = adoption_available + adoption_in_progress + adoption_completed + adoption_unavailable
+            
+            return {
+                "adoption_available": adoption_available,
+                "adoption_in_progress": adoption_in_progress,
+                "adoption_completed": adoption_completed,
+                "adoption_unavailable": adoption_unavailable,
+                "total": total
+            }
+        
+        counts = await get_adoption_counts()
+        
+        return AdoptionStatusCountOut(**counts)
+        
+    except Exception as e:
+        raise HttpError(500, f"입양 상태별 카운트 조회 중 오류가 발생했습니다: {str(e)}")

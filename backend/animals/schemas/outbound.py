@@ -99,6 +99,15 @@ class MegaphoneToggleOut(Schema):
     message: str = Field(..., description="결과 메시지")
 
 
+class AdoptionStatusCountOut(Schema):
+    """입양 상태별 동물 카운트 출력 스키마"""
+    adoption_available: int = Field(..., description="입양가능 동물 수")
+    adoption_in_progress: int = Field(..., description="입양진행중 동물 수")
+    adoption_completed: int = Field(..., description="입양완료 동물 수")
+    adoption_unavailable: int = Field(..., description="입양불가 동물 수")
+    total: int = Field(..., description="전체 입양 관련 동물 수")
+
+
 class ErrorOut(Schema):
     """에러 응답 스키마"""
     error: str = Field(..., description="에러 메시지")

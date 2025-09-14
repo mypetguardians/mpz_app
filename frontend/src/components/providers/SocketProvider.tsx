@@ -125,7 +125,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
     return () => {
       newSocket.disconnect();
     };
-  }, [isAuthenticated, user, showToast, socket]);
+  }, [isAuthenticated, user, showToast]);
 
   // 브라우저 알림 권한 요청 및 푸시 토큰 등록
   useEffect(() => {

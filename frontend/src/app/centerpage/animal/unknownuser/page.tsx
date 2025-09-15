@@ -7,7 +7,7 @@ import { Suspense } from "react";
 
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
-import { KakaoButton } from "@/components/ui/KakaoButton";
+import { KakaoButton } from "@/components/auth/KakaoButton";
 import { useGetAnimalById } from "@/hooks/query/useGetAnimals";
 import { useGetCenterById } from "@/hooks/query/useGetCenters";
 

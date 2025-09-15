@@ -9,7 +9,7 @@ export { CommunityDetailSkeleton } from "./CommunityDetailSkeleton";
 export { CommentSectionSkeleton } from "./CommentSectionSkeleton";
 export { IconButton } from "./IconButton";
 export { MiniButton } from "./MiniButton";
-export { KakaoButton } from "./KakaoButton";
+export { KakaoButton } from "../auth/KakaoButton";
 export { CustomModal } from "./CustomModal";
 export { BigButton } from "./BigButton";
 export { Button } from "./button";

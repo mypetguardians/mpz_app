@@ -8,7 +8,7 @@ import { ArrowUpRight } from "@phosphor-icons/react";
 
 import { Container } from "@/components/common/Container";
 import { MiniButton } from "@/components/ui/MiniButton";
-import { KakaoButton } from "@/components/ui/KakaoButton";
+import { KakaoButton } from "@/components/auth/KakaoButton";
 import { useAuth } from "@/components/providers/AuthProvider";
 
 export default function LogIn() {

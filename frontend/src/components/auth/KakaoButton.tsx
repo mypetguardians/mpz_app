@@ -25,8 +25,7 @@ export function KakaoButton({
 
       // 클라이언트 사이드에서 카카오 인증 URL 구성
       const clientId = "e87b92ff4188fc038238a9a22eb0bf35";
-      const redirectUri =
-        "https://mpzfullstack-production.up.railway.app/v1/kakao/login/callback";
+      const redirectUri = process.env.KAKAO_SOCIAL_LOGIN_REDIRECT_URI || "";
       if (!clientId) {
         console.error("카카오 클라이언트 ID가 설정되지 않았습니다.");
         setIsLoading(false);

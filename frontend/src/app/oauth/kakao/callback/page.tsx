@@ -86,7 +86,10 @@ function KakaoCallbackContent() {
         console.log("요청 파라미터:", { code, state });
 
         let response:
-          | { data: { access_token: string; refresh_token?: string } }
+          | {
+              status: number;
+              data: { access_token?: string; refresh_token?: string };
+            }
           | undefined;
         let retryCount = 0;
         const maxRetries = 3;
@@ -100,6 +103,10 @@ function KakaoCallbackContent() {
                 redirect_uri:
                   process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI ||
                   "https://api.mpz.kr/v1/kakao/login/callback",
+              },
+              maxRedirects: 0, // 리다이렉트를 따라가지 않음
+              validateStatus: function (status) {
+                return status >= 200 && status < 400; // 3xx 상태코드도 성공으로 처리
               },
             });
             break;
@@ -135,10 +142,16 @@ function KakaoCallbackContent() {
           throw new Error("응답을 받지 못했습니다.");
         }
 
-        console.log("토큰 교환 응답:", response.data);
+        console.log("토큰 교환 응답:", response.status, response.data);
 
-        if (response.data.access_token) {
-          console.log("서버에서 HttpOnly 쿠키로 토큰 저장됨");
+        // 백엔드에서 리다이렉트(302)를 반환하는 경우
+        if (response.status === 302 || response.status === 301) {
+          console.log("서버에서 리다이렉트 응답 - HttpOnly 쿠키로 토큰 저장됨");
+          // 쿠키가 설정되었으므로 사용자 정보를 가져옴
+          await setUserFromToken();
+          console.log("setUserFromToken 호출 완료");
+        } else if (response.data && response.data.access_token) {
+          console.log("서버에서 JSON 응답으로 토큰 받음");
           await setUserFromToken();
           console.log("setUserFromToken 호출 완료");
         } else {

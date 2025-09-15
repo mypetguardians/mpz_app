@@ -53,7 +53,7 @@ const baseConfig: Partial<AppConfig> = {
   kakao: {
     clientId: process.env.KAKAO_CLIENT_ID || "",
     clientSecret: process.env.KAKAO_SOCIAL_LOGIN_CLIENT_SECRET || "",
-    redirectUri: process.env.KAKAO_SOCIAL_LOGIN_REDIRECT_URI || "",
+    redirectUri: process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI || "",
   },
   rateLimit: {
     max: parseInt(process.env.RATE_LIMIT_MAX || "100"),
@@ -185,7 +185,7 @@ const prodConfig: AppConfig = {
   },
   kakao: {
     ...baseConfig.kakao!,
-    redirectUri: process.env.KAKAO_SOCIAL_LOGIN_REDIRECT_URI || "",
+    redirectUri: process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI || "",
   },
   cors: {
     origin: [

@@ -4,7 +4,7 @@ import Image from "next/image";
 
 export default function KakaoSignIn() {
   const clientId = "e87b92ff4188fc038238a9a22eb0bf35";
-  const redirectUri = process.env.KAKAO_SOCIAL_LOGIN_REDIRECT_URI || "";
+  const redirectUri = process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI || "";
   // 카카오 인증 URL 구성 (인가 코드 URL)
   const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
     redirectUri ?? ""

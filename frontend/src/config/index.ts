@@ -180,19 +180,19 @@ const prodConfig: AppConfig = {
   api: {
     baseUrl:
       process.env.NEXT_PUBLIC_API_URL ||
-      "https://mpz.kr/v1/kakao/login/callback",
+      "https://mpzfullstack-production.up.railway.app",
     timeout: 15000, // 프로덕션에서는 더 빠르게
   },
   kakao: {
     ...baseConfig.kakao!,
     redirectUri: process.env.NEXT_PUBLIC_API_URL
       ? `${process.env.NEXT_PUBLIC_API_URL}/api/auth/kakao/callback`
-      : "https://mpz.kr/v1/kakao/login/callback",
+      : "https://mpzfullstack-production.up.railway.app/api/auth/kakao/callback",
   },
   cors: {
     origin: [
       process.env.NEXT_PUBLIC_API_URL ||
-        "https://mpz.kr/v1/kakao/login/callback",
+        "https://mpzfullstack-production.up.railway.app",
     ],
   },
   rateLimit: {

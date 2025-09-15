@@ -234,7 +234,7 @@ async def kakao_login_callback(request, code: str, state: str, redirect_uri: str
     try:
         redirect_url = f"{settings.FRONTEND_URL}{redirect_path}"
         response = HttpResponseRedirect(redirect_url)
-        response = utils.set_cookie_jwt(response, access, refresh, access_exp, refresh_exp)
+        response = utils.set_cookie_jwt(response, access, refresh, access_exp, refresh_exp, request=request)
         return response
     except Exception as e:
         print(f"쿠키 설정 및 리다이렉트 오류: {e}")

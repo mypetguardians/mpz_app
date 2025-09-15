@@ -103,16 +103,18 @@ export default function CenterLogIn() {
   return (
     <Container className="min-h-screen flex flex-col justify-between px-4">
       <div className="flex flex-col gap-1 items-center mt-[90px]">
-        <Link href="/">
-          <Image
-            src="/illust/logo.svg"
-            alt="로고 일러스트"
-            width={167}
-            height={89}
-            className="w-full h-full"
-            priority
-          />
-        </Link>
+        <div className="w-[167px] h-[89px] flex items-center justify-center">
+          <Link href="/">
+            <Image
+              src="/illust/logo.svg"
+              alt="로고 일러스트"
+              width={167}
+              height={89}
+              className="w-full h-full"
+              priority
+            />
+          </Link>
+        </div>
         <h4 className="text-dg">컴팩트한 유기동물 입양</h4>
       </div>
 

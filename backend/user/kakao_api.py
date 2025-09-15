@@ -12,7 +12,7 @@ from django.http import HttpResponseRedirect
 router = Router(tags=["Kakao_API"])
 
 CLIENT_ID = settings.KAKAO_SOCIAL_LOGIN_CLIENT_ID
-REDIRECT_URI = settings.KAKAO_SOCIAL_LOGIN_REDIRECT_URI
+REDIRECT_URI = settings.NEXT_PUBLIC_KAKAO_REDIRECT_URI
 CLIENT_SECRET = settings.KAKAO_SOCIAL_LOGIN_CLIENT_SECRET
 
 # 카카오 OAuth 설정

@@ -75,7 +75,7 @@ export default function ProposalPage() {
           {/* 메인 제목 */}
           <div className="flex flex-col gap-2">
             <h2 className="text-2xl font-bold text-black">
-              건의사항 및 피드백
+              피드백 및 건의사항
             </h2>
             <p className="body2 text-gr">
               마이펫가디언즈를 이용하며 느낀 서비스 이용 후기, 불편한 점,

@@ -21,7 +21,16 @@ export function CommunitySection({ users = [] }: CommunitySectionProps) {
   } = useGetPublicPosts({
     page: 1,
     page_size: 3,
+    tags: ["입양후기"],
   });
+
+  // "입양후기" 태그 필터링
+  const adoptionReviewPosts =
+    postsData?.data?.filter(
+      (post) =>
+        Array.isArray(post.tags) &&
+        post.tags.some((t) => t.tag_name === "입양후기")
+    ) || [];
 
   const handleMorePosts = () => {
     router.push("/community");
@@ -30,7 +39,7 @@ export function CommunitySection({ users = [] }: CommunitySectionProps) {
   // 로딩 중이거나 에러가 있을 때 처리
   if (isLoading) {
     return (
-      <MainSection title="누군가의 가족이 된 순간들">
+      <MainSection title="작은 가족을 맞이했어요">
         <div className="flex flex-col gap-4">
           {[1, 2, 3].map((i) => (
             <div
@@ -45,7 +54,7 @@ export function CommunitySection({ users = [] }: CommunitySectionProps) {
 
   if (error) {
     return (
-      <MainSection title="누군가의 가족이 된 순간들">
+      <MainSection title="작은 가족을 맞이했어요">
         <div className="text-center text-gray-500 py-8">
           게시물을 불러올 수 없습니다.
         </div>
@@ -54,9 +63,9 @@ export function CommunitySection({ users = [] }: CommunitySectionProps) {
   }
 
   // 게시글이 없는 경우
-  if (!postsData?.data || postsData.data.length === 0) {
+  if (!adoptionReviewPosts || adoptionReviewPosts.length === 0) {
     return (
-      <MainSection title="누군가의 가족이 된 순간들">
+      <MainSection title="작은 가족을 맞이했어요">
         <div className="text-center py-8">
           <div className="text-lg text-sm mb-4">
             아직 업로드된 게시글이 없어요.
@@ -75,9 +84,9 @@ export function CommunitySection({ users = [] }: CommunitySectionProps) {
   }
 
   return (
-    <MainSection title="누군가의 가족이 된 순간들">
+    <MainSection title="작은 가족을 맞이했어요">
       <div className="flex flex-col gap-4">
-        {postsData.data.map((item: ApiPostResponse) => (
+        {adoptionReviewPosts.map((item: ApiPostResponse) => (
           <div
             key={item.id}
             className="cursor-pointer"

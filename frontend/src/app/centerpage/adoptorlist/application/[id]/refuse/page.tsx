@@ -31,7 +31,7 @@ export default function AdoptionRefusePage() {
           <div className="flex flex-col gap-6 items-center justify-center">
             <div className="flex flex-col gap-1 items-center justify-center">
               <h4 className="text-bk">[센터 이름]</h4>
-              <h4 className="text-bk text-base">입양 신청이 거절되었습니다</h4>
+              <h4 className="text-bk text-base">입양 신청이 거절되었어요</h4>
             </div>
 
             {/* Dog Image */}

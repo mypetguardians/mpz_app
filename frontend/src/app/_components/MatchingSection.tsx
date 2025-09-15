@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { CaretDown } from "@phosphor-icons/react";
+//import { CaretDown } from "@phosphor-icons/react";
 import { MiniButton } from "@/components/ui/MiniButton";
 import { PetCard } from "@/components/ui/PetCard";
 import { MainSection } from "@/components/common/MainSection";
@@ -218,12 +218,12 @@ export function MatchingSection({
                       />
                     ))}
                   </div> */}
-                  <MiniButton
+                  {/* <MiniButton
                     text="전문가 분석 모아보기"
                     variant="filterOff"
                     className="py-4"
                     rightIcon={<CaretDown size={12} />}
-                  />
+                  /> */}
                 </>
               );
             }

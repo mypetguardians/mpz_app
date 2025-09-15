@@ -13,7 +13,6 @@ import { CommunitySection } from "@/app/_components/CommunitySection";
 import { FooterSection } from "@/app/_components/FooterSection";
 import { useGetAnimals } from "@/hooks/query/useGetAnimals";
 import { useGetBanners } from "@/hooks/query/useGetBanners";
-import { useGetAnimalCount } from "@/hooks/query/useGetAnimalCount";
 import { useMatchingStepStore } from "@/lib/stores/matchingStepStore";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { RawAnimalResponse } from "@/types/animal";
@@ -38,8 +37,6 @@ export default function Home() {
   const { data: banners, isLoading: bannerLoading } = useGetBanners({
     type: "main",
   });
-
-  const { data: animalCountData } = useGetAnimalCount();
 
   // TopPetSection용 쿼리 - admission_date 오래된 순
   const {
@@ -74,11 +71,6 @@ export default function Home() {
     petSectionData?.pages?.flatMap((page) => {
       return (page as { data?: RawAnimalResponse[] }).data || [];
     }) || [];
-
-  // 기존 호환성을 위해 animals 변수 유지 (TopPetSection 데이터 사용)
-  const animals = topSectionAnimals;
-
-  const totalPets = animalCountData?.total || animals.length;
 
   const handleLocationSelect = (location: string) => {
     setSelectedLocation(location);
@@ -259,7 +251,7 @@ export default function Home() {
         )}
       </div>
       <TopPetSection
-        title="따듯한 손길을 기다려요"
+        title="내 근처에 있는 아이들"
         rightSlot="모두 보기"
         animals={topSectionAnimals}
         variant="primary"
@@ -302,7 +294,7 @@ export default function Home() {
       <CommunitySection />
 
       <PetSection
-        title={`총 ${totalPets}명의 아이들이 \n도움을 요청하고 있어요`}
+        title={`지금 주목받고 있는 \n아이들이에요`}
         animals={petSectionAnimals}
         isLoading={isPetSectionLoading}
         error={petSectionError}

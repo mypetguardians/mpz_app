@@ -25,17 +25,17 @@ export default function MatchingPage() {
       />
       <div className="flex flex-col px-4 py-20 items-center gap-9">
         <div className="flex flex-col gap-1 items-center">
-          <h4 className="text-brand-light">반려동물 성향 테스트</h4>
           <h2 className="text-bk">나한테 찰떡인 강아지는?</h2>
-          <h6 className="text-dg">
-            어떤 강아지와 맞을지 궁금하다면 바로 시작해보세요!
+          <h6 className="text-dg text-center">
+            나의 성향과 환경에 맞는 강아지가 궁금하다면, <br />
+            바로 시작해 보세요!
           </h6>
         </div>
 
         <div className="flex justify-center">
           <Image
             src="/illust/matching.svg"
-            alt="입양 완료 일러스트"
+            alt="매칭 일러스트"
             width={330}
             height={240}
             className="object-contain"

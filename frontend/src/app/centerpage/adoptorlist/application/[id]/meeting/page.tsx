@@ -585,7 +585,7 @@ export default function AdoptionMeetingPage({
           <div className="fixed bottom-4 left-4 right-4 z-[10000]">
             <Toast>
               {selectedStatus === "취소"
-                ? "입양 신청이 거절되었습니다."
+                ? "입양 신청이 거절되었어요."
                 : sendContractMutation.isSuccess
                 ? "입양자에게 계약서를 전송했습니다."
                 : "계약서를 전송했습니다."}

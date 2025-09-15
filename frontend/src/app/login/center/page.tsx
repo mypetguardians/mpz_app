@@ -107,8 +107,8 @@ export default function CenterLogIn() {
           <Image
             src="/illust/logo.svg"
             alt="로고 일러스트"
-            width={250}
-            height={216}
+            width={167}
+            height={89}
             className="w-full h-full"
             priority
           />

@@ -114,7 +114,7 @@ export default function AdoptionRefusePage({
         <div className="flex-1 bg-white rounded-t-3xl -mt-4 relative z-10">
           <div className="p-4">
             <h2 className="flex itemx-center justify-center text-bk mb-6">
-              입양 신청이 거절되었습니다
+              입양 신청이 거절되었어요
             </h2>
             {/* Info Card */}
             <InfoCard className="mb-6">

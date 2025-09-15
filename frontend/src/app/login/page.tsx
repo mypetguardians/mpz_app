@@ -38,7 +38,7 @@ export default function LogIn() {
       </div>
 
       <div className="flex justify-center">
-        <div className="w-[420px] h-[216px] flex items-center justify-center">
+        <div className="w-[167px] h-[89px] flex items-center justify-center">
           <Image
             src="/illust/login.svg"
             alt="로그인 일러스트"

@@ -83,6 +83,7 @@ export function Step1({ onNext }: StepProps) {
         variant="variant1"
         primaryButtonText="다음으로"
         onPrimaryButtonClick={handleNext}
+        primaryButtonDisabled={selectedActivity === null}
       />
     </>
   );

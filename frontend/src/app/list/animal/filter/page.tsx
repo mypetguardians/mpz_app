@@ -132,10 +132,6 @@ function AnimalFilterContent() {
     updateURL,
   ]);
 
-  const handleBack = () => {
-    router.back();
-  };
-
   const handleApply = () => {
     const filters: FilterState = {
       breed: selectedBreed,
@@ -193,7 +189,7 @@ function AnimalFilterContent() {
             <IconButton
               icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
               size="iconM"
-              onClick={handleBack}
+              onClick={() => router.push("/list/animal")}
             />
             <h4>필터</h4>
           </div>

@@ -26,7 +26,7 @@ export function SelectButton({
     <div
       className={cn(
         "relative bg-transparent rounded-xl transition-all cursor-pointer px-4 py-3",
-        isSelected && "border border-brand bg-brand-op/4 hover:bg-brand-op/4",
+        isSelected && "border border-brand bg-brand/10 hover:bg-brand/10",
         !isSelected && "border border-lg",
         className
       )}

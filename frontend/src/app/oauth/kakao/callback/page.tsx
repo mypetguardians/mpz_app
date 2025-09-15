@@ -115,6 +115,7 @@ function KakaoCallbackContent() {
               params: {
                 code: code,
                 state: "kakao_oauth_state",
+                redirect_uri: "https://api.mpz.kr/v1/kakao/login/callback",
               },
             });
             break;

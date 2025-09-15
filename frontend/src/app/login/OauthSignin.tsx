@@ -3,7 +3,7 @@
 import Image from "next/image";
 
 export default function KakaoSignIn() {
-  const clientId = process.env.KAKAO_CLIENT_ID;
+  const clientId = "e87b92ff4188fc038238a9a22eb0bf35";
   const baseRedirectUri =
     process.env.NEXT_PUBLIC_KAKAO_REDIRECT_SIGNIN_BASE_URI;
   const redirectUri = `${baseRedirectUri}`;

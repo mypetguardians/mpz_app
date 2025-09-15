@@ -24,12 +24,8 @@ export function KakaoButton({
       setIsLoading(true);
 
       // 클라이언트 사이드에서 카카오 인증 URL 구성
-      const clientId =
-        process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID ||
-        "e87b92ff4188fc038238a9a22eb0bf35";
-      const redirectUri =
-        process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI ||
-        "https://api.mpz.kr/v1/kakao/login/callback";
+      const clientId = "e87b92ff4188fc038238a9a22eb0bf35";
+      const redirectUri = process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI || "";
       if (!clientId) {
         console.error("카카오 클라이언트 ID가 설정되지 않았습니다.");
         setIsLoading(false);

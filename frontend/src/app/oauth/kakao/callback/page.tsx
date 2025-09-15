@@ -85,6 +85,10 @@ function KakaoCallbackContent() {
         console.log("Django 백엔드로 토큰 교환 요청 시작...");
         console.log("요청 파라미터:", { code, state });
 
+        // 현재 페이지의 redirect_uri 구성
+        const currentRedirectUri = `${window.location.origin}/oauth/kakao/callback`;
+        console.log("현재 redirect_uri:", currentRedirectUri);
+
         let response:
           | {
               status: number;
@@ -99,14 +103,12 @@ function KakaoCallbackContent() {
             response = await instance.get("/kakao/login/callback", {
               params: {
                 code: code,
-                state: "kakao_oauth_state",
-                redirect_uri:
-                  process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI ||
-                  "https://api.mpz.kr/v1/kakao/login/callback",
+                state: state || "kakao_oauth_state",
+                redirect_uri: currentRedirectUri,
               },
               maxRedirects: 0, // 리다이렉트를 따라가지 않음
               validateStatus: function (status) {
-                return status >= 200 && status < 400; // 3xx 상태코드도 성공으로 처리
+                return status >= 200 && status < 400;
               },
             });
             break;
@@ -116,8 +118,29 @@ function KakaoCallbackContent() {
               error instanceof Error ? error.message : "Unknown error";
             console.log(`시도 ${retryCount}/${maxRetries}: ${errorMessage}`);
 
-            const axiosError = error as { response?: { status?: number } };
+            const axiosError = error as {
+              response?: {
+                status?: number;
+                data?: unknown;
+                statusText?: string;
+              };
+              code?: string;
+              message?: string;
+            };
 
+            // 네트워크 에러 처리
+            if (
+              axiosError.code === "NETWORK_ERROR" ||
+              axiosError.code === "ECONNREFUSED"
+            ) {
+              if (retryCount < maxRetries) {
+                console.log("네트워크 연결 오류. 2초 후 재시도...");
+                await new Promise((resolve) => setTimeout(resolve, 2000));
+                continue;
+              }
+            }
+
+            // 서버 에러 처리
             if (axiosError?.response?.status === 503) {
               if (retryCount < maxRetries) {
                 console.log("서버 일시적 불가용 (503). 2초 후 재시도...");
@@ -126,13 +149,33 @@ function KakaoCallbackContent() {
               }
             }
 
+            // 4xx 클라이언트 에러는 재시도하지 않음
+            if (
+              axiosError?.response?.status &&
+              axiosError.response.status >= 400 &&
+              axiosError.response.status < 500
+            ) {
+              console.error("클라이언트 에러 (재시도 안함):", {
+                status: axiosError.response.status,
+                statusText: axiosError.response.statusText,
+                data: axiosError.response.data,
+              });
+              throw new Error(
+                `요청 오류 (${axiosError.response.status}): ${
+                  axiosError.response.statusText || errorMessage
+                }`
+              );
+            }
+
             if (retryCount >= maxRetries) {
               console.error("모든 시도 실패:", {
                 error: errorMessage,
                 retryCount,
+                status: axiosError?.response?.status,
+                statusText: axiosError?.response?.statusText,
               });
               throw new Error(
-                "Django 백엔드의 카카오 콜백 엔드포인트를 찾을 수 없습니다. 서버 상태를 확인해주세요."
+                `Django 백엔드 연결 실패 (${retryCount}회 시도): ${errorMessage}`
               );
             }
           }

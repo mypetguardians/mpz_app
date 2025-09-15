@@ -90,7 +90,7 @@ export default function CenterLogIn() {
       }
     } catch (error) {
       console.error("Login error:", error);
-      setToastMessage("로그인 중 오류가 발생했습니다.");
+      setToastMessage(error as string);
       setShowToast(true);
       setLoggingIn(false); // 로그인 오류 시 상태 리셋
       // 3초 후 자동으로 토스트 숨김

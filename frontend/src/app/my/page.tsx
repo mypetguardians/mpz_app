@@ -102,18 +102,18 @@ export default function MyPage() {
       },
       href: isAuthenticated ? "/my/adoption" : undefined,
     },
-    {
-      id: "2",
-      label: "매칭 결과 다시보기",
-      onClick: () => {
-        if (!isAuthenticated) {
-          setIsLoginModalOpen(true);
-        } else {
-          console.log("매칭 결과 다시보기");
-        }
-      },
-      href: isAuthenticated ? "/my/matchingresult" : undefined,
-    },
+    // {
+    //   id: "2",
+    //   label: "매칭 결과 다시보기",
+    //   onClick: () => {
+    //     if (!isAuthenticated) {
+    //       setIsLoginModalOpen(true);
+    //     } else {
+    //       console.log("매칭 결과 다시보기");
+    //     }
+    //   },
+    //   href: isAuthenticated ? "/my/matchingresult" : undefined,
+    // },
     {
       id: "3",
       label: "고객센터",

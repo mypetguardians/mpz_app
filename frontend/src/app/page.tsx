@@ -8,17 +8,17 @@ import { NavBar } from "@/components/common/NavBar";
 import { HomeHeader } from "@/app/_components/HomeHeader";
 import { PetSection } from "@/app/_components/PetSection";
 import { TopPetSection } from "@/app/_components/TopPetSection";
-import { MatchingSection } from "@/app/_components/MatchingSection";
+//import { MatchingSection } from "@/app/_components/MatchingSection";
 import { CommunitySection } from "@/app/_components/CommunitySection";
 import { FooterSection } from "@/app/_components/FooterSection";
 import { useGetAnimals } from "@/hooks/query/useGetAnimals";
 import { useGetBanners } from "@/hooks/query/useGetBanners";
-import { useMatchingStepStore } from "@/lib/stores/matchingStepStore";
+//import { useMatchingStepStore } from "@/lib/stores/matchingStepStore";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { RawAnimalResponse } from "@/types/animal";
-import { AIRecommendResponse } from "@/types/ai-matching";
+//import { AIRecommendResponse } from "@/types/ai-matching";
 import {
-  checkMatchingCompletion,
+  //checkMatchingCompletion,
   clearMatchingData,
 } from "@/lib/storage-utils";
 import { useRouter } from "next/navigation";
@@ -33,7 +33,7 @@ export default function Home() {
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [showMatchingNotification, setShowMatchingNotification] =
     useState(false);
-  const { aiMatchingResult, setAIMatchingResult } = useMatchingStepStore();
+  //const { aiMatchingResult, setAIMatchingResult } = useMatchingStepStore();
   const { data: banners, isLoading: bannerLoading } = useGetBanners({
     type: "main",
   });
@@ -77,27 +77,27 @@ export default function Home() {
   };
 
   // 매칭 완료 상태 확인 및 알림 표시
-  useEffect(() => {
-    const matchingStatus = checkMatchingCompletion();
+  // useEffect(() => {
+  //   const matchingStatus = checkMatchingCompletion();
 
-    if (matchingStatus.isCompleted && matchingStatus.result) {
-      // 매칭 결과를 스토어에 저장
-      setAIMatchingResult(matchingStatus.result as AIRecommendResponse);
-      setShowMatchingNotification(true);
+  //   if (matchingStatus.isCompleted && matchingStatus.result) {
+  //     // 매칭 결과를 스토어에 저장
+  //     setAIMatchingResult(matchingStatus.result as AIRecommendResponse);
+  //     setShowMatchingNotification(true);
 
-      // 5초 후 알림 자동 숨김
-      const timer = setTimeout(() => {
-        setShowMatchingNotification(false);
-        clearMatchingData(); // 스토리지 정리
-      }, 5000);
+  //     // 5초 후 알림 자동 숨김
+  //     const timer = setTimeout(() => {
+  //       setShowMatchingNotification(false);
+  //       clearMatchingData(); // 스토리지 정리
+  //     }, 5000);
 
-      return () => clearTimeout(timer);
-    } else if (matchingStatus.error) {
-      // 매칭 실패 시 에러 알림
-      console.error("매칭 처리 중 오류가 발생했습니다.");
-      clearMatchingData();
-    }
-  }, [setAIMatchingResult]);
+  //     return () => clearTimeout(timer);
+  //   } else if (matchingStatus.error) {
+  //     // 매칭 실패 시 에러 알림
+  //     console.error("매칭 처리 중 오류가 발생했습니다.");
+  //     clearMatchingData();
+  //   }
+  // }, [setAIMatchingResult]);
 
   const handleMatchingNotificationClick = () => {
     setShowMatchingNotification(false);
@@ -283,13 +283,13 @@ export default function Home() {
         sortOrder="asc"
       />
 
-      <MatchingSection
+      {/* <MatchingSection
         variant="variant2"
         isLoading={isTopSectionLoading}
         error={topSectionError}
         isExpertAnalysis={true}
         aiMatchingResult={aiMatchingResult}
-      />
+      /> */}
 
       <CommunitySection />
 

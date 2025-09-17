@@ -15,6 +15,7 @@ import { useGetMyCenterAnimalsInfinite } from "@/hooks/query";
 import { useGetMyCenter } from "@/hooks/query";
 import type { Animal } from "@/types/animal";
 import { NotificationToast } from "@/components/ui/NotificationToast";
+import { Add } from "@/components/ui/Add";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function CenterAnimal() {
@@ -25,6 +26,12 @@ export default function CenterAnimal() {
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState<"success" | "error">("success");
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showActionButtons, setShowActionButtons] = useState(false);
+  const [selectedAnimal, setSelectedAnimal] = useState<Animal | null>(null);
+  const [selectedAnimalPosition, setSelectedAnimalPosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -122,7 +129,7 @@ export default function CenterAnimal() {
       setIsRefreshing(false);
     }
   };
- console.log(allAnimals); 
+  console.log(allAnimals);
   const handleAdoptionClick = (pet: Animal) => {
     const animalUrl = `${window.location.origin}/list/animal/${pet.id}`;
 
@@ -168,6 +175,72 @@ export default function CenterAnimal() {
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
+  };
+
+  const handleAnimalClick = (animal: Animal, event: React.MouseEvent) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const popupWidth = 116;
+    const popupHeight = 120;
+    const margin = 20; // 여백 증가
+
+    // 화면 경계 정보
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    // 기본 위치 계산 (카드 중앙 상단)
+    let x = rect.left + rect.width / 2 - popupWidth / 2;
+    let y = rect.top - popupHeight - margin;
+
+    // 좌우 경계 체크 및 조정
+    if (x < margin) {
+      x = margin;
+    } else if (x + popupWidth > viewportWidth - margin) {
+      x = viewportWidth - popupWidth - margin;
+    }
+
+    // 상하 경계 체크 및 위치 조정
+    if (y < margin) {
+      // 위쪽에 공간이 없으면 아래쪽에 표시
+      y = rect.bottom + margin;
+
+      // 아래쪽에도 공간이 없으면 카드 위쪽에 겹치게 표시 (마진 없이)
+      if (y + popupHeight > viewportHeight - margin) {
+        y = rect.top - popupHeight + margin;
+
+        // 그래도 위쪽에 공간이 없으면 카드 중앙에 표시
+        if (y < margin) {
+          y = rect.top + rect.height / 2 - popupHeight / 2;
+        }
+      }
+    } else if (y + popupHeight > viewportHeight - margin) {
+      // 아래쪽에 공간이 없으면 위쪽으로 조정
+      y = viewportHeight - popupHeight - margin;
+
+      // 위쪽에도 공간이 없으면 카드 아래쪽에 표시
+      if (y < margin) {
+        y = rect.bottom + margin;
+      }
+    }
+
+    // 최종 경계 체크 (절대 화면을 벗어나지 않도록)
+    x = Math.max(margin, Math.min(x, viewportWidth - popupWidth - margin));
+    y = Math.max(margin, Math.min(y, viewportHeight - popupHeight - margin));
+
+    setSelectedAnimal(animal);
+    setSelectedAnimalPosition({ x, y });
+    setShowActionButtons(true);
+  };
+
+  const handleEditAnimal = () => {
+    if (selectedAnimal) {
+      router.push(`/centerpage/animal/edit/${selectedAnimal.id}`);
+    }
+  };
+
+  const handleViewAnimal = () => {
+    if (selectedAnimal) {
+      router.push(`/list/animal/${selectedAnimal.id}`);
+    }
   };
 
   return (
@@ -235,23 +308,25 @@ export default function CenterAnimal() {
             <div className="flex flex-wrap justify-start gap-2">
               {allAnimals.map((animal: Animal) => (
                 <div key={animal.id} className="w-[calc(50%-4px)]">
-                  <PetCard
-                    pet={{
-                      id: animal.id,
-                      name: animal.name || "",
-                      isFemale: animal.isFemale,
-                      breed: animal.breed,
-                      protection_status: animal.protection_status,
-                      adoption_status: animal.adoption_status,
-                      centerId: animal.centerId,
-                      animalImages: animal.animalImages,
-                      foundLocation: animal.foundLocation || "위치 정보 없음",
-                    }}
-                    variant="edit"
-                    imageSize="full"
-                    className="w-full"
-                    onAdoptionClick={() => handleAdoptionClick(animal)}
-                  />
+                  <div onClick={(e) => handleAnimalClick(animal, e)}>
+                    <PetCard
+                      pet={{
+                        id: animal.id,
+                        name: animal.name || "",
+                        isFemale: animal.isFemale,
+                        breed: animal.breed,
+                        protection_status: animal.protection_status,
+                        adoption_status: animal.adoption_status,
+                        centerId: animal.centerId,
+                        animalImages: animal.animalImages,
+                        foundLocation: animal.foundLocation || "위치 정보 없음",
+                      }}
+                      variant="edit"
+                      imageSize="full"
+                      className="w-full"
+                      onAdoptionClick={() => handleAdoptionClick(animal)}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
@@ -282,6 +357,37 @@ export default function CenterAnimal() {
           </div>
         )}
       </div>
+
+      {/* 동물 액션 버튼 */}
+      {showActionButtons && selectedAnimal && selectedAnimalPosition && (
+        <div
+          className="fixed inset-0 z-50"
+          onClick={() => setShowActionButtons(false)}
+        >
+          <div
+            className="fixed z-50 transition-all duration-200 ease-out"
+            style={{
+              left: `${selectedAnimalPosition.x}px`,
+              top: `${selectedAnimalPosition.y}px`,
+              transform: "translateZ(0)", // 하드웨어 가속
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Add
+              buttons={[
+                {
+                  text: "수정하기",
+                  onClick: handleEditAnimal,
+                },
+                {
+                  text: "보러가기",
+                  onClick: handleViewAnimal,
+                },
+              ]}
+            />
+          </div>
+        </div>
+      )}
 
       {/* 토스트 알림 */}
       {showToast && (

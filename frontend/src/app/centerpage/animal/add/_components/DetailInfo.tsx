@@ -65,9 +65,9 @@ export default function DetailInfo({ data, onChange }: DetailInfoProps) {
         {renderRatingButtons("separationAnxiety", "분리불안")}
       </div>
       <div className="flex flex-col gap-2 w-full">
-        <h5 className="text-dg">훈련사 한마디</h5>
+        <h5 className="text-dg">전문가 한 마디</h5>
         <textarea
-          placeholder="자유롭게 작성해주세요."
+          placeholder="아이에 대해 덧붙이고 싶은 사항이 있다면 자유롭게 작성해주세요."
           value={data.trainerComment}
           onChange={(e) => onChange({ trainerComment: e.target.value })}
           className="flex w-full rounded-md border border-lg bg-background px-4 py-3 h5 ring-offset-background placeholder:text-gr placeholder:text-body placeholder:text-top disabled:cursor-not-allowed disabled:opacity-50 resize-none h-[150px] focus:outline-none"

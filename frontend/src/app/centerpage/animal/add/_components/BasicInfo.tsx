@@ -394,7 +394,7 @@ export default function BasicInfo({
         <div className="flex flex-col gap-4">
           <SearchInput
             variant="variant2"
-            placeholder="품종을 검색해보세요"
+            placeholder="품종으로 검색해보세요"
             value={breedSearchTerm}
             onChange={(e) => setBreedSearchTerm(e.target.value)}
           />
@@ -406,7 +406,7 @@ export default function BasicInfo({
                     key={index}
                     className={`text-left p-3 rounded-lg transition-colors ${
                       tempSelectedBreed === breedItem
-                        ? "bg-blue-50 text-blue-600 border border-blue-200"
+                        ? " text-blue-600 border border-brand"
                         : "hover:bg-gray-50"
                     }`}
                     onClick={() => handleBreedSelect(breedItem)}

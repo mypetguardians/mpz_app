@@ -208,11 +208,27 @@ async def get_animals(request: HttpRequest, filters: AnimalListQueryIn = Query(A
             
             # 필터 조건 적용
             if filters.status:
-                # 기존 status 필터를 protection_status와 adoption_status로 분리
-                if filters.status in ['보호중', '안락사', '자연사', '반환']:
-                    queryset = queryset.filter(protection_status=filters.status)
-                elif filters.status in ['입양가능', '입양진행중', '입양완료', '입양불가']:
-                    queryset = queryset.filter(adoption_status=filters.status)
+                from django.db.models import Q
+                # 특별한 필터 처리
+                if filters.status == '무지개다리':
+                    # 무지개다리는 자연사, 안락사, 반환 모두 포함
+                    queryset = queryset.filter(
+                        Q(protection_status='자연사') | 
+                        Q(protection_status='안락사') | 
+                        Q(protection_status='반환')
+                    )
+                elif filters.status == '입양가능':
+                    # 입양가능은 입양가능과 입양진행중 모두 포함
+                    queryset = queryset.filter(
+                        Q(adoption_status='입양가능') | 
+                        Q(adoption_status='입양진행중')
+                    )
+                else:
+                    # 기존 status 필터를 protection_status와 adoption_status로 분리
+                    if filters.status in ['보호중', '안락사', '자연사', '반환']:
+                        queryset = queryset.filter(protection_status=filters.status)
+                    elif filters.status in ['입양가능', '입양진행중', '입양완료', '입양불가']:
+                        queryset = queryset.filter(adoption_status=filters.status)
             if filters.center_id:
                 queryset = queryset.filter(center_id=filters.center_id)
             if filters.gender:

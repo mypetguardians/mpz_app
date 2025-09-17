@@ -56,7 +56,7 @@ export function Step10({ onNext }: StepProps) {
       <Container className="min-h-screen pb-28">
         <h4 className="text-brand-light">Q9.</h4>
         <h2 className="text-bk">선호하는 강아지 특징이 있다면 알려주세요!</h2>
-        <p className="body2 text-brand-light  mb-6">선호하는 성별이 궁금해요</p>
+        <p className="body2 text-brand-sub1  mb-6">선호하는 성별이 궁금해요</p>
 
         <div className="flex flex-col gap-2">
           <div className="grid grid-cols-2 gap-2">
@@ -99,6 +99,7 @@ export function Step10({ onNext }: StepProps) {
         variant="variant1"
         primaryButtonText="다음으로"
         onPrimaryButtonClick={handleNext}
+        primaryButtonDisabled={selectedGender === null}
       />
     </>
   );

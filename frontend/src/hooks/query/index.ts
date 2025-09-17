@@ -26,6 +26,7 @@ export { useGetQuestionForms } from "./useGetQuestionForms";
 export { useGetCenterProcedureSettings } from "./useGetCenterProcedureSettings";
 export { useGetCenterProcedureQuestions } from "./useGetCenterProcedureQuestions";
 export { useGetContractTemplate } from "./useGetContractTemplate";
+export { useGetCenterContractTemplates } from "./useGetCenterContractTemplates";
 export { useGetConsents } from "./useGetConsents";
 export { useGetConsent } from "./useGetConsent";
 export { useGetCenterConsents } from "./useGetCenterConsents";

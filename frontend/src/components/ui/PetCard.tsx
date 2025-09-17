@@ -13,18 +13,20 @@ import { AdoptionStatus } from "@/types/adoption";
 
 // PetCard에서 실제로 사용하는 필드들만 포함하는 타입
 type PetCardVariant = "primary" | "variant2" | "variant3" | "variant4" | "edit";
+type PetCardHeadingLevel = "h4" | "h5";
 
 interface PetCardProps {
   pet: PetCardAnimal;
   variant?: PetCardVariant;
   className?: string;
   imageSize?: "sm" | "md" | "lg" | "full";
+  headingLevel?: PetCardHeadingLevel;
   onAdoptionClick?: (pet: PetCardAnimal) => void;
   rank?: number;
   showLocation?: boolean;
   showUpdatedAt?: boolean;
   disableNavigation?: boolean;
-  adoptionStatus?: AdoptionStatus | string; // 입양 상태를 표시할 때 사용
+  adoptionStatus?: AdoptionStatus | string;
 }
 
 export function PetCard({
@@ -32,6 +34,7 @@ export function PetCard({
   variant = "primary",
   className,
   imageSize = "md",
+  headingLevel = "h4",
   onAdoptionClick,
   rank,
   showLocation = true,
@@ -99,6 +102,15 @@ export function PetCard({
     }
   };
 
+  // 동적으로 헤딩 태그를 생성하는 헬퍼 함수
+  const createHeadingElement = (
+    content: React.ReactNode,
+    className?: string
+  ) => {
+    const HeadingTag = headingLevel;
+    return React.createElement(HeadingTag, { className }, content);
+  };
+
   const getStatusInfo = (
     protectionStatus?: string,
     adoptionStatus?: string
@@ -119,17 +131,29 @@ export function PetCard({
       };
     }
 
+    // 보호 상태가 "보호중"인 경우
+    if (protectionStatus === "보호중") {
+      return {
+        text: protectionStatus,
+        colorClass: "bg-green/10 text-green",
+      };
+    }
+
     // 입양 상태에 따른 표시
     switch (adoptionStatus) {
       case "입양완료":
         return {
           text: adoptionStatus,
-          colorClass: "bg-brand/10 text-brand",
+          colorClass: "bg-brand-sub2 text-brand",
         };
       case "입양진행중":
         return {
-          text: adoptionStatus,
-          colorClass: "bg-blue/10 text-blue",
+          text: "입양가능",
+          colorClass: "bg-green/10 text-green",
+        };
+        return {
+          text: "입양가능",
+          colorClass: "bg-green/10 text-green",
         };
       case "입양불가":
         return {
@@ -228,11 +252,12 @@ export function PetCard({
                 <Chip className={statusInfo.colorClass}>{statusInfo.text}</Chip>
               );
             })()}
-            <h4 className="text-bk">
-              {(breed || "종 미등록").length > 4
+            {createHeadingElement(
+              (breed || "종 미등록").length > 4
                 ? (breed || "종 미등록").slice(0, 4) + "..."
-                : breed || "종 미등록"}
-            </h4>
+                : breed || "종 미등록",
+              "text-bk"
+            )}
             {isFemale ? (
               <GenderFemale className="text-red" weight="bold" size={12} />
             ) : (
@@ -318,15 +343,12 @@ export function PetCard({
         <div className="flex-1">
           <div className="flex items-center mb-[6px] gap-1">
             {(() => {
-              const statusInfo = getStatusInfo(
-                protection_status,
-                adoption_status
-              );
+              const statusInfo = getStatusInfo(protection_status);
               return (
                 <Chip className={statusInfo.colorClass}>{statusInfo.text}</Chip>
               );
             })()}
-            <h4 className="text-bk">{breed || "종 미등록"}</h4>
+            {createHeadingElement(breed || "종 미등록", "text-bk")}
             {isFemale ? (
               <GenderFemale className="text-red" weight="bold" size={12} />
             ) : (
@@ -350,7 +372,6 @@ export function PetCard({
           "flex flex-col items-start min-w-[146px] pb-3 cursor-pointer",
           className
         )}
-        onClick={handleCardClick}
       >
         <div className={cn("relative mb-2", getImageSize())}>
           <Image
@@ -375,11 +396,12 @@ export function PetCard({
               <Chip className={statusInfo.colorClass}>{statusInfo.text}</Chip>
             );
           })()}
-          <h4 className="text-bk">
-            {(breed || "종 미등록").length > 4
+          {createHeadingElement(
+            (breed || "종 미등록").length > 4
               ? (breed || "종 미등록").slice(0, 4) + "..."
-              : breed || "종 미등록"}
-          </h4>
+              : breed || "종 미등록",
+            cn("text-bk")
+          )}
           {isFemale ? (
             <GenderFemale className="text-red" weight="bold" />
           ) : (
@@ -401,10 +423,7 @@ export function PetCard({
   // Variant 1 - Primary
   return (
     <div
-      className={cn(
-        "flex flex-col items-start min-w-[146px] pb-3 cursor-pointer",
-        className
-      )}
+      className={cn("flex flex-col items-start pb-3 cursor-pointer", className)}
       onClick={handleCardClick}
     >
       <div className={cn("relative mb-2", getImageSize())}>
@@ -429,11 +448,12 @@ export function PetCard({
             <Chip className={statusInfo.colorClass}>{statusInfo.text}</Chip>
           );
         })()}
-        <h4 className="text-bk">
-          {(breed || "종 미등록").length > 3
+        {createHeadingElement(
+          (breed || "종 미등록").length > 3
             ? (breed || "종 미등록").slice(0, 3) + "..."
-            : breed || "종 미등록"}
-        </h4>
+            : breed || "종 미등록",
+          cn("text-bk")
+        )}
         {isFemale ? (
           <GenderFemale className="text-red" weight="bold" />
         ) : (

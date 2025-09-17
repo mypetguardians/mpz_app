@@ -108,7 +108,7 @@ export default function AnimalBasicInfo({
       <div className="relative w-full aspect-square bg-white overflow-hidden">
         <Image
           src={currentImageUrl}
-          alt={`${name} - 이미지 ${currentImageIndex + 1}`}
+          alt={`${name} - 이미지 ${currentImageIndex}`}
           fill
           className="object-cover"
           unoptimized={currentImageUrl.includes("openapi.animal.go.kr")}
@@ -122,7 +122,7 @@ export default function AnimalBasicInfo({
         {/* 이미지 인디케이터 */}
         {validImageUrls.length > 0 && (
           <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-2 py-1 text-sm rounded-lg">
-            {currentImageIndex + 1}/{validImageUrls.length}
+            {currentImageIndex + 1}/{validImageUrls.length - 1}
           </div>
         )}
 

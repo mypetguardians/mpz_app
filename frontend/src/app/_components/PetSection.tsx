@@ -109,17 +109,6 @@ export function PetSection({
   // 보호중인 동물만 필터링하고 admission_date 높은 순서대로 정렬, 상위 6개만 표시
   const limitedAnimals = (animals || [])
     .filter((animal) => animal?.protection_status === "보호중")
-    .sort((a, b) => {
-      // admission_date가 있으면 admission_date 기준으로 정렬, 없으면 waiting_days 기준
-      if (a.admission_date && b.admission_date) {
-        return (
-          new Date(b.admission_date).getTime() -
-          new Date(a.admission_date).getTime()
-        );
-      }
-      // admission_date가 없는 경우 waiting_days 기준
-      return (b.waiting_days || 0) - (a.waiting_days || 0);
-    })
     .slice(0, 6);
   // ExpertAnalysis 모드일 때
   if (isExpertAnalysis) {
@@ -132,7 +121,7 @@ export function PetSection({
             <PetCard
               key={animal.id}
               pet={transformRawAnimalToPetCard(animal)}
-              variant="variant3"
+              headingLevel="h5"
             />
           ))}
         </div>
@@ -163,14 +152,12 @@ export function PetSection({
       )}
       <div className="grid grid-cols-3 gap-3 w-full">
         {limitedAnimals.map((animal) => (
-          <div key={animal.id} className="flex justify-center">
-            <PetCard
-              pet={transformRawAnimalToPetCard(animal)}
-              variant="variant3"
-              imageSize="full"
-              className="w-full"
-            />
-          </div>
+          <PetCard
+            key={animal.id}
+            pet={transformRawAnimalToPetCard(animal)}
+            imageSize="full"
+            className="w-full min-w-0"
+          />
         ))}
       </div>
     </MainSection>

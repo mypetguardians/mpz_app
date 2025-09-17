@@ -74,6 +74,7 @@ export function Step4({ onNext }: StepProps) {
         variant="variant1"
         primaryButtonText="다음으로"
         onPrimaryButtonClick={handleNext}
+        primaryButtonDisabled={selectedGoOut === null}
       />
     </>
   );

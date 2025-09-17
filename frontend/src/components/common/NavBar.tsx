@@ -102,7 +102,7 @@ function NavBar() {
     "
       style={{ pointerEvents: "auto" }}
     >
-      <Container className="bg-wh border-t border-gray-200 rounded-t-xl">
+      <Container className="bg-wh border-t border-lg rounded-t-xl">
         <div className="flex justify-between px-2">
           <NavbarBtn
             icon={<HouseSimple weight="bold" />}

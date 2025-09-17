@@ -82,7 +82,7 @@ export function BottomSheet<T = string>({
             <div className="mt-4 pt-4 border-t border-gray-100">
               <button
                 onClick={handleApply}
-                className="w-full bg-brand text-wh py-3 px-4 rounded-lg font-medium hover:bg-brand-op transition-colors"
+                className="w-full bg-brand text-wh py-3 px-4 rounded-lg font-medium  transition-colors"
               >
                 {applyButtonText}
               </button>
@@ -195,7 +195,7 @@ export function BottomSheet<T = string>({
             <BigButton
               variant="primary"
               onClick={onRightClick}
-              className="bg-brand flex-1 hover:bg-brand"
+              className="bg-brand flex-1"
             >
               {rightButtonText}
             </BigButton>
@@ -223,7 +223,7 @@ export function BottomSheet<T = string>({
             <BigButton
               variant="primary"
               onClick={onLeftClick}
-              className="bg-bg text-dg flex-1 hover:bg-bg"
+              className="bg-bg text-dg flex-1"
             >
               {leftButtonText}
             </BigButton>

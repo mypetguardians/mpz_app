@@ -90,7 +90,7 @@ export default function CenterLogIn() {
       }
     } catch (error) {
       console.error("Login error:", error);
-      setToastMessage("로그인 중 오류가 발생했습니다.");
+      setToastMessage(error as string);
       setShowToast(true);
       setLoggingIn(false); // 로그인 오류 시 상태 리셋
       // 3초 후 자동으로 토스트 숨김
@@ -103,16 +103,18 @@ export default function CenterLogIn() {
   return (
     <Container className="min-h-screen flex flex-col justify-between px-4">
       <div className="flex flex-col gap-1 items-center mt-[90px]">
-        <Link href="/">
-          <Image
-            src="/illust/logo.svg"
-            alt="로고 일러스트"
-            width={250}
-            height={216}
-            className="w-full h-full"
-            priority
-          />
-        </Link>
+        <div className="w-[167px] h-[89px] flex items-center justify-center">
+          <Link href="/">
+            <Image
+              src="/illust/logo.svg"
+              alt="로고 일러스트"
+              width={167}
+              height={89}
+              className="w-full h-full"
+              priority
+            />
+          </Link>
+        </div>
         <h4 className="text-dg">컴팩트한 유기동물 입양</h4>
       </div>
 

@@ -131,12 +131,6 @@ export default function CommunityPage() {
     }
   }, [systemTags, activeTab]);
 
-  // 사용자 권한에 따라 적절한 API 호출
-  const isCenterUser =
-    user?.userType === "센터관리자" ||
-    user?.userType === "훈련사" ||
-    user?.userType === "센터최고관리자";
-
   // 센터권한자용 게시글 조회
   const {
     data: centerPostsData,
@@ -157,22 +151,16 @@ export default function CommunityPage() {
     tags: activeTab !== "latest" ? [activeTab] : undefined,
   });
 
-  // 권한에 따라 적절한 데이터 선택 및 필터링
-  let postsData = isCenterUser ? centerPostsData : publicPostsData;
+  // 모든 게시글을 합쳐서 표시
+  const allPosts = useMemo(() => {
+    const centerPosts = centerPostsData?.data || [];
+    const publicPosts = publicPostsData?.data || [];
+    return [...centerPosts, ...publicPosts];
+  }, [centerPostsData, publicPostsData]);
 
-  // 일반 사용자인 경우 전체공개 게시글만 필터링
-  if (!isCenterUser && publicPostsData?.data) {
-    const filteredAllAccess = publicPostsData.data.filter(
-      (post) => post.is_all_access
-    );
-    postsData = {
-      ...publicPostsData,
-      data: filteredAllAccess,
-    };
-  }
-
-  const isLoading = isCenterUser ? centerPostsLoading : publicPostsLoading;
-  const error = isCenterUser ? centerPostsError : publicPostsError;
+  const postsData = { data: allPosts };
+  const isLoading = centerPostsLoading || publicPostsLoading;
+  const error = centerPostsError || publicPostsError;
 
   // 페이지 마운트 시 및 사용자 타입 변경 시 모든 데이터 새로고침
   useEffect(() => {
@@ -182,7 +170,8 @@ export default function CommunityPage() {
         await Promise.all([
           refetchBanners(),
           refetchSystemTags(),
-          isCenterUser ? refetchCenterPosts() : refetchPublicPosts(),
+          refetchCenterPosts(),
+          refetchPublicPosts(),
         ]);
       } catch (error) {
         console.error("데이터 새로고침 실패:", error);
@@ -191,12 +180,11 @@ export default function CommunityPage() {
 
     refreshAllData();
   }, [
-    isCenterUser,
     refetchBanners,
     refetchSystemTags,
     refetchCenterPosts,
     refetchPublicPosts,
-  ]); // 사용자 타입 변경 시에도 실행
+  ]); // 페이지 마운트 시 실행
 
   // 게시글 삭제 훅
   const deletePostMutation = useDeletePost();
@@ -303,12 +291,12 @@ export default function CommunityPage() {
 
       // 삭제 성공 후 관련 쿼리 강제 리패치
       await queryClient.invalidateQueries({
-        queryKey: isCenterUser ? ["center-posts"] : ["public-posts"],
+        queryKey: ["center-posts", "public-posts"],
       });
 
       // 강제로 리패치 실행
       await queryClient.refetchQueries({
-        queryKey: isCenterUser ? ["center-posts"] : ["public-posts"],
+        queryKey: ["center-posts", "public-posts"],
       });
 
       setToastMessage("삭제 완료되었습니다.");
@@ -502,7 +490,7 @@ export default function CommunityPage() {
       </div>
 
       {/* 글쓰기 플로팅 버튼 */}
-      <div className="absolute z-50 bottom-24 right-4">
+      <div className="fixed z-50 bottom-20 right-4">
         <BigButton
           variant="primary"
           left={<Plus size={16} />}

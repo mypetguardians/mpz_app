@@ -40,7 +40,11 @@ export function SearchInput({
   const textColor = isPrimaryGroup ? "text-gr" : "text-bk";
 
   return (
-    <div className={containerStyle} onClick={onSearch}>
+    <div
+      className={containerStyle}
+      onClick={onSearch}
+      style={{ cursor: "pointer" }}
+    >
       <input
         className={cn(
           "flex-1 outline-none bg-transparent text-body cursor-pointer",

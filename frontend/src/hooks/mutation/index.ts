@@ -32,6 +32,7 @@ export { useSendContract } from "./useSendContract";
 export { useRunManualMonitoringCheck } from "./useRunManualMonitoringCheck";
 export { useWithdrawAdoption } from "./useWithdrawAdoption";
 export { useSubmitAdoptionApplication } from "./useSubmitAdoptionApplication";
+export { useSignContract } from "./useSignContract";
 export { useMarkNotificationRead } from "./useMarkNotificationRead";
 export { useMarkAllNotificationsRead } from "./useMarkAllNotificationsRead";
 export {
@@ -40,3 +41,7 @@ export {
   useWebPushNotification,
   detectPlatform,
 } from "./usePushToken";
+export {
+  useSendPhoneVerification,
+  useVerifyPhoneCode,
+} from "./usePhoneVerification";

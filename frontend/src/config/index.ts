@@ -52,8 +52,8 @@ const baseConfig: Partial<AppConfig> = {
   },
   kakao: {
     clientId: process.env.KAKAO_CLIENT_ID || "",
-    clientSecret: process.env.KAKAO_CLIENT_SECRET || "",
-    redirectUri: process.env.KAKAO_REDIRECT_URI || "",
+    clientSecret: process.env.KAKAO_SOCIAL_LOGIN_CLIENT_SECRET || "",
+    redirectUri: process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI || "",
   },
   rateLimit: {
     max: parseInt(process.env.RATE_LIMIT_MAX || "100"),
@@ -81,7 +81,7 @@ const localConfig: AppConfig = {
   },
   kakao: {
     ...baseConfig.kakao!,
-    redirectUri: "http://localhost:3000/api/auth/kakao/callback",
+    redirectUri: "http://localhost:3000/v1/kakao/login/callback",
   },
   cors: {
     origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
@@ -118,7 +118,7 @@ const testConfig: AppConfig = {
   kakao: {
     clientId: "test-kakao-client-id",
     clientSecret: "test-kakao-client-secret",
-    redirectUri: "http://localhost:3001/api/auth/kakao/callback",
+    redirectUri: "http://localhost:3001/v1/kakao/login/callback",
   },
   cors: {
     origin: ["http://localhost:3001"],
@@ -185,9 +185,7 @@ const prodConfig: AppConfig = {
   },
   kakao: {
     ...baseConfig.kakao!,
-    redirectUri: process.env.NEXT_PUBLIC_API_URL
-      ? `${process.env.NEXT_PUBLIC_API_URL}/api/auth/kakao/callback`
-      : "https://mpzfullstack-production.up.railway.app/api/auth/kakao/callback",
+    redirectUri: process.env.NEXT_PUBLIC_KAKAO_REDIRECT_URI || "",
   },
   cors: {
     origin: [
@@ -264,7 +262,9 @@ export function validateConfig(cfg: AppConfig): void {
   }
 
   if (cfg.env === "prod" && !cfg.kakao.clientSecret) {
-    throw new Error("KAKAO_CLIENT_SECRET must be set in production");
+    throw new Error(
+      "KAKAO_SOCIAL_LOGIN_CLIENT_SECRET must be set in production"
+    );
   }
 
   if (cfg.env !== "test") {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { CaretDown } from "@phosphor-icons/react";
+//import { CaretDown } from "@phosphor-icons/react";
 import { MiniButton } from "@/components/ui/MiniButton";
 import { PetCard } from "@/components/ui/PetCard";
 import { MainSection } from "@/components/common/MainSection";
@@ -209,7 +209,7 @@ export function MatchingSection({
 
               return (
                 <>
-                  <div className="flex flex-col gap-3">
+                  {/* <div className="flex flex-col gap-3">
                     {analysisAnimals.map((animal) => (
                       <PetCard
                         key={animal.id}
@@ -217,13 +217,13 @@ export function MatchingSection({
                         variant="variant2"
                       />
                     ))}
-                  </div>
-                  <MiniButton
+                  </div> */}
+                  {/* <MiniButton
                     text="전문가 분석 모아보기"
                     variant="filterOff"
                     className="py-4"
                     rightIcon={<CaretDown size={12} />}
-                  />
+                  /> */}
                 </>
               );
             }

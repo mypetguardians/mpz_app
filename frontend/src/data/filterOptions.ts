@@ -9,13 +9,11 @@ export const genderOptions = ["남아", "여아"];
 export const protectionStatusOptions = [
   "보호중",
   "입양가능",
-  "입양진행중",
   "입양완료",
   "입양불가",
-  "안락사",
-  "자연사",
-  "반환",
   "무지개다리",
+  "반환",
+  "방사",
 ];
 
 export const expertOpinionOptions = ["포함"];

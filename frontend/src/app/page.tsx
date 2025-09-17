@@ -8,18 +8,17 @@ import { NavBar } from "@/components/common/NavBar";
 import { HomeHeader } from "@/app/_components/HomeHeader";
 import { PetSection } from "@/app/_components/PetSection";
 import { TopPetSection } from "@/app/_components/TopPetSection";
-import { MatchingSection } from "@/app/_components/MatchingSection";
+//import { MatchingSection } from "@/app/_components/MatchingSection";
 import { CommunitySection } from "@/app/_components/CommunitySection";
 import { FooterSection } from "@/app/_components/FooterSection";
 import { useGetAnimals } from "@/hooks/query/useGetAnimals";
 import { useGetBanners } from "@/hooks/query/useGetBanners";
-import { useGetAnimalCount } from "@/hooks/query/useGetAnimalCount";
-import { useMatchingStepStore } from "@/lib/stores/matchingStepStore";
+//import { useMatchingStepStore } from "@/lib/stores/matchingStepStore";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { RawAnimalResponse } from "@/types/animal";
-import { AIRecommendResponse } from "@/types/ai-matching";
+//import { AIRecommendResponse } from "@/types/ai-matching";
 import {
-  checkMatchingCompletion,
+  //checkMatchingCompletion,
   clearMatchingData,
 } from "@/lib/storage-utils";
 import { useRouter } from "next/navigation";
@@ -34,57 +33,71 @@ export default function Home() {
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [showMatchingNotification, setShowMatchingNotification] =
     useState(false);
-  const { aiMatchingResult, setAIMatchingResult } = useMatchingStepStore();
+  //const { aiMatchingResult, setAIMatchingResult } = useMatchingStepStore();
   const { data: banners, isLoading: bannerLoading } = useGetBanners({
     type: "main",
   });
 
-  const { data: animalCountData } = useGetAnimalCount();
-
+  // TopPetSection용 쿼리 - admission_date 오래된 순
   const {
-    data: animalsData,
-    isLoading,
-    error,
+    data: topSectionData,
+    isLoading: isTopSectionLoading,
+    error: topSectionError,
   } = useGetAnimals({
     page_size: 100,
     sort_by: "admission_date",
+    sort_order: "asc",
+    region: selectedLocation || undefined,
+  });
+
+  // PetSection용 쿼리 - megaphone_count 순
+  const {
+    data: petSectionData,
+    isLoading: isPetSectionLoading,
+    error: petSectionError,
+  } = useGetAnimals({
+    page_size: 100,
+    sort_by: "megaphone_count",
     sort_order: "desc",
     region: selectedLocation || undefined,
   });
 
-  const animals: RawAnimalResponse[] =
-    animalsData?.pages?.flatMap((page) => {
+  const topSectionAnimals: RawAnimalResponse[] =
+    topSectionData?.pages?.flatMap((page) => {
       return (page as { data?: RawAnimalResponse[] }).data || [];
     }) || [];
 
-  const totalPets = animalCountData?.total || animals.length;
+  const petSectionAnimals: RawAnimalResponse[] =
+    petSectionData?.pages?.flatMap((page) => {
+      return (page as { data?: RawAnimalResponse[] }).data || [];
+    }) || [];
 
   const handleLocationSelect = (location: string) => {
     setSelectedLocation(location);
   };
 
   // 매칭 완료 상태 확인 및 알림 표시
-  useEffect(() => {
-    const matchingStatus = checkMatchingCompletion();
+  // useEffect(() => {
+  //   const matchingStatus = checkMatchingCompletion();
 
-    if (matchingStatus.isCompleted && matchingStatus.result) {
-      // 매칭 결과를 스토어에 저장
-      setAIMatchingResult(matchingStatus.result as AIRecommendResponse);
-      setShowMatchingNotification(true);
+  //   if (matchingStatus.isCompleted && matchingStatus.result) {
+  //     // 매칭 결과를 스토어에 저장
+  //     setAIMatchingResult(matchingStatus.result as AIRecommendResponse);
+  //     setShowMatchingNotification(true);
 
-      // 5초 후 알림 자동 숨김
-      const timer = setTimeout(() => {
-        setShowMatchingNotification(false);
-        clearMatchingData(); // 스토리지 정리
-      }, 5000);
+  //     // 5초 후 알림 자동 숨김
+  //     const timer = setTimeout(() => {
+  //       setShowMatchingNotification(false);
+  //       clearMatchingData(); // 스토리지 정리
+  //     }, 5000);
 
-      return () => clearTimeout(timer);
-    } else if (matchingStatus.error) {
-      // 매칭 실패 시 에러 알림
-      console.error("매칭 처리 중 오류가 발생했습니다.");
-      clearMatchingData();
-    }
-  }, [setAIMatchingResult]);
+  //     return () => clearTimeout(timer);
+  //   } else if (matchingStatus.error) {
+  //     // 매칭 실패 시 에러 알림
+  //     console.error("매칭 처리 중 오류가 발생했습니다.");
+  //     clearMatchingData();
+  //   }
+  // }, [setAIMatchingResult]);
 
   const handleMatchingNotificationClick = () => {
     setShowMatchingNotification(false);
@@ -238,9 +251,9 @@ export default function Home() {
         )}
       </div>
       <TopPetSection
-        title="따듯한 손길을 기다려요"
+        title="내 근처에 있는 아이들"
         rightSlot="모두 보기"
-        animals={animals}
+        animals={topSectionAnimals}
         variant="primary"
         showLocationFilter={true}
         locations={[
@@ -262,27 +275,29 @@ export default function Home() {
           "경남",
           "제주",
         ]}
-        isLoading={isLoading}
-        error={error}
+        isLoading={isTopSectionLoading}
+        error={topSectionError}
         selectedLocation={selectedLocation}
         onLocationSelect={handleLocationSelect}
+        sortBy="admission_date"
+        sortOrder="asc"
       />
 
-      <MatchingSection
+      {/* <MatchingSection
         variant="variant2"
-        isLoading={isLoading}
-        error={error}
+        isLoading={isTopSectionLoading}
+        error={topSectionError}
         isExpertAnalysis={true}
         aiMatchingResult={aiMatchingResult}
-      />
+      /> */}
 
       <CommunitySection />
 
       <PetSection
-        title={`총 ${totalPets}명의 아이들이 \n도움을 요청하고 있어요`}
-        animals={animals}
-        isLoading={isLoading}
-        error={error}
+        title={`지금 주목받고 있는 \n아이들이에요`}
+        animals={petSectionAnimals}
+        isLoading={isPetSectionLoading}
+        error={petSectionError}
       />
 
       <FooterSection />

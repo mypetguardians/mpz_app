@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import instance from "@/lib/axios-instance";
 
 interface AnimalCountResponse {
   adoption_available: number;
@@ -11,21 +12,13 @@ interface AnimalCountResponse {
 }
 
 const fetchAnimalCount = async (): Promise<AnimalCountResponse> => {
-  const response = await fetch(
-    "https://mpzfullstack-production.up.railway.app/v1/animals/list/count",
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
+  const response = await instance.get("/animals/list/count", {});
 
-  if (!response.ok) {
+  if (response.status !== 200) {
     throw new Error("동물 카운트 조회에 실패했습니다");
   }
 
-  return response.json();
+  return response.data;
 };
 
 export const useGetAnimalCount = () => {

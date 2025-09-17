@@ -52,6 +52,7 @@ class AnimalFavoriteOut(Schema):
     admission_date: Optional[str] = Field(None, description="센터 입소일 (ISO 형식)")
     center_id: str = Field(..., description="센터 ID")
     center_name: str = Field(..., description="센터명")
+    image_url: Optional[str] = Field(None, description="동물 대표 이미지 URL")
     is_favorited: bool = Field(True, description="찜 상태 (항상 True)")
     favorited_at: str = Field(..., description="찜한 일시 (ISO 형식)")
 

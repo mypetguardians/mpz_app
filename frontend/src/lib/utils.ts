@@ -171,3 +171,42 @@ export function calculateDaysUntilNextMonitoring(
 
   return Math.max(0, diffDays);
 }
+
+/**
+ * 텍스트 서명을 Base64 인코딩된 이미지 데이터로 변환합니다
+ * @param signatureText 서명 텍스트
+ * @returns Base64 인코딩된 이미지 데이터
+ */
+export function convertSignatureToBase64(signatureText: string): string {
+  if (!signatureText.trim()) {
+    throw new Error("서명 텍스트가 비어있습니다.");
+  }
+
+  // Canvas를 사용하여 텍스트를 이미지로 변환
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  if (!ctx) {
+    throw new Error("Canvas 컨텍스트를 생성할 수 없습니다.");
+  }
+
+  // 캔버스 크기 설정
+  canvas.width = 400;
+  canvas.height = 100;
+
+  // 배경을 흰색으로 설정
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // 텍스트 스타일 설정
+  ctx.fillStyle = "#000000";
+  ctx.font = "bold 32px Arial, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  // 텍스트 그리기
+  ctx.fillText(signatureText, canvas.width / 2, canvas.height / 2);
+
+  // Canvas를 Base64로 변환
+  return canvas.toDataURL("image/png");
+}

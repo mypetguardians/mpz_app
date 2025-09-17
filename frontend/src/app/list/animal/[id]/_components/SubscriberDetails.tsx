@@ -103,7 +103,7 @@ export default function SubscriberDetails({
 
       {/* 훈련사 한 마디 */}
       <div className="mb-3">
-        <h5 className="text-gr mb-1">훈련사 한 마디</h5>
+        <h5 className="text-gr mb-1">전문가 한 마디</h5>
         {trainerComment ? (
           <p className="text-sm text-gray-700 leading-relaxed">
             {trainerComment}

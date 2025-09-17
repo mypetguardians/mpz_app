@@ -213,11 +213,11 @@ export default function AdoptionPage() {
                       const adoptionStatus = adoption.status;
                       switch (adoptionStatus) {
                         case "신청":
-                          return "입양진행중";
+                          return "입양가능";
                         case "미팅":
-                          return "입양진행중";
+                          return "입양가능";
                         case "계약서작성":
-                          return "입양진행중";
+                          return "입양가능";
                         case "입양완료":
                           return "입양완료";
                         case "모니터링":

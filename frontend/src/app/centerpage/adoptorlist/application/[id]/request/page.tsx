@@ -90,11 +90,11 @@ export default function AdoptionRequestPage({
       await updateAdoptionStatus.mutateAsync({
         adoption_id: currentAdoption.id,
         status: "취소",
-        center_notes: "입양 신청이 거절되었습니다.",
+        center_notes: "입양 신청이 거절되었어요.",
       });
 
       setShowRejectModal(false);
-      setToastMessage("입양 신청이 거절되었습니다.");
+      setToastMessage("입양 신청이 거절되었어요.");
       setShowToast(true);
 
       setTimeout(() => {

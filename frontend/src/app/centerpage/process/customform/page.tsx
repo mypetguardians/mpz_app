@@ -442,18 +442,29 @@ export default function CenterProcessCustomForm() {
               {openMenuIndex === index && (
                 <div className="absolute top-[30px] right-0 z-50 cursor-pointer">
                   <Add
-                    onMoveUp={() => {
-                      handleMoveUp(index);
-                      setOpenMenuIndex(null);
-                    }}
-                    onMoveDown={() => {
-                      handleMoveDown(index);
-                      setOpenMenuIndex(null);
-                    }}
-                    onDelete={() => {
-                      handleDelete(index);
-                      setOpenMenuIndex(null);
-                    }}
+                    buttons={[
+                      {
+                        text: "위로 올리기",
+                        onClick: () => {
+                          handleMoveUp(index);
+                          setOpenMenuIndex(null);
+                        },
+                      },
+                      {
+                        text: "아래로 내리기",
+                        onClick: () => {
+                          handleMoveDown(index);
+                          setOpenMenuIndex(null);
+                        },
+                      },
+                      {
+                        text: "삭제하기",
+                        onClick: () => {
+                          handleDelete(index);
+                          setOpenMenuIndex(null);
+                        },
+                      },
+                    ]}
                   />
                 </div>
               )}

@@ -6,7 +6,7 @@ from asgiref.sync import sync_to_async
 from typing import List
 from favorites.models import CenterFavorite, AnimalFavorite, PersonalityTest
 from centers.models import Center
-from animals.models import Animal
+from animals.models import Animal, AnimalImage
 from favorites.schemas.inbound import (
     FavoriteListQueryIn,
     PersonalityTestIn,
@@ -45,6 +45,22 @@ def _build_center_favorite_response(favorite):
 def _build_animal_favorite_response(favorite):
     """찜한 동물 응답 데이터를 구성합니다."""
     animal = favorite.animal
+    
+    # 대표 이미지 URL 가져오기 (prefetch된 데이터 사용)
+    image_url = None
+    try:
+        # prefetch_related로 가져온 이미지들 중에서 대표 이미지 찾기
+        for image in animal.animalimage_set.all():
+            if image.is_primary:
+                image_url = image.image_url
+                break
+        
+        # 대표 이미지가 없으면 첫 번째 이미지 사용
+        if not image_url and animal.animalimage_set.exists():
+            image_url = animal.animalimage_set.first().image_url
+    except Exception:
+        image_url = None
+    
     return AnimalFavoriteOut(
         id=str(animal.id),
         name=animal.name,
@@ -58,6 +74,7 @@ def _build_animal_favorite_response(favorite):
         admission_date=animal.admission_date.isoformat() if animal.admission_date else None,
         center_id=str(animal.center.id),
         center_name=animal.center.name,
+        image_url=image_url,
         is_favorited=True,
         favorited_at=favorite.created_at.isoformat(),
     )
@@ -268,10 +285,12 @@ async def get_animal_favorites(request: HttpRequest, filters: FavoriteListQueryI
 
         @sync_to_async
         def get_favorites_list():
-            # 찜한 동물 목록 조회 (동물 및 센터 정보와 함께)
+            # 찜한 동물 목록 조회 (동물, 센터, 이미지 정보와 함께)
             favorites = AnimalFavorite.objects.filter(
                 user=current_user
-            ).select_related('animal', 'animal__center').order_by('-created_at')
+            ).select_related('animal', 'animal__center').prefetch_related(
+                'animal__animalimage_set'
+            ).order_by('-created_at')
 
             # AnimalFavoriteOut 스키마로 변환하여 반환
             favorites_response = [

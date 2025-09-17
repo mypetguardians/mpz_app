@@ -74,7 +74,9 @@ export function AnimalSearchSection({
     ...(filters.protectionStatus.length > 0 && {
       status:
         filters.protectionStatus[0] === "무지개다리"
-          ? "자연사"
+          ? "자연사" // 무지개다리는 자연사로 검색 (백엔드에서 처리)
+          : filters.protectionStatus[0] === "입양가능"
+          ? "입양가능" // 입양가능은 입양가능으로 검색 (백엔드에서 입양진행중도 포함하도록 수정 필요)
           : filters.protectionStatus[0] === "임시보호중"
           ? "보호중"
           : filters.protectionStatus[0] === "방사"

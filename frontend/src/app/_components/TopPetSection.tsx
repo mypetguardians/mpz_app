@@ -6,7 +6,7 @@ import { MainSection } from "@/components/common/MainSection";
 import { PetSectionError } from "@/components/ui/PetSectionError";
 import { RawAnimalResponse, transformRawAnimalToPetCard } from "@/types/animal";
 import { PetCardVariant } from "@/types/petcard";
-import { useGeolocation } from "@/hooks/useGeolocation";
+import { useGeolocation } from "@/hooks/useGeolocaiton";
 import { getLocationBasedRegion, isValidLocation } from "@/lib/location-utils";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -23,6 +23,8 @@ interface PetSectionProps {
   isExpertAnalysis?: boolean;
   selectedLocation?: string;
   onLocationSelect?: (location: string) => void;
+  sortBy?: "created_at" | "admission_date" | "megaphone_count";
+  sortOrder?: "asc" | "desc";
 }
 
 export function TopPetSection({
@@ -37,6 +39,8 @@ export function TopPetSection({
   isExpertAnalysis = false,
   selectedLocation,
   onLocationSelect,
+  sortBy = "created_at", // eslint-disable-line @typescript-eslint/no-unused-vars
+  sortOrder = "desc", // eslint-disable-line @typescript-eslint/no-unused-vars
 }: PetSectionProps) {
   const router = useRouter();
   const {
@@ -116,15 +120,6 @@ export function TopPetSection({
 
     const analysisAnimals = (animals || [])
       .filter((animal) => animal?.protection_status === "보호중")
-      .sort((a, b) => {
-        if (a.admission_date && b.admission_date) {
-          return (
-            new Date(b.admission_date).getTime() -
-            new Date(a.admission_date).getTime()
-          );
-        }
-        return (b.waiting_days || 0) - (a.waiting_days || 0);
-      })
       .slice(0, 3);
 
     return (
@@ -162,20 +157,10 @@ export function TopPetSection({
     );
   }
 
-  // 보호중인 동물만 필터링하고 admission_date 높은 순서대로 정렬
-  // 서버에서 이미 필터링된 데이터이므로 클라이언트에서는 정렬만 수행
+  // 서버에서 이미 필터링되고 정렬된 데이터를 사용
   const displayAnimals = (animals || [])
     .filter((animal) => animal?.protection_status === "보호중")
-    .filter((animal) => animal?.adoption_status === "입양가능")
-    .sort((a, b) => {
-      if (a.admission_date && b.admission_date) {
-        return (
-          new Date(b.admission_date).getTime() -
-          new Date(a.admission_date).getTime()
-        );
-      }
-      return (b.waiting_days || 0) - (a.waiting_days || 0);
-    });
+    .filter((animal) => animal?.adoption_status === "입양가능");
 
   return (
     <MainSection

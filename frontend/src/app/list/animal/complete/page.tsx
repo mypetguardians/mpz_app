@@ -24,7 +24,7 @@ export default function MatchingResultPage() {
       />
       <div className="flex flex-col px-4 py-20 items-center gap-9">
         <div className="flex flex-col gap-1 items-center">
-          <h4 className="text-brand-light">입양 완료 !</h4>
+          <h4 className="text-brand">입양 완료 !</h4>
           <h2 className="text-bk">가족이 된 걸 축하드려요!</h2>
           <h6 className="text-dg">
             이제 서로에게 가장 소중한 존재가 되었네요.

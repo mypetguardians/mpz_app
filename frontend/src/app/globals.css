@@ -17,11 +17,11 @@
   --color-pink-100: #ff6fdb;
   --color-orange-50: #fff4e8;
   --color-orange-100: #fc6524;
-  --color-brand: #002cde;
-  --color-brand-sub1: #5c8dff;
-  --color-brand-sub2: #80a6ff;
-  --color-brand-light: #002cde99;
-  --color-brand-op: rgba(0, 44, 222, 0.04);
+  --color-brand: #3e93fa;
+  --color-brand-sub1: #6baeff;
+  --color-brand-sub2: rgba(128, 185, 255, 0.8);
+  --color-brand-light: rgba(62, 147, 250, 0.6);
+  --color-brand-op: rgba(62, 147, 250, 0.04);
   --color-error: #ff4f6f;
   --color-green: #00b506;
   --color-yellow: #ffc800;

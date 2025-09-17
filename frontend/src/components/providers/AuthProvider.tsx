@@ -1,15 +1,10 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
+import type { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
-import Cookies from "js-cookie";
 import instance from "@/lib/axios-instance";
-import {
-  User,
-  LoginResponse,
-  AuthContextType,
-  LoginResult,
-} from "@/types/auth";
+import { User, AuthContextType, LoginResult } from "@/types/auth";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -21,25 +16,96 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  // 센터 로그인 함수
+  // Axios 에러 메시지 추출
+  const extractAxiosErrorMessage = (error: unknown): string | null => {
+    try {
+      const isAxiosError = (e: unknown): e is AxiosError =>
+        typeof e === "object" &&
+        e !== null &&
+        "isAxiosError" in (e as Record<string, unknown>);
+
+      const response = isAxiosError(error) ? error.response : undefined;
+      const data: unknown = response?.data;
+
+      if (typeof data === "string" && data.trim()) return data.trim();
+
+      const candidates: string[] = [];
+      const obj =
+        typeof data === "object" && data !== null
+          ? (data as Record<string, unknown>)
+          : null;
+      const pushIfString = (val: unknown) => {
+        if (typeof val === "string" && val.trim()) candidates.push(val.trim());
+      };
+      if (obj) {
+        pushIfString(obj.message);
+        pushIfString(obj.detail);
+        pushIfString(obj.error);
+      }
+
+      if (obj && Array.isArray((obj as { errors?: unknown[] }).errors)) {
+        const texts = (obj.errors as unknown[]).filter(
+          (v): v is string => typeof v === "string"
+        );
+        if (texts.length) candidates.push(texts.join("\n"));
+      }
+
+      if (
+        obj &&
+        typeof obj.errors === "object" &&
+        obj.errors !== null &&
+        !Array.isArray(obj.errors)
+      ) {
+        const errorsObj = obj.errors as Record<string, unknown>;
+        const collected: string[] = [];
+        for (const key of Object.keys(errorsObj)) {
+          const val = errorsObj[key];
+          if (Array.isArray(val)) {
+            collected.push(`${key}: ${val.join(", ")}`);
+          } else if (typeof val === "string") {
+            collected.push(`${key}: ${val}`);
+          }
+        }
+        if (collected.length) candidates.push(collected.join("\n"));
+      }
+
+      if (
+        obj &&
+        Array.isArray(
+          (obj as { non_field_errors?: unknown[] }).non_field_errors
+        )
+      ) {
+        const texts = (obj.non_field_errors as unknown[]).filter(
+          (v): v is string => typeof v === "string"
+        );
+        if (texts.length) candidates.push(texts.join("\n"));
+      }
+
+      if (response?.statusText) candidates.push(response.statusText);
+
+      const found = candidates.find((c) => c.trim());
+      if (found) return found.trim();
+
+      if (typeof (error as { message?: unknown })?.message === "string") {
+        return (error as { message: string }).message;
+      }
+    } catch {}
+    return null;
+  };
+
+  // 로그인
   const centerLogin = async (
     username: string,
     password: string
   ): Promise<LoginResult> => {
     try {
-      const response = await instance.post("/auth/login", {
-        username,
-        password,
-      });
+      const response = await instance.post(
+        "/auth/login",
+        { username, password },
+        { withCredentials: true } // 쿠키 자동 저장
+      );
 
       if (response.status === 200) {
-        const data: LoginResponse = response.data;
-
-        // 토큰을 로컬 스토리지에 저장
-        Cookies.set("access_token", data.access_token);
-        Cookies.set("refresh_token", data.refresh_token);
-
-        // 사용자 정보 가져오기
         try {
           await setUserFromToken();
           return { success: true, message: "로그인에 성공했습니다!" };
@@ -50,246 +116,78 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             message: "사용자 정보를 가져오는데 실패했습니다.",
           };
         }
-      } else {
-        return { success: false, message: "로그인에 실패했습니다." };
       }
+      return { success: false, message: "로그인에 실패했습니다." };
     } catch (error: unknown) {
-      console.error("센터 로그인 에러:", error);
-      if (error && typeof error === "object" && "response" in error) {
-        const axiosError = error as {
-          response?: { status?: number; data?: { message?: string } };
-        };
-        if (axiosError.response?.status === 401) {
-          return {
-            success: false,
-            message: "아이디 또는 비밀번호가 올바르지 않습니다.",
-          };
-        } else if (axiosError.response?.data?.message) {
-          return { success: false, message: axiosError.response.data.message };
-        }
-      }
+      const detailedMessage = extractAxiosErrorMessage(error);
+      if (detailedMessage) return { success: false, message: detailedMessage };
       return { success: false, message: "로그인 중 오류가 발생했습니다." };
     }
   };
 
-  // 세션 토큰으로 사용자 정보 가져오기
+  // 현재 유저 가져오기
   const fetchCurrentUser = async () => {
     try {
-      // 로컬 스토리지에서 토큰 확인
-      const accessToken = localStorage.getItem("access_token");
-      if (accessToken) {
-        instance.defaults.headers.common[
-          "Authorization"
-        ] = `Bearer ${accessToken}`;
-      }
-
-      const response = await instance.get("/auth/me");
+      const response = await instance.get("/auth/me", {
+        withCredentials: true,
+      });
 
       if (response.status === 200) {
         const data = response.data;
-
-        // user 객체가 있으면 그것을 사용, 없으면 응답 데이터 자체를 사용
         const userData = data.user || data;
 
         if (userData && (userData.username || userData.email || userData.id)) {
-          // User 인터페이스에 맞게 데이터 변환
           const user: User = {
             id: userData.id || userData.username,
             email: userData.email || "이메일 정보 없음",
             name: userData.name || userData.nickname || "이름 정보 없음",
             nickname: userData.nickname || "닉네임 정보 없음",
-            userType: userData.user_type || userData.userType || "일반사용자",
-            // 기타 필드는 기본값으로 설정
-            phoneNumber: userData.phone_number || userData.phoneNumber,
+            userType: userData.user_type || "일반사용자",
+            phoneNumber: userData.phone_number,
             image: userData.image,
             centers: userData.centers,
             matchingSession: userData.matchingSession,
             accounts: userData.accounts,
           };
-
           setUser(user);
           setIsAuthenticated(true);
         } else {
           setUser(null);
           setIsAuthenticated(false);
         }
-      } else if (response.status === 401) {
-        // 인증되지 않은 상태 (정상적인 상황)
-        console.log("401 에러 - 인증되지 않은 사용자");
-        setUser(null);
-        setIsAuthenticated(false);
-        // 토큰 제거
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
-        delete instance.defaults.headers.common["Authorization"];
       } else {
-        // 기타 서버 오류
-        console.log("에러 응답 내용:", response.data);
         setUser(null);
         setIsAuthenticated(false);
       }
     } catch (error) {
-      console.error("fetchCurrentUser 에러:", error);
       setUser(null);
       setIsAuthenticated(false);
-      // 토큰 제거
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
-      delete instance.defaults.headers.common["Authorization"];
+      console.error("현재 유저 가져오기 실패:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // 컴포넌트 마운트 시 사용자 정보 확인
   useEffect(() => {
     fetchCurrentUser();
   }, []);
 
-  // 로그인 처리
-  const login = (userData: User) => {
-    setUser(userData);
-    setIsAuthenticated(true);
-    setIsLoading(false);
-    setIsLoggingIn(false); // 로그인 완료
-  };
-
-  // 로그인 상태 설정
-  const setLoggingIn = (status: boolean) => {
-    setIsLoggingIn(status);
-  };
-
-  // 로그아웃 처리
+  // 로그아웃
   const logout = async () => {
     try {
-      const response = await instance.post("/auth/logout");
-
-      if (response.status === 200) {
-        Cookies.remove("access");
-        Cookies.remove("refresh");
-        Cookies.remove("access_token");
-        Cookies.remove("refresh_token");
-
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("access_token");
-          localStorage.removeItem("refresh_token");
-        }
-
-        delete instance.defaults.headers.common["Authorization"];
-
-        // 사용자 상태 초기화
-        setUser(null);
-        setIsAuthenticated(false);
-
-        // 홈페이지로 리다이렉트
-        router.push("/");
-      } else {
-        console.error("로그아웃 실패:", response.statusText);
-        // 에러가 발생해도 클라이언트 상태는 초기화
-        clearAuthState();
-        router.push("/");
-      }
+      await instance.post("/auth/logout", {}, { withCredentials: true });
     } catch (error) {
-      console.error("로그아웃 중 오류:", error);
-      // 에러가 발생해도 클라이언트 상태는 초기화
-      clearAuthState();
+      console.error("로그아웃 요청 실패:", error);
+    } finally {
+      setUser(null);
+      setIsAuthenticated(false);
       router.push("/");
     }
   };
 
-  // 인증 상태 초기화 함수
-  const clearAuthState = () => {
-    // 모든 토큰 관련 쿠키 삭제
-    Cookies.remove("access");
-    Cookies.remove("refresh");
-    Cookies.remove("access_token");
-    Cookies.remove("refresh_token");
-
-    // 로컬 스토리지 토큰 제거
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
-    }
-
-    // Axios 헤더에서 Authorization 제거
-    delete instance.defaults.headers.common["Authorization"];
-
-    // 사용자 상태 초기화
-    setUser(null);
-    setIsAuthenticated(false);
-  };
-
-  // 사용자 정보 업데이트
-  const updateUser = (userData: Partial<User>) => {
-    if (user) {
-      setUser({ ...user, ...userData });
-    }
-  };
-
-  // 토큰에서 사용자 정보 가져오기
+  // 토큰 기반으로 유저 세팅
   const setUserFromToken = async () => {
-    try {
-      const response = await instance.get("/auth/me");
-
-      if (response.status === 200) {
-        const data = response.data;
-        console.log("setUserFromToken 성공:", data.user);
-
-        // user 객체가 있으면 그것을 사용, 없으면 응답 데이터 자체를 사용
-        const userData = data.user || data;
-
-        if (userData && (userData.username || userData.email || userData.id)) {
-          // User 인터페이스에 맞게 데이터 변환
-          const user: User = {
-            id: userData.id || userData.username,
-            email: userData.email || "이메일 정보 없음",
-            name: userData.name || userData.nickname || "이름 정보 없음",
-            nickname: userData.nickname || "닉네임 정보 없음",
-            userType: userData.user_type || userData.userType || "일반사용자",
-            // 기타 필드는 기본값으로 설정
-            phoneNumber: userData.phone_number || userData.phoneNumber,
-            image: userData.image,
-            centers: userData.centers,
-            matchingSession: userData.matchingSession,
-            accounts: userData.accounts,
-          };
-
-          setUser(user);
-          setIsAuthenticated(true);
-        } else {
-          setUser(null);
-          setIsAuthenticated(false);
-        }
-
-        setIsLoading(false);
-        setIsLoggingIn(false); // 토큰으로 사용자 정보 가져오기 완료
-      } else if (response.status === 401) {
-        // 인증되지 않은 상태 (정상)
-        console.log("setUserFromToken - 인증되지 않은 사용자");
-        setUser(null);
-        setIsAuthenticated(false);
-        setIsLoading(false);
-        setIsLoggingIn(false);
-        // 토큰 제거
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
-        delete instance.defaults.headers.common["Authorization"];
-      } else {
-        console.log("setUserFromToken 실패:", response.statusText);
-        setUser(null);
-        setIsAuthenticated(false);
-        setIsLoading(false);
-        setIsLoggingIn(false);
-        throw new Error(`setUserFromToken 실패: ${response.statusText}`);
-      }
-    } catch (error) {
-      console.error("토큰에서 사용자 정보 가져오기 실패:", error);
-      setUser(null);
-      setIsAuthenticated(false);
-      setIsLoading(false);
-      setIsLoggingIn(false);
-      throw error;
-    }
+    await fetchCurrentUser();
   };
 
   const value: AuthContextType = {
@@ -297,21 +195,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isLoading,
     isAuthenticated,
     isLoggingIn,
-    login,
+    login: (u: User) => {
+      setUser(u);
+      setIsAuthenticated(true);
+      setIsLoading(false);
+      setIsLoggingIn(false);
+    },
     logout,
-    updateUser,
+    updateUser: (userData: Partial<User>) => {
+      if (user) setUser({ ...user, ...userData });
+    },
     setUserFromToken,
-    setLoggingIn,
+    setLoggingIn: setIsLoggingIn,
     centerLogin,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-// 커스텀 훅
 export function useAuth() {
   const context = useContext(AuthContext);
-
   if (context === undefined) {
     throw new Error("useAuth must be used within an AuthProvider");
   }

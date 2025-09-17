@@ -13,7 +13,7 @@ interface AdoptorData {
   userName: string;
   profileImage: string;
   timeAgo: string;
-  status: "응답 대기 중" | "입양 진행 중" | "입양 완료" | "거절";
+  status: "응답 대기 중" | "입양 가능" | "입양 완료" | "거절";
   isGrayscale?: boolean;
   region?: string;
   createdAt?: string;
@@ -29,7 +29,7 @@ const mapApiStatusToUIStatus = (apiStatus: string): AdoptorData["status"] => {
       return "응답 대기 중";
     case "미팅":
     case "계약서작성":
-      return "입양 진행 중";
+      return "입양 가능";
     case "입양완료":
       return "입양 완료";
     case "취소":
@@ -117,19 +117,18 @@ function AdoptorListTab() {
     if (statusFilter.length === 0) return undefined;
 
     // UI 상태를 API 상태로 매핑
-    const statusMap: Record<string, string> = {
-      "응답 대기 중": "신청",
-      "입양 진행 중": "미팅,계약서작성",
-      "입양 완료": "입양완료,모니터링",
-      거절: "취소",
+    const statusMap: Record<string, string[]> = {
+      "응답 대기 중": ["신청"],
+      "입양 가능": ["미팅", "계약서작성"],
+      "입양 완료": ["입양완료", "모니터링"],
+      거절: ["취소"],
     };
 
     const apiStatuses = statusFilter
-      .map((uiStatus) => statusMap[uiStatus])
-      .filter(Boolean)
-      .join(",");
+      .flatMap((uiStatus) => statusMap[uiStatus] || [])
+      .filter(Boolean);
 
-    return apiStatuses || undefined;
+    return apiStatuses.length > 0 ? apiStatuses.join(",") : undefined;
   }, [statusFilter]);
 
   // useGetCenterAdoptions 훅 사용

@@ -1,3 +1,5 @@
+"use client";
+
 import { CaretDown, MapPin } from "@phosphor-icons/react";
 import { MiniButton } from "@/components/ui/MiniButton";
 import { PetCard } from "@/components/ui/PetCard";
@@ -8,7 +10,7 @@ import { RawAnimalResponse, transformRawAnimalToPetCard } from "@/types/animal";
 import { PetCardVariant } from "@/types/petcard";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import useGeolocation from "react-hook-geolocation";
+import { useGeolocated } from "react-geolocated";
 
 interface PetSectionProps {
   title: string;
@@ -42,60 +44,46 @@ export function TopPetSection({
   sortOrder = "desc", // eslint-disable-line @typescript-eslint/no-unused-vars
 }: PetSectionProps) {
   const router = useRouter();
-  const [isLocationEnabled, setIsLocationEnabled] = useState(false);
-  const geolocation = useGeolocation(
-    {
-      enableHighAccuracy: true,
-      timeout: 10000,
-      maximumAge: 60000,
-    },
-    () => {}, // 콜백 함수
-    isLocationEnabled // 사용자가 명시적으로 활성화할 때만 위치 요청
-  );
-
   const [hasLocation, setHasLocation] = useState<boolean>(false);
 
+  // react-geolocated hook 사용
+  const { coords, isGeolocationAvailable, isGeolocationEnabled, getPosition } =
+    useGeolocated({
+      positionOptions: {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000,
+      },
+      userDecisionTimeout: 5000,
+      suppressLocationOnMount: true, // 마운트 시 자동으로 위치 요청하지 않음
+    });
+
   useEffect(() => {
-    if (geolocation.latitude && geolocation.longitude) {
+    if (coords?.latitude && coords?.longitude) {
       setHasLocation(true);
-      setIsLocationEnabled(false); // 위치를 받은 후 로딩 상태 해제
       if (selectedLocation === "내 주변") {
         onLocationSelect?.("내 주변");
       }
     }
-  }, [
-    geolocation.latitude,
-    geolocation.longitude,
-    selectedLocation,
-    onLocationSelect,
-  ]);
+  }, [coords?.latitude, coords?.longitude, selectedLocation, onLocationSelect]);
 
   // "내 주변" 버튼 클릭 시 위치정보 요청
   const handleNearbyClick = () => {
     if (hasLocation) {
       onLocationSelect?.("내 주변");
     } else {
+      if (isGeolocationAvailable && isGeolocationEnabled && getPosition) {
+        getPosition();
+      }
       onLocationSelect?.("내 주변");
-      setIsLocationEnabled(true);
     }
   };
 
   // 위치 요청 취소
   const handleLocationCancel = () => {
-    setIsLocationEnabled(false);
     setHasLocation(false);
     onLocationSelect?.("");
   };
-
-  // 위치정보 에러가 있는 경우 처리
-  useEffect(() => {
-    if (geolocation.error) {
-      console.error("위치 정보 오류:", geolocation.error);
-      setIsLocationEnabled(false); // 에러 발생 시에도 로딩 상태 해제
-      // alert 대신 더 나은 사용자 경험을 위해 콘솔 로그만 출력
-      // 필요시 토스트 알림이나 다른 UI로 대체 가능
-    }
-  }, [geolocation.error]);
   // ExpertAnalysis 모드일 때
   if (isExpertAnalysis) {
     if (isLoading) {
@@ -191,21 +179,21 @@ export function TopPetSection({
             key="location"
             leftIcon={<MapPin size={16} />}
             text={
-              isLocationEnabled && !geolocation.latitude && !geolocation.error
+              isGeolocationEnabled && !coords
                 ? "위치 확인 중..."
-                : geolocation.error
-                ? "위치 재시도"
+                : !isGeolocationAvailable
+                ? "위치 사용불가"
                 : hasLocation
                 ? "내 주변"
                 : "내 주변"
             }
             variant={selectedLocation === "내 주변" ? "filterOn" : "filterOff"}
             onClick={
-              isLocationEnabled && !geolocation.latitude && !geolocation.error
+              isGeolocationEnabled && !coords
                 ? handleLocationCancel
                 : handleNearbyClick
             }
-            disabled={false}
+            disabled={!isGeolocationAvailable}
           />
           {locations.map((loc) => (
             <MiniButton

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft } from "@phosphor-icons/react";
 import { useGetUserAdoptionDetail } from "@/hooks/query/useGetUserAdoptionDetail";
+import { useGetCenterConsents } from "@/hooks/query/useGetCenterConsents";
 
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
@@ -19,6 +20,7 @@ export default function ConsentFormPage({ params }: ConsentFormPageProps) {
   const { id } = React.use(params);
 
   const [guidelinesContent, setGuidelinesContent] = useState<string>("");
+  const [selectedConsentId, setSelectedConsentId] = useState<string>("");
 
   const {
     data: adoptionDetail,
@@ -27,6 +29,13 @@ export default function ConsentFormPage({ params }: ConsentFormPageProps) {
   } = useGetUserAdoptionDetail({
     adoptionId: id,
   });
+
+  // 센터의 동의서 목록 조회
+  const {
+    data: centerConsents,
+    isLoading: isConsentsLoading,
+    error: consentsError,
+  } = useGetCenterConsents(adoptionDetail?.adoption?.center_id || "");
 
   useEffect(() => {
     // URL 쿼리 파라미터에서 guidelines 내용 가져오기
@@ -39,11 +48,27 @@ export default function ConsentFormPage({ params }: ConsentFormPageProps) {
     }
   }, [searchParams, adoptionDetail]);
 
+  // 동의서 목록이 로드되면 첫 번째 활성 동의서 선택
+  useEffect(() => {
+    if (centerConsents && centerConsents.length > 0 && !selectedConsentId) {
+      const activeConsent = centerConsents.find((consent) => consent.is_active);
+      if (activeConsent) {
+        setSelectedConsentId(activeConsent.id);
+      } else {
+        setSelectedConsentId(centerConsents[0].id);
+      }
+    }
+  }, [centerConsents, selectedConsentId]);
+
+  const selectedConsent = centerConsents?.find(
+    (consent) => consent.id === selectedConsentId
+  );
+
   const handleBack = () => {
     router.push(`/my/adoption/${id}/request`);
   };
 
-  if (isLoading) {
+  if (isLoading || isConsentsLoading) {
     return (
       <Container className="min-h-screen">
         <TopBar
@@ -66,7 +91,7 @@ export default function ConsentFormPage({ params }: ConsentFormPageProps) {
     );
   }
 
-  if (error || !adoptionDetail) {
+  if (error || consentsError || !adoptionDetail) {
     return (
       <Container className="min-h-screen">
         <TopBar
@@ -125,10 +150,10 @@ export default function ConsentFormPage({ params }: ConsentFormPageProps) {
             {/* Guidelines Content */}
             <div className="mb-6">
               <h3 className="text-bk mb-3">동의서 내용</h3>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="text-sm text-dg leading-relaxed whitespace-pre-wrap">
-                  {guidelinesContent || "동의서 내용이 준비되지 않았습니다."}
-                </div>
+              <div className="text-sm text-dg leading-relaxed whitespace-pre-wrap">
+                {selectedConsent?.content ||
+                  guidelinesContent ||
+                  "동의서 내용이 준비되지 않았습니다."}
               </div>
             </div>
           </div>

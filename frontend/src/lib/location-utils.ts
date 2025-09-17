@@ -12,11 +12,17 @@ interface RegionInfo {
 }
 
 // 한국의 주요 지역 정보 (위도, 경도, 반경)
+// 경기도를 먼저 배치하여 우선순위를 높임
 const REGIONS: RegionInfo[] = [
+  {
+    name: "경기",
+    center: { latitude: 37.5, longitude: 127.3 }, // 경기도 중심을 더 북쪽으로 이동
+    radius: 90, // 반경을 더 늘려서 경기도 전체를 커버
+  },
   {
     name: "서울",
     center: { latitude: 37.5665, longitude: 126.978 },
-    radius: 50,
+    radius: 30, // 서울 반경을 줄여서 경기도와의 중복 방지
   },
   {
     name: "부산",
@@ -49,11 +55,6 @@ const REGIONS: RegionInfo[] = [
     radius: 30,
   },
   { name: "세종", center: { latitude: 36.48, longitude: 127.289 }, radius: 25 },
-  {
-    name: "경기",
-    center: { latitude: 37.4138, longitude: 127.5183 },
-    radius: 60,
-  },
   {
     name: "강원",
     center: { latitude: 37.8228, longitude: 128.1555 },
@@ -116,6 +117,7 @@ export function findNearestRegion(
   let nearestRegion: string | null = null;
   let minDistance = Infinity;
 
+  // REGIONS 배열의 순서대로 검사 (경기도가 먼저 검사됨)
   for (const region of REGIONS) {
     const distance = calculateDistance(
       latitude,
@@ -124,8 +126,8 @@ export function findNearestRegion(
       region.center.longitude
     );
 
-    // 반경 내에 있는지 확인
-    if (distance <= region.radius && distance < minDistance) {
+    // 반경 내에 있는지 확인하고, 같은 거리라면 먼저 나온 지역을 우선
+    if (distance <= region.radius && distance <= minDistance) {
       minDistance = distance;
       nearestRegion = region.name;
     }
@@ -178,7 +180,8 @@ export function getLocationBasedRegion(
   longitude: number
 ): string {
   const nearestRegion = findNearestRegion(latitude, longitude);
-  return nearestRegion || "서울"; // 기본값으로 서울 반환
+
+  return nearestRegion || "위치를 확인할 수 없습니다"; // 기본값 변경
 }
 
 // 위치정보가 유효한지 확인하는 함수

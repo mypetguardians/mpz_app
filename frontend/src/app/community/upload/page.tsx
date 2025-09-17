@@ -58,7 +58,11 @@ export default function CommunityUploadPage() {
   const [activeTab, setActiveTab] = useState("adoption");
   const [publicType, setPublicType] = useState<PublicType>("center");
 
-  const { mutate: createPost, isPending: creating } = useCreatePost();
+  const {
+    mutate: createPost,
+    isPending: creating,
+    isPending: isPending,
+  } = useCreatePost();
   const { mutate: uploadImages, isPending: uploading } = useUploadImages();
 
   const { user } = useAuth();
@@ -346,7 +350,7 @@ export default function CommunityUploadPage() {
               {tags.map((tag, index) => (
                 <span
                   key={index}
-                  className="px-2 py-1 bg-brand-op text-white text-xs rounded-full"
+                  className="px-2 py-1 bg-brand text-wh text-xs rounded-full"
                 >
                   #{tag}
                 </span>
@@ -439,7 +443,7 @@ export default function CommunityUploadPage() {
         resetButtonText={getPublicText()}
         resetButtonLeft={getPublicIcon()}
         onResetButtonClick={handlePublicChange}
-        applyButtonText="등록하기"
+        applyButtonText={isPending ? "등록하는 중..." : "등록하기"}
         onApplyButtonClick={handleSave}
         applyButtonDisabled={!isFormValid || creating || uploading}
       />

@@ -9,7 +9,7 @@ interface AdoptorNotificationCardProps {
   userName: string;
   profileImage: string;
   timeAgo: string;
-  status: "응답 대기 중" | "입양 진행 중" | "입양 완료" | "거절";
+  status: "응답 대기 중" | "입양 가능" | "입양 완료" | "거절";
   isGrayscale?: boolean;
   tabType?: "application" | "foster" | "adopter";
   apiStatus?: string; // API 상태값 추가
@@ -73,8 +73,8 @@ function AdoptorNotificationCard({
     switch (status) {
       case "응답 대기 중":
         return "bg-green/10 text-green";
-      case "입양 진행 중":
-        return "bg-bg text-gr";
+      case "입양 가능":
+        return "bg-green/10 text-green";
       case "입양 완료":
         return "bg-yellow/10 text-yellow";
       case "거절":

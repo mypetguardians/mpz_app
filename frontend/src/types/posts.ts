@@ -108,6 +108,10 @@ export interface CreatePostRequest {
   is_all_access: boolean;
 }
 
+export interface CenterPostsRequest {
+  tags?: string[];
+}
+
 // 게시글 생성 응답
 export interface CreatePostResponse {
   message: string;
@@ -237,6 +241,23 @@ export interface UpdateReplyResponse {
 // 대댓글 삭제 응답
 export interface DeleteReplyResponse {
   message: string;
+}
+
+// Mixed posts API 응답 타입
+export interface MixedPostsResponse {
+  public_posts: ApiPostResponse[];
+  private_posts: ApiPostResponse[];
+  public_count: number;
+  private_count: number;
+  total_count: number;
+}
+
+// Mixed posts 요청 파라미터
+export interface GetMixedPostsParams {
+  user_id?: string;
+  is_all_access?: boolean;
+  sort_by?: string;
+  tags?: string[];
 }
 
 // 기존 타입들 (하위 호환성을 위해 유지)

@@ -241,7 +241,7 @@ export function CommunityCard({
           />
         </div>
         {renderGallery(100)}
-        <h4 className="text-bk">{title}</h4>
+        <h4 className="text-bk overflow-hidden">{title}</h4>
         <div className="text-dg body2 line-clamp-3">{content}</div>
         <div className="flex items-center justify-between gap-6 text-gray-400 mt-2">
           <div className="flex items-center gap-2">

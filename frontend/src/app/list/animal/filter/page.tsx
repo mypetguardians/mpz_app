@@ -18,7 +18,7 @@ import {
   ageOptions,
   genderOptions,
   protectionStatusOptions,
-  expertOpinionOptions,
+  //expertOpinionOptions,
   regionOptions,
 } from "@/data/filterOptions";
 
@@ -42,6 +42,10 @@ function AnimalFilterContent() {
     []
   );
 
+  // 마지막으로 선택된 보호상태 추적
+  const [lastSelectedProtectionStatus, setLastSelectedProtectionStatus] =
+    useState<string>("");
+
   // URL 파라미터에서 기존 필터 상태 읽기
   useEffect(() => {
     const breed = searchParams.get("breed") || "";
@@ -56,6 +60,29 @@ function AnimalFilterContent() {
       searchParams.get("protectionStatus")?.split(",").filter(Boolean) || [];
     const expertOpinion =
       searchParams.get("expertOpinion")?.split(",").filter(Boolean) || [];
+
+    // localStorage에서도 필터 상태 복원 시도
+    const savedFilters = localStorage.getItem("animalFilters");
+    if (
+      savedFilters &&
+      !breed &&
+      weights.length === 0 &&
+      regions.length === 0
+    ) {
+      try {
+        const parsed = JSON.parse(savedFilters);
+        setSelectedBreed(parsed.breed || "");
+        setSelectedWeights(parsed.weights || []);
+        setSelectedRegions(parsed.regions || []);
+        setSelectedAges(parsed.ages || []);
+        setSelectedGenders(parsed.genders || []);
+        setSelectedProtectionStatus(parsed.protectionStatus || []);
+        setSelectedExpertOpinion(parsed.expertOpinion || []);
+        return;
+      } catch {
+        // localStorage 필터 파싱 오류 무시
+      }
+    }
 
     setSelectedBreed(breed);
     setSelectedWeights(weights);
@@ -94,9 +121,9 @@ function AnimalFilterContent() {
         params.set("protectionStatus", filters.protectionStatus.join(","));
       else params.delete("protectionStatus");
 
-      if (filters.expertOpinion.length > 0)
-        params.set("expertOpinion", filters.expertOpinion.join(","));
-      else params.delete("expertOpinion");
+      // if (filters.expertOpinion.length > 0)
+      //   params.set("expertOpinion", filters.expertOpinion.join(","));
+      // else params.delete("expertOpinion");
 
       const queryString = params.toString();
       const targetUrl = queryString
@@ -108,19 +135,31 @@ function AnimalFilterContent() {
     [searchParams, router]
   );
 
-  // 필터 상태 변경 시 URL 업데이트
-  useEffect(() => {
-    const filters: FilterState = {
-      breed: selectedBreed,
-      weights: selectedWeights,
-      regions: selectedRegions,
-      ages: selectedAges,
-      genders: selectedGenders,
-      protectionStatus: selectedProtectionStatus,
-      expertOpinion: selectedExpertOpinion,
-    };
+  // 필터 상태 변경 시 URL 업데이트 (초기 로드 시에는 제외)
+  const [isInitialized, setIsInitialized] = useState(false);
 
-    updateURL(filters);
+  useEffect(() => {
+    if (!isInitialized) {
+      setIsInitialized(true);
+      return;
+    }
+
+    // 디바운스를 위한 타이머
+    const timer = setTimeout(() => {
+      const filters: FilterState = {
+        breed: selectedBreed,
+        weights: selectedWeights,
+        regions: selectedRegions,
+        ages: selectedAges,
+        genders: selectedGenders,
+        protectionStatus: selectedProtectionStatus,
+        expertOpinion: selectedExpertOpinion,
+      };
+
+      updateURL(filters);
+    }, 300); // 300ms 디바운스
+
+    return () => clearTimeout(timer);
   }, [
     selectedBreed,
     selectedWeights,
@@ -130,6 +169,7 @@ function AnimalFilterContent() {
     selectedProtectionStatus,
     selectedExpertOpinion,
     updateURL,
+    isInitialized,
   ]);
 
   const handleApply = () => {
@@ -164,7 +204,19 @@ function AnimalFilterContent() {
       ? `/list/animal?${queryString}`
       : "/list/animal";
 
+    // localStorage에 필터 상태 저장
+    localStorage.setItem("animalFilters", JSON.stringify(filters));
+
     router.push(targetUrl);
+  };
+
+  // 보호상태 변경 핸들러 (마지막 선택 항목 추적)
+  const handleProtectionStatusChange = (values: string[]) => {
+    const newValue = values.find((v) => !selectedProtectionStatus.includes(v));
+    if (newValue) {
+      setLastSelectedProtectionStatus(newValue);
+    }
+    setSelectedProtectionStatus(values);
   };
 
   const handleReset = () => {
@@ -175,10 +227,13 @@ function AnimalFilterContent() {
     setSelectedGenders([]);
     setSelectedProtectionStatus([]);
     setSelectedExpertOpinion([]);
-  };
 
-  const isRadiationSelected = selectedProtectionStatus.includes("방사");
-  const isReturnSelected = selectedProtectionStatus.includes("반환");
+    // 마지막 선택된 보호상태도 초기화
+    setLastSelectedProtectionStatus("");
+
+    // localStorage에서도 필터 상태 제거
+    localStorage.removeItem("animalFilters");
+  };
 
   return (
     <Container className="min-h-screen bg-wh">
@@ -248,27 +303,33 @@ function AnimalFilterContent() {
           title="보호상태"
           options={protectionStatusOptions}
           selectedValues={selectedProtectionStatus}
-          onSelectionChange={setSelectedProtectionStatus}
+          onSelectionChange={handleProtectionStatusChange}
         />
 
-        {/* 반환, 방사 선택 시 InfoCard 표시 */}
-        {isReturnSelected && (
+        {/* InfoCard - 마지막으로 선택된 보호상태만 표시 */}
+        {lastSelectedProtectionStatus === "반환" && (
           <InfoCard>원래 주인에게 돌아간 아이에요.</InfoCard>
         )}
-        {isRadiationSelected && (
+        {lastSelectedProtectionStatus === "방사" && (
           <InfoCard>
             동물의 생존이나 구조 목적, 예외적 상황에 따라 자연으로 돌려보낸
             아이에요.
           </InfoCard>
         )}
-
-        {/* 전문가 분석 의견 (Expert Analysis Opinion) */}
+        {lastSelectedProtectionStatus === "보호중" && (
+          <InfoCard>본래의 주인만 입양이 가능한 아이에요.</InfoCard>
+        )}
+        {lastSelectedProtectionStatus === "입양가능" && (
+          <InfoCard>보호기간이 지나 누구나 입양 가능한 아이에요.</InfoCard>
+        )}
+        {/* 
+        전문가 분석 의견 (Expert Analysis Opinion)
         <MultiSelectFilter
           title="전문가 분석 의견"
           options={expertOpinionOptions}
           selectedValues={selectedExpertOpinion}
           onSelectionChange={setSelectedExpertOpinion}
-        />
+        /> */}
       </div>
 
       {/* Fixed Bottom Bar */}

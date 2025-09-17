@@ -40,17 +40,16 @@ export function SearchInput({
   const textColor = isPrimaryGroup ? "text-gr" : "text-bk";
 
   return (
-    <div className={containerStyle} onClick={onSearch}>
+    <div className={containerStyle}>
       <input
         className={cn(
-          "flex-1 outline-none bg-transparent text-body cursor-pointer",
+          "flex-1 outline-none bg-transparent text-body",
           `placeholder:${textColor}`
         )}
         placeholder={placeholder}
         value={value}
         onChange={onChange}
         onKeyDown={(e) => e.key === "Enter" && onSearch?.()}
-        readOnly
       />
       <button
         type="button"

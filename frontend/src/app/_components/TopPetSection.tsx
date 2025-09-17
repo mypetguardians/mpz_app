@@ -6,10 +6,9 @@ import { MainSection } from "@/components/common/MainSection";
 import { PetSectionError } from "@/components/ui/PetSectionError";
 import { RawAnimalResponse, transformRawAnimalToPetCard } from "@/types/animal";
 import { PetCardVariant } from "@/types/petcard";
-import { useGeolocation } from "@/hooks/useGeolocation";
-import { getLocationBasedRegion, isValidLocation } from "@/lib/location-utils";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import useGeolocation from "react-hook-geolocation";
 
 interface PetSectionProps {
   title: string;
@@ -43,43 +42,60 @@ export function TopPetSection({
   sortOrder = "desc", // eslint-disable-line @typescript-eslint/no-unused-vars
 }: PetSectionProps) {
   const router = useRouter();
-  const {
-    latitude,
-    longitude,
-    error: locationError,
-    isLoading: locationLoading,
-    requestLocation,
-  } = useGeolocation();
-  const [userLocation, setUserLocation] = useState<string>("");
+  const [isLocationEnabled, setIsLocationEnabled] = useState(false);
+  const geolocation = useGeolocation(
+    {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 60000,
+    },
+    () => {}, // 콜백 함수
+    isLocationEnabled // 사용자가 명시적으로 활성화할 때만 위치 요청
+  );
+
+  const [hasLocation, setHasLocation] = useState<boolean>(false);
 
   useEffect(() => {
-    if (latitude && longitude && isValidLocation(latitude, longitude)) {
-      const region = getLocationBasedRegion(latitude, longitude);
-      setUserLocation(region);
+    if (geolocation.latitude && geolocation.longitude) {
+      setHasLocation(true);
+      setIsLocationEnabled(false); // 위치를 받은 후 로딩 상태 해제
       if (selectedLocation === "내 주변") {
-        onLocationSelect?.(region);
+        onLocationSelect?.("내 주변");
       }
     }
-  }, [latitude, longitude, selectedLocation, onLocationSelect]);
+  }, [
+    geolocation.latitude,
+    geolocation.longitude,
+    selectedLocation,
+    onLocationSelect,
+  ]);
 
   // "내 주변" 버튼 클릭 시 위치정보 요청
   const handleNearbyClick = () => {
-    if (userLocation) {
-      onLocationSelect?.(userLocation);
+    if (hasLocation) {
+      onLocationSelect?.("내 주변");
     } else {
       onLocationSelect?.("내 주변");
-      requestLocation();
+      setIsLocationEnabled(true);
     }
+  };
+
+  // 위치 요청 취소
+  const handleLocationCancel = () => {
+    setIsLocationEnabled(false);
+    setHasLocation(false);
+    onLocationSelect?.("");
   };
 
   // 위치정보 에러가 있는 경우 처리
   useEffect(() => {
-    if (locationError) {
-      alert(
-        "위치정보를 가져올 수 없습니다. 브라우저 설정에서 위치정보 접근을 허용해주세요."
-      );
+    if (geolocation.error) {
+      console.error("위치 정보 오류:", geolocation.error);
+      setIsLocationEnabled(false); // 에러 발생 시에도 로딩 상태 해제
+      // alert 대신 더 나은 사용자 경험을 위해 콘솔 로그만 출력
+      // 필요시 토스트 알림이나 다른 UI로 대체 가능
     }
-  }, [locationError]);
+  }, [geolocation.error]);
   // ExpertAnalysis 모드일 때
   if (isExpertAnalysis) {
     if (isLoading) {
@@ -174,15 +190,22 @@ export function TopPetSection({
           <MiniButton
             key="location"
             leftIcon={<MapPin size={16} />}
-            text={locationLoading ? "위치 확인 중..." : "내 주변"}
-            variant={
-              selectedLocation === "내 주변" ||
-              selectedLocation === userLocation
-                ? "filterOn"
-                : "filterOff"
+            text={
+              isLocationEnabled && !geolocation.latitude && !geolocation.error
+                ? "위치 확인 중..."
+                : geolocation.error
+                ? "위치 재시도"
+                : hasLocation
+                ? "내 주변"
+                : "내 주변"
             }
-            onClick={handleNearbyClick}
-            disabled={locationLoading}
+            variant={selectedLocation === "내 주변" ? "filterOn" : "filterOff"}
+            onClick={
+              isLocationEnabled && !geolocation.latitude && !geolocation.error
+                ? handleLocationCancel
+                : handleNearbyClick
+            }
+            disabled={false}
           />
           {locations.map((loc) => (
             <MiniButton
@@ -205,10 +228,6 @@ export function TopPetSection({
       <div
         className={`flex gap-3 overflow-x-auto scrollbar-hide flex-nowrap -mx-4 px-4 ${
           variant === "variant2" ? "flex-col" : ""
-        } ${
-          variant === "variant3"
-            ? "grid grid-cols-3 gap-x-2 gap-y-3 flex-nowrap"
-            : ""
         }`}
       >
         {isLoading

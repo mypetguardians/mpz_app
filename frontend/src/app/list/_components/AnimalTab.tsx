@@ -15,7 +15,7 @@ function AnimalTab() {
 
   // URL 파라미터에서 필터 상태 읽기
   const filters = useMemo(() => {
-    return {
+    const result = {
       breed: searchParams.get("breed") || "",
       weights: searchParams.get("weights")?.split(",").filter(Boolean) || [],
       regions: searchParams.get("regions")?.split(",").filter(Boolean) || [],
@@ -26,6 +26,8 @@ function AnimalTab() {
       expertOpinion:
         searchParams.get("expertOpinion")?.split(",").filter(Boolean) || [],
     };
+
+    return result;
   }, [searchParams]);
 
   // 필터 파라미터를 API 요청에 맞게 변환

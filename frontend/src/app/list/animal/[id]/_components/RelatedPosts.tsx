@@ -76,7 +76,6 @@ export default function RelatedPosts({ currentPet }: RelatedPostsProps) {
         ) : (
           <div className="text-center py-8 text-gray-500">
             <p>아직 이 아이에 대한 게시물이 없어요</p>
-            <p className="text-sm mt-1">첫 번째 게시물을 작성해보세요!</p>
           </div>
         )}
       </div>

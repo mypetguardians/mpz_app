@@ -19,7 +19,7 @@ export const useSignContract = () => {
       params: SignContractParams
     ): Promise<SignContractResponse> => {
       const response = await instance.post<SignContractResponse>(
-        `/v1/adoptions/contract/sign`,
+        "/adoptions/contract/sign",
         {
           contract_id: params.contractId,
           signature_data: params.signatureData,

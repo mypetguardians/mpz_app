@@ -4,6 +4,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "@phosphor-icons/react";
 import { useGetUserAdoptionDetail } from "@/hooks/query/useGetUserAdoptionDetail";
+import { useGetCenterProcedureQuestions } from "@/hooks/query/useGetCenterProcedureQuestions";
 
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
@@ -27,11 +28,20 @@ export default function ApplicationFormPage({
     adoptionId: id,
   });
 
+  // 센터의 질문 목록 조회
+  const {
+    data: centerQuestions,
+    isLoading: isQuestionsLoading,
+    error: questionsError,
+  } = useGetCenterProcedureQuestions({
+    centerId: adoptionDetail?.adoption?.center_id || "",
+  });
+
   const handleBack = () => {
     router.back();
   };
 
-  if (isLoading) {
+  if (isLoading || isQuestionsLoading) {
     return (
       <Container className="min-h-screen">
         <TopBar
@@ -54,7 +64,7 @@ export default function ApplicationFormPage({
     );
   }
 
-  if (error || !adoptionDetail) {
+  if (error || questionsError || !adoptionDetail) {
     return (
       <Container className="min-h-screen">
         <TopBar
@@ -101,21 +111,30 @@ export default function ApplicationFormPage({
         <div className="flex-1 bg-white rounded-t-3xl -mt-4 relative z-10">
           <div className="p-4">
             <SectionLine>
-              <h3 className="text-bk mb-3 font-medium">질문 응답</h3>
-              <div className="space-y-4">
-                {adoptionDetail.question_responses &&
-                adoptionDetail.question_responses.length > 0 ? (
-                  adoptionDetail.question_responses.map((response, index) => (
-                    <div key={index} className="flex flex-col gap-2">
-                      <div className="flex flex-col gap-1">
-                        <h5 className="text-gr">{response.question_content}</h5>
-                        <p className="text-bk body">{response.answer}</p>
-                      </div>
-                    </div>
-                  ))
+              <h3 className="text-bk mb-6">입양 신청서</h3>
+              <div className="flex flex-col gap-3">
+                {centerQuestions?.questions &&
+                centerQuestions.questions.length > 0 ? (
+                  centerQuestions.questions
+                    .sort((a, b) => a.sequence - b.sequence)
+                    .map((question) => {
+                      // 해당 질문에 대한 답변 찾기
+                      const response = adoptionDetail.question_responses?.find(
+                        (resp) => resp.question_id === question.id
+                      );
+
+                      return (
+                        <div key={question.id} className="flex flex-col gap-1">
+                          <h5 className="text-gr">{question.question}</h5>
+                          <p className="text-bk body">
+                            {response?.answer || "답변 없음"}
+                          </p>
+                        </div>
+                      );
+                    })
                 ) : (
                   <div className="text-center text-gr py-8">
-                    질문 응답이 없습니다.
+                    질문이 없습니다.
                   </div>
                 )}
               </div>

@@ -22,7 +22,7 @@ export const useUpdateAnimalStatus = () => {
       mutationFn: async (data: UpdateAnimalStatusData) => {
         const { animal_id, ...statusData } = data;
         const response = await instance.patch<UpdateAnimalStatusResponse>(
-          `/v1/animals/${animal_id}/status`,
+          `/animals/${animal_id}/status`,
           statusData
         );
         return response.data;

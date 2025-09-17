@@ -38,6 +38,7 @@ const transformAnimalFavorites = (apiResponse: AnimalFavoritesApiResponse) => {
       status: item.status || item.protection_status, // status가 없으면 protection_status 사용
       protection_status: item.protection_status,
       adoption_status: item.adoption_status,
+      foundLocation: item.foundLocation,
       personality: item.personality,
       centerId: item.centerId,
       centerName: item.centerName,

@@ -15,6 +15,7 @@ function AnimalTab() {
     error,
     isFetching,
   } = useGetAnimalFavorites(page, ITEMS_PER_PAGE);
+  console.log(favoritesData);
   const router = useRouter();
   const pets = favoritesData?.animals || [];
   const hasMore = favoritesData?.hasNext || false;
@@ -86,7 +87,7 @@ function AnimalTab() {
                 adoption_status: pet.adoption_status || "입양가능",
                 animalImages: pet.animalImages || [],
                 centerId: pet.centerId,
-                foundLocation: pet.centerName || "",
+                foundLocation: pet.adoption_status || "",
               }}
               variant="primary"
               imageSize="full"

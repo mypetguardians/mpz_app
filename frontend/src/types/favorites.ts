@@ -77,6 +77,7 @@ export interface ApiAnimalFavorite {
   personality: string | null;
   centerId: string;
   centerName: string;
+  foundLocation: string;
   animalImages: Array<{
     id: string;
     imageUrl: string;

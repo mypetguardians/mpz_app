@@ -46,37 +46,33 @@ def _build_animal_favorite_response(favorite):
     """찜한 동물 응답 데이터를 구성합니다."""
     animal = favorite.animal
     
-    # 대표 이미지 URL 가져오기 (prefetch된 데이터 사용)
-    image_url = None
+    # 동물 이미지 URL 목록 가져오기 (prefetch된 데이터 사용)
+    animal_images = []
     try:
         # prefetch_related로 가져온 이미지들 중에서 대표 이미지 찾기
         for image in animal.animalimage_set.all():
-            if image.is_primary:
-                image_url = image.image_url
-                break
-        
-        # 대표 이미지가 없으면 첫 번째 이미지 사용
-        if not image_url and animal.animalimage_set.exists():
-            image_url = animal.animalimage_set.first().image_url
+            if image.image_url:
+                animal_images.append(image.image_url)
     except Exception:
-        image_url = None
+        animal_images = []
     
     return AnimalFavoriteOut(
         id=str(animal.id),
         name=animal.name,
         breed=animal.breed,
         age=animal.age,
-        is_female=animal.is_female,
+        isFemale=animal.is_female,
         protection_status=animal.protection_status,
         adoption_status=animal.adoption_status,
         personality=animal.personality,
         found_location=animal.found_location,
         admission_date=animal.admission_date.isoformat() if animal.admission_date else None,
-        center_id=str(animal.center.id),
-        center_name=animal.center.name,
-        image_url=image_url,
-        is_favorited=True,
-        favorited_at=favorite.created_at.isoformat(),
+        centerId=str(animal.center.id) if animal.center else None,
+        centerName=animal.center.name if animal.center else None,
+        animalImages=animal_images,
+        isFavorited=True,
+        favoritedAt=favorite.created_at.isoformat(),
+        status=animal.protection_status,
     )
 
 
@@ -265,14 +261,13 @@ async def toggle_animal_favorite(request: HttpRequest, animal_id: str):
     summary="[R] 내가 찜한 동물 목록 조회",
     description="로그인한 사용자가 찜한 동물 목록을 조회합니다.",
     response={
-        200: List[AnimalFavoriteOut],
+        200: AnimalFavoriteListOut,
         401: ErrorOut,
         500: ErrorOut,
     },
     auth=jwt_auth,
 )
-@paginate
-async def get_animal_favorites(request: HttpRequest, filters: FavoriteListQueryIn = Query(FavoriteListQueryIn())):
+async def get_animal_favorites(request: HttpRequest, page: int = Query(1, ge=1), limit: int = Query(10, ge=1, le=100)):
     """내가 찜한 동물 목록을 조회합니다."""
     try:
         # JWT 토큰에서 사용자 정보 추출
@@ -285,20 +280,37 @@ async def get_animal_favorites(request: HttpRequest, filters: FavoriteListQueryI
 
         @sync_to_async
         def get_favorites_list():
+            # 전체 찜한 동물 수 조회
+            total_count = AnimalFavorite.objects.filter(user=current_user).count()
+            
+            # 총 페이지 수 계산
+            total_pages = (total_count + limit - 1) // limit
+            
+            # 페이징을 위한 오프셋 계산
+            offset = (page - 1) * limit
+            
             # 찜한 동물 목록 조회 (동물, 센터, 이미지 정보와 함께)
             favorites = AnimalFavorite.objects.filter(
                 user=current_user
             ).select_related('animal', 'animal__center').prefetch_related(
                 'animal__animalimage_set'
-            ).order_by('-created_at')
+            ).order_by('-created_at')[offset:offset + limit]
 
             # AnimalFavoriteOut 스키마로 변환하여 반환
-            favorites_response = [
+            animals = [
                 _build_animal_favorite_response(favorite)
                 for favorite in favorites
             ]
 
-            return favorites_response
+            return {
+                "animals": animals,
+                "total": total_count,
+                "page": page,
+                "limit": limit,
+                "totalPages": total_pages,
+                "hasNext": page < total_pages,
+                "hasPrev": page > 1
+            }
 
         return await get_favorites_list()
 

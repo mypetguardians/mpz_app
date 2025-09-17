@@ -44,17 +44,18 @@ class AnimalFavoriteOut(Schema):
     name: str = Field(..., description="동물 이름")
     breed: Optional[str] = Field(None, description="품종")
     age: Optional[int] = Field(None, description="나이 (개월)")
-    is_female: bool = Field(..., description="암컷 여부")
+    isFemale: Optional[bool] = Field(None, description="암컷 여부")
     protection_status: str = Field(..., description="보호 상태 (보호중, 안락사, 자연사, 반환)")
     adoption_status: str = Field(..., description="입양 상태 (입양가능, 입양진행중, 입양완료, 입양불가)")
     personality: Optional[str] = Field(None, description="성격")
     found_location: Optional[str] = Field(None, description="발견 장소")
     admission_date: Optional[str] = Field(None, description="센터 입소일 (ISO 형식)")
-    center_id: str = Field(..., description="센터 ID")
-    center_name: str = Field(..., description="센터명")
-    image_url: Optional[str] = Field(None, description="동물 대표 이미지 URL")
-    is_favorited: bool = Field(True, description="찜 상태 (항상 True)")
-    favorited_at: str = Field(..., description="찜한 일시 (ISO 형식)")
+    centerId: Optional[str] = Field(None, description="센터 ID")
+    centerName: Optional[str] = Field(None, description="센터명")
+    animalImages: List[str] = Field(default_factory=list, description="동물 이미지 URL 목록")
+    isFavorited: Optional[bool] = Field(None, description="찜 상태")
+    favoritedAt: Optional[str] = Field(None, description="찜한 일시 (ISO 형식)")
+    status: Optional[str] = Field(None, description="동물 상태")
 
 
 class AnimalFavoriteListOut(Schema):
@@ -63,9 +64,9 @@ class AnimalFavoriteListOut(Schema):
     total: int = Field(..., description="전체 찜한 동물 수")
     page: int = Field(..., description="현재 페이지 번호")
     limit: int = Field(..., description="페이지당 항목 수")
-    total_pages: int = Field(..., description="전체 페이지 수")
-    has_next: bool = Field(..., description="다음 페이지 존재 여부")
-    has_prev: bool = Field(..., description="이전 페이지 존재 여부")
+    totalPages: int = Field(..., description="전체 페이지 수")
+    hasNext: bool = Field(..., description="다음 페이지 존재 여부")
+    hasPrev: bool = Field(..., description="이전 페이지 존재 여부")
 
 
 class ErrorOut(Schema):

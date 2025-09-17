@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { PetCard, PetCardSkeleton } from "@/components/ui";
+import { PetCard } from "@/components/ui";
+import { PetCardSkeleton } from "@/components/ui/PetCardSkeleton";
 import { useGetAnimalFavorites } from "@/hooks";
 
 const ITEMS_PER_PAGE = 10;
@@ -73,6 +74,35 @@ function AnimalTab() {
       <div className="flex flex-wrap justify-start gap-2 px-4">
         {pets.map((pet: unknown) => {
           const petData = pet as Record<string, unknown>;
+          const petCardData = {
+            id: petData.id as string,
+            name: petData.name as string,
+            breed: petData.breed as string,
+            isFemale: petData.isFemale as boolean,
+            protection_status:
+              (petData.protection_status as
+                | "보호중"
+                | "안락사"
+                | "자연사"
+                | "반환") || "보호중",
+            adoption_status:
+              (petData.adoption_status as
+                | "입양가능"
+                | "입양진행중"
+                | "입양완료"
+                | "입양불가") || "입양가능",
+            animalImages: Array.isArray(petData.animalImages)
+              ? petData.animalImages.map((url: string, index: number) => ({
+                  id: `img-${index}`,
+                  imageUrl: url,
+                  orderIndex: index,
+                }))
+              : [],
+            centerId: petData.centerId as string,
+            foundLocation:
+              (petData.foundLocation as string) || "위치 정보 없음",
+          };
+
           return (
             <div
               key={petData.id as string}
@@ -82,32 +112,7 @@ function AnimalTab() {
               }
             >
               <PetCard
-                pet={{
-                  id: petData.id as string,
-                  name: petData.name as string,
-                  breed: petData.breed as string,
-                  isFemale: petData.isFemale as boolean,
-                  protection_status:
-                    (petData.protection_status as
-                      | "보호중"
-                      | "안락사"
-                      | "자연사"
-                      | "반환") || "보호중",
-                  adoption_status:
-                    (petData.adoption_status as
-                      | "입양가능"
-                      | "입양진행중"
-                      | "입양완료"
-                      | "입양불가") || "입양가능",
-                  animalImages:
-                    (petData.animalImages as {
-                      id: string;
-                      imageUrl: string;
-                      orderIndex: number;
-                    }[]) || [],
-                  centerId: petData.centerId as string,
-                  foundLocation: (petData.adoption_status as string) || "",
-                }}
+                pet={petCardData}
                 variant="primary"
                 imageSize="full"
                 className="w-full"

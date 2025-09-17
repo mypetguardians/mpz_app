@@ -37,7 +37,7 @@ const transformAnimalFavorites = (apiResponse: Record<string, unknown>) => {
         status: (item.status as string) || (item.protection_status as string), // status가 없으면 protection_status 사용
         protection_status: item.protection_status as string,
         adoption_status: item.adoption_status as string,
-        foundLocation: item.foundLocation as string,
+        foundLocation: item.found_location as string,
         personality: item.personality as string,
         centerId: item.centerId as string,
         centerName: item.centerName as string,

@@ -71,30 +71,50 @@ function AnimalTab() {
   return (
     <div>
       <div className="flex flex-wrap justify-start gap-2 px-4">
-        {pets.map((pet) => (
-          <div
-            key={pet.id}
-            className="w-[calc(50%-4px)]"
-            onClick={() => router.push(`/list/animal/${pet.id}`)}
-          >
-            <PetCard
-              pet={{
-                id: pet.id,
-                name: pet.name,
-                breed: pet.breed,
-                isFemale: pet.isFemale,
-                protection_status: pet.protection_status || "보호중",
-                adoption_status: pet.adoption_status || "입양가능",
-                animalImages: pet.animalImages || [],
-                centerId: pet.centerId,
-                foundLocation: pet.adoption_status || "",
-              }}
-              variant="primary"
-              imageSize="full"
-              className="w-full"
-            />
-          </div>
-        ))}
+        {pets.map((pet: unknown) => {
+          const petData = pet as Record<string, unknown>;
+          return (
+            <div
+              key={petData.id as string}
+              className="w-[calc(50%-4px)]"
+              onClick={() =>
+                router.push(`/list/animal/${petData.id as string}`)
+              }
+            >
+              <PetCard
+                pet={{
+                  id: petData.id as string,
+                  name: petData.name as string,
+                  breed: petData.breed as string,
+                  isFemale: petData.isFemale as boolean,
+                  protection_status:
+                    (petData.protection_status as
+                      | "보호중"
+                      | "안락사"
+                      | "자연사"
+                      | "반환") || "보호중",
+                  adoption_status:
+                    (petData.adoption_status as
+                      | "입양가능"
+                      | "입양진행중"
+                      | "입양완료"
+                      | "입양불가") || "입양가능",
+                  animalImages:
+                    (petData.animalImages as {
+                      id: string;
+                      imageUrl: string;
+                      orderIndex: number;
+                    }[]) || [],
+                  centerId: petData.centerId as string,
+                  foundLocation: (petData.adoption_status as string) || "",
+                }}
+                variant="primary"
+                imageSize="full"
+                className="w-full"
+              />
+            </div>
+          );
+        })}
       </div>
 
       {/* 로딩 상태 */}

@@ -1,9 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import instance from "@/lib/axios-instance";
-import {
-  CenterFavoritesApiResponse,
-  AnimalFavoritesApiResponse,
-} from "@/types/favorites";
+import { CenterFavoritesApiResponse } from "@/types/favorites";
 
 // API 응답을 기존 형식으로 변환하는 함수
 const transformCenterFavorites = (apiResponse: CenterFavoritesApiResponse) => {
@@ -27,31 +24,34 @@ const transformCenterFavorites = (apiResponse: CenterFavoritesApiResponse) => {
   };
 };
 
-const transformAnimalFavorites = (apiResponse: AnimalFavoritesApiResponse) => {
+const transformAnimalFavorites = (apiResponse: Record<string, unknown>) => {
+  // 새로운 API 응답 구조에 맞게 변환
   return {
-    animals: apiResponse.data.map((item) => ({
-      id: item.id,
-      name: item.name,
-      breed: item.breed,
-      age: item.age,
-      isFemale: item.isFemale,
-      status: item.status || item.protection_status, // status가 없으면 protection_status 사용
-      protection_status: item.protection_status,
-      adoption_status: item.adoption_status,
-      foundLocation: item.foundLocation,
-      personality: item.personality,
-      centerId: item.centerId,
-      centerName: item.centerName,
-      animalImages: item.animalImages || [],
-      isFavorited: item.isFavorited,
-      favoritedAt: item.favoritedAt,
-    })),
-    total: apiResponse.totalCnt,
-    page: apiResponse.curPage,
-    limit: apiResponse.count,
-    totalPages: apiResponse.pageCnt,
-    hasNext: apiResponse.nextPage > 0,
-    hasPrev: apiResponse.previousPage > 0,
+    animals: (apiResponse.animals as Record<string, unknown>[]).map(
+      (item: Record<string, unknown>) => ({
+        id: item.id as string,
+        name: item.name as string,
+        breed: item.breed as string,
+        age: item.age as number,
+        isFemale: item.isFemale as boolean,
+        status: (item.status as string) || (item.protection_status as string), // status가 없으면 protection_status 사용
+        protection_status: item.protection_status as string,
+        adoption_status: item.adoption_status as string,
+        foundLocation: item.foundLocation as string,
+        personality: item.personality as string,
+        centerId: item.centerId as string,
+        centerName: item.centerName as string,
+        animalImages: (item.animalImages as string[]) || [],
+        isFavorited: item.isFavorited as boolean,
+        favoritedAt: item.favoritedAt as string,
+      })
+    ),
+    total: apiResponse.total as number,
+    page: apiResponse.page as number,
+    limit: apiResponse.limit as number,
+    totalPages: apiResponse.totalPages as number,
+    hasNext: apiResponse.hasNext as boolean,
+    hasPrev: apiResponse.hasPrev as boolean,
   };
 };
 
@@ -59,12 +59,12 @@ const transformAnimalFavorites = (apiResponse: AnimalFavoritesApiResponse) => {
 const fetchAnimalFavorites = async (
   page?: number,
   limit?: number
-): Promise<AnimalFavoritesApiResponse> => {
+): Promise<Record<string, unknown>> => {
   const params = new URLSearchParams();
   if (page !== undefined) params.append("page", page.toString());
   if (limit !== undefined) params.append("limit", limit.toString());
 
-  const response = await instance.get<AnimalFavoritesApiResponse>(
+  const response = await instance.get<Record<string, unknown>>(
     `/favorites/animals?${params}`
   );
   return response.data;

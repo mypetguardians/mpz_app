@@ -95,6 +95,8 @@ async def kakao_login_callback(request, code: str, state: str, redirect_uri: str
         else:
             actual_redirect_uri = REDIRECT_URI
             
+        actual_redirect_uri = "https://api.mpz.kr/v1/kakao/login/callback"
+        
         print(f"프론트엔드에서 전달된 redirect_uri: {redirect_uri}")
         print(f"디코딩된 redirect_uri: {actual_redirect_uri}")
         print(f"설정된 REDIRECT_URI: {REDIRECT_URI}")
@@ -232,7 +234,7 @@ async def kakao_login_callback(request, code: str, state: str, redirect_uri: str
     try:
         redirect_url = f"{settings.FRONTEND_URL}{redirect_path}"
         response = HttpResponseRedirect(redirect_url)
-        response = utils.set_cookie_jwt(response, access, refresh, access_exp, refresh_exp)
+        response = utils.set_cookie_jwt(response, access, refresh, access_exp, refresh_exp, request=request)
         return response
     except Exception as e:
         print(f"쿠키 설정 및 리다이렉트 오류: {e}")

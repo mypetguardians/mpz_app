@@ -33,6 +33,7 @@ DEBUG = config("DJANGO_DEBUG", default=False, cast=bool)
 
 ALLOWED_HOSTS = [
     ".railway.app",
+    ".mpz.kr",
 ]
 
 if DEBUG:

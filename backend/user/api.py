@@ -113,7 +113,7 @@ async def login(request, data: UserLoginIn):
             }
         )
 
-    return utils.set_cookie_jwt(response, access, refresh, access_exp, refresh_exp)
+    return utils.set_cookie_jwt(response, access, refresh, access_exp, refresh_exp, request=request)
 
 
 @router.post(
@@ -179,7 +179,7 @@ async def refresh_token(request, data: RefreshTokenIn):
                 }
             )
 
-        return utils.set_cookie_jwt(response, access, refresh, access_exp, refresh_exp)
+        return utils.set_cookie_jwt(response, access, refresh, access_exp, refresh_exp, request=request)
 
     except CustomAuthorizationError as e:
         raise HttpError(400, str(e))

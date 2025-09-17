@@ -100,10 +100,19 @@ async def decodeJWT(bearer):
 #     return verification
 
 
-def set_cookie_jwt(response, access, refresh, access_exp, refresh_exp, reset=None):
+def set_cookie_jwt(response, access, refresh, access_exp, refresh_exp, reset=None, request=None):
     domain = getattr(settings, 'SESSION_COOKIE_DOMAIN', None)
     secure = getattr(settings, 'SESSION_COOKIE_SECURE', True)
-    samesite = getattr(settings, 'SESSION_COOKIE_SAMESITE', 'None')
+    
+    # 브라우저별 SameSite 설정 (Safari ITP 대응)
+    if request:
+        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        is_safari = 'Safari' in user_agent and 'Chrome' not in user_agent
+        # Safari는 SameSite=Lax, 다른 브라우저는 SameSite=None 사용
+        samesite = 'Lax' if is_safari else getattr(settings, 'SESSION_COOKIE_SAMESITE', 'None')
+    else:
+        # request가 없으면 기본값 사용
+        samesite = getattr(settings, 'SESSION_COOKIE_SAMESITE', 'None')
 
     response.set_cookie(
         key="access",

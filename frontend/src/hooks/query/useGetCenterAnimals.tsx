@@ -81,7 +81,8 @@ const transformApiResponseToAnimal = (apiAnimal: ApiAnimalResponse): Animal => {
     description: apiAnimal.description,
     status: apiAnimal.status as Animal["status"],
     // 새로운 API 스키마에 없는 필드들은 status를 기반으로 추론
-    protection_status: apiAnimal.protection_status as Animal["protection_status"],
+    protection_status:
+      apiAnimal.protection_status as Animal["protection_status"],
     adoption_status: apiAnimal.adoption_status as Animal["adoption_status"],
     waitingDays: apiAnimal.waiting_days,
     activityLevel: apiAnimal.activity_level.toString(), // 숫자를 문자열로 변환
@@ -94,6 +95,8 @@ const transformApiResponseToAnimal = (apiAnimal: ApiAnimalResponse): Animal => {
     trainerComment: apiAnimal.trainer_comment,
     announceNumber: apiAnimal.announce_number,
     announcementDate: apiAnimal.announcement_date,
+    noticeStartDate: null, // API에서 제공되지 않는 필드
+    noticeEndDate: null, // API에서 제공되지 않는 필드
     admissionDate: apiAnimal.admission_date,
     foundLocation: apiAnimal.found_location,
     personality: apiAnimal.personality,

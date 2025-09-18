@@ -36,6 +36,8 @@ class AnimalOut(Schema):
     announce_number: Optional[str] = Field(None, description="공고번호")
     display_notice_number: str = Field(..., description="표시용 공고번호 (announce_number 또는 public_notice_number)")
     announcement_date: Optional[str] = Field(None, description="공고일 (ISO 형식)")
+    notice_sdt: Optional[str] = Field(None, description="공고 시작일 (ISO 형식)")
+    notice_edt: Optional[str] = Field(None, description="공고 종료일 (ISO 형식)")
     found_location: Optional[str] = Field(None, description="발견 장소")
     admission_date: Optional[str] = Field(None, description="센터 입소일 (ISO 형식)")
     personality: Optional[str] = Field(None, description="성격")

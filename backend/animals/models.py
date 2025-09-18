@@ -72,6 +72,9 @@ class Animal(BaseModel):
     is_public_data = models.BooleanField(default=False, help_text="공공데이터 여부")
     public_notice_number = models.CharField(max_length=50, blank=True, null=True, unique=True, help_text="공공데이터 공고번호 (unique)")
     comment = models.TextField(blank=True, null=True, help_text="공공데이터 특이사항 코멘트")
+    # 공공데이터 공고 기간
+    notice_start_date = models.DateField(blank=True, null=True, help_text="공고 시작일")
+    notice_end_date = models.DateField(blank=True, null=True, help_text="공고 종료일")
     
     class Meta:
         db_table = 'animals'

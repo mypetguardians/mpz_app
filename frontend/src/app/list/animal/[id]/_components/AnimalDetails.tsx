@@ -22,6 +22,7 @@ export default function AnimalDetails({
   specialNotes,
 }: AnimalDetailsProps) {
   console.log(noticeStartDate, noticeEndDate);
+
   return (
     <div className="bg-white rounded-lg mx-4">
       <table className="w-full text-sm">

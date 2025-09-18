@@ -899,7 +899,21 @@ async def get_related_animals_by_distance(
                     protection_status="보호중"  # 보호중인 동물만
                 ).exclude(id=animal_id).order_by('-created_at')[:query.limit]
                 
-                return list(related_animals), animal
+                # 이미지 데이터와 날짜 필드를 미리 처리하여 async context 문제 방지
+                animals_with_images = []
+                for related_animal in related_animals:
+                    # 이미지 데이터를 미리 가져와서 리스트로 변환
+                    images_data = list(related_animal.animalimage_set.all().order_by('sequence').values(
+                        'id', 'image_url', 'is_primary', 'sequence'
+                    ))
+                    
+                    # 날짜 필드도 미리 처리
+                    notice_start_date = getattr(related_animal, 'notice_start_date', None)
+                    notice_end_date = getattr(related_animal, 'notice_end_date', None)
+                    
+                    animals_with_images.append((related_animal, images_data, notice_start_date, notice_end_date))
+                
+                return animals_with_images, animal
             except Animal.DoesNotExist:
                 return None, None
         
@@ -907,11 +921,11 @@ async def get_related_animals_by_distance(
         if result[0] is None:
             raise HttpError(404, "동물을 찾을 수 없습니다")
         
-        related_animals, animal = result
+        animals_with_images, animal = result
         
         # 응답 데이터 변환
         animals_response = []
-        for related_animal in related_animals:
+        for related_animal, images_data, notice_start_date, notice_end_date in animals_with_images:
             animal_data = AnimalOut(
                 id=str(related_animal.id),
                 name=related_animal.name,
@@ -943,12 +957,12 @@ async def get_related_animals_by_distance(
                 center_id=str(related_animal.center_id),
                 animal_images=[
                     {
-                        "id": str(img.id),
-                        "image_url": img.image_url,
-                        "is_primary": img.is_primary,
-                        "sequence": img.sequence
+                        "id": str(img['id']),
+                        "image_url": img['image_url'],
+                        "is_primary": img['is_primary'],
+                        "sequence": img['sequence']
                     }
-                    for img in related_animal.animalimage_set.all().order_by('sequence')
+                    for img in images_data
                 ],
                 created_at=related_animal.created_at.isoformat(),
                 updated_at=related_animal.updated_at.isoformat(),
@@ -957,8 +971,8 @@ async def get_related_animals_by_distance(
                 is_public_data=related_animal.is_public_data,
                 public_notice_number=related_animal.public_notice_number,
                 comment=related_animal.comment,  # 공공데이터 특이사항 코멘트
-                notice_sdt=related_animal.notice_start_date.isoformat() if getattr(related_animal, 'notice_start_date', None) else None,
-                notice_edt=related_animal.notice_end_date.isoformat() if getattr(related_animal, 'notice_end_date', None) else None,
+                notice_sdt=notice_start_date.isoformat() if notice_start_date else None,
+                notice_edt=notice_end_date.isoformat() if notice_end_date else None,
             )
             animals_response.append(animal_data)
         

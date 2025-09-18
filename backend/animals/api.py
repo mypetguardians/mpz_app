@@ -347,8 +347,8 @@ async def get_animals(request: HttpRequest, filters: AnimalListQueryIn = Query(A
                 is_public_data=animal.is_public_data,
                 public_notice_number=animal.public_notice_number,
                 comment=animal.comment,  # 공공데이터 특이사항 코멘트
-                notice_sdt=animal.notice_start_date.isoformat() if getattr(animal, 'notice_start_date', None) else None,
-                notice_edt=animal.notice_end_date.isoformat() if getattr(animal, 'notice_end_date', None) else None,
+                notice_sdt=animal.notice_start_date.isoformat() if animal.notice_start_date else None,
+                notice_edt=animal.notice_end_date.isoformat() if animal.notice_end_date else None,
             )
             animals_response.append(animal_data)
         
@@ -498,8 +498,8 @@ async def get_animal_by_id(request: HttpRequest, animal_id: str):
             is_public_data=animal.is_public_data,
             public_notice_number=animal.public_notice_number,
             comment=animal.comment, 
-            notice_sdt=animal.notice_start_date.isoformat() if getattr(animal, 'notice_start_date', None) else None,
-            notice_edt=animal.notice_end_date.isoformat() if getattr(animal, 'notice_end_date', None) else None,
+            notice_sdt=animal.notice_start_date.isoformat() if animal.notice_start_date else None,
+            notice_edt=animal.notice_end_date.isoformat() if animal.notice_end_date else None,
         )
         
         return response_data
@@ -908,8 +908,8 @@ async def get_related_animals_by_distance(
                     ))
                     
                     # 날짜 필드도 미리 처리
-                    notice_start_date = getattr(related_animal, 'notice_start_date', None)
-                    notice_end_date = getattr(related_animal, 'notice_end_date', None)
+                    notice_start_date = related_animal.notice_start_date
+                    notice_end_date = related_animal.notice_end_date
                     
                     animals_with_images.append((related_animal, images_data, notice_start_date, notice_end_date))
                 

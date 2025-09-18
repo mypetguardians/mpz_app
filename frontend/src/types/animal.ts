@@ -29,6 +29,8 @@ export interface Animal {
   trainerComment: string | null;
   announceNumber: string | null;
   announcementDate: string | null;
+  noticeStartDate: string | null;
+  noticeEndDate: string | null;
   admissionDate: string | null;
   foundLocation: string | null;
   personality: string | null;
@@ -93,6 +95,8 @@ export interface RawAnimalResponse {
   trainer_comment: string | null;
   announce_number: string | null;
   announcement_date: string | null;
+  notice_start_date: string | null;
+  notice_end_date: string | null;
   admission_date: string | null;
   found_location: string | null;
   personality: string | null;
@@ -176,6 +180,8 @@ export function transformRawAnimalToAnimal(raw: RawAnimalResponse): Animal {
     trainerComment: raw.trainer_comment,
     announceNumber: raw.announce_number,
     announcementDate: raw.announcement_date,
+    noticeStartDate: raw.notice_start_date,
+    noticeEndDate: raw.notice_end_date,
     admissionDate: raw.admission_date,
     foundLocation: raw.found_location,
     personality: raw.personality,
@@ -278,6 +284,8 @@ export interface RelatedAnimalsResponse {
   announce_number: string;
   display_notice_number: string;
   announcement_date: string;
+  notice_start_date: string;
+  notice_end_date: string;
   found_location: string;
   admission_date: string;
   personality: string;

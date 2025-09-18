@@ -376,6 +376,8 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
       color: item.color,
       breed: item.breed,
       description: item.description,
+      notice_start_date: item.notice_start_date,
+      notice_end_date: item.notice_end_date,
     })
   );
 
@@ -422,7 +424,8 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
 
         <AnimalDetails
           announceNumber={animal.announce_number || ""}
-          announcementDate={animal.announcement_date || ""}
+          noticeStartDate={animal.notice_start_date || ""}
+          noticeEndDate={animal.notice_end_date || ""}
           description={animal.description || ""}
           foundLocation={animal.found_location || ""}
           center={center?.name || "보호센터 정보 없음"}
@@ -459,6 +462,8 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
             admissionDate: animal.admission_date,
             announceNumber: animal.announce_number,
             announcementDate: animal.announcement_date,
+            noticeStartDate: animal.notice_start_date,
+            noticeEndDate: animal.notice_end_date,
             activityLevel: animal.activity_level?.toString() || null,
             sensitivity: animal.sensitivity?.toString() || null,
             sociability: animal.sociability?.toString() || null,

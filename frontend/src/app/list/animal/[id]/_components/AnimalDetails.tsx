@@ -2,7 +2,8 @@ import React from "react";
 
 interface AnimalDetailsProps {
   announceNumber: string;
-  announcementDate: string;
+  noticeStartDate: string;
+  noticeEndDate: string;
   description: string;
   foundLocation: string;
   center: string;
@@ -12,13 +13,15 @@ interface AnimalDetailsProps {
 
 export default function AnimalDetails({
   announceNumber,
-  announcementDate,
+  noticeStartDate,
+  noticeEndDate,
   description,
   foundLocation,
   center,
   isCenterSubscriber = false,
   specialNotes,
 }: AnimalDetailsProps) {
+  console.log(noticeStartDate, noticeEndDate);
   return (
     <div className="bg-white rounded-lg mx-4">
       <table className="w-full text-sm">
@@ -38,7 +41,11 @@ export default function AnimalDetails({
                   공고기간
                 </td>
                 <td className="text-sm py-1">
-                  <div>{announcementDate ? announcementDate : "-"}</div>
+                  <div>
+                    {noticeStartDate && noticeEndDate
+                      ? `${noticeStartDate} ~ ${noticeEndDate}`
+                      : "-"}
+                  </div>
                 </td>
               </tr>
             </>

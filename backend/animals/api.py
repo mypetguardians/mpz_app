@@ -347,6 +347,8 @@ async def get_animals(request: HttpRequest, filters: AnimalListQueryIn = Query(A
                 is_public_data=animal.is_public_data,
                 public_notice_number=animal.public_notice_number,
                 comment=animal.comment,  # 공공데이터 특이사항 코멘트
+                notice_sdt=animal.notice_start_date.isoformat() if getattr(animal, 'notice_start_date', None) else None,
+                notice_edt=animal.notice_end_date.isoformat() if getattr(animal, 'notice_end_date', None) else None,
             )
             animals_response.append(animal_data)
         
@@ -495,7 +497,9 @@ async def get_animal_by_id(request: HttpRequest, animal_id: str):
             # 공공데이터 관련 필드
             is_public_data=animal.is_public_data,
             public_notice_number=animal.public_notice_number,
-            comment=animal.comment,  # 공공데이터 특이사항 코멘트
+            comment=animal.comment, 
+            notice_sdt=animal.notice_start_date.isoformat() if getattr(animal, 'notice_start_date', None) else None,
+            notice_edt=animal.notice_end_date.isoformat() if getattr(animal, 'notice_end_date', None) else None,
         )
         
         return response_data
@@ -623,7 +627,15 @@ async def update_animal(request: HttpRequest, animal_id: str, data: AnimalUpdate
             admission_date=animal.admission_date.isoformat() if animal.admission_date else None,
             personality=animal.personality,
             center_id=str(animal.center_id),
-            animal_images=[],
+            animal_images=[
+                {
+                    "id": str(img.id),
+                    "image_url": img.image_url,
+                    "is_primary": img.is_primary,
+                    "sequence": img.sequence
+                }
+                for img in animal.animalimage_set.all().order_by('sequence')
+            ],
             created_at=animal.created_at.isoformat(),
             updated_at=animal.updated_at.isoformat(),
         )
@@ -929,7 +941,15 @@ async def get_related_animals_by_distance(
                 megaphone_count=related_animal.megaphone_count,
                 is_megaphoned=False,  # 관련 동물 조회에서는 기본값
                 center_id=str(related_animal.center_id),
-                animal_images=[],  # 빈 배열 임시설정
+                animal_images=[
+                    {
+                        "id": str(img.id),
+                        "image_url": img.image_url,
+                        "is_primary": img.is_primary,
+                        "sequence": img.sequence
+                    }
+                    for img in related_animal.animalimage_set.all().order_by('sequence')
+                ],
                 created_at=related_animal.created_at.isoformat(),
                 updated_at=related_animal.updated_at.isoformat(),
                 
@@ -937,6 +957,8 @@ async def get_related_animals_by_distance(
                 is_public_data=related_animal.is_public_data,
                 public_notice_number=related_animal.public_notice_number,
                 comment=related_animal.comment,  # 공공데이터 특이사항 코멘트
+                notice_sdt=related_animal.notice_start_date.isoformat() if getattr(related_animal, 'notice_start_date', None) else None,
+                notice_edt=related_animal.notice_end_date.isoformat() if getattr(related_animal, 'notice_end_date', None) else None,
             )
             animals_response.append(animal_data)
         

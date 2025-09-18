@@ -266,6 +266,8 @@ class PublicDataService:
             is_public_data=True,
             public_notice_number=animal_data.notice_no,  # 공고번호만 별도 저장 (중복 방지용)
             comment=animal_data.notice_comment or '',  # 공공데이터 공고 코멘트를 comment에 저장
+            notice_start_date=animal_data.notice_sdt,
+            notice_end_date=animal_data.notice_edt,
         )
         
         from asgiref.sync import sync_to_async
@@ -309,6 +311,14 @@ class PublicDataService:
         
         if animal.admission_date != animal_data.happen_dt:
             animal.admission_date = animal_data.happen_dt
+            updated = True
+
+        # 공고 기간 업데이트
+        if animal.notice_start_date != animal_data.notice_sdt:
+            animal.notice_start_date = animal_data.notice_sdt
+            updated = True
+        if animal.notice_end_date != animal_data.notice_edt:
+            animal.notice_end_date = animal_data.notice_edt
             updated = True
         
         # 3. 기타 정보 업데이트 (변경 가능한 경우)

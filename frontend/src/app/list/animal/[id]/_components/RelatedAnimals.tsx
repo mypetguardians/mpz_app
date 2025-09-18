@@ -1,5 +1,5 @@
 import React from "react";
-import { PetCard } from "./PetCard";
+import { PetCard } from "../../../../../components/ui/PetCard";
 import type { RawAnimalResponse } from "@/types/animal";
 
 interface RelatedAnimalsProps {

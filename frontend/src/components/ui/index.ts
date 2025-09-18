@@ -16,7 +16,7 @@ export { Button } from "./button";
 export { Form } from "./form";
 export { Input } from "./input";
 export { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
-export { RelatedAnimals } from "./RelatedAnimals";
+export { RelatedAnimals } from "../../app/list/animal/[id]/_components/RelatedAnimals";
 export { SearchInput } from "./SearchInput";
 export { SectionTitle } from "./SectionTitle";
 export { SelectButton } from "./SelectButton";

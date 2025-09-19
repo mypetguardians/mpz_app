@@ -104,21 +104,7 @@ async def get_monitoring_status(request, adoption_id: str):
         except Adoption.DoesNotExist:
             raise HttpError(404, "입양 신청을 찾을 수 없습니다")
         
-        # 권한 체크: 본인 또는 센터 관리자만 조회 가능
-        if str(adoption.user.id) != str(current_user.id):
-            # 센터 관리자 권한 체크
-            if not await sync_to_async(lambda: current_user.user_type in ['center_admin', 'center_super_admin'])():
-                raise HttpError(403, "권한이 없습니다")
-            
-            # 센터 관리자인 경우 해당 센터의 입양인지 확인
-            if str(adoption.animal.center.id) != str(current_user.center.id):
-                raise HttpError(403, "해당 센터의 입양이 아닙니다")
-        
-        # 최근 모니터링 체크 기록들 조회
-        recent_checks = await sync_to_async(list)(
-            AdoptionMonitoringCheck.objects.filter(adoption=adoption)
-            .order_by('-check_sequence')[:10]
-        )
+      
         
         # 전체 모니터링 포스트 수 조회
         total_posts = await sync_to_async(AdoptionMonitoring.objects.filter(adoption=adoption).count)()
@@ -221,17 +207,10 @@ async def get_monitoring_checks(request, adoption_id: str):
         
         # 권한 체크: 본인 또는 센터 관리자만 조회 가능
         if str(adoption.user.id) != str(current_user.id):
-            # 센터 관리자 권한 체크
-            if not await sync_to_async(lambda: current_user.user_type in ['center_admin', 'center_super_admin'])():
-                raise HttpError(403, "권한이 없습니다")
-            
-            # 센터 관리자인 경우 해당 센터의 입양인지 확인
-            if str(adoption.animal.center.id) != str(current_user.center.id):
-                raise HttpError(403, "해당 센터의 입양이 아닙니다")
         
         # 모니터링 체크 기록 조회
-        @sync_to_async
-        def get_monitoring_checks_list():
+         @sync_to_async
+         def get_monitoring_checks_list():
             return list(
                 AdoptionMonitoringCheck.objects.filter(adoption=adoption)
                 .order_by('-check_sequence')
@@ -675,17 +654,10 @@ async def get_monitoring_posts(request, adoption_id: str):
         
         # 권한 체크: 본인 또는 센터 관리자만 조회 가능
         if str(adoption.user.id) != str(current_user.id):
-            # 센터 관리자 권한 체크
-            if not await sync_to_async(lambda: current_user.user_type in ['center_admin', 'center_super_admin'])():
-                raise HttpError(403, "권한이 없습니다")
-            
-            # 센터 관리자인 경우 해당 센터의 입양인지 확인
-            if str(adoption.animal.center.id) != str(current_user.center.id):
-                raise HttpError(403, "해당 센터의 입양이 아닙니다")
         
         # 모니터링 포스트 조회
-        @sync_to_async
-        def get_monitoring_posts_list():
+         @sync_to_async
+         def get_monitoring_posts_list():
             return list(
                 AdoptionMonitoring.objects.filter(adoption=adoption)
                 .order_by('-created_at')

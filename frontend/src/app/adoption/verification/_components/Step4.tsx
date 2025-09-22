@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import { Input } from "@/components/ui/CustomInput";
+import { CustomInput } from "@/components/ui/CustomInput";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { InfoCard } from "@/components/ui/InfoCard";
 import { Container } from "@/components/common/Container";
@@ -15,8 +15,14 @@ export interface StepProps {
 }
 
 export function Step4({ onNext }: StepProps) {
-  const [address, setAddress] = React.useState("");
+  const [roadAddress, setRoadAddress] = React.useState("");
+  const [detailAddress, setDetailAddress] = React.useState("");
   const [visibility, setVisibility] = React.useState("");
+
+  // 완전한 주소 문자열 생성
+  const fullAddress = React.useMemo(() => {
+    return [roadAddress, detailAddress].filter(Boolean).join(" ");
+  }, [roadAddress, detailAddress]);
 
   // toast state
   const [showToast, setShowToast] = React.useState(false);
@@ -30,7 +36,7 @@ export function Step4({ onNext }: StepProps) {
   const handleAddressSearch = () => {
     try {
       openKakaoAddress((selectedAddress) => {
-        setAddress(selectedAddress);
+        setRoadAddress(selectedAddress);
       });
     } catch (error) {
       console.error("주소 검색 실패:", error);
@@ -38,7 +44,7 @@ export function Step4({ onNext }: StepProps) {
     }
   };
 
-  const isAddressValid = address.trim().length > 0;
+  const isAddressValid = fullAddress.trim().length > 0;
   const isVisibilityValid =
     visibility === "공개함" || visibility === "공개안함";
   const isValid = isAddressValid && isVisibilityValid;
@@ -53,7 +59,7 @@ export function Step4({ onNext }: StepProps) {
       return;
     }
     try {
-      sessionStorage.setItem("verification.address", address);
+      sessionStorage.setItem("verification.address", fullAddress);
       sessionStorage.setItem("verification.addressVisibility", visibility);
       onNext();
     } catch (error) {
@@ -69,14 +75,24 @@ export function Step4({ onNext }: StepProps) {
         <div className="flex flex-col w-full">
           <h5 className="text-dg">주소</h5>
           <div className="flex flex-col gap-3">
-            <SearchInput
-              variant="variant2"
-              placeholder="도로명 주소로 검색해주세요."
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              onSearch={handleAddressSearch}
-            />
-            <Input
+            <div className="flex flex-col gap-1">
+              <SearchInput
+                variant="variant2"
+                placeholder="도로명 주소로 검색해주세요."
+                value={roadAddress}
+                onSearch={handleAddressSearch}
+                readOnly={true}
+              />
+              <CustomInput
+                variant="primary"
+                placeholder="상세주소를 입력해주세요."
+                value={detailAddress}
+                onChange={(e) => setDetailAddress(e.target.value)}
+                inputMode="text"
+                maxLength={50}
+              />
+            </div>
+            <CustomInput
               variant="Variant7"
               label="공개여부"
               placeholder="공개여부를 선택해주세요."

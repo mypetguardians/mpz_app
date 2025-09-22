@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import { Input } from "@/components/ui/CustomInput";
+import { CustomInput } from "@/components/ui/CustomInput";
 import { Container } from "@/components/common/Container";
 import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
 import { NotificationToast } from "@/components/ui/NotificationToast";
@@ -73,7 +73,7 @@ export function Step3({ onNext }: StepProps) {
       <Container className="min-h-screen pb-28">
         <h2 className="text-bk mb-6">생년월일과 성별을 알려주세요.</h2>
         <div className="flex flex-col gap-3">
-          <Input
+          <CustomInput
             variant="primary"
             label="생년월일"
             placeholder="YYYYMMDD"
@@ -83,7 +83,7 @@ export function Step3({ onNext }: StepProps) {
             maxLength={10}
             error={birthRaw.length > 0 && !isBirthValid}
           />
-          <Input
+          <CustomInput
             variant="Variant7"
             label="성별"
             placeholder="성별을 선택해주세요."

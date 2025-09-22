@@ -64,7 +64,7 @@ const transformApiDataToUI = (
   return {
     id: adoption.id,
     userName: adoption.user_info.name,
-    profileImage: "/img/dummyImg.png", // 기본 이미지 사용
+    profileImage: adoption.animal_image || "/img/dummyImg.png", // 실제 동물 이미지 사용, 없으면 기본 이미지
     timeAgo,
     status: mapApiStatusToUIStatus(adoption.status),
     isGrayscale: adoption.status === "취소",
@@ -206,7 +206,15 @@ function AdoptorListTab() {
           userName={adoptor.userName}
           profileImage={adoptor.profileImage}
           timeAgo={adoptor.timeAgo}
-          status={adoptor.status}
+          status={
+            adoptor.status as
+              | "신청"
+              | "미팅"
+              | "계약서작성"
+              | "입양완료"
+              | "모니터링"
+              | "취소"
+          }
           isGrayscale={adoptor.isGrayscale}
           tabType={tabType}
           apiStatus={adoptor.apiStatus}

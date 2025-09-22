@@ -12,6 +12,7 @@ import { openKakaoAddress } from "@/lib/openKakaoAddress";
 import { NotificationToast } from "@/components/ui/NotificationToast";
 
 interface BasicInfoData {
+  name: string;
   protection_status: string;
   adoption_status: string;
   breed: string;
@@ -164,7 +165,7 @@ export default function BasicInfo({
   };
 
   const handleFoundLocationSearch = () => {
-    openKakaoAddress((selectedAddress) => {
+    openKakaoAddress((selectedAddress: string) => {
       onChange({ foundLocation: selectedAddress });
     });
   };
@@ -226,6 +227,14 @@ export default function BasicInfo({
           </div>
         )}
 
+        <CustomInput
+          variant="primary"
+          label="이름"
+          placeholder="이름을 입력해주세요"
+          value={data.name}
+          onChange={(e) => onChange({ name: e.target.value })}
+          required={true}
+        />
         <CustomInput
           variant="tagdropdown"
           label="보호 상태"

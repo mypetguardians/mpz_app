@@ -100,7 +100,7 @@ function ApplicationPageContent() {
       {/* 상태 필터 */}
       <div className="px-4 pt-3 pb-2">
         <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-          {["미팅", "계약서작성", "입양완료", "모니터링", "취소"].map(
+          {["신청", "미팅", "계약서작성", "입양완료", "모니터링", "취소"].map(
             (status) => (
               <MiniButton
                 key={status}

@@ -37,11 +37,13 @@ export interface Animal {
   megaphoneCount: number;
   isMegaphoned: boolean;
   centerId: string;
-  animalImages: Array<{
-    id: string;
-    imageUrl: string;
-    orderIndex: number;
-  }> | null;
+  animalImages:
+    | Array<{
+        id: string;
+        imageUrl: string;
+        orderIndex: number;
+      }>
+    | undefined;
   createdAt: string;
   updatedAt: string;
 }
@@ -125,26 +127,30 @@ export interface ActualGetAnimalsResponse {
 
 // PetCard에서 사용하는 타입 (기존 호환성을 위해 유지)
 // 새로운 PetCard 타입 사용을 권장합니다
-export type PetCardAnimal = Pick<
-  Animal,
-  | "id"
-  | "name"
-  | "breed"
-  | "isFemale"
-  | "protection_status"
-  | "adoption_status"
-  | "centerId"
-  | "animalImages"
-  | "foundLocation"
-> & {
+export type PetCardAnimal = {
+  id: string;
+  name: string;
+  breed: string | null;
+  isFemale: boolean;
+  protection_status: "보호중" | "안락사" | "자연사" | "반환";
+  adoption_status: "입양가능" | "입양진행중" | "입양완료" | "입양불가";
+  centerId: string;
+  animalImages:
+    | Array<{
+        id: string;
+        imageUrl: string;
+        orderIndex: number;
+      }>
+    | undefined;
+  foundLocation: string | null;
   weight?: number | null;
   color?: string | null;
   waitingDays?: number | null;
   description?: string | null;
-  activityLevel?: string | null;
-  sensitivity?: string | null;
-  sociability?: string | null;
-  separationAnxiety?: string | null;
+  activityLevel?: number | null;
+  sensitivity?: number | null;
+  sociability?: number | null;
+  separationAnxiety?: number | null;
   specialNotes?: string | null;
   healthNotes?: string | null;
   basicTraining?: string | null;
@@ -194,7 +200,7 @@ export function transformRawAnimalToAnimal(raw: RawAnimalResponse): Animal {
           imageUrl: img.image_url,
           orderIndex: img.order_index,
         }))
-      : null,
+      : undefined,
     createdAt: raw.created_at,
     updatedAt: raw.updated_at,
   };
@@ -223,16 +229,16 @@ export function transformRawAnimalToPetCard(
           imageUrl: img.image_url,
           orderIndex: img.order_index,
         }))
-      : [],
+      : undefined,
     foundLocation: raw.found_location,
     weight: raw.weight,
     color: raw.color,
     waitingDays: raw.waiting_days,
     description: raw.description,
-    activityLevel: raw.activity_level?.toString() || null,
-    sensitivity: raw.sensitivity?.toString() || null,
-    sociability: raw.sociability?.toString() || null,
-    separationAnxiety: raw.separation_anxiety?.toString() || null,
+    activityLevel: raw.activity_level || null,
+    sensitivity: raw.sensitivity || null,
+    sociability: raw.sociability || null,
+    separationAnxiety: raw.separation_anxiety || null,
     specialNotes: raw.special_notes,
     healthNotes: raw.health_notes,
     basicTraining: raw.basic_training?.toString() || null,

@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import { Input } from "@/components/ui/CustomInput";
+import { CustomInput } from "@/components/ui/CustomInput";
 import { Container } from "@/components/common/Container";
 import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
 import { NotificationToast } from "@/components/ui/NotificationToast";
@@ -42,7 +42,7 @@ export function Step2({ onNext }: StepProps) {
     <>
       <Container className="min-h-screen pb-28">
         <h2 className="text-bk mb-6">이름을 입력해주세요.</h2>
-        <Input
+        <CustomInput
           variant="primary"
           label="이름"
           placeholder="이름을 입력해주세요."

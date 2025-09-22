@@ -9,7 +9,7 @@ interface AdoptorNotificationCardProps {
   userName: string;
   profileImage: string;
   timeAgo: string;
-  status: "응답 대기 중" | "입양 가능" | "입양 완료" | "거절";
+  status: "신청" | "미팅" | "계약서작성" | "입양완료" | "모니터링" | "취소";
   isGrayscale?: boolean;
   tabType?: "application" | "foster" | "adopter";
   apiStatus?: string; // API 상태값 추가
@@ -71,13 +71,17 @@ function AdoptorNotificationCard({
   // Chip 컴포넌트의 variantColorClass 색상들을 사용
   const getStatusColorClass = (status: string) => {
     switch (status) {
-      case "응답 대기 중":
+      case "신청":
         return "bg-green/10 text-green";
-      case "입양 가능":
+      case "미팅":
         return "bg-green/10 text-green";
-      case "입양 완료":
+      case "계약서작성":
         return "bg-yellow/10 text-yellow";
-      case "거절":
+      case "취소":
+        return "bg-bg text-dg";
+      case "모니터링":
+        return "bg-blue/10 text-blue";
+      case "입양완료":
         return "bg-brand/10 text-brand";
       default:
         return "";
@@ -115,7 +119,9 @@ function AdoptorNotificationCard({
 
           {/* 상태 태그들 */}
           <div className="flex-shrink-0 ml-2 flex flex-col gap-1">
-            <Chip className={getStatusColorClass(status)}>{status}</Chip>
+            <Chip className={getStatusColorClass(apiStatus || status)}>
+              {apiStatus || status}
+            </Chip>
             {animalAdoptionStatus && (
               <Chip className="bg-blue/10 text-blue text-xs">
                 {animalAdoptionStatus}

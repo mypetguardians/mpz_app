@@ -34,3 +34,4 @@ INFO 2025-09-22 20:55:53,993 autoreload 99478 8639291584 /Users/jhy20/mpz_fullst
 INFO 2025-09-22 20:55:54,760 autoreload 99710 8639291584 Watching for file changes with StatReloader
 INFO 2025-09-22 20:56:03,574 autoreload 99710 8639291584 /Users/jhy20/mpz_fullstack/backend/posts/api.py changed, reloading.
 INFO 2025-09-22 20:56:04,476 autoreload 99886 8639291584 Watching for file changes with StatReloader
+INFO 2025-09-22 22:27:35,603 autoreload 96440 8639291584 Watching for file changes with StatReloader

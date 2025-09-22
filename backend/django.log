@@ -1,0 +1,25 @@
+ERROR 2025-09-12 17:54:32,021 exception 33734 6131871744 Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/asgiref/sync.py", line 489, in thread_handler
+    raise exc_info[1]
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/core/handlers/exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/utils/deprecation.py", line 146, in __acall__
+    response = await sync_to_async(
+               ^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+    )(request)
+    ^^^^^^^^^^
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/asgiref/sync.py", line 439, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/asgiref/current_thread_executor.py", line 40, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/asgiref/sync.py", line 493, in thread_handler
+    return func(*args, **kwargs)
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/http/request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.

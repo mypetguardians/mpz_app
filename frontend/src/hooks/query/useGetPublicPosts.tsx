@@ -31,9 +31,7 @@ const getPublicPosts = async (
 
   const queryString = searchParams.toString();
   const url = queryString ? `/posts/all/?${queryString}` : `/posts/all/`;
-  console.log("Public Posts API 요청:", { url, params });
   const response = await instance.get<ApiPostsResponse>(url);
-  console.log("Public Posts API 응답:", response.data);
   return response.data;
 };
 

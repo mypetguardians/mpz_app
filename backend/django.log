@@ -23,3 +23,14 @@ Traceback (most recent call last):
   File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/http/request.py", line 151, in get_host
     raise DisallowedHost(msg)
 django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'testserver'. You may need to add 'testserver' to ALLOWED_HOSTS.
+INFO 2025-09-22 20:49:27,292 autoreload 92646 8639291584 Watching for file changes with StatReloader
+INFO 2025-09-22 20:50:00,342 autoreload 93645 8639291584 Watching for file changes with StatReloader
+INFO 2025-09-22 20:51:26,129 autoreload 95111 8639291584 Watching for file changes with StatReloader
+INFO 2025-09-22 20:53:05,124 autoreload 96823 8639291584 Watching for file changes with StatReloader
+INFO 2025-09-22 20:53:20,706 autoreload 97115 8639291584 Watching for file changes with StatReloader
+INFO 2025-09-22 20:55:39,907 autoreload 95111 8639291584 /Users/jhy20/mpz_fullstack/backend/posts/api.py changed, reloading.
+INFO 2025-09-22 20:55:40,842 autoreload 99478 8639291584 Watching for file changes with StatReloader
+INFO 2025-09-22 20:55:53,993 autoreload 99478 8639291584 /Users/jhy20/mpz_fullstack/backend/posts/api.py changed, reloading.
+INFO 2025-09-22 20:55:54,760 autoreload 99710 8639291584 Watching for file changes with StatReloader
+INFO 2025-09-22 20:56:03,574 autoreload 99710 8639291584 /Users/jhy20/mpz_fullstack/backend/posts/api.py changed, reloading.
+INFO 2025-09-22 20:56:04,476 autoreload 99886 8639291584 Watching for file changes with StatReloader

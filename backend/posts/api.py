@@ -84,6 +84,7 @@ def _build_image_response(image):
 )
 @paginate
 async def get_all_public_posts(request: HttpRequest, user_id: str = None, tags: list[str] = None, is_all_access: bool = None, sort_by: str = "latest"):
+    print(f"🔍 Public Posts API 호출됨 - tags: {tags}, user_id: {user_id}, is_all_access: {is_all_access}, sort_by: {sort_by}")
     """전체 공개 게시글 목록을 조회합니다."""
     try:
         @sync_to_async
@@ -100,17 +101,22 @@ async def get_all_public_posts(request: HttpRequest, user_id: str = None, tags: 
                     from posts.models import PostTag
                     
                     system_tag_names = [tag.strip() for tag in tags if tag.strip()]
-                    print(f"Public Posts 태그 필터링 시도: {system_tag_names}")
+                    print(f"🔍 Public Posts 태그 필터링 시도: {system_tag_names}")
+                    print(f"🔍 필터링 전 게시글 수: {posts_query.count()}")
                     
                     if system_tag_names:
                         # PostTag 모델에서 해당 태그명을 가진 게시글들 찾기
                         posts_query = posts_query.filter(
                             posttag__tag_name__in=system_tag_names
                         ).distinct()
-                        print(f"필터링 후 게시글 수: {posts_query.count()}")
+                        print(f"🔍 필터링 후 게시글 수: {posts_query.count()}")
+                        
+                        # 실제로 매칭되는 태그들 확인
+                        matching_tags = PostTag.objects.filter(tag_name__in=system_tag_names).values_list('tag_name', flat=True).distinct()
+                        print(f"🔍 실제 매칭되는 태그들: {list(matching_tags)}")
                         
                 except Exception as e:
-                    print(f"시스템 태그 필터링 오류: {e}")
+                    print(f"❌ 시스템 태그 필터링 오류: {e}")
                     # 오류 발생 시 필터링 없이 진행
             
             # 정렬 적용
@@ -350,6 +356,7 @@ async def get_all_public_post_detail(request: HttpRequest, post_id: str):
 )
 @paginate
 async def get_center_posts(request: HttpRequest, user_id: str = None, tags: list[str] = None, is_all_access: bool = None, sort_by: str = "latest"):
+    print(f"🔍 Center Posts API 호출됨 - tags: {tags}, user_id: {user_id}, is_all_access: {is_all_access}, sort_by: {sort_by}")
     """센터 권한자, 입양 완료 이력이 있는 사용자, 본인 게시글 목록을 조회합니다."""
     try:
         current_user = request.auth
@@ -365,19 +372,18 @@ async def get_center_posts(request: HttpRequest, user_id: str = None, tags: list
                 status='입양완료'
             ).exists()
             
-            # 센터 권한자, 본인 게시글, 입양 완료 이력이 있는 사용자 조회
-            posts_query = Post.objects.select_related('user').filter(
-                models.Q(is_all_access=True) |  # 전체 공개
-                models.Q(user=current_user)     # 본인 글
+            # 접근 가능한 범위를 하나의 Q 조건으로 구성 (UNION 대신)
+            access_condition = (
+                models.Q(is_all_access=True) |               # 전체 공개
+                models.Q(user=current_user)                  # 본인 글
             )
-            
-            # 센터 권한자이거나 입양 완료 이력이 있으면 센터 권한자 글도 볼 수 있음
-            if (current_user.user_type in ['센터관리자', '최고관리자'] or 
-                has_adoption_history):
-                posts_query = posts_query | Post.objects.select_related('user').filter(
+            if (current_user.user_type in ['센터관리자', '최고관리자'] or has_adoption_history):
+                access_condition = access_condition | (
                     models.Q(user__user_type__in=['센터관리자', '최고관리자']) |  # 센터 권한자 글
-                    models.Q(is_all_access=False)  # 제한 공개 글
+                    models.Q(is_all_access=False)                                  # 제한 공개 글
                 )
+
+            posts_query = Post.objects.select_related('user').filter(access_condition)
             
             # 필터링 적용
             if user_id:
@@ -387,24 +393,25 @@ async def get_center_posts(request: HttpRequest, user_id: str = None, tags: list
             if is_all_access is not None:
                 posts_query = posts_query.filter(is_all_access=is_all_access)
             
-            # 시스템 태그 필터링 적용 - PostTag 모델 기반
+            # 시스템 태그 필터링 적용 - 정확한 태그명 매칭 (대소문자 무시)
             if tags:
                 try:
                     from posts.models import PostTag
-                    
-                    system_tag_names = [tag.strip() for tag in tags if tag.strip()]
-                    print(f"Center Posts 태그 필터링 시도: {system_tag_names}")
-                    
+                    system_tag_names = [tag.strip() for tag in tags if tag and str(tag).strip()]
+                    print(f"🔍 Center Posts 태그 필터링 시도: {system_tag_names}")
+                    print(f"🔍 필터링 전 게시글 수: {posts_query.count()}")
+
                     if system_tag_names:
-                        # PostTag 모델에서 해당 태그명을 가진 게시글들 찾기
-                        posts_query = posts_query.filter(
-                            posttag__tag_name__in=system_tag_names
-                        ).distinct()
-                        print(f"필터링 후 게시글 수: {posts_query.count()}")
-                        
+                        tag_filter = models.Q()
+                        for name in system_tag_names:
+                            tag_filter |= models.Q(posttag__tag_name__iexact=name)
+                        posts_query = posts_query.filter(tag_filter).distinct()
+                        print(f"🔍 필터링 후 게시글 수: {posts_query.count()}")
+
+                        matching_tags = PostTag.objects.filter(tag_name__in=system_tag_names).values_list('tag_name', flat=True).distinct()
+                        print(f"🔍 실제 매칭되는 태그들: {list(matching_tags)}")
                 except Exception as e:
-                    print(f"시스템 태그 필터링 오류: {e}")
-                    # 오류 발생 시 필터링 없이 진행
+                    print(f"❌ 시스템 태그 필터링 오류: {e}")
             
             posts = posts_query.order_by('-created_at')
             

@@ -297,3 +297,13 @@ async def get_adoption_monitoring_posts(adoption: Adoption) -> List[AdoptionMoni
     return await sync_to_async(list)(
         AdoptionMonitoring.objects.filter(adoption=adoption)
     )
+
+
+async def has_completed_adoption_history(user: User) -> bool:
+    """사용자가 입양 완료 이력이 있는지 확인"""
+    return await sync_to_async(
+        lambda: Adoption.objects.filter(
+            user=user,
+            status__in=['입양완료', '모니터링']
+        ).exists()
+    )()

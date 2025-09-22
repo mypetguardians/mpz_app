@@ -94,26 +94,21 @@ async def get_all_public_posts(request: HttpRequest, user_id: str = None, tags: 
             if user_id:
                 posts_query = posts_query.filter(user_id=user_id)
             
-            # 시스템 태그 필터링 적용
+            # 시스템 태그 필터링 적용 - PostTag 모델 기반
             if tags:
                 try:
-                    from posts.models import SystemTag
+                    from posts.models import PostTag
                     
-                    system_tag_names = [tag.strip().lower() for tag in tags if tag.strip()]
+                    system_tag_names = [tag.strip() for tag in tags if tag.strip()]
+                    print(f"Public Posts 태그 필터링 시도: {system_tag_names}")
                     
                     if system_tag_names:
-                        # 정규식 기반 매칭 시도
-                        import re
-                        system_tag_patterns = [re.compile(rf'.*{re.escape(tag)}.*', re.IGNORECASE) for tag in system_tag_names]
+                        # PostTag 모델에서 해당 태그명을 가진 게시글들 찾기
+                        posts_query = posts_query.filter(
+                            posttag__tag_name__in=system_tag_names
+                        ).distinct()
+                        print(f"필터링 후 게시글 수: {posts_query.count()}")
                         
-                        # 각 시스템 태그에 대해 매칭되는 게시글 찾기
-                        matching_posts = []
-                        for post in posts_query:
-                            post_content = f"{post.title} {post.content}".lower()
-                            if any(pattern.search(post_content) for pattern in system_tag_patterns):
-                                matching_posts.append(post)
-                        
-                        posts_query = Post.objects.filter(id__in=[post.id for post in matching_posts])
                 except Exception as e:
                     print(f"시스템 태그 필터링 오류: {e}")
                     # 오류 발생 시 필터링 없이 진행
@@ -165,14 +160,14 @@ async def get_all_public_posts(request: HttpRequest, user_id: str = None, tags: 
 @router.get(
     "/mixed/",
     summary="[R] 전체/제한 공개 게시글 목록 조회",
-    description="전체 공개(is_all_access=True)와 제한 공개(is_all_access=False) 게시글 목록을 한꺼번에 조회합니다. 제한 공개 게시글은 센터 권한자(센터관리자, 센터최고관리자, 훈련사)만 볼 수 있습니다.",
+    description="전체 공개(is_all_access=True)와 제한 공개(is_all_access=False) 게시글 목록을 한꺼번에 조회합니다. 제한 공개 게시글은 센터 권한자(센터관리자, 센터최고관리자, 훈련사) 또는 입양 완료 이력이 있는 사용자만 볼 수 있습니다.",
     response={
         200: MixedAccessPostsOut,
         500: dict,
     },
 )
 async def get_mixed_access_posts(request: HttpRequest, user_id: str = None, tags: list[str] = None, is_all_access: bool = None, sort_by: str = "latest"):
-    """전체 공개와 제한 공개 게시글 목록을 한꺼번에 조회합니다. 제한 공개 게시글은 센터 권한자만 볼 수 있습니다."""
+    """전체 공개와 제한 공개 게시글 목록을 한꺼번에 조회합니다. 제한 공개 게시글은 센터 권한자 또는 입양 완료 이력이 있는 사용자만 볼 수 있습니다."""
     try:
         current_user = request.auth
         if hasattr(current_user, '__await__'):
@@ -194,35 +189,39 @@ async def get_mixed_access_posts(request: HttpRequest, user_id: str = None, tags
             if user_id:
                 private_posts_query = private_posts_query.filter(user_id=user_id)
             
-            # 센터 권한 체크
+            # 센터 권한 또는 입양 완료 이력 체크
             has_center_permission = False
             if current_user and hasattr(current_user, 'user_type'):
                 has_center_permission = current_user.user_type in ["센터관리자", "센터최고관리자", "훈련사"]
+                
+                # 입양 완료 이력이 있는 사용자도 제한 공개 게시글에 접근 가능
+                if not has_center_permission:
+                    from adoptions.models import Adoption
+                    has_adoption_history = Adoption.objects.filter(
+                        user=current_user,
+                        status='입양완료'
+                    ).exists()
+                    has_center_permission = has_adoption_history
             
-            # 센터 권한이 없으면 제한 공개 게시글은 빈 리스트
+            # 센터 권한이나 입양 완료 이력이 없으면 제한 공개 게시글은 빈 리스트
             if not has_center_permission:
                 private_posts_query = Post.objects.none()
             
-            # 시스템 태그 필터링 적용 (전체 공개)
+            # 시스템 태그 필터링 적용 (전체 공개) - PostTag 모델 기반
             if tags:
                 try:
-                    from posts.models import SystemTag
+                    from posts.models import PostTag
                     
-                    system_tag_names = [tag.strip().lower() for tag in tags if tag.strip()]
+                    system_tag_names = [tag.strip() for tag in tags if tag.strip()]
+                    print(f"Mixed Posts 태그 필터링 시도: {system_tag_names}")
                     
                     if system_tag_names:
-                        # 정규식 기반 매칭 시도
-                        import re
-                        system_tag_patterns = [re.compile(rf'.*{re.escape(tag)}.*', re.IGNORECASE) for tag in system_tag_names]
+                        # PostTag 모델에서 해당 태그명을 가진 게시글들 찾기
+                        public_posts_query = public_posts_query.filter(
+                            posttag__tag_name__in=system_tag_names
+                        ).distinct()
+                        print(f"필터링 후 전체 공개 게시글 수: {public_posts_query.count()}")
                         
-                        # 각 시스템 태그에 대해 매칭되는 게시글 찾기
-                        matching_public_posts = []
-                        for post in public_posts_query:
-                            post_content = f"{post.title} {post.content}".lower()
-                            if any(pattern.search(post_content) for pattern in system_tag_patterns):
-                                matching_public_posts.append(post)
-                        
-                        public_posts_query = Post.objects.filter(id__in=[post.id for post in matching_public_posts], is_all_access=True)
                 except Exception as e:
                     print(f"시스템 태그 필터링 오류: {e}")
                     # 오류 발생 시 필터링 없이 진행
@@ -341,7 +340,7 @@ async def get_all_public_post_detail(request: HttpRequest, post_id: str):
 @router.get(
     "/center/",
     summary="[R] 센터 권한자용 게시글 목록 조회",
-    description="센터 권한자와 본인 게시글 목록을 조회합니다. 인증이 필요합니다.",
+    description="센터 권한자, 입양 완료 이력이 있는 사용자, 본인 게시글 목록을 조회합니다. 인증이 필요합니다.",
     response={
         200: list[PostOut],
         401: dict,
@@ -351,7 +350,7 @@ async def get_all_public_post_detail(request: HttpRequest, post_id: str):
 )
 @paginate
 async def get_center_posts(request: HttpRequest, user_id: str = None, tags: list[str] = None, is_all_access: bool = None, sort_by: str = "latest"):
-    """센터 권한자용 게시글 목록을 조회합니다."""
+    """센터 권한자, 입양 완료 이력이 있는 사용자, 본인 게시글 목록을 조회합니다."""
     try:
         current_user = request.auth
         if hasattr(current_user, '__await__'):
@@ -359,12 +358,26 @@ async def get_center_posts(request: HttpRequest, user_id: str = None, tags: list
         
         @sync_to_async
         def get_center_posts_list():
-            # 센터 권한자와 본인 게시글 조회
+            # 입양 완료 이력 확인
+            from adoptions.models import Adoption
+            has_adoption_history = Adoption.objects.filter(
+                user=current_user,
+                status='입양완료'
+            ).exists()
+            
+            # 센터 권한자, 본인 게시글, 입양 완료 이력이 있는 사용자 조회
             posts_query = Post.objects.select_related('user').filter(
                 models.Q(is_all_access=True) |  # 전체 공개
-                models.Q(user=current_user) |   # 본인 글
-                models.Q(user__user_type__in=['센터관리자', '최고관리자'])  # 센터 권한자 글
+                models.Q(user=current_user)     # 본인 글
             )
+            
+            # 센터 권한자이거나 입양 완료 이력이 있으면 센터 권한자 글도 볼 수 있음
+            if (current_user.user_type in ['센터관리자', '최고관리자'] or 
+                has_adoption_history):
+                posts_query = posts_query | Post.objects.select_related('user').filter(
+                    models.Q(user__user_type__in=['센터관리자', '최고관리자']) |  # 센터 권한자 글
+                    models.Q(is_all_access=False)  # 제한 공개 글
+                )
             
             # 필터링 적용
             if user_id:
@@ -374,51 +387,24 @@ async def get_center_posts(request: HttpRequest, user_id: str = None, tags: list
             if is_all_access is not None:
                 posts_query = posts_query.filter(is_all_access=is_all_access)
             
-            # 시스템 태그 필터링 적용
+            # 시스템 태그 필터링 적용 - PostTag 모델 기반
             if tags:
                 try:
-                    from posts.models import SystemTag
+                    from posts.models import PostTag
                     
-                    system_tag_names = [tag.strip().lower() for tag in tags if tag.strip()]
+                    system_tag_names = [tag.strip() for tag in tags if tag.strip()]
+                    print(f"Center Posts 태그 필터링 시도: {system_tag_names}")
                     
                     if system_tag_names:
-                        try:
-                            matching_system_tags = SystemTag.objects.filter(
-                                is_active=True,
-                                name__iregex='|'.join(system_tag_names)
-                            ).values_list('name', flat=True)
-                            
-                            if matching_system_tags:
-                                posts_query = posts_query.filter(
-                                    posttag__tag_name__in=matching_system_tags
-                                ).distinct()
-                            else:
-                                return []
-                                
-                        except Exception as e:
-                            try:
-                                matching_system_tags = SystemTag.objects.filter(
-                                    is_active=True,
-                                    name__in=system_tag_names
-                                ).values_list('name', flat=True)
-                                
-                                if matching_system_tags:
-                                    posts_query = posts_query.filter(
-                                        posttag__tag_name__in=matching_system_tags
-                                    ).distinct()
-                                else:
-                                    return []
-                                    
-                            except Exception as fallback_e:
-                                import logging
-                                logger = logging.getLogger(__name__)
-                                logger.error(f"시스템 태그 필터링 중 오류 발생: {str(fallback_e)}")
-                                pass
+                        # PostTag 모델에서 해당 태그명을 가진 게시글들 찾기
+                        posts_query = posts_query.filter(
+                            posttag__tag_name__in=system_tag_names
+                        ).distinct()
+                        print(f"필터링 후 게시글 수: {posts_query.count()}")
+                        
                 except Exception as e:
-                    import logging
-                    logger = logging.getLogger(__name__)
-                    logger.error(f"시스템 태그 필터링 중 오류 발생: {str(e)}")
-                    pass
+                    print(f"시스템 태그 필터링 오류: {e}")
+                    # 오류 발생 시 필터링 없이 진행
             
             posts = posts_query.order_by('-created_at')
             
@@ -483,7 +469,7 @@ async def get_center_posts(request: HttpRequest, user_id: str = None, tags: list
 @router.get(
     "/center/{post_id}",
     summary="[R] 센터 권한자용 게시글 상세 조회",
-    description="센터 권한자와 본인 게시글의 상세 정보를 조회합니다. 인증이 필요합니다.",
+    description="센터 권한자, 입양 완료 이력이 있는 사용자, 본인 게시글의 상세 정보를 조회합니다. 인증이 필요합니다.",
     response={
         200: PostDetailOut,
         401: dict,
@@ -494,7 +480,7 @@ async def get_center_posts(request: HttpRequest, user_id: str = None, tags: list
     auth=jwt_auth,
 )
 async def get_center_post_detail(request: HttpRequest, post_id: str):
-    """센터 권한자용 게시글 상세 정보를 조회합니다."""
+    """센터 권한자, 입양 완료 이력이 있는 사용자, 본인 게시글의 상세 정보를 조회합니다."""
     try:
         current_user = request.auth
         if hasattr(current_user, '__await__'):
@@ -511,8 +497,23 @@ async def get_center_post_detail(request: HttpRequest, post_id: str):
             can_access = False
             if post.is_all_access:
                 can_access = True
-            elif post.user == current_user or current_user.user_type in ['센터관리자', '최고관리자']:
+            elif post.user == current_user:
                 can_access = True
+            elif current_user.user_type in ['센터관리자', '최고관리자']:
+                can_access = True
+            else:
+                # 입양 완료 이력이 있는 사용자는 센터 권한자 글과 제한 공개 글에 접근 가능
+                from adoptions.models import Adoption
+                has_adoption_history = Adoption.objects.filter(
+                    user=current_user,
+                    status='입양완료'
+                ).exists()
+                
+                if has_adoption_history and (
+                    post.user.user_type in ['센터관리자', '최고관리자'] or 
+                    not post.is_all_access
+                ):
+                    can_access = True
             
             if not can_access:
                 return None, None, None

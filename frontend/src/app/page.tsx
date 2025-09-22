@@ -26,7 +26,12 @@ import { useRouter } from "next/navigation";
 export default function Home() {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
-  const [selectedLocation, setSelectedLocation] = useState<string>("");
+  const [selectedLocation, setSelectedLocation] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("homeLocationFilter") || "";
+    }
+    return "";
+  });
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
@@ -74,6 +79,13 @@ export default function Home() {
 
   const handleLocationSelect = (location: string) => {
     setSelectedLocation(location);
+    if (typeof window !== "undefined") {
+      if (location) {
+        localStorage.setItem("homeLocationFilter", location);
+      } else {
+        localStorage.removeItem("homeLocationFilter");
+      }
+    }
   };
 
   // 매칭 완료 상태 확인 및 알림 표시

@@ -147,7 +147,7 @@ export function AnimalSearchSection({
     },
     {
       label: "품종",
-      path: "/list/animal/filter",
+      path: "breed-sheet", // 특별한 경로로 바텀시트 열기
       count: filterCounts.breed,
       hasFilters: filterCounts.breed > 0,
     },
@@ -224,15 +224,14 @@ export function AnimalSearchSection({
     <>
       {/* 검색 입력 */}
       <div className="px-4 py-4">
-        <div onClick={handleBreedSearchClick} className="cursor-pointer">
-          <SearchInput
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            onSearch={handleSearch}
-            placeholder="품종으로 검색해보세요."
-            variant="primary"
-          />
-        </div>
+        <SearchInput
+          value={searchValue}
+          onChange={(e) => setSearchValue(e.target.value)}
+          onSearch={handleSearch}
+          placeholder="품종으로 검색해보세요."
+          variant="primary"
+          readOnly={false}
+        />
       </div>
 
       {/* 필터 미니버튼들은 항상 표시 */}
@@ -246,7 +245,13 @@ export function AnimalSearchSection({
               }`}
               rightIcon={<CaretDown size={12} />}
               variant={option.hasFilters ? "filterOn" : "filterOff"}
-              onClick={() => onFilterClick(option.path)}
+              onClick={() => {
+                if (option.path === "breed-sheet") {
+                  handleBreedSearchClick();
+                } else {
+                  onFilterClick(option.path);
+                }
+              }}
               className="flex-shrink-0"
             />
           ))}

@@ -17,11 +17,11 @@ export const AgreementsSchema = z.object({
 // 타임라인 스키마
 export const TimelineSchema = z.object({
   applied_at: z.string(),
-  meeting_scheduled_at: z.string(),
-  contract_sent_at: z.string(),
-  adoption_completed_at: z.string(),
-  monitoring_started_at: z.string(),
-  monitoring_next_check_at: z.string(),
+  meeting_scheduled_at: z.string().nullable().optional(),
+  contract_sent_at: z.string().nullable().optional(),
+  adoption_completed_at: z.string().nullable().optional(),
+  monitoring_started_at: z.string().nullable().optional(),
+  monitoring_next_check_at: z.string().nullable().optional(),
 });
 
 // 센터 입양 데이터 스키마
@@ -30,11 +30,12 @@ export const CenterAdoptionDataSchema = z.object({
   user_id: z.string(),
   animal_id: z.string(),
   animal_name: z.string(),
+  animal_image: z.string().optional(),
   animal_protection_status: z.string().optional(),
   animal_adoption_status: z.string().optional(),
   status: z.string(),
-  notes: z.string(),
-  center_notes: z.string(),
+  notes: z.string().nullable().optional(),
+  center_notes: z.string().nullable().optional(),
   is_temporary_protection: z.boolean(),
   user_info: UserInfoSchema,
   question_responses: z.array(

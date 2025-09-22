@@ -15,6 +15,8 @@ import { Toast } from "@/components/ui/Toast";
 import { SectionLine } from "../../_components/SectionLine";
 import { useGetCenterAdoptions, useUpdateAdoptionStatus } from "@/hooks";
 import { useGetAdoptionMonitoringPosts } from "@/hooks/query/useGetAdoptionMonitoringPosts";
+import { transformRawAnimalToPetCard } from "@/types/animal";
+import { useGetAnimalById } from "@/hooks/query/useGetAnimals";
 import type { CenterAdoptionData } from "@/types/center-adoption";
 import type { AdoptionMonitoringPost } from "@/types/adoption-monitoring";
 
@@ -42,6 +44,12 @@ export default function AdoptionRequestPage({
     limit: 100, // 충분한 데이터를 가져오기 위해 큰 값 설정
   });
 
+  // 현재 입양 신청 찾기
+  const currentAdoption = useMemo((): CenterAdoptionData | null => {
+    if (!adoptionsData?.data) return null;
+    return adoptionsData.data.find((adoption) => adoption.id === id) || null;
+  }, [adoptionsData, id]);
+
   // 입양 모니터링 포스트 조회
   const {
     data: monitoringPostsData,
@@ -49,21 +57,22 @@ export default function AdoptionRequestPage({
     error: postsError,
   } = useGetAdoptionMonitoringPosts(id, 1, 10);
 
+  // 동물 정보 가져오기 (입양 데이터에서 animal_id 추출)
+  const {
+    data: animalData,
+    isLoading: animalLoading,
+    error: animalError,
+  } = useGetAnimalById(currentAdoption?.animal_id || "");
+
   // 입양 상태 업데이트
   const updateAdoptionStatus = useUpdateAdoptionStatus();
-
-  // 현재 입양 신청 찾기
-  const currentAdoption = useMemo((): CenterAdoptionData | null => {
-    if (!adoptionsData?.data) return null;
-    return adoptionsData.data.find((adoption) => adoption.id === id) || null;
-  }, [adoptionsData, id]);
 
   const handleAcceptConfirm = async () => {
     if (!currentAdoption) return;
 
     try {
       await updateAdoptionStatus.mutateAsync({
-        adoption_id: currentAdoption.id,
+        adoptionId: currentAdoption.id,
         status: "미팅",
         center_notes: "입양 신청이 수락되었습니다.",
       });
@@ -88,7 +97,7 @@ export default function AdoptionRequestPage({
 
     try {
       await updateAdoptionStatus.mutateAsync({
-        adoption_id: currentAdoption.id,
+        adoptionId: currentAdoption.id,
         status: "취소",
         center_notes: "입양 신청이 거절되었어요.",
       });
@@ -131,8 +140,8 @@ export default function AdoptionRequestPage({
       router.push(`/centerpage/adoptorlist/application/${id}/consentform`);
     }
   };
-
-  if (isLoading) {
+  // 로딩 상태 처리
+  if (isLoading || animalLoading) {
     return (
       <div className="min-h-screen bg-bg">
         <Container className="min-h-screen">
@@ -159,31 +168,53 @@ export default function AdoptionRequestPage({
     );
   }
 
-  if (error || !currentAdoption) {
+  // 데이터가 없는 경우 처리
+  if (!currentAdoption || !animalData) {
     return (
-      <div className="min-h-screen bg-bg">
-        <Container className="min-h-screen">
-          <TopBar
-            variant="variant4"
-            left={
-              <div className="flex items-center gap-2">
-                <IconButton
-                  icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
-                  size="iconM"
-                  onClick={handleBack}
-                />
-                <h4>오류</h4>
-              </div>
-            }
-          />
-          <div className="flex-1 bg-white rounded-t-3xl -mt-4 relative z-10">
-            <div className="p-4">
-              <div className="text-center py-8 text-red-500">
-                입양 신청 정보를 불러오는데 실패했습니다.
-              </div>
-            </div>
+      <div className="min-h-screen bg-bg flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500">데이터를 찾을 수 없습니다.</div>
+        </div>
+      </div>
+    );
+  }
+
+  // 에러 상태 처리
+  if (error) {
+    return (
+      <div className="min-h-screen bg-bg flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 mb-2">
+            입양 신청 데이터를 불러오는 중 오류가 발생했습니다
           </div>
-        </Container>
+          <div className="text-sm text-gray-500">{error.message}</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (animalError) {
+    return (
+      <div className="min-h-screen bg-bg flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 mb-2">
+            동물 정보를 불러오는 중 오류가 발생했습니다
+          </div>
+          <div className="text-sm text-gray-500">{animalError.message}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // PetCard에 전달할 데이터 변환
+  const petCardData = transformRawAnimalToPetCard(animalData);
+
+  if (!petCardData) {
+    return (
+      <div className="min-h-screen bg-bg flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500">동물 정보를 변환할 수 없습니다.</div>
+        </div>
       </div>
     );
   }
@@ -220,21 +251,7 @@ export default function AdoptionRequestPage({
             {/* Pet Info */}
             <SectionLine>
               <h3 className="text-bk mb-3">입양 신청 동물</h3>
-              <PetCard
-                pet={{
-                  id: currentAdoption.animal_id,
-                  name: currentAdoption.animal_name,
-                  isFemale: false, // API에서 제공되지 않는 정보
-                  breed: "종 미등록",
-                  protection_status: "보호중" as const,
-                  adoption_status: "입양진행중" as const,
-                  centerId: "", // 필수 필드이지만 API에서 제공되지 않음
-                  animalImages: [],
-                  foundLocation: null,
-                  healthNotes: null,
-                }}
-                variant="variant4"
-              />
+              <PetCard pet={petCardData} variant="variant4" />
             </SectionLine>
             <SectionLine>
               {/* My Information */}

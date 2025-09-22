@@ -1,6 +1,8 @@
 from ninja import Router
 from ninja.errors import HttpError
 from django.utils import timezone
+from datetime import timedelta
+from asgiref.sync import sync_to_async
 from adoptions.schemas.inbound import ContractSignIn
 from adoptions.schemas.outbound import ContractSignOut
 from adoptions.models import AdoptionContract
@@ -43,18 +45,30 @@ async def sign_contract(request, data: ContractSignIn):
             status="사용자서명완료",
         )
         
-        # 입양 신청 상태를 "입양완료"로 변경
+        # 입양 신청 상태를 "모니터링"으로 변경 (입양완료 단계를 건너뜀)
+        center = contract.adoption.animal.center
+        interval_days = getattr(center, 'monitoring_interval_days', 30)
         await Adoption.objects.filter(id=contract.adoption.id).aupdate(
-            status="입양완료",
+            status="모니터링",
             adoption_completed_at=timezone.now(),
+            monitoring_started_at=timezone.now(),
+            monitoring_next_check_at=timezone.now() + timedelta(days=interval_days),
         )
+
+        # 동물의 입양 상태를 "입양완료"로 변경
+        try:
+            animal = contract.adoption.animal
+            animal.adoption_status = "입양완료"
+            await sync_to_async(animal.save)()
+        except Exception:
+            pass
         
         # 입양 완료 알림 전송 (사용자에게)
         try:
             from notifications.utils import send_adoption_update_notification
             await send_adoption_update_notification(
                 user_id=str(current_user.id),
-                adoption_status="입양완료",
+                adoption_status="모니터링",
                 animal_name=contract.adoption.animal.name,
                 adoption_id=str(contract.adoption.id)
             )
@@ -70,7 +84,7 @@ async def sign_contract(request, data: ContractSignIn):
             await create_notification_for_center_users(
                 center_id=str(contract.adoption.animal.center.id),
                 notification_type='adoption',
-                message=f"{current_user.nickname}님이 {contract.adoption.animal.name}의 입양을 완료했습니다.",
+                message=f"{current_user.nickname}님이 {contract.adoption.animal.name} 계약 서명을 완료했고 모니터링이 시작되었습니다.",
                 action_url=f"/adoptions/{contract.adoption.id}",
                 metadata={
                     'adoption_id': str(contract.adoption.id),
@@ -87,8 +101,8 @@ async def sign_contract(request, data: ContractSignIn):
             logger.error(f"센터 관리자 입양 완료 알림 전송 실패: {e}")
         
         return ContractSignOut(
-            message="계약서 서명이 완료되었습니다. 입양이 완료되었습니다!",
-            adoption_status="입양완료",
+            message="계약서 서명이 완료되었습니다. 모니터링이 시작되었습니다!",
+            adoption_status="모니터링",
         )
         
     except HttpError:

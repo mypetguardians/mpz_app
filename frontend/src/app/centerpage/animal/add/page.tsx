@@ -15,6 +15,7 @@ import { useGetMyCenter } from "@/hooks/query/useGetMyCenter";
 
 interface FormData {
   basicInfo: {
+    name: string;
     protection_status: string;
     adoption_status: string;
     breed: string;
@@ -44,6 +45,7 @@ interface FormData {
 
 const initialFormData: FormData = {
   basicInfo: {
+    name: "",
     protection_status: "",
     adoption_status: "",
     breed: "",
@@ -110,6 +112,7 @@ export default function AddAnimal() {
     const { basicInfo, detailInfo } = formData;
 
     if (
+      !basicInfo.name ||
       !basicInfo.protection_status ||
       !basicInfo.adoption_status ||
       !basicInfo.breed ||
@@ -125,7 +128,7 @@ export default function AddAnimal() {
 
     try {
       const requestData = {
-        name: basicInfo.breed,
+        name: basicInfo.name,
         is_female: basicInfo.gender === "암컷",
         age: parseInt(basicInfo.age),
         weight: parseFloat(basicInfo.weight),
@@ -142,16 +145,16 @@ export default function AddAnimal() {
           | "입양진행중"
           | "입양완료"
           | "입양불가",
-        activity_level: detailInfo.personality.activity.toString(),
-        sensitivity: detailInfo.personality.sensitivity.toString(),
-        sociability: detailInfo.personality.sociability.toString(),
-        separation_anxiety: detailInfo.personality.separationAnxiety.toString(),
+        activity_level: detailInfo.personality.activity,
+        sensitivity: detailInfo.personality.sensitivity,
+        sociability: detailInfo.personality.sociability,
+        separation_anxiety: detailInfo.personality.separationAnxiety,
         special_notes: basicInfo.specialNotes || "",
         health_notes: basicInfo.healthNotes || "",
         basic_training: "",
         trainer_comment: detailInfo.trainerComment || "",
         announce_number: "",
-        announcement_date: basicInfo.centerEntryDate || null,
+        announcement_date: basicInfo.centerEntryDate || undefined,
         found_location: basicInfo.foundLocation || "",
         personality: basicInfo.personality || "",
         // 업로드된 이미지 URL들 포함

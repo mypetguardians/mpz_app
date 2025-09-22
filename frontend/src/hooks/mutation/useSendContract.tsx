@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import instance from "@/lib/axios-instance";
 
-interface SendContractParams {
+export interface SendContractParams {
   adoptionId: string;
   templateId: string;
   customContent?: string;
@@ -21,7 +21,7 @@ export const useSendContract = () => {
       params: SendContractParams
     ): Promise<SendContractResponse> => {
       const response = await instance.post<SendContractResponse>(
-        `/center-admin/adoptions/${params.adoptionId}/send-contract`,
+        `/adoptions/center-admin/${params.adoptionId}/send-contract`,
         {
           template_id: params.templateId,
           custom_content: params.customContent,

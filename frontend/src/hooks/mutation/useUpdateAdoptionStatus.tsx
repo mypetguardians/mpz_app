@@ -9,7 +9,7 @@ interface UpdateAdoptionStatusRequest {
 }
 
 interface UpdateAdoptionStatusParams {
-  adoption_id: string; // path parameter
+  adoptionId: string; // path parameter
   status: UpdateAdoptionStatusRequest["status"];
   center_notes?: string | null;
   meeting_scheduled_at?: string | null;
@@ -21,7 +21,7 @@ export const useUpdateAdoptionStatus = () => {
   return useMutation({
     mutationFn: async (params: UpdateAdoptionStatusParams): Promise<void> => {
       const response = await instance.put(
-        `/adoptions/center-admin/${params.adoption_id}/status`,
+        `/adoptions/center-admin/${params.adoptionId}/status`,
         {
           status: params.status,
           center_notes: params.center_notes,
@@ -36,7 +36,7 @@ export const useUpdateAdoptionStatus = () => {
 
       // 특정 입양 신청 캐시 무효화
       queryClient.invalidateQueries({
-        queryKey: ["center-adoption", variables.adoption_id],
+        queryKey: ["center-adoption", variables.adoptionId],
       });
     },
     onError: (error) => {

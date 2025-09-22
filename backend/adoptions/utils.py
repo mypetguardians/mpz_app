@@ -57,6 +57,9 @@ async def build_center_adoption_response(adoption: Adoption, center: Center) -> 
         .filter(question__center=center, adoption=adoption)
     )
     
+    # 동물 이미지 조회
+    animal_image = await sync_to_async(lambda: adoption.animal.animalimage_set.first())()
+    
     show_contact_info = should_show_contact_info(adoption.status)
     
     return CenterAdoptionOut(
@@ -64,6 +67,9 @@ async def build_center_adoption_response(adoption: Adoption, center: Center) -> 
         user_id=str(adoption.user.id),
         animal_id=str(adoption.animal.id),
         animal_name=adoption.animal.name,
+        animal_image=animal_image.image_url if animal_image else None,
+        animal_protection_status=adoption.animal.protection_status,
+        animal_adoption_status=adoption.animal.adoption_status,
         status=adoption.status,
         notes=adoption.notes,
         center_notes=adoption.center_notes,
@@ -102,7 +108,8 @@ def validate_status_transition(current_status: str, new_status: str) -> bool:
     valid_transitions = {
         "신청": ["미팅", "취소"],
         "미팅": ["계약서작성", "취소"],
-        "계약서작성": ["취소"],  # 입양완료는 사용자 서명 후 자동
+        # 기존: 계약서작성 → 입양완료(자동). 요구사항에 따라 모니터링으로 직접 전환 허용
+        "계약서작성": ["취소", "모니터링"],
         "입양완료": ["모니터링", "취소"],
         "모니터링": ["취소"],
     }

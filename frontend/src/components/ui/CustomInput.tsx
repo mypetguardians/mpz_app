@@ -18,8 +18,10 @@ const variantMap: Record<string, string> = {
   Variant9: "",
 };
 
-export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps {
+  className?: string;
+  type?: string;
+  placeholder?: string;
   error?: boolean;
   variant?:
     | "primary"
@@ -32,12 +34,15 @@ export interface InputProps
     | "Variant9";
   label?: string;
   required?: boolean;
+  id?: string;
   time?: string;
   action?: React.ReactNode;
   // tagdropdown 전용
   options?: string[];
   value?: string;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => void;
   onChangeOption?: (value: string) => void;
   // Variant7 전용
   twoOptions?: [string, string]; // 2지선다 옵션
@@ -46,6 +51,22 @@ export interface InputProps
   selectedButtonIcon?: React.ReactNode;
   dotThree?: boolean;
   onDotThreeClick?: () => void;
+  // textarea 전용
+  multiline?: boolean;
+  rows?: number;
+  // 공통 HTML 속성
+  disabled?: boolean;
+  maxLength?: number;
+  readOnly?: boolean;
+  inputMode?:
+    | "search"
+    | "text"
+    | "numeric"
+    | "email"
+    | "tel"
+    | "url"
+    | "none"
+    | "decimal";
 }
 
 export function CustomInput({
@@ -68,7 +89,12 @@ export function CustomInput({
   selectedButtonIcon,
   dotThree = false,
   onDotThreeClick,
-  ...props
+  multiline = false,
+  rows = 4,
+  disabled,
+  maxLength,
+  readOnly,
+  inputMode,
 }: InputProps) {
   const generatedId = React.useId();
   const inputId = id ?? generatedId;
@@ -158,12 +184,12 @@ export function CustomInput({
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            disabled={props.disabled}
+            disabled={disabled}
             className={cn(
               inputBaseClass,
               "flex items-center cursor-pointer pr-8",
               error && "border-destructive focus-visible:border-brand",
-              props.disabled && "bg-bg cursor-not-allowed",
+              disabled && "bg-bg cursor-not-allowed",
               className
             )}
           >
@@ -215,12 +241,12 @@ export function CustomInput({
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            disabled={props.disabled}
+            disabled={disabled}
             className={cn(
               inputBaseClass,
               "flex items-center cursor-pointer pr-8",
               error && "border-destructive focus-visible:border-brand",
-              props.disabled && "bg-bg cursor-not-allowed",
+              disabled && "bg-bg cursor-not-allowed",
               className
             )}
           >
@@ -256,21 +282,45 @@ export function CustomInput({
   return (
     <div className="flex flex-col gap-2 w-full">
       {renderLabelAndDotThree()}
-      <input
-        id={inputId}
-        type={type}
-        placeholder={placeholder}
-        aria-invalid={error}
-        value={value}
-        onChange={onChange}
-        className={cn(
-          inputBaseClass,
-          error && "border-red focus-visible:border-brand",
-          variantMap[variant],
-          className
-        )}
-        {...props}
-      />
+      {multiline ? (
+        <textarea
+          id={inputId}
+          placeholder={placeholder}
+          aria-invalid={error}
+          value={value}
+          onChange={onChange}
+          rows={rows}
+          className={cn(
+            inputBaseClass,
+            "resize-none min-h-[100px]",
+            error && "border-red focus-visible:border-brand",
+            variantMap[variant],
+            className
+          )}
+          disabled={disabled}
+          maxLength={maxLength}
+          readOnly={readOnly}
+        />
+      ) : (
+        <input
+          id={inputId}
+          type={type}
+          placeholder={placeholder}
+          aria-invalid={error}
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+          maxLength={maxLength}
+          readOnly={readOnly}
+          inputMode={inputMode}
+          className={cn(
+            inputBaseClass,
+            error && "border-red focus-visible:border-brand",
+            variantMap[variant],
+            className
+          )}
+        />
+      )}
       {(time || action) && (
         <div className="flex justify-between items-center">
           {time && (

@@ -6,9 +6,10 @@ import { CustomInput } from "@/components/ui/CustomInput";
 import { Container } from "@/components/common/Container";
 import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
 import { NotificationToast } from "@/components/ui/NotificationToast";
-import { useGetCenterProcedureQuestions } from "@/hooks/query";
+import { useGetCenterProcedureQuestions } from "@/hooks/query/useGetCenterProcedureQuestions";
+import { CenterProcedureQuestion } from "@/types/center";
 
-import { useAdoptionVerificationStore } from "@/lib/stores";
+import { useAdoptionVerificationStore } from "@/lib/stores/adoptionVerificationStore";
 import { useAuth } from "@/components/providers/AuthProvider";
 
 export interface StepProps {
@@ -18,7 +19,7 @@ export interface StepProps {
 export function Step5({ onNext }: StepProps) {
   const { user } = useAuth();
   const { data: storeData } = useAdoptionVerificationStore(user?.id);
-  const centerId = storeData.centerId;
+  const centerId = storeData?.centerId;
 
   const {
     data: questionsData,
@@ -54,9 +55,11 @@ export function Step5({ onNext }: StepProps) {
     if (!questionsData?.questions) return false;
 
     const requiredQuestions = questionsData.questions.filter(
-      (q) => q.is_required
+      (q: CenterProcedureQuestion) => q.is_required
     );
-    return requiredQuestions.every((q) => answers[q.id]?.trim().length > 0);
+    return requiredQuestions.every(
+      (q: CenterProcedureQuestion) => (answers[q.id] || "").trim().length > 0
+    );
   }, [questionsData, answers]);
 
   const handleNext = () => {
@@ -120,8 +123,11 @@ export function Step5({ onNext }: StepProps) {
         <h2 className="text-bk mb-6">답변을 작성해주세요.</h2>
         <div className="flex flex-col gap-3">
           {questionsData?.questions
-            ?.sort((a, b) => a.sequence - b.sequence)
-            .map((question) => (
+            ?.sort(
+              (a: CenterProcedureQuestion, b: CenterProcedureQuestion) =>
+                a.sequence - b.sequence
+            )
+            .map((question: CenterProcedureQuestion) => (
               <CustomInput
                 key={question.id}
                 variant="primary"
@@ -134,6 +140,8 @@ export function Step5({ onNext }: StepProps) {
                 }
                 inputMode="text"
                 maxLength={500}
+                multiline={true}
+                rows={4}
               />
             ))}
         </div>

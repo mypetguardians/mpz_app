@@ -50,7 +50,7 @@ async def get_center_adoptions(request, filters: CenterAdoptionFilterIn = Query(
                 animal__center=center
             )
             
-            # 입양 상태 필터 적용
+            # 입양 상태 필터 적용 (Adoption.status 기준)
             if filters.status and filters.status.strip():
                 queryset = queryset.filter(status=filters.status.strip())
             

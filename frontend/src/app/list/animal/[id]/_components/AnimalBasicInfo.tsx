@@ -33,8 +33,10 @@ export default function AnimalBasicInfo({
   breed,
   imageUrls,
 }: AnimalBasicInfoProps) {
-  // 유효한 이미지 URL만 필터링
-  const validImageUrls = imageUrls.filter((url) => url && url.trim() !== "");
+  // 유효한 이미지 URL만 필터링하고 중복 제거
+  const validImageUrls = Array.from(
+    new Set(imageUrls.filter((url) => url && url.trim() !== ""))
+  );
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // 상태 정보 반환 (표시할 텍스트와 색상)
@@ -122,7 +124,7 @@ export default function AnimalBasicInfo({
         {/* 이미지 인디케이터 */}
         {validImageUrls.length > 0 && (
           <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-2 py-1 text-sm rounded-lg">
-            {currentImageIndex + 1}/{validImageUrls.length - 1}
+            {currentImageIndex + 1}/{validImageUrls.length}
           </div>
         )}
 

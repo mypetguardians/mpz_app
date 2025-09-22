@@ -673,9 +673,6 @@ async def get_monitoring_posts(request, adoption_id: str):
         except Adoption.DoesNotExist:
             raise HttpError(404, "입양 신청을 찾을 수 없습니다")
         
-        # 권한 체크: 본인 또는 센터 관리자만 조회 가능
-      
-        
         # 모니터링 포스트 조회
         @sync_to_async
         def get_monitoring_posts_list():

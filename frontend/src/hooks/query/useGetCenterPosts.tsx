@@ -29,7 +29,9 @@ const getCenterPosts = async (
   const queryString = searchParams.toString();
   const url = queryString ? `/posts/center/?${queryString}` : `/posts/center/`;
 
+  console.log("Center Posts API 요청:", { url, params });
   const response = await instance.get<ApiPostsResponse>(url);
+  console.log("Center Posts API 응답:", response.data);
   return response.data;
 };
 

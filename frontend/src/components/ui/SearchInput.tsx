@@ -10,6 +10,7 @@ interface SearchInputProps {
   placeholder?: string;
   variant?: SearchInputVariant;
   className?: string;
+  readOnly?: boolean;
 }
 
 export function SearchInput({
@@ -19,6 +20,7 @@ export function SearchInput({
   placeholder = "품종으로 검색해보세요.",
   variant = "primary",
   className,
+  readOnly = false,
 }: SearchInputProps) {
   const isPrimaryGroup = variant === "primary" || variant === "variant2";
 
@@ -42,19 +44,20 @@ export function SearchInput({
   return (
     <div
       className={containerStyle}
-      onClick={onSearch}
-      style={{ cursor: "pointer" }}
+      onClick={readOnly ? onSearch : undefined}
+      style={{ cursor: readOnly ? "pointer" : "default" }}
     >
       <input
         className={cn(
-          "flex-1 outline-none bg-transparent text-body cursor-pointer",
+          "flex-1 outline-none bg-transparent text-body",
+          readOnly ? "cursor-pointer" : "cursor-text",
           `placeholder:${textColor}`
         )}
         placeholder={placeholder}
         value={value}
         onChange={onChange}
         onKeyDown={(e) => e.key === "Enter" && onSearch?.()}
-        readOnly
+        readOnly={readOnly}
       />
       <button
         type="button"

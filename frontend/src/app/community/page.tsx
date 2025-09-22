@@ -131,15 +131,23 @@ export default function CommunityPage() {
     }
   }, [systemTags, activeTab]);
 
+  // React Query의 쿼리 키에 params가 포함되어 있어 activeTab 변경시 자동으로 새로운 요청 발생
+
+  // API 요청 파라미터 디버깅
+  const apiParams = useMemo(() => {
+    const params = {
+      tags: activeTab !== "latest" ? [activeTab] : undefined,
+    };
+    return params;
+  }, [activeTab]);
+
   // 센터권한자용 게시글 조회
   const {
     data: centerPostsData,
     isLoading: centerPostsLoading,
     error: centerPostsError,
     refetch: refetchCenterPosts,
-  } = useGetCenterPosts({
-    tags: activeTab !== "latest" ? [activeTab] : undefined,
-  });
+  } = useGetCenterPosts(apiParams);
 
   // 일반 사용자용 게시글 조회
   const {
@@ -147,18 +155,17 @@ export default function CommunityPage() {
     isLoading: publicPostsLoading,
     error: publicPostsError,
     refetch: refetchPublicPosts,
-  } = useGetPublicPosts({
-    tags: activeTab !== "latest" ? [activeTab] : undefined,
-  });
+  } = useGetPublicPosts(apiParams);
 
   // 모든 게시글을 합쳐서 표시
   const allPosts = useMemo(() => {
     const centerPosts = centerPostsData?.data || [];
     const publicPosts = publicPostsData?.data || [];
-    return [...centerPosts, ...publicPosts];
-  }, [centerPostsData, publicPostsData]);
+    const combined = [...centerPosts, ...publicPosts];
+    return combined;
+  }, [centerPostsData, publicPostsData, activeTab]);
 
-  const postsData = { data: allPosts };
+  const postsData = useMemo(() => ({ data: allPosts }), [allPosts]);
   const isLoading = centerPostsLoading || publicPostsLoading;
   const error = centerPostsError || publicPostsError;
 
@@ -250,22 +257,9 @@ export default function CommunityPage() {
     );
   };
 
-  type TagLike =
-    | string
-    | { tagName?: string; tag_name?: string; name?: string };
-
   const filteredPosts: Post[] = useMemo(() => {
-    if (activeTab === "latest") return posts;
-    const getTagText = (tag: TagLike): string => {
-      if (!tag) return "";
-      if (typeof tag === "string") return tag;
-      return tag.tagName || tag.tag_name || tag.name || "";
-    };
-    return posts.filter((p: Post) => {
-      const tagList = (p.tags as unknown as TagLike[]) ?? [];
-      return tagList.some((t: TagLike) => getTagText(t) === activeTab);
-    });
-  }, [posts, activeTab]);
+    return posts;
+  }, [posts]);
 
   const currentUserId = user?.id;
 

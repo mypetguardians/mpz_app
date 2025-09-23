@@ -83,7 +83,7 @@ def _build_image_response(image):
     },
 )
 @paginate
-async def get_all_public_posts(request: HttpRequest, user_id: str = None, tags: list[str] = None, is_all_access: bool = None, sort_by: str = "latest"):
+async def get_all_public_posts(request: HttpRequest, user_id: str = Query(None), tags: list[str] = Query(None), is_all_access: bool = Query(None), sort_by: str = Query("latest")):
     """전체 공개 게시글 목록을 조회합니다."""
     try:
         @sync_to_async
@@ -97,15 +97,16 @@ async def get_all_public_posts(request: HttpRequest, user_id: str = None, tags: 
             # 시스템 태그 필터링 적용 - PostTag 모델 기반
             if tags:
                 try:
-                    from posts.models import PostTag
-                    
                     system_tag_names = [tag.strip() for tag in tags if tag.strip()]
                     print(f"Public Posts 태그 필터링 시도: {system_tag_names}")
                     
                     if system_tag_names:
-                        # PostTag 모델에서 해당 태그명을 가진 게시글들 찾기
+                        # 대소문자 무시 정확 일치 정규식으로 필터링
+                        import re
+                        escaped = [re.escape(name) for name in system_tag_names]
+                        pattern = rf"^({'|'.join(escaped)})$"
                         posts_query = posts_query.filter(
-                            posttag_set__tag_name__in=system_tag_names
+                            posttag__tag_name__iregex=pattern
                         ).distinct()
                         print(f"필터링 후 게시글 수: {posts_query.count()}")
                         
@@ -166,7 +167,7 @@ async def get_all_public_posts(request: HttpRequest, user_id: str = None, tags: 
         500: dict,
     },
 )
-async def get_mixed_access_posts(request: HttpRequest, user_id: str = None, tags: list[str] = None, is_all_access: bool = None, sort_by: str = "latest"):
+async def get_mixed_access_posts(request: HttpRequest, user_id: str = Query(None), tags: list[str] = Query(None), is_all_access: bool = Query(None), sort_by: str = Query("latest")):
     """전체 공개와 제한 공개 게시글 목록을 한꺼번에 조회합니다. 제한 공개 게시글은 센터 권한자 또는 입양 완료 이력이 있는 사용자만 볼 수 있습니다."""
     try:
         current_user = request.auth
@@ -210,15 +211,15 @@ async def get_mixed_access_posts(request: HttpRequest, user_id: str = None, tags
             # 시스템 태그 필터링 적용 (전체 공개) - PostTag 모델 기반
             if tags:
                 try:
-                    from posts.models import PostTag
-                    
                     system_tag_names = [tag.strip() for tag in tags if tag.strip()]
                     print(f"Mixed Posts 태그 필터링 시도: {system_tag_names}")
                     
                     if system_tag_names:
-                        # PostTag 모델에서 해당 태그명을 가진 게시글들 찾기
+                        import re
+                        escaped = [re.escape(name) for name in system_tag_names]
+                        pattern = rf"^({'|'.join(escaped)})$"
                         public_posts_query = public_posts_query.filter(
-                            posttag_set__tag_name__in=system_tag_names
+                            posttag__tag_name__iregex=pattern
                         ).distinct()
                         print(f"필터링 후 전체 공개 게시글 수: {public_posts_query.count()}")
                         
@@ -349,7 +350,7 @@ async def get_all_public_post_detail(request: HttpRequest, post_id: str):
     auth=jwt_auth,
 )
 @paginate
-async def get_center_posts(request: HttpRequest, user_id: str = None, tags: list[str] = None, is_all_access: bool = None, sort_by: str = "latest"):
+async def get_center_posts(request: HttpRequest, user_id: str = Query(None), tags: list[str] = Query(None), is_all_access: bool = Query(None), sort_by: str = Query("latest")):
     """센터 권한자, 입양 완료 이력이 있는 사용자, 본인 게시글 목록을 조회합니다."""
     try:
         current_user = request.auth
@@ -390,15 +391,15 @@ async def get_center_posts(request: HttpRequest, user_id: str = None, tags: list
             # 시스템 태그 필터링 적용 - PostTag 모델 기반
             if tags:
                 try:
-                    from posts.models import PostTag
-                    
                     system_tag_names = [tag.strip() for tag in tags if tag.strip()]
                     print(f"Center Posts 태그 필터링 시도: {system_tag_names}")
                     
                     if system_tag_names:
-                        # PostTag 모델에서 해당 태그명을 가진 게시글들 찾기
+                        import re
+                        escaped = [re.escape(name) for name in system_tag_names]
+                        pattern = rf"^({'|'.join(escaped)})$"
                         posts_query = posts_query.filter(
-                            posttag_set__tag_name__in=system_tag_names
+                            posttag__tag_name__iregex=pattern
                         ).distinct()
                         print(f"필터링 후 게시글 수: {posts_query.count()}")
                         

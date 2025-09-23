@@ -489,9 +489,9 @@ export default function CommunityEditPage({
             label="제목"
             placeholder="제목을 입력하세요."
             value={title}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setTitle(e.target.value)
-            }
+            onChange={(
+              e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+            ) => setTitle(e.target.value)}
             variant="primary"
             className="focus:outline-none focus:border-brand"
           />

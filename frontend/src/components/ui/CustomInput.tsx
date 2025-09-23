@@ -67,6 +67,9 @@ export interface InputProps {
     | "url"
     | "none"
     | "decimal";
+  onClick?: () => void;
+  name?: string;
+  autoComplete?: string;
 }
 
 export function CustomInput({
@@ -95,6 +98,9 @@ export function CustomInput({
   maxLength,
   readOnly,
   inputMode,
+  onClick,
+  name,
+  autoComplete,
 }: InputProps) {
   const generatedId = React.useId();
   const inputId = id ?? generatedId;
@@ -313,6 +319,9 @@ export function CustomInput({
           maxLength={maxLength}
           readOnly={readOnly}
           inputMode={inputMode}
+          onClick={onClick}
+          name={name}
+          autoComplete={autoComplete}
           className={cn(
             inputBaseClass,
             error && "border-red focus-visible:border-brand",

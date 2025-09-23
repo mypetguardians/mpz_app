@@ -145,10 +145,10 @@ export default function AddAnimal() {
           | "입양진행중"
           | "입양완료"
           | "입양불가",
-        activity_level: detailInfo.personality.activity,
-        sensitivity: detailInfo.personality.sensitivity,
-        sociability: detailInfo.personality.sociability,
-        separation_anxiety: detailInfo.personality.separationAnxiety,
+        activity_level: detailInfo.personality.activity.toString(),
+        sensitivity: detailInfo.personality.sensitivity.toString(),
+        sociability: detailInfo.personality.sociability.toString(),
+        separation_anxiety: detailInfo.personality.separationAnxiety.toString(),
         special_notes: basicInfo.specialNotes || "",
         health_notes: basicInfo.healthNotes || "",
         basic_training: "",

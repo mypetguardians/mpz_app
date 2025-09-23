@@ -15,6 +15,7 @@ import { useGetAnimalById } from "@/hooks/query/useGetAnimals";
 
 interface FormData {
   basicInfo: {
+    name: string;
     protection_status: string;
     adoption_status: string;
     breed: string;
@@ -43,6 +44,7 @@ interface FormData {
 
 const initialFormData: FormData = {
   basicInfo: {
+    name: "",
     protection_status: "",
     adoption_status: "",
     breed: "",
@@ -90,6 +92,7 @@ export default function EditAnimal({
     if (animalData) {
       setFormData({
         basicInfo: {
+          name: animalData.name || "",
           protection_status: animalData.protection_status || "",
           adoption_status: animalData.adoption_status || "",
           breed: animalData.breed || "",
@@ -149,6 +152,7 @@ export default function EditAnimal({
     const { basicInfo, detailInfo } = formData;
 
     if (
+      !basicInfo.name ||
       !basicInfo.protection_status ||
       !basicInfo.adoption_status ||
       !basicInfo.breed ||
@@ -165,7 +169,7 @@ export default function EditAnimal({
     try {
       const requestData = {
         id: resolvedParams.id, // 수정할 동물의 ID
-        name: basicInfo.breed,
+        name: basicInfo.name,
         is_female: basicInfo.gender === "암컷",
         age: parseInt(basicInfo.age),
         weight: parseFloat(basicInfo.weight),

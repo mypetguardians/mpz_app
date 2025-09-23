@@ -225,18 +225,11 @@ function MatchedPetsList({
                     animalData.found_location || "AI 매칭 추천"
                   ),
                   // 성향 정보 추가
-                  activityLevel: animalData.activity_level
-                    ? String(animalData.activity_level)
-                    : null,
-                  sensitivity: animalData.sensitivity
-                    ? String(animalData.sensitivity)
-                    : null,
-                  sociability: animalData.sociability
-                    ? String(animalData.sociability)
-                    : null,
-                  separationAnxiety: animalData.separation_anxiety
-                    ? String(animalData.separation_anxiety)
-                    : null,
+                  activityLevel: (animalData.activity_level as number) || null,
+                  sensitivity: (animalData.sensitivity as number) || null,
+                  sociability: (animalData.sociability as number) || null,
+                  separationAnxiety:
+                    (animalData.separation_anxiety as number) || null,
                 }}
                 variant="variant2"
                 rank={index + 1}

@@ -338,9 +338,9 @@ export function AnimalSearchSection({
                         foundLocation: animal.found_location || "",
                         centerId: animal.center_id,
                         trainerComment: animal.trainer_comment,
-                        activityLevel: animal.activity_level?.toString() || "",
-                        sensitivity: animal.sensitivity?.toString() || "",
-                        sociability: animal.sociability?.toString() || "",
+                        activityLevel: animal.activity_level || null,
+                        sensitivity: animal.sensitivity || null,
+                        sociability: animal.sociability || null,
                       }}
                       variant={
                         filters.expertOpinion.includes("포함")

@@ -106,7 +106,7 @@ async def get_all_public_posts(request: HttpRequest, user_id: str = None, tags: 
                     if system_tag_names:
                         # PostTag 모델에서 해당 태그명을 가진 게시글들 찾기
                         posts_query = posts_query.filter(
-                            posttag__tag_name__in=system_tag_names
+                            posttag_set__tag_name__in=system_tag_names
                         ).distinct()
                         print(f"🔍 필터링 후 게시글 수: {posts_query.count()}")
                         
@@ -222,7 +222,7 @@ async def get_mixed_access_posts(request: HttpRequest, user_id: str = None, tags
                     if system_tag_names:
                         # PostTag 모델에서 해당 태그명을 가진 게시글들 찾기
                         public_posts_query = public_posts_query.filter(
-                            posttag__tag_name__in=system_tag_names
+                            posttag_set__tag_name__in=system_tag_names
                         ).distinct()
                         print(f"필터링 후 전체 공개 게시글 수: {public_posts_query.count()}")
                         
@@ -399,14 +399,12 @@ async def get_center_posts(request: HttpRequest, user_id: str = None, tags: list
                     print(f"🔍 필터링 전 게시글 수: {posts_query.count()}")
 
                     if system_tag_names:
-                        tag_filter = models.Q()
-                        for name in system_tag_names:
-                            tag_filter |= models.Q(posttag__tag_name__iexact=name)
-                        posts_query = posts_query.filter(tag_filter).distinct()
-                        print(f"🔍 필터링 후 게시글 수: {posts_query.count()}")
-
-                        matching_tags = PostTag.objects.filter(tag_name__in=system_tag_names).values_list('tag_name', flat=True).distinct()
-                        print(f"🔍 실제 매칭되는 태그들: {list(matching_tags)}")
+                        # PostTag 모델에서 해당 태그명을 가진 게시글들 찾기
+                        posts_query = posts_query.filter(
+                            posttag_set__tag_name__in=system_tag_names
+                        ).distinct()
+                        print(f"필터링 후 게시글 수: {posts_query.count()}")
+                        
                 except Exception as e:
                     print(f"❌ 시스템 태그 필터링 오류: {e}")
             

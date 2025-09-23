@@ -131,8 +131,6 @@ export default function CommunityPage() {
     }
   }, [systemTags, activeTab]);
 
-  // React Query의 쿼리 키에 params가 포함되어 있어 activeTab 변경시 자동으로 새로운 요청 발생
-
   // API 요청 파라미터 디버깅
   const apiParams = useMemo(() => {
     const params = {

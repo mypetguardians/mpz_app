@@ -316,6 +316,9 @@ function AnimalFilterContent() {
             아이에요.
           </InfoCard>
         )}
+        {lastSelectedProtectionStatus === "공고중" && (
+          <InfoCard>보호소에서 보호받고 있는 아이에요.</InfoCard>
+        )}
         {lastSelectedProtectionStatus === "보호중" && (
           <InfoCard>본래의 주인만 입양이 가능한 아이에요.</InfoCard>
         )}

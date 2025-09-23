@@ -131,10 +131,10 @@ export function PetCard({
       };
     }
 
-    // 보호 상태가 "보호중"인 경우
+    // 보호 상태가 "보호중"인 경우 → "공고중"으로 표시
     if (protectionStatus === "보호중") {
       return {
-        text: protectionStatus,
+        text: "공고중",
         colorClass: "bg-green/10 text-green",
       };
     }

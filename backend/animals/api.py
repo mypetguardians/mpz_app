@@ -223,6 +223,9 @@ async def get_animals(request: HttpRequest, filters: AnimalListQueryIn = Query(A
                         Q(adoption_status='입양가능') | 
                         Q(adoption_status='입양진행중')
                     )
+                elif filters.status == '공고중':
+                    # 공고중은 보호중 상태의 동물들을 포함
+                    queryset = queryset.filter(protection_status='보호중')
                 else:
                     # 기존 status 필터를 protection_status와 adoption_status로 분리
                     if filters.status in ['보호중', '안락사', '자연사', '반환']:

@@ -505,31 +505,57 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
         />
       </Container>
 
-      <FixedBottomBar
-        variant="variant3"
-        leftButtonText="임시 보호"
-        onLeftButtonClick={handleAdoptionClick}
-        primaryButtonText="입양 신청"
-        onPrimaryButtonClick={handleAdoptionClick}
-        showDivider
-        rightIcon1={
-          <Megaphone
-            size={20}
-            weight={isMegaphoned ? "fill" : "bold"}
-            className={isMegaphoned ? "text-brand" : "text-gr"}
-          />
-        }
-        rightIcon2={
-          <Heart
-            size={20}
-            weight={localIsFavorited ? "fill" : "bold"}
-            className={localIsFavorited ? "text-brand" : "text-gr"}
-            style={{ opacity: favoriteLoading ? 0.5 : 1 }}
-          />
-        }
-        onRightIcon1Click={handleMegaphoneClick}
-        onRightIcon2Click={handleFavoriteToggle}
-      />
+      {isCenterSubscriber ? (
+        <FixedBottomBar
+          variant="variant3"
+          leftButtonText="임시 보호"
+          onLeftButtonClick={handleAdoptionClick}
+          primaryButtonText="입양 신청"
+          onPrimaryButtonClick={handleAdoptionClick}
+          showDivider
+          rightIcon1={
+            <Megaphone
+              size={20}
+              weight={isMegaphoned ? "fill" : "bold"}
+              className={isMegaphoned ? "text-brand" : "text-gr"}
+            />
+          }
+          rightIcon2={
+            <Heart
+              size={20}
+              weight={localIsFavorited ? "fill" : "bold"}
+              className={localIsFavorited ? "text-brand" : "text-gr"}
+              style={{ opacity: favoriteLoading ? 0.5 : 1 }}
+            />
+          }
+          onRightIcon1Click={handleMegaphoneClick}
+          onRightIcon2Click={handleFavoriteToggle}
+        />
+      ) : (
+        <FixedBottomBar
+          variant="variant1"
+          primaryButtonText="입양 신청"
+          onPrimaryButtonClick={handleAdoptionClick}
+          showDivider
+          rightIcon1={
+            <Megaphone
+              size={20}
+              weight={isMegaphoned ? "fill" : "bold"}
+              className={isMegaphoned ? "text-brand" : "text-gr"}
+            />
+          }
+          rightIcon2={
+            <Heart
+              size={20}
+              weight={localIsFavorited ? "fill" : "bold"}
+              className={localIsFavorited ? "text-brand" : "text-gr"}
+              style={{ opacity: favoriteLoading ? 0.5 : 1 }}
+            />
+          }
+          onRightIcon1Click={handleMegaphoneClick}
+          onRightIcon2Click={handleFavoriteToggle}
+        />
+      )}
 
       {showToast && (
         <NotificationToast

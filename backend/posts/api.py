@@ -105,7 +105,7 @@ async def get_all_public_posts(request: HttpRequest, user_id: str = None, tags: 
                     if system_tag_names:
                         # PostTag 모델에서 해당 태그명을 가진 게시글들 찾기
                         posts_query = posts_query.filter(
-                            posttag__tag_name__in=system_tag_names
+                            posttag_set__tag_name__in=system_tag_names
                         ).distinct()
                         print(f"필터링 후 게시글 수: {posts_query.count()}")
                         
@@ -218,7 +218,7 @@ async def get_mixed_access_posts(request: HttpRequest, user_id: str = None, tags
                     if system_tag_names:
                         # PostTag 모델에서 해당 태그명을 가진 게시글들 찾기
                         public_posts_query = public_posts_query.filter(
-                            posttag__tag_name__in=system_tag_names
+                            posttag_set__tag_name__in=system_tag_names
                         ).distinct()
                         print(f"필터링 후 전체 공개 게시글 수: {public_posts_query.count()}")
                         
@@ -398,7 +398,7 @@ async def get_center_posts(request: HttpRequest, user_id: str = None, tags: list
                     if system_tag_names:
                         # PostTag 모델에서 해당 태그명을 가진 게시글들 찾기
                         posts_query = posts_query.filter(
-                            posttag__tag_name__in=system_tag_names
+                            posttag_set__tag_name__in=system_tag_names
                         ).distinct()
                         print(f"필터링 후 게시글 수: {posts_query.count()}")
                         

@@ -73,19 +73,12 @@ export function AnimalSearchSection({
     // 보호상태 필터
     ...(filters.protectionStatus.length > 0 && {
       status:
-        filters.protectionStatus[0] === "무지개다리"
-          ? "자연사" // 무지개다리는 자연사로 검색 (백엔드에서 처리)
-          : filters.protectionStatus[0] === "입양가능"
+        filters.protectionStatus[0] === "입양가능"
           ? "입양가능" // 입양가능은 입양가능으로 검색 (백엔드에서 입양진행중도 포함하도록 수정 필요)
-          : filters.protectionStatus[0] === "임시보호중"
-          ? "보호중"
-          : filters.protectionStatus[0] === "방사"
-          ? "반환"
+          : filters.protectionStatus[0] === "보호중"
+          ? "입양불가" // "보호중"으로 표시되지만 "입양불가"로 검색
           : (filters.protectionStatus[0] as
               | "보호중"
-              | "안락사"
-              | "자연사"
-              | "반환"
               | "입양가능"
               | "입양진행중"
               | "입양완료"
@@ -98,12 +91,61 @@ export function AnimalSearchSection({
       }),
   });
 
-  // 품종 검색을 위한 데이터 가져오기
-  const { data: breedSearchData, isLoading: isBreedSearchLoading } =
-    useGetAnimals({
-      breed: breedSearchTerm.trim() || undefined,
-      page_size: 50,
-    });
+  // 고정 품종 목록
+  const breedList = [
+    "꼬똥 드 툴레아",
+    "그레이하운드",
+    "기타",
+    "닥스훈트",
+    "달마시안",
+    "도베르만",
+    "도사",
+    "리트리버",
+    "로트와일러",
+    "말티즈",
+    "믹스",
+    "바셋 하운드",
+    "복서",
+    "불독",
+    "버니즈 마운틴 독",
+    "비글",
+    "비숑 프리제",
+    "빠삐용",
+    "사모예드",
+    "샤페이",
+    "세인트 버나드",
+    "셔틀랜드 쉽독",
+    "셰퍼드",
+    "슈나우저",
+    "스피츠",
+    "시바",
+    "시베리안 허스키",
+    "시츄",
+    "아프간 하운드",
+    "알라스칸 말라뮤트",
+    "올드 잉글리쉬 쉽독",
+    "웰시코기",
+    "이탈리언 그레이하운드",
+    "진돗개",
+    "차우차우",
+    "치와와",
+    "킹 찰스 스파니엘",
+    "코카스파니엘",
+    "콜리",
+    "테리어",
+    "포메라니언",
+    "프렌치 불독",
+    "푸들",
+    "퍼그",
+    "페키니즈",
+    "휘핏",
+    "믹스견",
+  ];
+
+  // 품종 검색 결과 필터링
+  const filteredBreeds = breedList.filter((breed) =>
+    breed.toLowerCase().includes(breedSearchTerm.toLowerCase())
+  );
 
   // 검색 결과가 있는지 확인
   const hasSearchResults = (searchData?.pages?.[0]?.data?.length ?? 0) > 0;
@@ -119,23 +161,6 @@ export function AnimalSearchSection({
   // 검색 결과 데이터 추출
   const searchAnimals = searchData?.pages.flatMap((page) => page.data) || [];
   const searchTotal = searchData?.pages[0]?.totalCnt || 0;
-
-  // 품종 검색 결과 추출
-  const breedSearchResults =
-    breedSearchData?.pages.flatMap((page) => page.data) || [];
-  const uniqueBreeds = Array.from(
-    new Set(
-      breedSearchResults
-        ?.filter(
-          (animal): animal is NonNullable<typeof animal> =>
-            animal !== null &&
-            animal !== undefined &&
-            typeof animal === "object"
-        )
-        ?.map((animal) => animal.breed || "")
-        ?.filter((breed) => breed !== "") || []
-    )
-  );
 
   // 필터 옵션들
   const filterOptions = [
@@ -270,26 +295,26 @@ export function AnimalSearchSection({
             </h5>
             <button
               onClick={handleSearchClear}
-              className="text-sm text-gray-500 hover:text-gray-700 cursor-pointer"
+              className="text-sm text-gray-500 cursor-pointer hover:text-gray-700"
             >
               검색 초기화
             </button>
           </div>
 
           {isSearchLoading && (
-            <div className="text-center py-8">
+            <div className="py-8 text-center">
               <div className="text-gray-500">검색 중...</div>
             </div>
           )}
 
           {searchError && (
-            <div className="text-center py-8">
+            <div className="py-8 text-center">
               <div className="text-red-500">검색 중 오류가 발생했습니다</div>
             </div>
           )}
 
           {!isSearchLoading && !searchError && !hasSearchResults && (
-            <div className="text-center py-8">
+            <div className="py-8 text-center">
               <div className="text-gray-500">
                 &ldquo;{searchValue}&rdquo;에 해당하는 동물을 찾을 수 없습니다
               </div>
@@ -374,14 +399,10 @@ export function AnimalSearchSection({
             value={breedSearchTerm}
             onChange={(e) => setBreedSearchTerm(e.target.value)}
           />
-          <div className="max-h-60 overflow-y-auto scrollbar-hide">
-            {isBreedSearchLoading ? (
-              <div className="text-center py-4">
-                <div className="text-gray-500">검색 중...</div>
-              </div>
-            ) : uniqueBreeds.length > 0 ? (
+          <div className="overflow-y-auto max-h-60 scrollbar-hide">
+            {filteredBreeds.length > 0 ? (
               <div className="space-y-1">
-                {uniqueBreeds.map((breed, index) => (
+                {filteredBreeds.map((breed, index) => (
                   <button
                     key={index}
                     className={`w-full text-left p-3 rounded-lg transition-colors hover:bg-gray-50 ${
@@ -396,7 +417,7 @@ export function AnimalSearchSection({
                 ))}
               </div>
             ) : (
-              <p className="text-center text-gray-500 py-4">
+              <p className="py-4 text-center text-gray-500">
                 {breedSearchTerm.trim()
                   ? "검색 결과가 없습니다."
                   : "품종을 검색해보세요."}

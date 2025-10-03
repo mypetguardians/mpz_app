@@ -73,6 +73,7 @@ async def build_center_adoption_response(adoption: Adoption, center: Center) -> 
         status=adoption.status,
         notes=adoption.notes,
         center_notes=adoption.center_notes,
+        user_memo=adoption.user_memo,
         user_info=UserInfoOut(
             name=adoption.user.nickname or "정보 없음",
             phone=adoption.user.phone_number if show_contact_info else None,

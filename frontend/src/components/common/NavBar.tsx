@@ -78,7 +78,7 @@ function NavBar() {
         break;
       case "list":
         url = "/list/animal";
-        if (isCenter) url = "/list/center";
+    /*     if (isCenter) url = "/list/center"; */
         break;
       case "commmunity":
         url = "/community";
@@ -95,14 +95,10 @@ function NavBar() {
 
   return (
     <nav
-      className="
-      fixed bottom-0 left-0 w-full
-      z-50
-      bg-transparent
-    "
+      className="fixed bottom-0 left-0 z-50 w-full bg-transparent "
       style={{ pointerEvents: "auto" }}
     >
-      <Container className="bg-wh border-t border-lg rounded-t-xl">
+      <Container className="border-t bg-wh border-lg rounded-t-xl">
         <div className="flex justify-between px-2">
           <NavbarBtn
             icon={<HouseSimple weight="bold" />}

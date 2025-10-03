@@ -3,13 +3,20 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "@phosphor-icons/react";
-import { useGetCenterAdoptions } from "@/hooks/query/useGetCenterAdoptions";
-import { useMemo } from "react";
+import { useGetCenterAdoption } from "@/hooks";
 
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
 import { SectionLine } from "../../_components/SectionLine";
+
+// API 응답 타입 정의
+interface QuestionResponse {
+  question_id?: string;
+  question_content?: string;
+  question?: string;
+  answer: string;
+}
 
 export default function ApplicationFormPage({
   params,
@@ -20,21 +27,12 @@ export default function ApplicationFormPage({
 
   const { id } = React.use(params);
 
-  // 센터 입양 신청 목록 조회
+  // 개별 입양 신청 조회
   const {
-    data: adoptionsData,
+    data: currentAdoption,
     isLoading,
     error,
-  } = useGetCenterAdoptions({
-    page: 1,
-    limit: 100, // 충분한 데이터를 가져오기 위해 큰 값 설정
-  });
-
-  // 현재 입양 신청 찾기
-  const currentAdoption = useMemo(() => {
-    if (!adoptionsData?.data) return null;
-    return adoptionsData.data.find((adoption) => adoption.id === id) || null;
-  }, [adoptionsData, id]);
+  } = useGetCenterAdoption(id);
 
   const handleBack = () => {
     router.back();
@@ -57,7 +55,7 @@ export default function ApplicationFormPage({
           }
         />
         <div className="flex flex-col gap-3 px-4 py-4">
-          <div className="text-center py-8">로딩 중...</div>
+          <div className="py-8 text-center">로딩 중...</div>
         </div>
       </Container>
     );
@@ -80,7 +78,7 @@ export default function ApplicationFormPage({
           }
         />
         <div className="flex flex-col gap-3 px-4 py-4">
-          <div className="text-center py-8 text-red-500">
+          <div className="py-8 text-center text-red-500">
             오류가 발생했습니다.
           </div>
         </div>
@@ -107,23 +105,26 @@ export default function ApplicationFormPage({
         />
 
         {/* Main Content */}
-        <div className="flex-1 bg-white rounded-t-3xl -mt-4 relative z-10">
+        <div className="relative z-10 flex-1 -mt-4 bg-white rounded-t-3xl">
           <div className="p-4">
             <SectionLine>
-              <h3 className="text-bk mb-3 font-medium">질문 응답</h3>
+              <h3 className="mb-3 font-medium text-bk">질문 응답</h3>
               <div className="space-y-4">
                 {currentAdoption.question_responses &&
                 currentAdoption.question_responses.length > 0 ? (
-                  currentAdoption.question_responses.map((response, index) => (
-                    <div key={index} className="flex flex-col gap-2">
-                      <div className="flex flex-col gap-1">
-                        <h5 className="text-gr">{response.question}</h5>
-                        <p className="text-bk body">{response.answer}</p>
+                  currentAdoption.question_responses.map((response, index) => {
+                    const typedResponse = response as QuestionResponse;
+                    return (
+                      <div key={typedResponse.question_id || index} className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-1">
+                          <h5 className="text-gr">{typedResponse.question_content || typedResponse.question}</h5>
+                          <p className="text-bk body">{typedResponse.answer}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
-                  <div className="text-center text-gr py-8">
+                  <div className="py-8 text-center text-gr">
                     질문 응답이 없습니다.
                   </div>
                 )}

@@ -75,7 +75,7 @@ export default function CommunityPage() {
 
     return (
       <div className="py-5">
-        <div className="relative w-full h-20 rounded-lg overflow-hidden cursor-pointer">
+        <div className="relative w-full h-20 overflow-hidden rounded-lg cursor-pointer">
           {bannersLoading ? (
             <div className="w-full h-full bg-gray-200 animate-pulse" />
           ) : (
@@ -93,7 +93,7 @@ export default function CommunityPage() {
                 }}
               />
               <div className="absolute inset-0 flex items-center px-5">
-                <span className="text-sm text-white font-medium">
+                <span className="text-sm font-medium text-white">
                   {targetBanner.title}
                 </span>
               </div>
@@ -456,8 +456,8 @@ export default function CommunityPage() {
             ))}
           </div>
         ) : filteredPosts.length === 0 ? (
-          <div className="flex flex-col h-full items-center justify-center">
-            <h5 className="text-lg text-sm text-center">
+          <div className="flex flex-col items-center justify-center h-full">
+            <h5 className="text-sm text-lg text-center">
               아직 업로드된 게시글이 없어요.
               <br />첫 번째 게시글을 작성해보세요!
             </h5>
@@ -477,12 +477,12 @@ export default function CommunityPage() {
       </div>
 
       {/* 글쓰기 플로팅 버튼 */}
-      <div className="fixed z-50 bottom-20 right-4">
+      <div className="fixed z-50 translate-x-20 bottom-20 left-1/2">
         <BigButton
           variant="primary"
           left={<Plus size={16} />}
           onClick={handleWritePost}
-          className="px-6"
+          className="px-3"
         >
           글쓰기
         </BigButton>

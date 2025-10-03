@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, use, useMemo } from "react";
+import React, { useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, X } from "@phosphor-icons/react";
 
@@ -14,7 +14,7 @@ import { BigButton } from "@/components/ui/BigButton";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Toast } from "@/components/ui/Toast";
 import { SectionLine } from "../../_components/SectionLine";
-import { useGetCenterAdoptions } from "@/hooks/query/useGetCenterAdoptions";
+import { useGetCenterAdoption } from "@/hooks";
 import { useGetAdoptionMonitoringPosts } from "@/hooks/query/useGetAdoptionMonitoringPosts";
 import { transformRawAnimalToPetCard } from "@/types/animal";
 import { useGetAnimalById } from "@/hooks/query/useGetAnimals";
@@ -31,26 +31,18 @@ export default function AdoptionCompletePage({
   const router = useRouter();
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [userMemo, setUserMemo] = useState("");
   const { id } = use(params);
 
   const { mutate: withdrawAdoption, isPending: isWithdrawing } =
     useWithdrawAdoption();
 
-  // 센터 입양 신청 목록 조회
+  // 개별 입양 신청 조회
   const {
-    data: adoptionsData,
+    data: adoptionData,
     isLoading,
     error,
-  } = useGetCenterAdoptions({
-    page: 1,
-    limit: 100, // 충분한 데이터를 가져오기 위해 큰 값 설정
-  });
-
-  // 현재 입양 신청 찾기
-  const adoptionData = useMemo(() => {
-    if (!adoptionsData?.data) return null;
-    return adoptionsData.data.find((adoption) => adoption.id === id) || null;
-  }, [adoptionsData, id]);
+  } = useGetCenterAdoption(id);
 
   // 입양 모니터링 포스트 조회
   const {
@@ -65,6 +57,13 @@ export default function AdoptionCompletePage({
     isLoading: animalLoading,
     error: animalError,
   } = useGetAnimalById(adoptionData?.animal_id || "");
+
+  // user_memo 초기값 설정
+  React.useEffect(() => {
+    if (adoptionData?.user_memo !== undefined) {
+      setUserMemo(adoptionData.user_memo || "");
+    }
+  }, [adoptionData?.user_memo]);
 
   // 로딩 상태 처리
   if (isLoading || animalLoading) {
@@ -277,6 +276,23 @@ export default function AdoptionCompletePage({
                       </tr>
                     </tbody>
                   </table>
+                </div>
+              </div>
+              
+              {/* User Memo Section */}
+              <div className="mb-6">
+                <h3 className="mb-3 text-bk">신청자 메모</h3>
+                <div className="p-4 bg-white rounded-lg">
+                  <textarea
+                    className="w-full p-3 border border-gray-300 rounded-lg resize-none"
+                    rows={4}
+                    placeholder="입양 신청자에 대한 메모를 입력하세요..."
+                    value={userMemo}
+                    onChange={(e) => setUserMemo(e.target.value)}
+                  />
+                  <div className="mt-2 text-xs text-gray-500">
+                    이 메모는 상태 변경 시 함께 저장됩니다.
+                  </div>
                 </div>
               </div>
             </SectionLine>

@@ -10,10 +10,7 @@ export const protectionStatusOptions = [
   "공고중",
   "입양가능",
   "입양완료",
-  "입양불가",
-  "무지개다리",
-  "반환",
-  "방사",
+  "보호중",
 ];
 
 export const expertOpinionOptions = ["포함"];

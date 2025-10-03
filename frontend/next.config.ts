@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "*.r2.cloudflarestorage.com" as unknown as string,
       },
+      { protocol: "https", hostname: "encrypted-tbn3.gstatic.com" },
     ],
   },
 };

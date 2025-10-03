@@ -81,6 +81,44 @@ async def get_center_adoptions(request, filters: CenterAdoptionFilterIn = Query(
         print(f"Get center adoptions error: {e}")
         raise HttpError(500, "입양 신청 목록 조회 중 오류가 발생했습니다")
 
+@router.get(
+    "/center-admin/{adoption_id}",
+    summary="[R] 개별 입양 신청 조회",
+    description="센터 관리자가 특정 입양 신청을 조회합니다",
+    response={200: CenterAdoptionOut, 400: dict, 401: dict, 403: dict, 404: dict, 500: dict},
+    auth=jwt_auth,
+)
+async def get_center_adoption(request, adoption_id: str):
+    try:
+        current_user = request.auth
+        
+        # 센터 관리자 권한 확인
+        if not await validate_center_permissions(current_user):
+            raise HttpError(403, "센터 관리자만 접근할 수 있습니다")
+        
+        # 사용자의 센터 정보 조회
+        center = await get_user_center(current_user)
+        
+        # 입양 신청이 존재하고 내 센터의 것인지 확인
+        try:
+            adoption = await Adoption.objects.select_related('animal', 'user').aget(
+                id=adoption_id,
+                animal__center=center
+            )
+        except Adoption.DoesNotExist:
+            raise HttpError(404, "입양 신청을 찾을 수 없습니다")
+        
+        # 응답 데이터 변환
+        adoption_response = await build_center_adoption_response(adoption, center)
+        
+        return adoption_response
+        
+    except HttpError:
+        raise
+    except Exception as e:
+        print(f"Get center adoption error: {e}")
+        raise HttpError(500, "입양 신청 조회 중 오류가 발생했습니다")
+
 @router.put(
     "/center-admin/{adoption_id}/status",
     summary="[U] 입양 신청 상태 변경",
@@ -120,6 +158,7 @@ async def update_adoption_status(request, adoption_id: str, data: UpdateAdoption
         update_fields = {
             "status": data.status,
             "center_notes": data.center_notes,
+            "user_memo": data.user_memo,
             "updated_at": timezone.now()
         }
         

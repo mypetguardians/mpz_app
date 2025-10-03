@@ -41,6 +41,7 @@ class CenterAdoptionOut(Schema):
     status: str = Field(..., description="입양 상태")
     notes: Optional[str] = Field(None, description="사용자 메모")
     center_notes: Optional[str] = Field(None, description="센터 메모")
+    user_memo: Optional[str] = Field(None, description="입양 신청자에 대한 메모")
     user_info: UserInfoOut = Field(..., description="사용자 정보")
     question_responses: List[QuestionResponseOut] = Field(default=[], description="질문 응답 목록")
     agreements: AgreementsOut = Field(..., description="동의사항")

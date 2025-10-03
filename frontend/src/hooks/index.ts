@@ -65,6 +65,7 @@ export { useCreateConsent } from "./mutation/useCreateConsent";
 export { useUpdateConsent } from "./mutation/useUpdateConsent";
 export { useDeleteConsent } from "./mutation/useDeleteConsent";
 export { useGetCenterAdoptions } from "./query/useGetCenterAdoptions";
+export { useGetCenterAdoption } from "./query/useGetCenterAdoption";
 export { useGetMonitoringStatus } from "./query/useGetMonitoringStatus";
 export { useUpdateAdoptionStatus } from "./mutation/useUpdateAdoptionStatus";
 export { useSendContract } from "./mutation/useSendContract";

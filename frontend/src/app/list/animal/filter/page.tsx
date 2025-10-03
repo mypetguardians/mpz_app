@@ -307,15 +307,6 @@ function AnimalFilterContent() {
         />
 
         {/* InfoCard - 마지막으로 선택된 보호상태만 표시 */}
-        {lastSelectedProtectionStatus === "반환" && (
-          <InfoCard>원래 주인에게 돌아간 아이에요.</InfoCard>
-        )}
-        {lastSelectedProtectionStatus === "방사" && (
-          <InfoCard>
-            동물의 생존이나 구조 목적, 예외적 상황에 따라 자연으로 돌려보낸
-            아이에요.
-          </InfoCard>
-        )}
         {lastSelectedProtectionStatus === "공고중" && (
           <InfoCard>보호소에서 보호받고 있는 아이에요.</InfoCard>
         )}

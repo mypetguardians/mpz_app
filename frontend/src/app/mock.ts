@@ -557,8 +557,5 @@ export const genderOptions = ["남아", "여아"];
 export const protectionStatusOptions = [
   "보호중",
   "입양완료",
-  "무지개다리",
-  "반환",
-  "방사",
 ];
 export const expertOpinionOptions = ["포함", "미포함"];

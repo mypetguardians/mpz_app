@@ -497,23 +497,26 @@ async def get_center_post_detail(request: HttpRequest, post_id: str):
             # 접근 권한 확인
             can_access = False
             if post.is_all_access:
+                # 전체 공개 글은 누구나 접근 가능
                 can_access = True
             elif post.user == current_user:
+                # 본인 글은 누구나 접근 가능
                 can_access = True
-            elif current_user.user_type in ['센터관리자', '최고관리자']:
+            elif current_user.user_type in ['센터관리자', '센터최고관리자', '훈련사']:
+                # 센터 권한자는 모든 글에 접근 가능
+                can_access = True
+            elif post.user.user_type in ['센터관리자', '센터최고관리자', '훈련사']:
+                # 센터 권한자가 작성한 글은 누구나 볼 수 있음
                 can_access = True
             else:
-                # 입양 완료 이력이 있는 사용자는 센터 권한자 글과 제한 공개 글에 접근 가능
+                # 입양 완료 이력이 있는 사용자는 제한 공개 글에 접근 가능
                 from adoptions.models import Adoption
                 has_adoption_history = Adoption.objects.filter(
                     user=current_user,
                     status='입양완료'
                 ).exists()
                 
-                if has_adoption_history and (
-                    post.user.user_type in ['센터관리자', '최고관리자'] or 
-                    not post.is_all_access
-                ):
+                if has_adoption_history and not post.is_all_access:
                     can_access = True
             
             if not can_access:

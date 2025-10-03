@@ -5,6 +5,7 @@ import instance from "@/lib/axios-instance";
 interface UpdateAdoptionStatusRequest {
   status: "미팅" | "계약서작성" | "입양완료" | "모니터링" | "취소";
   center_notes?: string | null;
+  user_memo?: string | null;
   meeting_scheduled_at?: string | null; // ISO 8601 형식
 }
 
@@ -12,6 +13,7 @@ interface UpdateAdoptionStatusParams {
   adoptionId: string; // path parameter
   status: UpdateAdoptionStatusRequest["status"];
   center_notes?: string | null;
+  user_memo?: string | null;
   meeting_scheduled_at?: string | null;
 }
 
@@ -25,6 +27,7 @@ export const useUpdateAdoptionStatus = () => {
         {
           status: params.status,
           center_notes: params.center_notes,
+          user_memo: params.user_memo,
           meeting_scheduled_at: params.meeting_scheduled_at,
         }
       );

@@ -311,3 +311,62 @@ INFO 2025-10-04 02:01:05,649 basehttp 48904 6136770560 "GET /admin/banners/banne
 INFO 2025-10-04 02:01:05,918 basehttp 48904 6136770560 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
 INFO 2025-10-04 02:01:08,226 basehttp 48904 6136770560 "GET /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 200 32507
 INFO 2025-10-04 02:01:08,498 basehttp 48904 6136770560 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:03:22,582 basehttp 48904 6305034240 "OPTIONS /v1/banners?type=sub HTTP/1.1" 200 0
+INFO 2025-10-04 02:03:22,584 basehttp 48904 6271381504 "OPTIONS /v1/notifications/?page=1&page_size=10 HTTP/1.1" 200 0
+INFO 2025-10-04 02:03:22,587 basehttp 48904 6288207872 "OPTIONS /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 0
+INFO 2025-10-04 02:03:22,587 basehttp 48904 6355513344 "OPTIONS /v1/animals/?page_size=100&sort_by=megaphone_count&sort_order=desc&page=1 HTTP/1.1" 200 0
+INFO 2025-10-04 02:03:22,591 basehttp 48904 6321860608 "OPTIONS /v1/banners?type=main HTTP/1.1" 200 0
+INFO 2025-10-04 02:03:22,593 basehttp 48904 6338686976 "OPTIONS /v1/animals/?page_size=100&sort_by=admission_date&sort_order=asc&page=1 HTTP/1.1" 200 0
+INFO 2025-10-04 02:03:22,599 basehttp 48904 6305034240 "OPTIONS /v1/auth/me HTTP/1.1" 200 0
+INFO 2025-10-04 02:03:23,242 basehttp 48904 6187249664 "GET /v1/banners?type=sub HTTP/1.1" 200 107
+INFO 2025-10-04 02:03:23,249 basehttp 48904 6170423296 "GET /v1/banners?type=main HTTP/1.1" 200 1144
+INFO 2025-10-04 02:03:23,495 basehttp 48904 6187249664 "GET /v1/auth/me HTTP/1.1" 200 538
+INFO 2025-10-04 02:03:23,922 basehttp 48904 6220902400 "GET /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 1070
+INFO 2025-10-04 02:03:24,252 basehttp 48904 6305034240 "OPTIONS /v1/banners?type=sub HTTP/1.1" 200 0
+INFO 2025-10-04 02:03:24,255 basehttp 48904 6338686976 "OPTIONS /v1/banners?type=main HTTP/1.1" 200 0
+INFO 2025-10-04 02:03:24,427 basehttp 48904 6220902400 "GET /v1/banners?type=sub HTTP/1.1" 200 107
+INFO 2025-10-04 02:03:24,429 basehttp 48904 6187249664 "GET /v1/banners?type=main HTTP/1.1" 200 1144
+INFO 2025-10-04 02:03:24,983 basehttp 48904 6338686976 "OPTIONS /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 0
+INFO 2025-10-04 02:03:25,544 basehttp 48904 6204076032 "GET /v1/notifications/?page=1&page_size=10 HTTP/1.1" 200 7219
+INFO 2025-10-04 02:03:25,996 basehttp 48904 6187249664 "GET /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 1070
+INFO 2025-10-04 02:03:26,547 basehttp 48904 6338686976 "OPTIONS /v1/notifications/?page=1&page_size=10 HTTP/1.1" 200 0
+INFO 2025-10-04 02:03:27,503 basehttp 48904 6237728768 "GET /v1/animals/?page_size=100&sort_by=megaphone_count&sort_order=desc&page=1 HTTP/1.1" 200 166191
+INFO 2025-10-04 02:03:27,504 basehttp 48904 6237728768 - Broken pipe from ('127.0.0.1', 61164)
+INFO 2025-10-04 02:03:28,702 basehttp 48904 6338686976 "OPTIONS /v1/animals/?page_size=100&sort_by=megaphone_count&sort_order=desc&page=1 HTTP/1.1" 200 0
+INFO 2025-10-04 02:03:29,078 basehttp 48904 6254555136 "GET /v1/animals/?page_size=100&sort_by=admission_date&sort_order=asc&page=1 HTTP/1.1" 200 163971
+INFO 2025-10-04 02:03:29,079 basehttp 48904 6254555136 - Broken pipe from ('127.0.0.1', 61165)
+INFO 2025-10-04 02:03:29,323 basehttp 48904 6187249664 "GET /v1/notifications/?page=1&page_size=10 HTTP/1.1" 200 7219
+INFO 2025-10-04 02:03:30,163 basehttp 48904 6338686976 "OPTIONS /v1/animals/?page_size=100&sort_by=admission_date&sort_order=asc&page=1 HTTP/1.1" 200 0
+INFO 2025-10-04 02:03:32,050 basehttp 48904 6204076032 "GET /v1/animals/?page_size=100&sort_by=megaphone_count&sort_order=desc&page=1 HTTP/1.1" 200 166191
+INFO 2025-10-04 02:03:32,051 basehttp 48904 6204076032 - Broken pipe from ('127.0.0.1', 61160)
+INFO 2025-10-04 02:03:36,277 basehttp 48904 6271381504 "OPTIONS /v1/animals/?page_size=100&sort_by=megaphone_count&sort_order=desc&page=1 HTTP/1.1" 200 0
+INFO 2025-10-04 02:03:36,296 basehttp 48904 6271381504 "OPTIONS /v1/auth/me HTTP/1.1" 200 0
+INFO 2025-10-04 02:03:36,297 basehttp 48904 6321860608 "OPTIONS /v1/banners?type=sub HTTP/1.1" 200 0
+INFO 2025-10-04 02:03:36,306 basehttp 48904 6305034240 "OPTIONS /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 0
+INFO 2025-10-04 02:03:36,306 basehttp 48904 6288207872 "OPTIONS /v1/animals/?page_size=100&sort_by=admission_date&sort_order=asc&page=1 HTTP/1.1" 200 0
+INFO 2025-10-04 02:03:36,307 basehttp 48904 6355513344 "OPTIONS /v1/banners?type=main HTTP/1.1" 200 0
+INFO 2025-10-04 02:03:36,309 basehttp 48904 6338686976 "OPTIONS /v1/notifications/?page=1&page_size=10 HTTP/1.1" 200 0
+INFO 2025-10-04 02:03:37,210 basehttp 48904 6237728768 "GET /v1/banners?type=main HTTP/1.1" 200 1144
+INFO 2025-10-04 02:03:37,212 basehttp 48904 6187249664 - Broken pipe from ('127.0.0.1', 61159)
+INFO 2025-10-04 02:03:37,217 basehttp 48904 6372339712 "GET /v1/banners?type=sub HTTP/1.1" 200 107
+INFO 2025-10-04 02:03:37,293 basehttp 48904 6204076032 "GET /v1/auth/me HTTP/1.1" 200 538
+INFO 2025-10-04 02:03:37,859 basehttp 48904 6405992448 "GET /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 1070
+INFO 2025-10-04 02:03:38,219 basehttp 48904 6338686976 "OPTIONS /v1/banners?type=main HTTP/1.1" 200 0
+INFO 2025-10-04 02:03:38,225 basehttp 48904 6338686976 "OPTIONS /v1/banners?type=sub HTTP/1.1" 200 0
+INFO 2025-10-04 02:03:38,410 basehttp 48904 6204076032 "GET /v1/banners?type=sub HTTP/1.1" 200 107
+INFO 2025-10-04 02:03:38,444 basehttp 48904 6405992448 "GET /v1/banners?type=main HTTP/1.1" 200 1144
+INFO 2025-10-04 02:03:39,056 basehttp 48904 6338686976 "OPTIONS /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 0
+INFO 2025-10-04 02:03:39,837 basehttp 48904 6405992448 "GET /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 1070
+INFO 2025-10-04 02:03:39,874 basehttp 48904 6237728768 "GET /v1/notifications/?page=1&page_size=10 HTTP/1.1" 200 7219
+INFO 2025-10-04 02:03:40,941 basehttp 48904 6338686976 "OPTIONS /v1/notifications/?page=1&page_size=10 HTTP/1.1" 200 0
+INFO 2025-10-04 02:03:41,203 basehttp 48904 6170423296 "GET /v1/animals/?page_size=100&sort_by=megaphone_count&sort_order=desc&page=1 HTTP/1.1" 200 166191
+INFO 2025-10-04 02:03:41,204 basehttp 48904 6170423296 - Broken pipe from ('127.0.0.1', 61157)
+INFO 2025-10-04 02:03:42,231 basehttp 48904 6338686976 "OPTIONS /v1/animals/?page_size=100&sort_by=megaphone_count&sort_order=desc&page=1 HTTP/1.1" 200 0
+INFO 2025-10-04 02:03:42,274 basehttp 48904 6220902400 "GET /v1/animals/?page_size=100&sort_by=admission_date&sort_order=asc&page=1 HTTP/1.1" 200 163971
+INFO 2025-10-04 02:03:42,275 basehttp 48904 6220902400 - Broken pipe from ('127.0.0.1', 61162)
+INFO 2025-10-04 02:03:43,281 basehttp 48904 6338686976 "OPTIONS /v1/animals/?page_size=100&sort_by=admission_date&sort_order=asc&page=1 HTTP/1.1" 200 0
+INFO 2025-10-04 02:03:43,973 basehttp 48904 6237728768 "GET /v1/notifications/?page=1&page_size=10 HTTP/1.1" 200 7219
+INFO 2025-10-04 02:03:46,033 basehttp 48904 6405992448 "GET /v1/animals/?page_size=100&sort_by=megaphone_count&sort_order=desc&page=1 HTTP/1.1" 200 166191
+INFO 2025-10-04 02:03:46,035 basehttp 48904 6405992448 - Broken pipe from ('127.0.0.1', 61209)
+INFO 2025-10-04 02:03:47,275 basehttp 48904 6204076032 "GET /v1/animals/?page_size=100&sort_by=admission_date&sort_order=asc&page=1 HTTP/1.1" 200 163971
+INFO 2025-10-04 02:03:47,276 basehttp 48904 6204076032 - Broken pipe from ('127.0.0.1', 61204)

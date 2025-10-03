@@ -6,6 +6,7 @@ import React, {
   useEffect,
   useState,
   useCallback,
+  useRef,
 } from "react";
 import { io, type Socket } from "socket.io-client";
 import { useAuth } from "./AuthProvider";
@@ -34,6 +35,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const socketRef = useRef<Socket | null>(null);
   const { user, isAuthenticated } = useAuth();
   const { toast, showToast, hideToast } = useToast();
   const { requestPermissionAndRegisterToken } = useWebPushNotification();
@@ -46,8 +48,9 @@ export function SocketProvider({ children }: SocketProviderProps) {
   // 소켓 연결 설정
   useEffect(() => {
     if (!isAuthenticated || !user) {
-      if (socket) {
-        socket.disconnect();
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
         setSocket(null);
         setIsConnected(false);
       }
@@ -119,11 +122,13 @@ export function SocketProvider({ children }: SocketProviderProps) {
       setIsConnected(false);
     });
 
+    socketRef.current = newSocket;
     setSocket(newSocket);
 
     // 정리 함수
     return () => {
       newSocket.disconnect();
+      socketRef.current = null;
     };
   }, [isAuthenticated, user, showToast]);
 

@@ -2,6 +2,7 @@
 
 import React, { use, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { ArrowLeft } from "@phosphor-icons/react";
 
 import { Container } from "@/components/common/Container";
@@ -438,7 +439,7 @@ export default function AdoptionMeetingPage({
                             </p>
                             {Array.isArray(post.images) && post.images.length > 0 && (
                               <div className="mt-3">
-                                <img
+                                <Image
                                   src={post.images[0]}
                                   alt="게시글 이미지"
                                   className="object-cover w-16 h-16 bg-gray-200 rounded-lg"

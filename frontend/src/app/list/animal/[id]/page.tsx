@@ -158,7 +158,7 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
     toggleRecommend.mutate(
       { animalId: id },
       {
-        onSuccess: (response) => {
+        onSuccess: (response: { is_megaphoned: boolean; }) => {
           const isMegaphonedFromApi = response.is_megaphoned ?? false;
           setIsMegaphoned(isMegaphonedFromApi);
           setToastMessage(
@@ -167,7 +167,7 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
           setToastType("success");
           setShowToast(true);
         },
-        onError: (error) => {
+        onError: (error: Error) => {
           setIsMegaphoned(currentState);
           setToastMessage("추천하기 처리 중 오류가 발생했습니다");
           setToastType("error");

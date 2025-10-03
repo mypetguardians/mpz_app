@@ -37,21 +37,21 @@ export interface ApiPostDetailResponse {
     tags: Array<{
       id: string;
       post_id: string;
-      tagName: string;
-      createdAt: string;
+      tag_name: string;
+      created_at: string;
     }>;
     images: Array<{
       id: string;
-      postId: string;
+      post_id: string;
       image_url: string;
       order_index: number;
       created_at: string;
     }>;
     postLikes: Array<{
       id: string;
-      postId: string;
-      userId: string;
-      createdAt: string;
+      post_id: string;
+      user_id: string;
+      created_at: string;
     }>;
   };
 }

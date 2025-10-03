@@ -370,3 +370,388 @@ INFO 2025-10-04 02:03:46,033 basehttp 48904 6405992448 "GET /v1/animals/?page_si
 INFO 2025-10-04 02:03:46,035 basehttp 48904 6405992448 - Broken pipe from ('127.0.0.1', 61209)
 INFO 2025-10-04 02:03:47,275 basehttp 48904 6204076032 "GET /v1/animals/?page_size=100&sort_by=admission_date&sort_order=asc&page=1 HTTP/1.1" 200 163971
 INFO 2025-10-04 02:03:47,276 basehttp 48904 6204076032 - Broken pipe from ('127.0.0.1', 61204)
+INFO 2025-10-04 02:09:10,423 basehttp 48904 6187249664 "OPTIONS /v1/banners?type=main HTTP/1.1" 200 0
+INFO 2025-10-04 02:09:10,424 basehttp 48904 6204076032 "OPTIONS /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 0
+INFO 2025-10-04 02:09:10,432 basehttp 48904 6220902400 "OPTIONS /v1/banners?type=sub HTTP/1.1" 200 0
+INFO 2025-10-04 02:09:11,085 basehttp 48904 6136770560 "GET /v1/banners?type=main HTTP/1.1" 200 1144
+INFO 2025-10-04 02:09:11,093 basehttp 48904 6170423296 "GET /v1/banners?type=sub HTTP/1.1" 200 107
+INFO 2025-10-04 02:09:11,654 basehttp 48904 6153596928 "GET /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 1070
+INFO 2025-10-04 02:09:12,087 basehttp 48904 6220902400 "OPTIONS /v1/banners?type=main HTTP/1.1" 200 0
+INFO 2025-10-04 02:09:12,098 basehttp 48904 6220902400 "OPTIONS /v1/banners?type=sub HTTP/1.1" 200 0
+INFO 2025-10-04 02:09:12,249 basehttp 48904 6153596928 "GET /v1/banners?type=main HTTP/1.1" 200 1144
+INFO 2025-10-04 02:09:12,260 basehttp 48904 6170423296 "GET /v1/banners?type=sub HTTP/1.1" 200 107
+INFO 2025-10-04 02:09:12,660 basehttp 48904 6220902400 "OPTIONS /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 0
+INFO 2025-10-04 02:09:13,407 basehttp 48904 6170423296 - Broken pipe from ('127.0.0.1', 62669)
+INFO 2025-10-04 02:10:01,125 basehttp 48904 6170423296 "POST /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 302 0
+INFO 2025-10-04 02:10:01,624 basehttp 48904 6170423296 "GET /admin/banners/banner/ HTTP/1.1" 200 27292
+INFO 2025-10-04 02:10:01,896 basehttp 48904 6170423296 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:10:01,939 basehttp 48904 6170423296 "GET /static/admin/img/sorting-icons.svg HTTP/1.1" 304 0
+INFO 2025-10-04 02:11:20,074 autoreload 48904 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:11:20,082 autoreload 48905 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:11:20,996 autoreload 53900 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:11:20,996 autoreload 53899 8525258944 Watching for file changes with StatReloader
+WARNING 2025-10-04 02:11:33,191 log 53900 6197063680 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:11:33,191 basehttp 53900 6197063680 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:11:35,856 basehttp 53900 6197063680 "GET /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 200 32523
+WARNING 2025-10-04 02:11:35,899 log 53900 6197063680 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:11:35,900 basehttp 53900 6197063680 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:11:36,624 basehttp 53900 6213890048 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:11:40,859 autoreload 53899 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:11:41,115 autoreload 53900 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:11:41,686 autoreload 54081 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:11:41,764 autoreload 54082 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:11:49,310 basehttp 54082 6205796352 "POST /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 302 0
+INFO 2025-10-04 02:11:49,840 basehttp 54082 6205796352 "GET /admin/banners/banner/ HTTP/1.1" 200 27160
+WARNING 2025-10-04 02:11:49,978 log 54082 6239449088 Not Found: /media/2025-09-19_11.45.35.png
+WARNING 2025-10-04 02:11:49,980 log 54082 6205796352 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:11:49,980 basehttp 54082 6239449088 "GET /media/2025-09-19_11.45.35.png HTTP/1.1" 404 28809
+WARNING 2025-10-04 02:11:49,981 basehttp 54082 6205796352 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:11:50,547 autoreload 54082 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:11:51,139 autoreload 54171 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:11:51,423 autoreload 54081 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:11:52,129 autoreload 54179 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:12:07,457 autoreload 54179 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:12:07,726 autoreload 54171 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:12:07,999 autoreload 54319 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:12:08,581 autoreload 54327 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:12:12,531 basehttp 54327 6194262016 "GET /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 200 31997
+WARNING 2025-10-04 02:12:12,579 log 54327 6227914752 Not Found: /media/2025-09-19_11.45.35.png
+WARNING 2025-10-04 02:12:12,581 log 54327 6194262016 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:12:12,581 basehttp 54327 6227914752 "GET /media/2025-09-19_11.45.35.png HTTP/1.1" 404 28809
+WARNING 2025-10-04 02:12:12,581 basehttp 54327 6194262016 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:12:12,582 basehttp 54327 6194262016 - Broken pipe from ('127.0.0.1', 63541)
+INFO 2025-10-04 02:12:13,293 basehttp 54327 6211088384 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:12:18,415 basehttp 54327 6211088384 "POST /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 302 0
+INFO 2025-10-04 02:12:19,008 basehttp 54327 6211088384 "GET /admin/banners/banner/ HTTP/1.1" 200 27352
+WARNING 2025-10-04 02:12:19,038 log 54327 6211088384 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:12:19,042 log 54327 6193688576 Not Found: /media/1_강아지의-신체적-특징.jpg
+WARNING 2025-10-04 02:12:19,042 basehttp 54327 6211088384 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+WARNING 2025-10-04 02:12:19,042 basehttp 54327 6193688576 "GET /media/1_%E1%84%80%E1%85%A1%E1%86%BC%E1%84%8B%E1%85%A1%E1%84%8C%E1%85%B5%E1%84%8B%E1%85%B4-%E1%84%89%E1%85%B5%E1%86%AB%E1%84%8E%E1%85%A6%E1%84%8C%E1%85%A5%E1%86%A8-%E1%84%90%E1%85%B3%E1%86%A8%E1%84%8C%E1%85%B5%E1%86%BC.jpg HTTP/1.1" 404 29163
+INFO 2025-10-04 02:12:19,749 basehttp 54327 6227914752 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:12:22,785 autoreload 54319 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:12:23,257 autoreload 54327 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:12:23,404 autoreload 54490 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:12:23,891 autoreload 54491 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:12:40,029 autoreload 54490 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:12:40,443 autoreload 54491 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:12:40,607 autoreload 54644 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:12:40,993 autoreload 54645 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:13:03,241 autoreload 54644 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:13:03,582 autoreload 54645 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:13:03,858 autoreload 54870 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:13:04,169 autoreload 54871 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:13:30,688 autoreload 54870 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:13:30,765 autoreload 54871 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:13:31,529 autoreload 55134 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:13:31,530 autoreload 55133 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:17:33,350 basehttp 55134 6160691200 "GET /admin/banners/banner/ HTTP/1.1" 200 26958
+INFO 2025-10-04 02:17:33,382 basehttp 55134 6194343936 "GET /media/banners/1_%E1%84%80%E1%85%A1%E1%86%BC%E1%84%8B%E1%85%A1%E1%84%8C%E1%85%B5%E1%84%8B%E1%85%B4-%E1%84%89%E1%85%B5%E1%86%AB%E1%84%8E%E1%85%A6%E1%84%8C%E1%85%A5%E1%86%A8-%E1%84%90%E1%85%B3%E1%86%A8%E1%84%8C%E1%85%B5%E1%86%BC_e0MoZJL.jpg HTTP/1.1" 200 96166
+WARNING 2025-10-04 02:17:33,408 log 55134 6160691200 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:17:33,408 basehttp 55134 6160691200 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:17:34,095 basehttp 55134 6177517568 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:17:35,920 basehttp 55134 6177517568 "GET /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 200 32399
+WARNING 2025-10-04 02:17:35,961 log 55134 6177517568 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:17:35,961 basehttp 55134 6177517568 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:17:36,187 basehttp 55134 6160691200 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:17:43,086 basehttp 55134 6160691200 "POST /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 302 0
+INFO 2025-10-04 02:17:43,603 basehttp 55134 6160691200 "GET /admin/banners/banner/ HTTP/1.1" 200 27171
+WARNING 2025-10-04 02:17:43,644 log 55134 6160691200 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:17:43,648 log 55134 6194343936 Not Found: /media/???_??_????.webp
+WARNING 2025-10-04 02:17:43,649 basehttp 55134 6194343936 "GET /media/%3F%3F%3F_%3F%3F_%3F%3F%3F%3F.webp HTTP/1.1" 404 28799
+WARNING 2025-10-04 02:17:43,650 basehttp 55134 6160691200 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:17:43,870 basehttp 55134 6177517568 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:17:46,588 basehttp 55134 6177517568 "GET /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 200 32045
+WARNING 2025-10-04 02:17:46,627 log 55134 6194343936 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:17:46,627 basehttp 55134 6194343936 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+WARNING 2025-10-04 02:17:46,632 log 55134 6160691200 Not Found: /media/???_??_????.webp
+WARNING 2025-10-04 02:17:46,632 basehttp 55134 6160691200 "GET /media/%3F%3F%3F_%3F%3F_%3F%3F%3F%3F.webp HTTP/1.1" 404 28799
+INFO 2025-10-04 02:17:46,845 basehttp 55134 6177517568 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:17:51,258 basehttp 55134 6177517568 "GET /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 200 32045
+WARNING 2025-10-04 02:17:51,302 log 55134 6194343936 Not Found: /media/???_??_????.webp
+WARNING 2025-10-04 02:17:51,307 log 55134 6177517568 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:17:51,308 basehttp 55134 6194343936 "GET /media/%3F%3F%3F_%3F%3F_%3F%3F%3F%3F.webp HTTP/1.1" 404 28799
+WARNING 2025-10-04 02:17:51,308 basehttp 55134 6177517568 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:17:51,541 basehttp 55134 6160691200 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:17:53,910 basehttp 55134 6160691200 "GET /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 200 32045
+WARNING 2025-10-04 02:17:53,946 log 55134 6194343936 Not Found: /media/???_??_????.webp
+WARNING 2025-10-04 02:17:53,950 log 55134 6160691200 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:17:53,951 basehttp 55134 6194343936 "GET /media/%3F%3F%3F_%3F%3F_%3F%3F%3F%3F.webp HTTP/1.1" 404 28799
+WARNING 2025-10-04 02:17:53,952 basehttp 55134 6160691200 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:17:54,173 basehttp 55134 6177517568 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:17:56,335 basehttp 55134 6177517568 "GET /media/banners/2025-10-04/3F3F3F_3F3F_3F3F3F3F.webp HTTP/1.1" 200 121850
+WARNING 2025-10-04 02:17:56,409 log 55134 6177517568 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:17:56,410 basehttp 55134 6177517568 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:17:59,077 basehttp 55134 6177517568 "GET /media/banners/2025-10-04/3F3F3F_3F3F_3F3F3F3F.webp HTTP/1.1" 304 0
+WARNING 2025-10-04 02:17:59,107 log 55134 6177517568 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:17:59,108 basehttp 55134 6177517568 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:18:00,626 basehttp 55134 6177517568 "GET /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 200 32045
+WARNING 2025-10-04 02:18:00,654 log 55134 6177517568 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:18:00,655 basehttp 55134 6177517568 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+WARNING 2025-10-04 02:18:16,741 log 55134 6211170304 Not Found: /socket.io/
+WARNING 2025-10-04 02:18:16,742 basehttp 55134 6211170304 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+WARNING 2025-10-04 02:18:18,446 log 55134 6227996672 Not Found: /socket.io/
+WARNING 2025-10-04 02:18:18,447 basehttp 55134 6227996672 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+WARNING 2025-10-04 02:18:21,280 log 55134 6244823040 Not Found: /socket.io/
+WARNING 2025-10-04 02:18:21,280 basehttp 55134 6244823040 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+WARNING 2025-10-04 02:18:25,843 log 55134 6261649408 Not Found: /socket.io/
+WARNING 2025-10-04 02:18:25,843 basehttp 55134 6261649408 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+INFO 2025-10-04 02:18:27,327 basehttp 55134 6295302144 "GET /v1/banners?type=main HTTP/1.1" 200 1023
+INFO 2025-10-04 02:18:27,392 basehttp 55134 6194343936 "GET /v1/banners?type=sub HTTP/1.1" 200 107
+INFO 2025-10-04 02:18:27,473 basehttp 55134 6160691200 "GET /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 1070
+INFO 2025-10-04 02:18:27,586 basehttp 55134 6295302144 "GET /v1/auth/me HTTP/1.1" 200 538
+WARNING 2025-10-04 02:18:28,372 log 55134 6312128512 Not Found: /socket.io/
+WARNING 2025-10-04 02:18:28,372 basehttp 55134 6312128512 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+INFO 2025-10-04 02:18:29,010 basehttp 55134 6177517568 "GET /v1/notifications/?page=1&page_size=10 HTTP/1.1" 200 7219
+WARNING 2025-10-04 02:18:30,008 log 55134 6312128512 Not Found: /socket.io/
+WARNING 2025-10-04 02:18:30,038 basehttp 55134 6312128512 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+INFO 2025-10-04 02:18:30,044 basehttp 55134 6312128512 - Broken pipe from ('127.0.0.1', 65230)
+INFO 2025-10-04 02:18:31,106 basehttp 55134 6227996672 "GET /v1/animals/?page_size=100&sort_by=megaphone_count&sort_order=desc&page=1 HTTP/1.1" 200 166191
+INFO 2025-10-04 02:18:32,894 basehttp 55134 6211170304 "GET /v1/animals/?page_size=100&sort_by=admission_date&sort_order=asc&page=1 HTTP/1.1" 200 163971
+WARNING 2025-10-04 02:18:33,306 log 55134 6261649408 Not Found: /socket.io/
+WARNING 2025-10-04 02:18:33,307 basehttp 55134 6261649408 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+WARNING 2025-10-04 02:18:38,660 log 55134 6244823040 Not Found: /socket.io/
+WARNING 2025-10-04 02:18:38,661 basehttp 55134 6244823040 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+WARNING 2025-10-04 02:18:45,209 log 55134 6261649408 Not Found: /socket.io/
+WARNING 2025-10-04 02:18:45,210 basehttp 55134 6261649408 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+INFO 2025-10-04 02:18:46,309 basehttp 55134 6211170304 "GET /v1/banners?type=main HTTP/1.1" 200 1023
+INFO 2025-10-04 02:18:46,319 basehttp 55134 6177517568 "GET /v1/banners?type=sub HTTP/1.1" 200 107
+INFO 2025-10-04 02:18:46,870 basehttp 55134 6227996672 "GET /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 1070
+WARNING 2025-10-04 02:18:51,217 log 55134 6278475776 Not Found: /socket.io/
+WARNING 2025-10-04 02:18:51,217 basehttp 55134 6278475776 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+INFO 2025-10-04 02:18:51,443 basehttp 55134 6227996672 "POST /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 302 0
+INFO 2025-10-04 02:18:51,933 basehttp 55134 6227996672 "GET /admin/banners/banner/ HTTP/1.1" 200 27171
+WARNING 2025-10-04 02:18:51,991 log 55134 6227996672 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:18:51,994 log 55134 6211170304 Not Found: /media/???_??_????.webp
+WARNING 2025-10-04 02:18:51,994 basehttp 55134 6227996672 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+WARNING 2025-10-04 02:18:51,994 basehttp 55134 6211170304 "GET /media/%3F%3F%3F_%3F%3F_%3F%3F%3F%3F.webp HTTP/1.1" 404 28799
+INFO 2025-10-04 02:18:52,224 basehttp 55134 6177517568 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:19:06,308 basehttp 55134 6177517568 "GET /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 200 31723
+WARNING 2025-10-04 02:19:06,353 log 55134 6177517568 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:19:06,356 log 55134 6227996672 Not Found: /media/???_??_????.webp
+WARNING 2025-10-04 02:19:06,357 basehttp 55134 6177517568 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+WARNING 2025-10-04 02:19:06,357 basehttp 55134 6227996672 "GET /media/%3F%3F%3F_%3F%3F_%3F%3F%3F%3F.webp HTTP/1.1" 404 28799
+INFO 2025-10-04 02:19:06,578 basehttp 55134 6211170304 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:19:12,938 basehttp 55134 6211170304 "POST /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 302 0
+INFO 2025-10-04 02:19:13,436 basehttp 55134 6211170304 "GET /admin/banners/banner/ HTTP/1.1" 200 27214
+WARNING 2025-10-04 02:19:13,470 log 55134 6211170304 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:19:13,473 log 55134 6177517568 Not Found: /media/1_강아지의-신체적-특징.jpg
+WARNING 2025-10-04 02:19:13,473 basehttp 55134 6177517568 "GET /media/1_%E1%84%80%E1%85%A1%E1%86%BC%E1%84%8B%E1%85%A1%E1%84%8C%E1%85%B5%E1%84%8B%E1%85%B4-%E1%84%89%E1%85%B5%E1%86%AB%E1%84%8E%E1%85%A6%E1%84%8C%E1%85%A5%E1%86%A8-%E1%84%90%E1%85%B3%E1%86%A8%E1%84%8C%E1%85%B5%E1%86%BC.jpg HTTP/1.1" 404 29163
+WARNING 2025-10-04 02:19:13,474 basehttp 55134 6211170304 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:19:13,688 basehttp 55134 6227996672 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:20:03,133 autoreload 55134 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:20:03,744 autoreload 55133 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:20:03,981 autoreload 58520 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:20:04,307 autoreload 58521 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:20:18,616 autoreload 58521 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:20:18,619 autoreload 58520 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:20:19,307 autoreload 58679 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:20:19,308 autoreload 58678 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:23:11,002 basehttp 58679 6234189824 "GET /v1/banners?type=sub HTTP/1.1" 200 107
+INFO 2025-10-04 02:23:11,029 basehttp 58679 6200537088 "GET /v1/banners?type=main HTTP/1.1" 200 1154
+INFO 2025-10-04 02:23:11,540 basehttp 58679 6217363456 "GET /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 1070
+INFO 2025-10-04 02:23:14,765 basehttp 58679 6217363456 "GET /v1/banners?type=main HTTP/1.1" 200 1154
+INFO 2025-10-04 02:23:14,774 basehttp 58679 6234189824 "GET /v1/banners?type=sub HTTP/1.1" 200 107
+INFO 2025-10-04 02:23:15,360 basehttp 58679 6200537088 "GET /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 1070
+INFO 2025-10-04 02:23:17,332 basehttp 58679 6200537088 "GET /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 200 32411
+INFO 2025-10-04 02:23:17,389 basehttp 58679 6217363456 "GET /media/banners/2025-10-04/1_%E1%84%80%E1%85%A1%E1%86%BC%E1%84%8B%E1%85%A1%E1%84%8C%E1%85%B5%E1%84%8B%E1%85%B4-%E1%84%89%E1%85%B5%E1%86%AB%E1%84%8E%E1%85%A6%E1%84%8C%E1%85%A5%E1%86%A8-%E1%84%90%E1%85%B3%E1%86%A8%E1%84%8C%E1%85%B5%E1%86%BC.jpg HTTP/1.1" 200 96166
+WARNING 2025-10-04 02:23:17,401 log 58679 6200537088 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:23:17,401 basehttp 58679 6200537088 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:23:17,604 basehttp 58679 6234189824 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:23:24,595 basehttp 58679 6234189824 "POST /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 302 0
+INFO 2025-10-04 02:23:25,089 basehttp 58679 6234189824 "GET /admin/banners/banner/ HTTP/1.1" 200 27171
+WARNING 2025-10-04 02:23:25,126 log 58679 6234189824 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:23:25,126 basehttp 58679 6234189824 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+WARNING 2025-10-04 02:23:25,131 log 58679 6217363456 Not Found: /media/???_??_????.webp
+WARNING 2025-10-04 02:23:25,132 basehttp 58679 6217363456 "GET /media/%3F%3F%3F_%3F%3F_%3F%3F%3F%3F.webp HTTP/1.1" 404 28799
+INFO 2025-10-04 02:23:25,362 basehttp 58679 6200537088 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:23:51,702 basehttp 58679 6200537088 "GET /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 200 32061
+WARNING 2025-10-04 02:23:51,754 log 58679 6217363456 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:23:51,759 log 58679 6234189824 Not Found: /media/???_??_????.webp
+WARNING 2025-10-04 02:23:51,760 basehttp 58679 6217363456 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+WARNING 2025-10-04 02:23:51,764 basehttp 58679 6234189824 "GET /media/%3F%3F%3F_%3F%3F_%3F%3F%3F%3F.webp HTTP/1.1" 404 28799
+INFO 2025-10-04 02:23:51,991 basehttp 58679 6200537088 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:23:54,526 basehttp 58679 6200537088 "GET /media/banners/2025-10-04/3F3F3F_3F3F_3F3F3F3F_cgrvxor.webp HTTP/1.1" 200 121850
+WARNING 2025-10-04 02:23:54,567 log 58679 6200537088 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:23:54,567 basehttp 58679 6200537088 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:23:56,385 autoreload 58678 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:23:56,713 autoreload 58679 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:23:57,220 autoreload 60541 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:23:57,352 autoreload 60542 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:24:03,796 basehttp 60542 6173437952 "GET /media/banners/2025-10-04/3F3F3F_3F3F_3F3F3F3F_cgrvxor.webp HTTP/1.1" 304 0
+INFO 2025-10-04 02:24:03,836 autoreload 60541 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+WARNING 2025-10-04 02:24:03,868 log 60542 6173437952 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:24:03,869 basehttp 60542 6173437952 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:24:03,877 basehttp 60542 6156611584 "GET /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 200 32061
+INFO 2025-10-04 02:24:03,877 basehttp 60542 6156611584 - Broken pipe from ('127.0.0.1', 50349)
+INFO 2025-10-04 02:24:03,967 autoreload 60542 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:24:04,572 autoreload 60610 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:24:04,651 autoreload 60611 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:24:07,164 basehttp 60611 6206025728 "GET /media/banners/2025-10-04/3F3F3F_3F3F_3F3F3F3F_cgrvxor.webp HTTP/1.1" 304 0
+WARNING 2025-10-04 02:24:07,198 log 60611 6206025728 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:24:07,198 basehttp 60611 6206025728 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:24:09,778 autoreload 60610 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:24:09,918 autoreload 60611 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:24:10,462 autoreload 60663 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:24:10,523 basehttp 60611 6239678464 "GET /v1/banners?type=sub HTTP/1.1" 200 107
+INFO 2025-10-04 02:24:10,531 basehttp 60611 6206025728 "GET /v1/banners?type=main HTTP/1.1" 200 1023
+INFO 2025-10-04 02:24:11,677 autoreload 60678 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:24:19,762 basehttp 60678 6123712512 "GET /admin/banners/banner/ HTTP/1.1" 200 26899
+WARNING 2025-10-04 02:24:19,792 log 60678 6140538880 Not Found: /media/???_??_????.webp
+WARNING 2025-10-04 02:24:19,792 basehttp 60678 6140538880 "GET /media/%3F%3F%3F_%3F%3F_%3F%3F%3F%3F.webp HTTP/1.1" 404 28799
+INFO 2025-10-04 02:24:20,027 basehttp 60678 6123712512 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:24:22,009 basehttp 60678 6123712512 "GET /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 200 32061
+WARNING 2025-10-04 02:24:22,038 log 60678 6140538880 Not Found: /media/???_??_????.webp
+WARNING 2025-10-04 02:24:22,039 basehttp 60678 6140538880 "GET /media/%3F%3F%3F_%3F%3F_%3F%3F%3F%3F.webp HTTP/1.1" 404 28799
+INFO 2025-10-04 02:24:22,277 basehttp 60678 6123712512 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:24:54,780 autoreload 60678 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:24:55,310 autoreload 61114 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:24:55,564 autoreload 60663 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:24:56,371 autoreload 61122 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:25:06,305 basehttp 61114 6171111424 "POST /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 302 0
+INFO 2025-10-04 02:25:06,834 basehttp 61114 6171111424 "GET /admin/banners/banner/ HTTP/1.1" 200 27157
+WARNING 2025-10-04 02:25:06,859 log 61114 6187937792 Not Found: /media/3726ec5c82ab3cc0.png
+WARNING 2025-10-04 02:25:06,859 basehttp 61114 6187937792 "GET /media/3726ec5c82ab3cc0.png HTTP/1.1" 404 28797
+INFO 2025-10-04 02:25:07,091 basehttp 61114 6171111424 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+WARNING 2025-10-04 02:25:08,340 log 61114 6171111424 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:25:08,340 basehttp 61114 6171111424 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:25:11,060 basehttp 61114 6171111424 "GET /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 200 32005
+WARNING 2025-10-04 02:25:11,098 log 61114 6204764160 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:25:11,102 log 61114 6187937792 Not Found: /media/3726ec5c82ab3cc0.png
+WARNING 2025-10-04 02:25:11,102 basehttp 61114 6187937792 "GET /media/3726ec5c82ab3cc0.png HTTP/1.1" 404 28797
+WARNING 2025-10-04 02:25:11,102 basehttp 61114 6204764160 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:25:11,319 basehttp 61114 6171111424 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:25:44,091 basehttp 61114 6171111424 "GET /v1/banners?type=main HTTP/1.1" 200 1009
+INFO 2025-10-04 02:25:44,578 basehttp 61114 6187937792 "GET /v1/banners?type=sub HTTP/1.1" 200 107
+INFO 2025-10-04 02:25:45,116 basehttp 61114 6204764160 "GET /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 1070
+INFO 2025-10-04 02:25:53,371 autoreload 61114 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:25:53,815 autoreload 61122 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:25:54,219 autoreload 61643 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:25:54,366 autoreload 61644 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:25:58,676 autoreload 61643 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:25:58,688 autoreload 61644 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:25:59,356 autoreload 61689 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:25:59,356 autoreload 61690 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:26:12,864 autoreload 61689 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/admin.py changed, reloading.
+INFO 2025-10-04 02:26:12,876 autoreload 61690 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/admin.py changed, reloading.
+INFO 2025-10-04 02:26:13,539 autoreload 61814 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:26:13,539 autoreload 61815 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:26:31,542 basehttp 61814 6159937536 "GET /v1/banners?type=main HTTP/1.1" 200 1009
+INFO 2025-10-04 02:26:31,553 basehttp 61814 6193590272 "GET /v1/banners?type=sub HTTP/1.1" 200 107
+INFO 2025-10-04 02:26:32,041 basehttp 61814 6176763904 "GET /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 1070
+INFO 2025-10-04 02:26:33,208 basehttp 61814 6176763904 "GET /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 200 31524
+WARNING 2025-10-04 02:26:33,267 log 61814 6159937536 Not Found: /media/3726ec5c82ab3cc0.png
+WARNING 2025-10-04 02:26:33,270 log 61814 6176763904 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:26:33,270 basehttp 61814 6176763904 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+WARNING 2025-10-04 02:26:33,271 basehttp 61814 6159937536 "GET /media/3726ec5c82ab3cc0.png HTTP/1.1" 404 28797
+INFO 2025-10-04 02:26:33,467 basehttp 61814 6193590272 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+ERROR 2025-10-04 02:26:39,525 log 61814 6193590272 Internal Server Error: /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/
+Traceback (most recent call last):
+  File "/Users/rutdev/mpz_fullstack/backend/banners/models.py", line 55, in save
+    r2 = R2Client()
+  File "/Users/rutdev/mpz_fullstack/backend/cloudflare/services.py", line 42, in __init__
+    raise ValueError(
+    ...<2 lines>...
+    )
+ValueError: R2 환경변수(R2_ACCOUNT_ID, R2_ACCESS_KEY, R2_SECRET_KEY, R2_BUCKET, R2_ENDPOINT, R2_PUBLIC_BASE_URL)가 모두 필요합니다.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/contrib/admin/options.py", line 716, in wrapper
+    return self.admin_site.admin_view(view)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/utils/decorators.py", line 188, in _view_wrapper
+    result = _process_exception(request, e)
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/utils/decorators.py", line 186, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/views/decorators/cache.py", line 80, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/contrib/admin/sites.py", line 240, in inner
+    return view(request, *args, **kwargs)
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/contrib/admin/options.py", line 1950, in change_view
+    return self.changeform_view(request, object_id, form_url, extra_context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/utils/decorators.py", line 48, in _wrapper
+    return bound_method(*args, **kwargs)
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/utils/decorators.py", line 188, in _view_wrapper
+    result = _process_exception(request, e)
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/utils/decorators.py", line 186, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/contrib/admin/options.py", line 1806, in changeform_view
+    return self._changeform_view(request, object_id, form_url, extra_context)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/contrib/admin/options.py", line 1857, in _changeform_view
+    self.save_model(request, new_object, form, not add)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/rutdev/mpz_fullstack/backend/banners/admin.py", line 135, in save_model
+    super().save_model(request, obj, form, change)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/contrib/admin/options.py", line 1261, in save_model
+    obj.save()
+    ~~~~~~~~^^
+  File "/Users/rutdev/mpz_fullstack/backend/banners/models.py", line 87, in save
+    raise Exception(f"파일 업로드 실패: {e}")
+Exception: 파일 업로드 실패: R2 환경변수(R2_ACCOUNT_ID, R2_ACCESS_KEY, R2_SECRET_KEY, R2_BUCKET, R2_ENDPOINT, R2_PUBLIC_BASE_URL)가 모두 필요합니다.
+ERROR 2025-10-04 02:26:39,528 basehttp 61814 6193590272 "POST /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 500 155058
+WARNING 2025-10-04 02:26:39,548 log 61814 6193590272 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:26:39,549 basehttp 61814 6193590272 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:26:45,667 autoreload 61814 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/admin.py changed, reloading.
+INFO 2025-10-04 02:26:46,373 autoreload 61815 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:26:46,520 autoreload 62133 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:26:46,942 autoreload 62141 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:27:23,875 autoreload 62133 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:27:23,974 autoreload 62141 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:27:24,636 autoreload 62485 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:27:24,636 autoreload 62486 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:28:01,110 autoreload 62905 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:28:02,854 basehttp 62485 6159118336 "GET /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 200 31524
+WARNING 2025-10-04 02:28:02,926 log 62485 6159118336 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:28:02,928 basehttp 62485 6159118336 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:28:07,712 basehttp 62485 6159118336 "POST /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 302 0
+INFO 2025-10-04 02:28:08,273 basehttp 62485 6159118336 "GET /admin/banners/banner/ HTTP/1.1" 200 27352
+INFO 2025-10-04 02:28:08,315 basehttp 62485 6192771072 "GET /static/admin/css/dark_mode.css HTTP/1.1" 304 0
+INFO 2025-10-04 02:28:08,319 basehttp 62485 6209597440 "GET /static/admin/css/base.css HTTP/1.1" 304 0
+INFO 2025-10-04 02:28:08,319 basehttp 62485 6192771072 "GET /static/admin/css/responsive.css HTTP/1.1" 304 0
+INFO 2025-10-04 02:28:08,319 basehttp 62485 6226423808 "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 304 0
+INFO 2025-10-04 02:28:08,320 basehttp 62485 6243250176 "GET /static/admin/css/changelists.css HTTP/1.1" 304 0
+INFO 2025-10-04 02:28:08,323 basehttp 62485 6192771072 "GET /static/admin/js/core.js HTTP/1.1" 304 0
+INFO 2025-10-04 02:28:08,324 basehttp 62485 6209597440 "GET /static/admin/js/vendor/jquery/jquery.js HTTP/1.1" 304 0
+WARNING 2025-10-04 02:28:08,342 log 62485 6159118336 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+INFO 2025-10-04 02:28:08,343 basehttp 62485 6226423808 "GET /static/admin/js/jquery.init.js HTTP/1.1" 304 0
+INFO 2025-10-04 02:28:08,344 basehttp 62485 6192771072 "GET /static/admin/js/urlify.js HTTP/1.1" 304 0
+INFO 2025-10-04 02:28:08,349 basehttp 62485 6243250176 "GET /static/admin/js/admin/RelatedObjectLookups.js HTTP/1.1" 304 0
+WARNING 2025-10-04 02:28:08,350 basehttp 62485 6159118336 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:28:08,351 basehttp 62485 6243250176 "GET /static/admin/img/search.svg HTTP/1.1" 304 0
+INFO 2025-10-04 02:28:08,354 basehttp 62485 6226423808 "GET /static/admin/js/prepopulate.js HTTP/1.1" 304 0
+INFO 2025-10-04 02:28:08,355 basehttp 62485 6159118336 - Broken pipe from ('127.0.0.1', 51282)
+INFO 2025-10-04 02:28:08,355 basehttp 62485 6192771072 "GET /static/admin/js/vendor/xregexp/xregexp.js HTTP/1.1" 304 0
+INFO 2025-10-04 02:28:08,355 basehttp 62485 6209597440 "GET /static/admin/js/actions.js HTTP/1.1" 304 0
+WARNING 2025-10-04 02:28:08,361 log 62485 6260076544 Not Found: /media/1_강아지의-신체적-특징.jpg
+WARNING 2025-10-04 02:28:08,361 basehttp 62485 6260076544 "GET /media/1_%E1%84%80%E1%85%A1%E1%86%BC%E1%84%8B%E1%85%A1%E1%84%8C%E1%85%B5%E1%84%8B%E1%85%B4-%E1%84%89%E1%85%B5%E1%86%AB%E1%84%8E%E1%85%A6%E1%84%8C%E1%85%A5%E1%86%A8-%E1%84%90%E1%85%B3%E1%86%A8%E1%84%8C%E1%85%B5%E1%86%BC.jpg HTTP/1.1" 404 29163
+INFO 2025-10-04 02:28:08,363 basehttp 62485 6260076544 "GET /static/admin/js/theme.js HTTP/1.1" 304 0
+INFO 2025-10-04 02:28:08,365 basehttp 62485 6260076544 "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 304 0
+INFO 2025-10-04 02:28:08,367 basehttp 62485 6260076544 "GET /static/admin/js/filters.js HTTP/1.1" 304 0
+INFO 2025-10-04 02:28:09,022 basehttp 62485 6175944704 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:28:10,762 autoreload 62486 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:28:10,879 basehttp 62485 6175944704 "GET /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 200 32224
+WARNING 2025-10-04 02:28:10,918 log 62485 6260076544 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+INFO 2025-10-04 02:28:10,920 basehttp 62485 6243250176 "GET /static/admin/js/prepopulate_init.js HTTP/1.1" 304 0
+WARNING 2025-10-04 02:28:10,921 basehttp 62485 6260076544 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:28:10,923 basehttp 62485 6226423808 "GET /static/admin/js/collapse.js HTTP/1.1" 304 0
+WARNING 2025-10-04 02:28:10,928 log 62485 6192771072 Not Found: /media/1_강아지의-신체적-특징.jpg
+WARNING 2025-10-04 02:28:10,928 basehttp 62485 6192771072 "GET /media/1_%E1%84%80%E1%85%A1%E1%86%BC%E1%84%8B%E1%85%A1%E1%84%8C%E1%85%B5%E1%84%8B%E1%85%B4-%E1%84%89%E1%85%B5%E1%86%AB%E1%84%8E%E1%85%A6%E1%84%8C%E1%85%A5%E1%86%A8-%E1%84%90%E1%85%B3%E1%86%A8%E1%84%8C%E1%85%B5%E1%86%BC.jpg HTTP/1.1" 404 29163
+INFO 2025-10-04 02:28:10,935 basehttp 62485 6192771072 "GET /static/admin/js/change_form.js HTTP/1.1" 304 0
+INFO 2025-10-04 02:28:11,040 autoreload 62485 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 02:28:11,398 autoreload 62995 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:28:11,867 autoreload 63003 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:28:25,695 basehttp 63003 6166786048 "POST /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 302 0
+INFO 2025-10-04 02:28:26,224 basehttp 63003 6166786048 "GET /admin/banners/banner/ HTTP/1.1" 200 27150
+WARNING 2025-10-04 02:28:26,267 log 63003 6341865472 Not Found: /media/25.09.03_.jpg
+WARNING 2025-10-04 02:28:26,271 log 63003 6325039104 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:28:26,271 basehttp 63003 6341865472 "GET /media/25.09.03_.jpg HTTP/1.1" 404 28769
+WARNING 2025-10-04 02:28:26,272 basehttp 63003 6325039104 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:28:26,530 basehttp 63003 6166786048 "GET /admin/jsi18n/ HTTP/1.1" 200 9861

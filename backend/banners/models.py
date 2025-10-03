@@ -3,7 +3,22 @@ from django.core.files.storage import default_storage
 from django.conf import settings
 import uuid
 import os
+from datetime import datetime
 from common.models import BaseModel
+
+
+def banner_upload_path(instance, filename):
+    """배너 파일 업로드 경로 생성 (timestamp 기반 안전한 파일명)"""
+    # 파일 확장자 추출
+    ext = os.path.splitext(filename)[1].lower()
+    if not ext:
+        ext = '.jpg'  # 기본값
+    
+    # timestamp 기반 파일명 생성
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')[:-3]  # 밀리초까지
+    safe_filename = f"banner_{timestamp}{ext}"
+    
+    return f"banners/{safe_filename}"
 
 
 class Banner(BaseModel):
@@ -18,7 +33,7 @@ class Banner(BaseModel):
     title = models.CharField(max_length=200, blank=True, null=True, help_text="배너 제목")
     description = models.TextField(blank=True, null=True, help_text="배너 설명")
     alt = models.CharField(max_length=200, help_text="이미지 대체 텍스트")
-    image_file = models.ImageField(upload_to='banners/', blank=True, null=True, help_text="배너 이미지 파일")
+    image_file = models.ImageField(upload_to=banner_upload_path, blank=True, null=True, help_text="배너 이미지 파일")
     image_url = models.CharField(max_length=500, blank=True, null=True, help_text="R2 이미지 URL (파일 업로드 시 자동 생성)")
     order_index = models.IntegerField(default=0, help_text="캐러셀 순서")
     is_active = models.BooleanField(default=True, help_text="활성화 상태")
@@ -31,7 +46,7 @@ class Banner(BaseModel):
         ordering = ['type', 'order_index']
     
     def save(self, *args, **kwargs):
-        # 파일이 업로드된 경우 R2에 업로드하고 URL 생성
+        # 파일이 업로드된 경우 R2에 업로드하고 URL만 저장
         if self.image_file and hasattr(self.image_file, 'file'):
             try:
                 from cloudflare.services import R2Client
@@ -53,10 +68,10 @@ class Banner(BaseModel):
                 
                 r2.upload_file(key=key, data=file_data, content_type=content_type)
                 
-                # R2 URL 생성
+                # R2 URL만 저장
                 self.image_url = f"{r2.public_base_url}/{key}"
                 
-                # 로컬 파일은 삭제 (R2에 업로드했으므로)
+                # 로컬 파일은 즉시 삭제
                 if self.image_file.name:
                     try:
                         default_storage.delete(self.image_file.name)
@@ -67,18 +82,24 @@ class Banner(BaseModel):
                 self.image_file = None
                 
             except Exception as e:
-                # R2 업로드 실패 시 로그만 남기고 계속 진행
+                # R2 업로드 실패 시 로컬 파일로 대체
                 print(f"R2 업로드 실패: {e}")
+                
+                # 로컬 파일 URL 생성
+                if hasattr(self.image_file, 'url'):
+                    self.image_url = self.image_file.url
+                else:
+                    # 기본 플레이스홀더 이미지 사용
+                    self.image_url = 'https://via.placeholder.com/800x400/cccccc/666666?text=Upload+Failed'
+                
+                # 로컬 파일은 그대로 유지
+                print(f"로컬 파일로 대체: {self.image_url}")
         
         super().save(*args, **kwargs)
     
     def get_image_url(self):
-        """이미지 URL 반환 (R2 URL 우선)"""
-        if self.image_url:
-            return self.image_url
-        elif self.image_file:
-            return self.image_file.url
-        return None
+        """이미지 URL 반환 (R2 URL만 사용)"""
+        return self.image_url
     
     def __str__(self):
         return f"{self.get_type_display()} - {self.title or self.alt}"

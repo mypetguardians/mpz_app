@@ -162,6 +162,9 @@ class User(AbstractUser, BaseModel):
     # 소속 센터 (Many:1 관계 - 한 사용자는 하나의 센터에만 소속)
     center = models.ForeignKey('centers.Center', on_delete=models.SET_NULL, blank=True, null=True, help_text="소속 센터", related_name="members")
     
+    # 관리자 메모 (입양, 파양 사유 등 관리자용 메모)
+    admin_memo = models.TextField(blank=True, null=True, help_text="관리자 메모 (입양, 파양 사유 등)")
+    
     class Meta:
         db_table = 'user'
         verbose_name = '사용자'

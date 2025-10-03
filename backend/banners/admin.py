@@ -35,8 +35,17 @@ class BannerAdmin(admin.ModelAdmin):
         ('기본 정보', {
             'fields': ('type', 'title', 'description', 'alt')
         }),
-        ('이미지 및 링크', {
-            'fields': ('image_url', 'image_preview_large', 'link_url')
+        ('이미지 업로드', {
+            'fields': ('image_file', 'image_preview_large'),
+            'description': '파일을 업로드하면 자동으로 R2에 저장되고 URL이 생성됩니다.'
+        }),
+        ('이미지 URL', {
+            'fields': ('image_url',),
+            'description': 'R2 URL (파일 업로드 시 자동 생성되며 수동으로도 입력 가능)',
+            'classes': ('collapse',)
+        }),
+        ('링크 설정', {
+            'fields': ('link_url',)
         }),
         ('설정', {
             'fields': ('order_index', 'is_active')
@@ -58,20 +67,22 @@ class BannerAdmin(admin.ModelAdmin):
     
     def image_preview(self, obj):
         """목록에서 이미지 미리보기"""
-        if obj.image_url:
+        image_url = obj.get_image_url()
+        if image_url:
             return format_html(
                 '<img src="{}" style="max-width: 60px; max-height: 40px; object-fit: cover;" />',
-                obj.image_url
+                image_url
             )
         return "이미지 없음"
     image_preview.short_description = "이미지"
     
     def image_preview_large(self, obj):
         """상세에서 큰 이미지 미리보기"""
-        if obj.image_url:
+        image_url = obj.get_image_url()
+        if image_url:
             return format_html(
                 '<img src="{}" style="max-width: 300px; max-height: 200px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px;" />',
-                obj.image_url
+                image_url
             )
         return "이미지 없음"
     image_preview_large.short_description = "이미지 미리보기"

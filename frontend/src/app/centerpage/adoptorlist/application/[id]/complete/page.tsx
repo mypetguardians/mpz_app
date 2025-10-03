@@ -347,7 +347,7 @@ export default function AdoptionCompletePage({
                             <p className="text-sm text-gray-600 line-clamp-3">
                               {post.content}
                             </p>
-                            {post.images && post.images.length > 0 && (
+                            {Array.isArray(post.images) && post.images.length > 0 && (
                               <div className="mt-3">
                                 <div className="w-16 h-16 bg-gray-200 rounded-lg"></div>
                               </div>

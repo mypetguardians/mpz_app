@@ -1205,3 +1205,208 @@ INFO 2025-10-04 02:45:11,631 basehttp 72337 6328250368 "GET /v1/animals/?page_si
 INFO 2025-10-04 02:45:12,505 basehttp 72337 6294597632 "GET /v1/animals/?page_size=100&sort_by=admission_date&sort_order=asc&page=1 HTTP/1.1" 200 163971
 WARNING 2025-10-04 02:45:13,206 log 72337 6193065984 Not Found: /socket.io/
 WARNING 2025-10-04 02:45:13,206 basehttp 72337 6193065984 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+WARNING 2025-10-04 02:45:18,109 log 72337 6193065984 Not Found: /socket.io/
+WARNING 2025-10-04 02:45:18,109 basehttp 72337 6193065984 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+WARNING 2025-10-04 02:45:24,128 log 72337 6209892352 Not Found: /socket.io/
+WARNING 2025-10-04 02:45:24,129 basehttp 72337 6209892352 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+WARNING 2025-10-04 02:45:30,150 log 72337 6226718720 Not Found: /socket.io/
+WARNING 2025-10-04 02:45:30,150 basehttp 72337 6226718720 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+INFO 2025-10-04 02:46:47,733 basehttp 72337 6294024192 "GET /v1/banners?type=sub HTTP/1.1" 200 107
+INFO 2025-10-04 02:46:47,734 basehttp 72337 6243545088 "GET /v1/banners?type=main HTTP/1.1" 200 1083
+INFO 2025-10-04 02:46:48,300 basehttp 72337 6260371456 "GET /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 1070
+INFO 2025-10-04 02:46:50,357 basehttp 72337 6260371456 "GET /admin/adoptions/adoptionmonitoringcheck/ HTTP/1.1" 200 21715
+WARNING 2025-10-04 02:46:50,396 log 72337 6243545088 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:46:50,396 basehttp 72337 6243545088 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:46:50,622 basehttp 72337 6260371456 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:46:53,070 basehttp 72337 6260371456 "GET /admin/animals/animalimage/ HTTP/1.1" 200 136451
+WARNING 2025-10-04 02:46:53,099 log 72337 6260371456 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:46:53,101 basehttp 72337 6260371456 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:46:53,338 basehttp 72337 6243545088 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:46:55,819 basehttp 72337 6243545088 "GET /admin/animals/animalmegaphone/ HTTP/1.1" 200 32659
+WARNING 2025-10-04 02:46:55,861 log 72337 6243545088 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:46:55,861 basehttp 72337 6243545088 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:46:56,094 basehttp 72337 6260371456 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:46:59,682 basehttp 72337 6260371456 "GET /admin/animals/animal/ HTTP/1.1" 200 224028
+WARNING 2025-10-04 02:46:59,728 log 72337 6260371456 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:46:59,728 basehttp 72337 6260371456 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:46:59,733 basehttp 72337 6294024192 "GET /static/admin/img/icon-no.svg HTTP/1.1" 200 560
+INFO 2025-10-04 02:46:59,972 basehttp 72337 6243545088 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:47:02,568 basehttp 72337 6243545088 "GET /admin/centers/center/ HTTP/1.1" 200 211830
+WARNING 2025-10-04 02:47:02,614 log 72337 6243545088 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:47:02,614 basehttp 72337 6243545088 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:47:02,851 basehttp 72337 6294024192 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:47:09,038 basehttp 72337 6294024192 "GET /admin/centers/center/ffe4b737-4a01-45d2-b8be-becf55087497/change/ HTTP/1.1" 200 42658
+WARNING 2025-10-04 02:47:09,099 log 72337 6294024192 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:47:09,099 basehttp 72337 6294024192 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:47:09,336 basehttp 72337 6243545088 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:47:14,152 basehttp 72337 6243545088 "GET /admin/animals/animal/ HTTP/1.1" 200 224028
+WARNING 2025-10-04 02:47:14,183 log 72337 6243545088 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:47:14,183 basehttp 72337 6243545088 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:47:14,425 basehttp 72337 6294024192 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:47:17,068 basehttp 72337 6294024192 "GET /admin/animals/animal/fff02f20-c3fc-4306-b8b5-d6a545041765/change/ HTTP/1.1" 200 76451
+WARNING 2025-10-04 02:47:17,131 log 72337 6294024192 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:47:17,131 basehttp 72337 6294024192 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:47:17,373 basehttp 72337 6243545088 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:47:23,413 basehttp 72337 6243545088 "GET /admin/centers/center/711e68ed-fb78-42f1-9049-0cb8f0df3cf8/change/?_to_field=id HTTP/1.1" 200 42693
+WARNING 2025-10-04 02:47:23,461 log 72337 6243545088 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:47:23,461 basehttp 72337 6243545088 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:47:23,695 basehttp 72337 6294024192 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:47:26,345 basehttp 72337 6294024192 "GET /admin/animals/animal/fff02f20-c3fc-4306-b8b5-d6a545041765/change/ HTTP/1.1" 200 76451
+WARNING 2025-10-04 02:47:26,384 log 72337 6294024192 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:47:26,385 basehttp 72337 6294024192 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:48:17,122 autoreload 72337 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/admin.py changed, reloading.
+INFO 2025-10-04 02:48:18,060 autoreload 74539 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:48:32,752 autoreload 74539 8525258944 /Users/rutdev/mpz_fullstack/backend/centers/admin.py changed, reloading.
+INFO 2025-10-04 02:48:33,362 autoreload 74685 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:48:44,601 autoreload 74685 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/admin.py changed, reloading.
+INFO 2025-10-04 02:48:45,266 autoreload 74798 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:50:00,401 basehttp 74798 6167343104 "GET /admin/animals/animal/ HTTP/1.1" 200 224028
+WARNING 2025-10-04 02:50:00,450 log 74798 6167343104 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:50:00,450 basehttp 74798 6167343104 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:50:01,170 basehttp 74798 6184169472 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:50:02,616 basehttp 74798 6184169472 "GET /admin/animals/animal/add/ HTTP/1.1" 200 45541
+WARNING 2025-10-04 02:50:02,679 log 74798 6184169472 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:50:02,682 basehttp 74798 6184169472 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:50:02,683 basehttp 74798 6251474944 "GET /static/admin/js/vendor/select2/i18n/ko.js HTTP/1.1" 200 855
+INFO 2025-10-04 02:50:02,684 basehttp 74798 6217822208 "GET /static/admin/css/autocomplete.css HTTP/1.1" 200 9114
+INFO 2025-10-04 02:50:02,684 basehttp 74798 6200995840 "GET /static/admin/css/vendor/select2/select2.css HTTP/1.1" 200 17358
+INFO 2025-10-04 02:50:02,686 basehttp 74798 6184169472 "GET /static/admin/js/autocomplete.js HTTP/1.1" 200 1060
+INFO 2025-10-04 02:50:02,687 basehttp 74798 6234648576 "GET /static/admin/js/vendor/select2/select2.full.js HTTP/1.1" 200 173566
+INFO 2025-10-04 02:50:02,914 basehttp 74798 6167343104 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:50:04,941 basehttp 74798 6167343104 "GET /admin/autocomplete/?app_label=animals&model_name=animal&field_name=center HTTP/1.1" 200 2545
+INFO 2025-10-04 02:50:06,254 basehttp 74798 6167343104 "GET /admin/autocomplete/?page=2&app_label=animals&model_name=animal&field_name=center HTTP/1.1" 200 2677
+INFO 2025-10-04 02:50:07,521 basehttp 74798 6167343104 "GET /admin/autocomplete/?page=3&app_label=animals&model_name=animal&field_name=center HTTP/1.1" 200 2543
+INFO 2025-10-04 02:50:08,481 basehttp 74798 6167343104 "GET /admin/autocomplete/?page=4&app_label=animals&model_name=animal&field_name=center HTTP/1.1" 200 2634
+INFO 2025-10-04 02:50:10,511 basehttp 74798 6167343104 "GET /admin/animals/animal/ HTTP/1.1" 200 224028
+WARNING 2025-10-04 02:50:10,553 log 74798 6167343104 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:50:10,553 basehttp 74798 6167343104 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:50:11,266 basehttp 74798 6234648576 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:50:23,544 basehttp 74798 6234648576 "GET /admin/animals/animal/ HTTP/1.1" 200 224028
+WARNING 2025-10-04 02:50:23,588 log 74798 6234648576 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:50:23,589 basehttp 74798 6234648576 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:50:23,825 basehttp 74798 6167343104 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:50:25,296 basehttp 74798 6167343104 "GET /admin/animals/animal/fff100be-b77c-41d9-a960-91125ae1750c/change/ HTTP/1.1" 200 46473
+WARNING 2025-10-04 02:50:25,405 log 74798 6167343104 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:50:25,405 basehttp 74798 6167343104 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:50:25,618 basehttp 74798 6234648576 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:50:45,062 autoreload 74798 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/admin.py changed, reloading.
+INFO 2025-10-04 02:50:45,906 autoreload 75846 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:51:21,084 autoreload 75846 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/models.py changed, reloading.
+INFO 2025-10-04 02:51:21,789 autoreload 76158 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:51:27,219 autoreload 76158 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/admin.py changed, reloading.
+INFO 2025-10-04 02:51:27,732 autoreload 76225 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:51:56,358 autoreload 76225 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/models.py changed, reloading.
+INFO 2025-10-04 02:51:56,893 autoreload 76515 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:55:32,269 autoreload 76515 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/admin.py changed, reloading.
+INFO 2025-10-04 02:55:33,083 autoreload 78378 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:55:36,687 basehttp 78378 6157463552 "GET /admin/animals/animal/fff100be-b77c-41d9-a960-91125ae1750c/change/ HTTP/1.1" 200 47330
+WARNING 2025-10-04 02:55:36,742 log 78378 6157463552 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:55:36,742 basehttp 78378 6157463552 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:55:37,464 basehttp 78378 6174289920 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:55:49,111 basehttp 78378 6174289920 "POST /admin/animals/animal/fff100be-b77c-41d9-a960-91125ae1750c/change/ HTTP/1.1" 302 0
+INFO 2025-10-04 02:55:50,026 basehttp 78378 6174289920 "GET /admin/animals/animal/ HTTP/1.1" 200 224369
+WARNING 2025-10-04 02:55:50,070 log 78378 6174289920 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-04 02:55:50,070 basehttp 78378 6174289920 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-04 02:55:50,306 basehttp 78378 6157463552 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 03:03:09,547 basehttp 78378 6207942656 "GET /v1/banners?type=sub HTTP/1.1" 200 107
+INFO 2025-10-04 03:03:10,132 basehttp 78378 6156890112 "GET /v1/banners?type=main HTTP/1.1" 200 1083
+INFO 2025-10-04 03:03:10,803 basehttp 78378 6173716480 "GET /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 1070
+INFO 2025-10-04 03:03:16,262 basehttp 78378 6156890112 "GET /v1/auth/me HTTP/1.1" 200 538
+INFO 2025-10-04 03:03:16,377 basehttp 78378 6173716480 "GET /v1/animals/1b2ce71d-e186-4a60-854d-7e05ed37209e HTTP/1.1" 200 1085
+INFO 2025-10-04 03:03:16,433 basehttp 78378 6207942656 "GET /v1/favorites/animals/1b2ce71d-e186-4a60-854d-7e05ed37209e/status HTTP/1.1" 200 45
+INFO 2025-10-04 03:03:16,559 basehttp 78378 6173716480 "GET /v1/centers/cea5e9b7-a4ea-4407-86b6-c2317e3f137e HTTP/1.1" 200 1327
+INFO 2025-10-04 03:03:17,063 basehttp 78378 6156890112 "GET /v1/animals/1b2ce71d-e186-4a60-854d-7e05ed37209e/related?limit=6 HTTP/1.1" 200 4902
+INFO 2025-10-04 03:03:17,509 basehttp 78378 6173716480 "GET /v1/favorites/centers/cea5e9b7-a4ea-4407-86b6-c2317e3f137e/status HTTP/1.1" 200 45
+INFO 2025-10-04 03:03:21,092 basehttp 78378 6156890112 "GET /v1/posts/all/?animal_id=1b2ce71d-e186-4a60-854d-7e05ed37209e&page_size=6 HTTP/1.1" 200 4344
+INFO 2025-10-04 03:03:39,734 basehttp 78378 6156890112 "GET /v1/posts/all/?animal_id=1b2ce71d-e186-4a60-854d-7e05ed37209e&page_size=6 HTTP/1.1" 200 4344
+INFO 2025-10-04 03:06:06,997 autoreload 78378 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/schemas/outbound.py changed, reloading.
+INFO 2025-10-04 03:06:07,793 autoreload 83802 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 03:06:23,453 autoreload 83802 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-04 03:06:24,147 autoreload 83957 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 03:06:28,479 autoreload 83957 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-04 03:06:28,994 autoreload 84008 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 03:06:33,186 autoreload 84008 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-04 03:06:33,713 autoreload 84055 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 03:08:26,305 basehttp 84055 6144241664 "GET /v1/centers/cea5e9b7-a4ea-4407-86b6-c2317e3f137e HTTP/1.1" 200 1327
+INFO 2025-10-04 03:08:26,386 basehttp 84055 6161068032 "GET /v1/auth/me HTTP/1.1" 200 538
+INFO 2025-10-04 03:08:26,457 basehttp 84055 6127415296 "GET /v1/animals/1b2ce71d-e186-4a60-854d-7e05ed37209e HTTP/1.1" 200 1107
+INFO 2025-10-04 03:08:26,522 basehttp 84055 6177894400 "GET /v1/favorites/animals/1b2ce71d-e186-4a60-854d-7e05ed37209e/status HTTP/1.1" 200 45
+INFO 2025-10-04 03:08:26,787 basehttp 84055 6194720768 "GET /v1/animals/1b2ce71d-e186-4a60-854d-7e05ed37209e/related?limit=6 HTTP/1.1" 200 4991
+INFO 2025-10-04 03:08:29,824 autoreload 85170 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 03:08:42,255 autoreload 84055 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/schemas/outbound.py changed, reloading.
+INFO 2025-10-04 03:08:43,072 autoreload 85295 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 03:10:52,563 basehttp 85295 6219870208 "GET /v1/auth/me HTTP/1.1" 200 538
+INFO 2025-10-04 03:10:52,663 basehttp 85295 6203043840 "GET /v1/animals/1b2ce71d-e186-4a60-854d-7e05ed37209e HTTP/1.1" 200 1107
+INFO 2025-10-04 03:10:52,798 basehttp 85295 6219870208 "GET /v1/auth/me HTTP/1.1" 200 538
+INFO 2025-10-04 03:10:52,835 basehttp 85295 6203043840 "GET /v1/centers/cea5e9b7-a4ea-4407-86b6-c2317e3f137e HTTP/1.1" 200 1327
+INFO 2025-10-04 03:10:53,207 basehttp 85295 6219870208 "GET /v1/favorites/animals/1b2ce71d-e186-4a60-854d-7e05ed37209e/status HTTP/1.1" 200 45
+WARNING 2025-10-04 03:10:53,546 log 85295 6253522944 Not Found: /socket.io/
+WARNING 2025-10-04 03:10:53,546 basehttp 85295 6253522944 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+INFO 2025-10-04 03:10:53,839 basehttp 85295 6270349312 "GET /v1/animals/1b2ce71d-e186-4a60-854d-7e05ed37209e/related?limit=6 HTTP/1.1" 200 4991
+INFO 2025-10-04 03:10:54,277 basehttp 85295 6219870208 "GET /v1/favorites/centers/cea5e9b7-a4ea-4407-86b6-c2317e3f137e/status HTTP/1.1" 200 45
+WARNING 2025-10-04 03:10:55,055 log 85295 6236696576 Not Found: /socket.io/
+WARNING 2025-10-04 03:10:55,056 basehttp 85295 6236696576 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+INFO 2025-10-04 03:10:57,759 basehttp 85295 6270349312 "GET /v1/posts/all/?animal_id=1b2ce71d-e186-4a60-854d-7e05ed37209e&page_size=6 HTTP/1.1" 200 4344
+WARNING 2025-10-04 03:10:58,363 log 85295 6287175680 Not Found: /socket.io/
+WARNING 2025-10-04 03:10:58,363 basehttp 85295 6287175680 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+WARNING 2025-10-04 03:11:02,131 log 85295 6253522944 Not Found: /socket.io/
+WARNING 2025-10-04 03:11:02,132 basehttp 85295 6253522944 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+WARNING 2025-10-04 03:11:07,424 log 85295 6304002048 Not Found: /socket.io/
+WARNING 2025-10-04 03:11:07,424 basehttp 85295 6304002048 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+WARNING 2025-10-04 03:11:13,179 log 85295 6236696576 Not Found: /socket.io/
+WARNING 2025-10-04 03:11:13,180 basehttp 85295 6236696576 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+INFO 2025-10-04 03:11:19,090 autoreload 85295 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-04 03:11:20,304 autoreload 86665 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 03:11:38,742 basehttp 86665 6215757824 "GET /v1/auth/me HTTP/1.1" 200 538
+INFO 2025-10-04 03:11:38,819 basehttp 86665 6198931456 "GET /v1/animals/1b2ce71d-e186-4a60-854d-7e05ed37209e HTTP/1.1" 200 1107
+INFO 2025-10-04 03:11:38,986 basehttp 86665 6215757824 "GET /v1/auth/me HTTP/1.1" 200 538
+INFO 2025-10-04 03:11:38,992 basehttp 86665 6198931456 "GET /v1/centers/cea5e9b7-a4ea-4407-86b6-c2317e3f137e HTTP/1.1" 200 1327
+INFO 2025-10-04 03:11:39,427 basehttp 86665 6198931456 "GET /v1/favorites/animals/1b2ce71d-e186-4a60-854d-7e05ed37209e/status HTTP/1.1" 200 45
+WARNING 2025-10-04 03:11:39,758 log 86665 6249410560 Not Found: /socket.io/
+WARNING 2025-10-04 03:11:39,758 basehttp 86665 6249410560 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+INFO 2025-10-04 03:11:39,953 basehttp 86665 6232584192 "GET /v1/animals/1b2ce71d-e186-4a60-854d-7e05ed37209e/related?limit=6 HTTP/1.1" 200 4991
+INFO 2025-10-04 03:11:40,087 autoreload 86894 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 03:11:40,388 basehttp 86665 6198931456 "GET /v1/favorites/centers/cea5e9b7-a4ea-4407-86b6-c2317e3f137e/status HTTP/1.1" 200 45
+WARNING 2025-10-04 03:11:41,236 log 86665 6266236928 Not Found: /socket.io/
+WARNING 2025-10-04 03:11:41,236 basehttp 86665 6266236928 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+INFO 2025-10-04 03:11:43,650 basehttp 86665 6232584192 "GET /v1/posts/all/?animal_id=1b2ce71d-e186-4a60-854d-7e05ed37209e&page_size=6 HTTP/1.1" 200 4344
+WARNING 2025-10-04 03:11:43,917 log 86665 6283063296 Not Found: /socket.io/
+WARNING 2025-10-04 03:11:43,917 basehttp 86665 6283063296 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+WARNING 2025-10-04 03:11:48,586 log 86665 6249410560 Not Found: /socket.io/
+WARNING 2025-10-04 03:11:48,587 basehttp 86665 6249410560 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+WARNING 2025-10-04 03:11:54,332 log 86665 6299889664 Not Found: /socket.io/
+WARNING 2025-10-04 03:11:54,332 basehttp 86665 6299889664 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+WARNING 2025-10-04 03:12:00,052 log 86665 6249410560 Not Found: /socket.io/
+WARNING 2025-10-04 03:12:00,053 basehttp 86665 6249410560 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+INFO 2025-10-04 03:12:04,475 basehttp 86665 6266236928 "GET /v1/animals/1b2ce71d-e186-4a60-854d-7e05ed37209e HTTP/1.1" 200 1107
+INFO 2025-10-04 03:12:14,390 autoreload 86665 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-04 03:12:15,126 autoreload 87265 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 03:12:19,514 autoreload 87265 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-04 03:12:20,052 autoreload 87308 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 03:12:34,586 autoreload 87308 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-04 03:12:35,252 autoreload 87435 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 03:12:38,855 autoreload 87435 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-04 03:12:39,424 autoreload 87471 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 03:12:46,811 basehttp 87471 6172372992 "GET /v1/animals/1b2ce71d-e186-4a60-854d-7e05ed37209e HTTP/1.1" 200 1271
+INFO 2025-10-04 03:13:04,067 autoreload 87471 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-04 03:13:04,795 autoreload 87726 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 03:17:18,313 basehttp 87726 6181466112 "GET /v1/auth/me HTTP/1.1" 200 538
+INFO 2025-10-04 03:17:18,392 basehttp 87726 6164639744 "GET /v1/animals/1b2ce71d-e186-4a60-854d-7e05ed37209e HTTP/1.1" 200 1271
+INFO 2025-10-04 03:17:18,563 basehttp 87726 6181466112 "GET /v1/auth/me HTTP/1.1" 200 538
+INFO 2025-10-04 03:17:18,572 basehttp 87726 6164639744 "GET /v1/centers/cea5e9b7-a4ea-4407-86b6-c2317e3f137e HTTP/1.1" 200 1327
+INFO 2025-10-04 03:17:18,999 basehttp 87726 6164639744 "GET /v1/favorites/animals/1b2ce71d-e186-4a60-854d-7e05ed37209e/status HTTP/1.1" 200 45
+WARNING 2025-10-04 03:17:19,306 log 87726 6198292480 Not Found: /socket.io/
+WARNING 2025-10-04 03:17:19,307 basehttp 87726 6198292480 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+INFO 2025-10-04 03:17:19,535 basehttp 87726 6215118848 "GET /v1/animals/1b2ce71d-e186-4a60-854d-7e05ed37209e/related?limit=6 HTTP/1.1" 200 4991
+INFO 2025-10-04 03:17:20,111 basehttp 87726 6164639744 "GET /v1/favorites/centers/cea5e9b7-a4ea-4407-86b6-c2317e3f137e/status HTTP/1.1" 200 45
+WARNING 2025-10-04 03:17:21,296 log 87726 6198292480 Not Found: /socket.io/
+WARNING 2025-10-04 03:17:21,296 basehttp 87726 6198292480 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+INFO 2025-10-04 03:17:23,628 basehttp 87726 6215118848 "GET /v1/posts/all/?animal_id=1b2ce71d-e186-4a60-854d-7e05ed37209e&page_size=6 HTTP/1.1" 200 4344
+WARNING 2025-10-04 03:17:24,609 log 87726 6231945216 Not Found: /socket.io/
+WARNING 2025-10-04 03:17:24,610 basehttp 87726 6231945216 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+WARNING 2025-10-04 03:17:29,651 log 87726 6248771584 Not Found: /socket.io/
+WARNING 2025-10-04 03:17:29,652 basehttp 87726 6248771584 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+WARNING 2025-10-04 03:17:35,401 log 87726 6265597952 Not Found: /socket.io/
+WARNING 2025-10-04 03:17:35,401 basehttp 87726 6265597952 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+WARNING 2025-10-04 03:17:41,127 log 87726 6198292480 Not Found: /socket.io/
+WARNING 2025-10-04 03:17:41,127 basehttp 87726 6198292480 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654

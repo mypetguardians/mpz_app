@@ -66,6 +66,7 @@ class Animal(BaseModel):
     sociability = models.PositiveIntegerField(default=0, help_text="사회성")
     separation_anxiety = models.PositiveIntegerField(default=0, help_text="분리불안 정도")
     basic_training = models.PositiveIntegerField(default=0, help_text="기본 훈련 상태")
+    trainer_name = models.CharField(max_length=100, blank=True, null=True, help_text="훈련사 이름")
     trainer_comment = models.TextField(blank=True, null=True, help_text="훈련사 코멘트")
     
     # 공공데이터 관련 필드 (최소한만 유지)

@@ -450,6 +450,7 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
             separationAnxiety={animal.separation_anxiety || undefined}
             healthNotes={animal.health_notes ? [animal.health_notes] : []}
             basicTraining={animal.basic_training?.toString() || undefined}
+            trainerName={animal.trainer_name || undefined}
             trainerComment={animal.trainer_comment || undefined}
           />
         )}

@@ -7,7 +7,7 @@ from centers.models import Center, AdoptionContractTemplate, QuestionForm
 class CenterAdmin(admin.ModelAdmin):
     list_display = ['name', 'owner', 'region', 'verified', 'is_public', 'is_subscribed', 'has_volunteer', 'has_foster_care', 'show_phone_number', 'show_location', 'created_at']
     list_filter = ['region', 'verified', 'is_public', 'is_subscribed', 'has_monitoring', 'has_volunteer', 'has_foster_care', 'show_phone_number', 'show_location']
-    search_fields = ['name', 'owner__username', 'center_number']
+    search_fields = ['name', 'owner__username', 'center_number', 'region']
     list_editable = ['verified', 'is_public', 'is_subscribed', 'has_volunteer', 'has_foster_care', 'show_phone_number', 'show_location']
     readonly_fields = ['created_at', 'updated_at']
     

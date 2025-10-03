@@ -26,6 +26,7 @@ export interface Animal {
   specialNotes: string | null;
   healthNotes: string | null;
   basicTraining: string | null;
+  trainerName: string | null;
   trainerComment: string | null;
   announceNumber: string | null;
   announcementDate: string | null;
@@ -94,6 +95,7 @@ export interface RawAnimalResponse {
   special_notes: string | null;
   health_notes: string | null;
   basic_training: number | null;
+  trainer_name: string | null;
   trainer_comment: string | null;
   announce_number: string | null;
   announcement_date: string | null;
@@ -154,6 +156,7 @@ export type PetCardAnimal = {
   specialNotes?: string | null;
   healthNotes?: string | null;
   basicTraining?: string | null;
+  trainerName?: string | null;
   trainerComment?: string | null;
   announceNumber?: string | null;
   announcementDate?: string | null;
@@ -183,6 +186,7 @@ export function transformRawAnimalToAnimal(raw: RawAnimalResponse): Animal {
     specialNotes: raw.special_notes,
     healthNotes: raw.health_notes,
     basicTraining: raw.basic_training?.toString() || null,
+    trainerName: raw.trainer_name,
     trainerComment: raw.trainer_comment,
     announceNumber: raw.announce_number,
     announcementDate: raw.announcement_date,
@@ -242,6 +246,7 @@ export function transformRawAnimalToPetCard(
     specialNotes: raw.special_notes,
     healthNotes: raw.health_notes,
     basicTraining: raw.basic_training?.toString() || null,
+    trainerName: raw.trainer_name,
     trainerComment: raw.trainer_comment,
     announceNumber: raw.announce_number,
     announcementDate: raw.announcement_date,
@@ -286,6 +291,7 @@ export interface RelatedAnimalsResponse {
   special_notes: string;
   health_notes: string;
   basic_training: number;
+  trainer_name: string;
   trainer_comment: string;
   announce_number: string;
   display_notice_number: string;

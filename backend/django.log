@@ -39,3 +39,275 @@ INFO 2025-09-22 22:28:03,816 autoreload 97228 8639291584 /Users/jhy20/mpz_fullst
 INFO 2025-09-22 22:28:06,390 autoreload 97345 8639291584 Watching for file changes with StatReloader
 INFO 2025-09-22 22:28:17,811 autoreload 97345 8639291584 /Users/jhy20/mpz_fullstack/backend/adoptions/api/monitoring.py changed, reloading.
 INFO 2025-09-22 22:28:20,285 autoreload 97768 8639291584 Watching for file changes with StatReloader
+INFO 2025-10-04 01:24:09,242 autoreload 41871 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 01:24:40,296 autoreload 42538 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 01:26:00,788 autoreload 47612 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 01:26:26,387 autoreload 47612 8525258944 /Users/rutdev/mpz_fullstack/backend/adoptions/api/monitoring.py changed, reloading.
+INFO 2025-10-04 01:26:26,717 autoreload 47633 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 01:26:30,209 autoreload 47633 8525258944 /Users/rutdev/mpz_fullstack/backend/adoptions/api/monitoring.py changed, reloading.
+INFO 2025-10-04 01:26:31,046 autoreload 47661 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 01:26:39,387 autoreload 47767 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 01:26:44,865 basehttp 47767 6160674816 "GET /v1/banners?type=sub HTTP/1.1" 200 107
+INFO 2025-10-04 01:26:44,866 basehttp 47767 6177501184 "GET /v1/banners?type=main HTTP/1.1" 200 1144
+INFO 2025-10-04 01:26:45,117 basehttp 47767 6160674816 "GET /v1/auth/me HTTP/1.1" 200 538
+INFO 2025-10-04 01:26:45,447 basehttp 47767 6143848448 "GET /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 1070
+WARNING 2025-10-04 01:26:45,970 log 47767 6295285760 Not Found: /socket.io/
+WARNING 2025-10-04 01:26:45,970 basehttp 47767 6295285760 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+INFO 2025-10-04 01:26:47,087 basehttp 47767 6127022080 "GET /v1/notifications/?page=1&page_size=10 HTTP/1.1" 200 7219
+WARNING 2025-10-04 01:26:47,310 log 47767 6244806656 Not Found: /socket.io/
+WARNING 2025-10-04 01:26:47,310 basehttp 47767 6244806656 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+INFO 2025-10-04 01:26:48,617 basehttp 47767 6177501184 "GET /v1/banners?type=main HTTP/1.1" 200 1144
+INFO 2025-10-04 01:26:48,618 basehttp 47767 6160674816 "GET /v1/banners?type=sub HTTP/1.1" 200 107
+INFO 2025-10-04 01:26:48,654 basehttp 47767 6211153920 "GET /v1/animals/?page_size=100&sort_by=megaphone_count&sort_order=desc&page=1 HTTP/1.1" 200 166191
+INFO 2025-10-04 01:26:48,888 basehttp 47767 6177501184 "GET /v1/auth/me HTTP/1.1" 200 538
+INFO 2025-10-04 01:26:49,214 basehttp 47767 6143848448 "GET /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 1070
+INFO 2025-10-04 01:26:50,927 basehttp 47767 6127022080 "GET /v1/notifications/?page=1&page_size=10 HTTP/1.1" 200 7219
+WARNING 2025-10-04 01:26:51,358 log 47767 6244806656 Not Found: /socket.io/
+WARNING 2025-10-04 01:26:51,359 basehttp 47767 6244806656 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+INFO 2025-10-04 01:26:52,925 basehttp 47767 6160674816 "GET /v1/animals/?page_size=100&sort_by=megaphone_count&sort_order=desc&page=1 HTTP/1.1" 200 166191
+INFO 2025-10-04 01:26:53,187 basehttp 47767 6127022080 "GET /admin/ HTTP/1.1" 200 26822
+INFO 2025-10-04 01:26:53,218 basehttp 47767 6127022080 "GET /static/admin/css/base.css HTTP/1.1" 304 0
+INFO 2025-10-04 01:26:53,219 basehttp 47767 6143848448 "GET /static/admin/css/responsive.css HTTP/1.1" 304 0
+INFO 2025-10-04 01:26:53,219 basehttp 47767 6177501184 "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 304 0
+INFO 2025-10-04 01:26:53,220 basehttp 47767 6160674816 "GET /static/admin/css/dark_mode.css HTTP/1.1" 304 0
+INFO 2025-10-04 01:26:53,221 basehttp 47767 6211153920 "GET /static/admin/css/dashboard.css HTTP/1.1" 304 0
+INFO 2025-10-04 01:26:53,221 basehttp 47767 6143848448 "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 304 0
+INFO 2025-10-04 01:26:53,221 basehttp 47767 6127022080 "GET /static/admin/js/theme.js HTTP/1.1" 304 0
+INFO 2025-10-04 01:26:53,225 basehttp 47767 6143848448 "GET /static/admin/img/icon-changelink.svg HTTP/1.1" 304 0
+INFO 2025-10-04 01:26:53,225 basehttp 47767 6127022080 "GET /static/admin/img/icon-addlink.svg HTTP/1.1" 304 0
+INFO 2025-10-04 01:26:53,226 basehttp 47767 6160674816 "GET /static/admin/img/icon-viewlink.svg HTTP/1.1" 304 0
+INFO 2025-10-04 01:26:53,226 basehttp 47767 6211153920 "GET /static/admin/img/icon-deletelink.svg HTTP/1.1" 304 0
+INFO 2025-10-04 01:26:55,833 basehttp 47767 6194327552 "GET /v1/animals/?page_size=100&sort_by=admission_date&sort_order=asc&page=1 HTTP/1.1" 200 163971
+WARNING 2025-10-04 01:26:57,364 log 47767 6227980288 Not Found: /socket.io/
+WARNING 2025-10-04 01:26:57,364 basehttp 47767 6227980288 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+WARNING 2025-10-04 01:27:03,303 log 47767 6244806656 Not Found: /socket.io/
+WARNING 2025-10-04 01:27:03,304 basehttp 47767 6244806656 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+INFO 2025-10-04 01:27:06,000 basehttp 47767 6194327552 "GET /admin/favorites/favorite/ HTTP/1.1" 200 20790
+INFO 2025-10-04 01:27:06,031 basehttp 47767 6160674816 "GET /static/admin/css/changelists.css HTTP/1.1" 304 0
+INFO 2025-10-04 01:27:06,031 basehttp 47767 6127022080 "GET /static/admin/js/jquery.init.js HTTP/1.1" 304 0
+INFO 2025-10-04 01:27:06,032 basehttp 47767 6143848448 "GET /static/admin/js/core.js HTTP/1.1" 304 0
+INFO 2025-10-04 01:27:06,033 basehttp 47767 6211153920 "GET /static/admin/js/vendor/jquery/jquery.js HTTP/1.1" 304 0
+INFO 2025-10-04 01:27:06,033 basehttp 47767 6177501184 "GET /static/admin/js/admin/RelatedObjectLookups.js HTTP/1.1" 304 0
+INFO 2025-10-04 01:27:06,040 basehttp 47767 6160674816 "GET /static/admin/js/actions.js HTTP/1.1" 304 0
+INFO 2025-10-04 01:27:06,041 basehttp 47767 6127022080 "GET /static/admin/js/urlify.js HTTP/1.1" 304 0
+INFO 2025-10-04 01:27:06,042 basehttp 47767 6143848448 "GET /static/admin/js/vendor/xregexp/xregexp.js HTTP/1.1" 304 0
+INFO 2025-10-04 01:27:06,042 basehttp 47767 6211153920 "GET /static/admin/img/search.svg HTTP/1.1" 304 0
+INFO 2025-10-04 01:27:06,043 basehttp 47767 6177501184 "GET /static/admin/js/prepopulate.js HTTP/1.1" 304 0
+INFO 2025-10-04 01:27:06,049 basehttp 47767 6177501184 "GET /static/admin/js/filters.js HTTP/1.1" 304 0
+INFO 2025-10-04 01:27:06,275 basehttp 47767 6194327552 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 01:27:06,298 basehttp 47767 6194327552 "GET /static/admin/img/tooltag-add.svg HTTP/1.1" 304 0
+WARNING 2025-10-04 01:27:09,374 log 47767 6227980288 Not Found: /socket.io/
+WARNING 2025-10-04 01:27:09,375 basehttp 47767 6227980288 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
+INFO 2025-10-04 01:27:40,935 basehttp 47767 6194327552 "GET /admin/favorites/centerfavorite/ HTTP/1.1" 200 35268
+INFO 2025-10-04 01:27:41,201 basehttp 47767 6194327552 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 01:27:44,296 basehttp 47767 6194327552 "GET /admin/favorites/favorite/ HTTP/1.1" 200 20790
+INFO 2025-10-04 01:27:44,566 basehttp 47767 6194327552 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 01:29:17,143 autoreload 47767 8525258944 /Users/rutdev/mpz_fullstack/backend/favorites/admin.py changed, reloading.
+INFO 2025-10-04 01:29:17,940 autoreload 48388 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 01:29:22,243 autoreload 48388 8525258944 /Users/rutdev/mpz_fullstack/backend/favorites/admin.py changed, reloading.
+INFO 2025-10-04 01:29:22,527 autoreload 48400 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 01:29:25,809 autoreload 48400 8525258944 /Users/rutdev/mpz_fullstack/backend/favorites/admin.py changed, reloading.
+INFO 2025-10-04 01:29:26,368 autoreload 48410 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 01:29:46,206 basehttp 48410 6122958848 "GET /admin/user/user/ HTTP/1.1" 200 47664
+INFO 2025-10-04 01:29:46,218 basehttp 48410 6139785216 "GET /static/admin/css/forms.css HTTP/1.1" 304 0
+INFO 2025-10-04 01:29:46,221 basehttp 48410 6139785216 "GET /static/admin/css/widgets.css HTTP/1.1" 304 0
+INFO 2025-10-04 01:29:46,464 basehttp 48410 6122958848 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 01:29:46,491 basehttp 48410 6122958848 "GET /static/admin/img/sorting-icons.svg HTTP/1.1" 304 0
+INFO 2025-10-04 01:36:38,528 autoreload 48410 8525258944 /Users/rutdev/mpz_fullstack/backend/user/models.py changed, reloading.
+INFO 2025-10-04 01:36:39,245 autoreload 48469 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 01:36:49,815 autoreload 48469 8525258944 /Users/rutdev/mpz_fullstack/backend/user/admin.py changed, reloading.
+INFO 2025-10-04 01:36:50,483 autoreload 48474 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 01:37:20,236 autoreload 48474 8525258944 /Users/rutdev/mpz_fullstack/backend/user/models.py changed, reloading.
+INFO 2025-10-04 01:37:20,751 autoreload 48506 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 01:37:39,615 basehttp 48506 6195163136 "GET /v1/banners?type=sub HTTP/1.1" 200 107
+INFO 2025-10-04 01:37:39,616 basehttp 48506 6161510400 "GET /v1/banners?type=main HTTP/1.1" 200 1144
+INFO 2025-10-04 01:37:40,311 basehttp 48506 6178336768 "GET /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 1070
+INFO 2025-10-04 01:37:43,092 basehttp 48506 6178336768 "GET /v1/centers/me HTTP/1.1" 200 1327
+INFO 2025-10-04 01:37:46,547 basehttp 48506 6178336768 "GET /v1/adoptions/center-admin?page=1&limit=50 HTTP/1.1" 200 8145
+INFO 2025-10-04 01:37:50,980 basehttp 48506 6161510400 "GET /v1/adoptions/monitoring/posts/76d08f29-5237-44f4-926b-089539f6c7e3?page=1&page_size=10 HTTP/1.1" 200 107
+INFO 2025-10-04 01:37:51,078 basehttp 48506 6178336768 "GET /v1/adoptions/center-admin/76d08f29-5237-44f4-926b-089539f6c7e3 HTTP/1.1" 200 3578
+INFO 2025-10-04 01:37:51,408 basehttp 48506 6178336768 "GET /v1/animals/26a3b7cd-4f4f-4fe3-87dc-a10f1e53fca3 HTTP/1.1" 200 1079
+INFO 2025-10-04 01:38:56,623 basehttp 48506 6178336768 "GET /admin/centers/questionform/ HTTP/1.1" 200 79971
+INFO 2025-10-04 01:38:56,880 basehttp 48506 6178336768 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 01:39:09,212 basehttp 48506 6178336768 "GET /admin/adoptions/adoptionquestion/ HTTP/1.1" 200 87824
+INFO 2025-10-04 01:39:09,212 basehttp 48506 6178336768 - Broken pipe from ('127.0.0.1', 55610)
+INFO 2025-10-04 01:39:09,286 basehttp 48506 6161510400 "GET /admin/adoptions/adoptionquestion/ HTTP/1.1" 200 87824
+INFO 2025-10-04 01:39:09,541 basehttp 48506 6161510400 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 01:39:15,955 basehttp 48506 6161510400 "GET /admin/centers/questionform/ HTTP/1.1" 200 79971
+INFO 2025-10-04 01:39:16,226 basehttp 48506 6161510400 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 01:39:39,005 basehttp 48506 6161510400 "GET /admin/adoptions/adoptionquestion/ HTTP/1.1" 200 87824
+INFO 2025-10-04 01:39:39,006 basehttp 48506 6161510400 - Broken pipe from ('127.0.0.1', 55609)
+INFO 2025-10-04 01:39:41,900 basehttp 48506 6195163136 "GET /admin/adoptions/adoptionquestion/ HTTP/1.1" 200 87824
+INFO 2025-10-04 01:39:42,169 basehttp 48506 6195163136 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 01:39:49,938 basehttp 48506 6195163136 "GET /admin/centers/questionform/ HTTP/1.1" 200 79971
+INFO 2025-10-04 01:39:50,194 basehttp 48506 6195163136 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 01:41:10,723 autoreload 48506 8525258944 /Users/rutdev/mpz_fullstack/backend/centers/admin.py changed, reloading.
+INFO 2025-10-04 01:41:11,451 autoreload 48616 8525258944 Watching for file changes with StatReloader
+WARNING 2025-10-04 01:41:16,405 log 48616 6157955072 Not Found: /admin/centers/questionform/
+WARNING 2025-10-04 01:41:16,405 basehttp 48616 6157955072 "GET /admin/centers/questionform/ HTTP/1.1" 404 9693
+INFO 2025-10-04 01:41:22,734 basehttp 48616 6157955072 "GET /admin/adoptions/adoptionquestion/ HTTP/1.1" 200 87505
+INFO 2025-10-04 01:41:32,418 basehttp 48616 6157955072 "GET /admin/banners/banner/ HTTP/1.1" 200 27020
+INFO 2025-10-04 01:41:32,702 basehttp 48616 6157955072 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 01:42:11,214 autoreload 48616 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 01:42:11,968 autoreload 48656 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 01:42:17,403 autoreload 48656 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 01:42:18,026 autoreload 48663 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 01:42:22,103 autoreload 48663 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 01:42:22,770 autoreload 48666 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 01:42:31,095 autoreload 48666 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 01:42:31,628 autoreload 48673 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 01:42:49,015 autoreload 48673 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/admin.py changed, reloading.
+INFO 2025-10-04 01:42:49,685 autoreload 48679 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 01:43:00,063 autoreload 48679 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/admin.py changed, reloading.
+INFO 2025-10-04 01:43:00,749 autoreload 48686 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 01:43:43,828 autoreload 48686 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/models.py changed, reloading.
+INFO 2025-10-04 01:43:44,352 autoreload 48744 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 01:57:09,851 autoreload 48744 8525258944 /Users/rutdev/mpz_fullstack/backend/banners/admin.py changed, reloading.
+INFO 2025-10-04 01:57:10,614 autoreload 48819 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 01:57:14,228 basehttp 48819 6202781696 "GET /admin/banners/banner/ HTTP/1.1" 200 27020
+INFO 2025-10-04 01:57:14,251 basehttp 48819 6219608064 "GET /static/admin/css/base.css HTTP/1.1" 304 0
+INFO 2025-10-04 01:57:14,251 basehttp 48819 6236434432 "GET /static/admin/css/dark_mode.css HTTP/1.1" 304 0
+INFO 2025-10-04 01:57:14,252 basehttp 48819 6253260800 "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 304 0
+INFO 2025-10-04 01:57:14,253 basehttp 48819 6236434432 "GET /static/admin/js/jquery.init.js HTTP/1.1" 304 0
+INFO 2025-10-04 01:57:14,253 basehttp 48819 6270087168 "GET /static/admin/css/changelists.css HTTP/1.1" 304 0
+INFO 2025-10-04 01:57:14,253 basehttp 48819 6219608064 "GET /static/admin/css/responsive.css HTTP/1.1" 304 0
+INFO 2025-10-04 01:57:14,254 basehttp 48819 6253260800 "GET /static/admin/js/core.js HTTP/1.1" 304 0
+INFO 2025-10-04 01:57:14,254 basehttp 48819 6286913536 "GET /static/admin/js/vendor/jquery/jquery.js HTTP/1.1" 304 0
+INFO 2025-10-04 01:57:14,257 basehttp 48819 6236434432 "GET /static/admin/js/admin/RelatedObjectLookups.js HTTP/1.1" 304 0
+INFO 2025-10-04 01:57:14,258 basehttp 48819 6219608064 "GET /static/admin/js/vendor/xregexp/xregexp.js HTTP/1.1" 304 0
+INFO 2025-10-04 01:57:14,258 basehttp 48819 6253260800 "GET /static/admin/js/actions.js HTTP/1.1" 304 0
+INFO 2025-10-04 01:57:14,258 basehttp 48819 6286913536 "GET /static/admin/js/prepopulate.js HTTP/1.1" 304 0
+INFO 2025-10-04 01:57:14,258 basehttp 48819 6270087168 "GET /static/admin/js/urlify.js HTTP/1.1" 304 0
+INFO 2025-10-04 01:57:14,259 basehttp 48819 6253260800 "GET /static/admin/img/search.svg HTTP/1.1" 304 0
+INFO 2025-10-04 01:57:14,261 basehttp 48819 6253260800 "GET /static/admin/js/theme.js HTTP/1.1" 304 0
+INFO 2025-10-04 01:57:14,263 basehttp 48819 6253260800 "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 304 0
+INFO 2025-10-04 01:57:14,266 basehttp 48819 6253260800 "GET /static/admin/js/filters.js HTTP/1.1" 304 0
+INFO 2025-10-04 01:57:14,489 basehttp 48819 6202781696 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 01:57:14,522 basehttp 48819 6202781696 "GET /static/admin/img/icon-addlink.svg HTTP/1.1" 304 0
+INFO 2025-10-04 01:57:14,529 basehttp 48819 6253260800 "GET /static/admin/img/icon-viewlink.svg HTTP/1.1" 304 0
+INFO 2025-10-04 01:57:14,529 basehttp 48819 6202781696 "GET /static/admin/img/tooltag-add.svg HTTP/1.1" 304 0
+INFO 2025-10-04 01:57:17,268 basehttp 48819 6202781696 "GET /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 200 31965
+INFO 2025-10-04 01:57:17,304 basehttp 48819 6270087168 "GET /static/admin/js/prepopulate_init.js HTTP/1.1" 200 586
+INFO 2025-10-04 01:57:17,305 basehttp 48819 6253260800 "GET /static/admin/js/collapse.js HTTP/1.1" 200 1803
+INFO 2025-10-04 01:57:17,308 basehttp 48819 6270087168 "GET /static/admin/js/change_form.js HTTP/1.1" 200 606
+INFO 2025-10-04 01:57:17,541 basehttp 48819 6202781696 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+ERROR 2025-10-04 01:57:28,724 log 48819 6202781696 Internal Server Error: /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/
+Traceback (most recent call last):
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/core/files/storage/handler.py", line 35, in __getitem__
+    return self._storages[alias]
+           ~~~~~~~~~~~~~~^^^^^^^
+KeyError: 'default'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/core/files/storage/handler.py", line 38, in __getitem__
+    params = self.backends[alias]
+             ~~~~~~~~~~~~~^^^^^^^
+KeyError: 'default'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/contrib/admin/options.py", line 716, in wrapper
+    return self.admin_site.admin_view(view)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/utils/decorators.py", line 188, in _view_wrapper
+    result = _process_exception(request, e)
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/utils/decorators.py", line 186, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/views/decorators/cache.py", line 80, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/contrib/admin/sites.py", line 240, in inner
+    return view(request, *args, **kwargs)
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/contrib/admin/options.py", line 1950, in change_view
+    return self.changeform_view(request, object_id, form_url, extra_context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/utils/decorators.py", line 48, in _wrapper
+    return bound_method(*args, **kwargs)
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/utils/decorators.py", line 188, in _view_wrapper
+    result = _process_exception(request, e)
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/utils/decorators.py", line 186, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/contrib/admin/options.py", line 1806, in changeform_view
+    return self._changeform_view(request, object_id, form_url, extra_context)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/contrib/admin/options.py", line 1857, in _changeform_view
+    self.save_model(request, new_object, form, not add)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/rutdev/mpz_fullstack/backend/banners/admin.py", line 140, in save_model
+    super().save_model(request, obj, form, change)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/contrib/admin/options.py", line 1261, in save_model
+    obj.save()
+    ~~~~~~~~^^
+  File "/Users/rutdev/mpz_fullstack/backend/banners/models.py", line 73, in save
+    super().save(*args, **kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/db/models/base.py", line 822, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=update_fields,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/db/models/base.py", line 909, in save_base
+    updated = self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/db/models/base.py", line 1035, in _save_table
+    (getattr(self, f.attname) if raw else f.pre_save(self, False)),
+                                          ~~~~~~~~~~^^^^^^^^^^^^^
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/db/models/fields/files.py", line 324, in pre_save
+    file.save(file.name, file.file, save=False)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/db/models/fields/files.py", line 93, in save
+    name = self.field.generate_filename(self.instance, name)
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/db/models/fields/files.py", line 344, in generate_filename
+    return self.storage.generate_filename(filename)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/utils/functional.py", line 251, in inner
+    self._setup()
+    ~~~~~~~~~~~^^
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/core/files/storage/__init__.py", line 42, in _setup
+    self._wrapped = storages[DEFAULT_STORAGE_ALIAS]
+                    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/rutdev/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/core/files/storage/handler.py", line 40, in __getitem__
+    raise InvalidStorageError(
+        f"Could not find config for '{alias}' in settings.STORAGES."
+    )
+django.core.files.storage.handler.InvalidStorageError: Could not find config for 'default' in settings.STORAGES.
+ERROR 2025-10-04 01:57:28,728 basehttp 48819 6202781696 "POST /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 500 194530
+INFO 2025-10-04 01:57:48,097 autoreload 48819 8525258944 /Users/rutdev/mpz_fullstack/backend/cfehome/settings.py changed, reloading.
+INFO 2025-10-04 01:57:48,890 autoreload 48855 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 01:57:56,473 autoreload 48855 8525258944 /Users/rutdev/mpz_fullstack/backend/cfehome/settings.py changed, reloading.
+INFO 2025-10-04 01:57:57,019 autoreload 48873 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 01:58:02,249 autoreload 48873 8525258944 /Users/rutdev/mpz_fullstack/backend/cfehome/urls.py changed, reloading.
+INFO 2025-10-04 01:58:02,802 autoreload 48876 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 01:58:04,989 autoreload 48876 8525258944 /Users/rutdev/mpz_fullstack/backend/cfehome/urls.py changed, reloading.
+INFO 2025-10-04 01:58:05,567 autoreload 48879 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 01:58:10,389 autoreload 48901 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 01:58:19,586 autoreload 48901 8525258944 /Users/rutdev/mpz_fullstack/backend/cfehome/settings.py changed, reloading.
+INFO 2025-10-04 01:58:19,855 autoreload 48879 8525258944 /Users/rutdev/mpz_fullstack/backend/cfehome/settings.py changed, reloading.
+INFO 2025-10-04 01:58:20,266 autoreload 48904 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 01:58:20,423 autoreload 48905 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 02:00:55,504 basehttp 48904 6136770560 "GET /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 200 31965
+INFO 2025-10-04 02:01:01,530 basehttp 48904 6136770560 "POST /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 302 0
+INFO 2025-10-04 02:01:02,067 basehttp 48904 6136770560 "GET /admin/banners/banner/ HTTP/1.1" 200 27292
+INFO 2025-10-04 02:01:02,095 basehttp 48904 6153596928 "GET /static/admin/css/forms.css HTTP/1.1" 304 0
+INFO 2025-10-04 02:01:02,097 basehttp 48904 6153596928 "GET /static/admin/css/widgets.css HTTP/1.1" 304 0
+INFO 2025-10-04 02:01:02,350 basehttp 48904 6136770560 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:01:02,375 basehttp 48904 6136770560 "GET /static/admin/img/icon-yes.svg HTTP/1.1" 304 0
+INFO 2025-10-04 02:01:05,649 basehttp 48904 6136770560 "GET /admin/banners/banner/ HTTP/1.1" 200 27020
+INFO 2025-10-04 02:01:05,918 basehttp 48904 6136770560 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-04 02:01:08,226 basehttp 48904 6136770560 "GET /admin/banners/banner/9bf29055-8eac-45c7-947f-a41fc4a825e8/change/ HTTP/1.1" 200 32507
+INFO 2025-10-04 02:01:08,498 basehttp 48904 6136770560 "GET /admin/jsi18n/ HTTP/1.1" 200 9861

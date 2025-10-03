@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import CenterFavorite, AnimalFavorite, Favorite, PersonalityTest
+from .models import CenterFavorite, AnimalFavorite, PersonalityTest
 
 
 @admin.register(CenterFavorite)
@@ -34,24 +34,6 @@ class AnimalFavoriteAdmin(admin.ModelAdmin):
     fieldsets = (
         ('기본 정보', {
             'fields': ('user', 'animal')
-        }),
-        ('시간 정보', {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
-        }),
-    )
-
-
-@admin.register(Favorite)
-class FavoriteAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'content_type', 'content_id', 'created_at']
-    list_filter = ['content_type']
-    search_fields = ['user__username', 'content_type', 'content_id']
-    readonly_fields = ['created_at', 'updated_at']
-    
-    fieldsets = (
-        ('기본 정보', {
-            'fields': ('user', 'content_type', 'content_id')
         }),
         ('시간 정보', {
             'fields': ('created_at', 'updated_at'),

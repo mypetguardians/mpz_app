@@ -4,7 +4,7 @@ import axios, {
   InternalAxiosRequestConfig,
 } from "axios";
 
-const BASE_URL = "https://mpzfullstack-production.up.railway.app/v1/";
+const BASE_URL = "http://localhost:8000/v1/";
 
 const instance: AxiosInstance = axios.create({
   baseURL: BASE_URL,

@@ -7,10 +7,10 @@ from .models import (
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    list_display = ['username', 'email', 'nickname', 'user_type', 'status', 'is_phone_verified', 'created_at']
-    list_filter = ['user_type', 'status', 'is_phone_verified', 'is_staff', 'is_active']
+    list_display = ['username', 'email', 'nickname', 'user_type', 'is_phone_verified', 'created_at']
+    list_filter = ['user_type', 'is_phone_verified', 'is_staff', 'is_active']
     search_fields = ['username', 'email', 'nickname', 'phone_number', 'kakao_id']
-    list_editable = ['status', 'user_type', 'is_phone_verified']
+    list_editable = ['user_type', 'is_phone_verified']
     readonly_fields = ['created_at', 'updated_at']
     
     # BaseUserAdmin의 기본 fieldsets를 오버라이드하여 first_name, last_name 제거
@@ -25,7 +25,7 @@ class UserAdmin(BaseUserAdmin):
             'fields': ('birth', 'address', 'address_is_public')
         }),
         ('권한', {
-            'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')
+            'fields': ('is_active', 'is_staff',  'groups', 'user_permissions')
         }),
         ('중요한 날짜', {
             'fields': ('last_login', 'date_joined')

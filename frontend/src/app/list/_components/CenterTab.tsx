@@ -135,7 +135,7 @@ function CenterTab() {
   // 에러 상태 처리
   if (error) {
     return (
-      <div className="text-center py-8">
+      <div className="py-8 text-center">
         <div className="text-red-500">센터 목록을 불러오는데 실패했습니다</div>
       </div>
     );
@@ -144,7 +144,7 @@ function CenterTab() {
   // 데이터가 없는 경우
   if (allCenters.length === 0 && !isLoading) {
     return (
-      <div className="text-center py-8">
+      <div className="py-8 text-center">
         <div className="text-gray-500">등록된 센터가 없습니다</div>
       </div>
     );

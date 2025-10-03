@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useMemo } from "react";
+import React, { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "@phosphor-icons/react";
 
@@ -11,7 +11,7 @@ import { DotProgressBar } from "@/components/ui/DotProgressBar";
 import { PetCard } from "@/components/ui/PetCard";
 import { BigButton } from "@/components/ui/BigButton";
 import { SectionLine } from "../../_components/SectionLine";
-import { useGetCenterAdoptions } from "@/hooks/query/useGetCenterAdoptions";
+import { useGetCenterAdoption } from "@/hooks";
 import { useGetAdoptionMonitoringPosts } from "@/hooks/query/useGetAdoptionMonitoringPosts";
 import { transformRawAnimalToPetCard } from "@/types/animal";
 import { useGetAnimalById } from "@/hooks/query/useGetAnimals";
@@ -24,23 +24,15 @@ export default function AdoptionWritingPage({
   params,
 }: AdoptionWritingPageProps) {
   const router = useRouter();
+  const [userMemo, setUserMemo] = useState("");
   const { id } = use(params);
 
-  // 센터 입양 신청 목록 조회
+  // 개별 입양 신청 조회
   const {
-    data: adoptionsData,
+    data: adoptionData,
     isLoading: adoptionLoading,
     error: adoptionError,
-  } = useGetCenterAdoptions({
-    page: 1,
-    limit: 100, // 충분한 데이터를 가져오기 위해 큰 값 설정
-  });
-
-  // 현재 입양 신청 찾기
-  const adoptionData = useMemo(() => {
-    if (!adoptionsData?.data) return null;
-    return adoptionsData.data.find((adoption) => adoption.id === id) || null;
-  }, [adoptionsData, id]);
+  } = useGetCenterAdoption(id);
 
   // 입양 모니터링 포스트 조회
   const {
@@ -55,6 +47,13 @@ export default function AdoptionWritingPage({
     isLoading: animalLoading,
     error: animalError,
   } = useGetAnimalById(adoptionData?.animal_id || "");
+
+  // user_memo 초기값 설정
+  React.useEffect(() => {
+    if (adoptionData?.user_memo !== undefined) {
+      setUserMemo(adoptionData.user_memo || "");
+    }
+  }, [adoptionData?.user_memo]);
 
   const handleBack = () => {
     router.back();
@@ -245,6 +244,23 @@ export default function AdoptionWritingPage({
                   </BigButton>
                 </div>
               </div>
+              
+              {/* User Memo Section */}
+              <div className="mb-6">
+                <h3 className="mb-3 text-bk">신청자 메모</h3>
+                <div className="p-4 bg-white rounded-lg">
+                  <textarea
+                    className="w-full p-3 border border-gray-300 rounded-lg resize-none"
+                    rows={4}
+                    placeholder="입양 신청자에 대한 메모를 입력하세요..."
+                    value={userMemo}
+                    onChange={(e) => setUserMemo(e.target.value)}
+                  />
+                  <div className="mt-2 text-xs text-gray-500">
+                    이 메모는 상태 변경 시 함께 저장됩니다.
+                  </div>
+                </div>
+              </div>
             </SectionLine>
 
             <SectionLine>
@@ -296,7 +312,7 @@ export default function AdoptionWritingPage({
                             <p className="text-sm text-gray-600 line-clamp-3">
                               {post.content}
                             </p>
-                            {post.images && post.images.length > 0 && (
+                            {Array.isArray(post.images) && post.images.length > 0 && (
                               <div className="mt-3">
                                 <div className="w-16 h-16 bg-gray-200 rounded-lg"></div>
                               </div>

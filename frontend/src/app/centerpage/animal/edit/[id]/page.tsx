@@ -219,7 +219,7 @@ export default function EditAnimal({
       <Container className="min-h-screen bg-wh">
         <div className="flex items-center justify-center h-screen">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand mx-auto mb-4"></div>
+            <div className="w-8 h-8 mx-auto mb-4 border-b-2 rounded-full animate-spin border-brand"></div>
             <p>동물 정보를 불러오는 중...</p>
           </div>
         </div>
@@ -253,7 +253,7 @@ export default function EditAnimal({
             <h4>새로운 아이 업로드</h4>
           </div>
         }
-        right={<h6 className="text-gr">공공데이터 매칭</h6>}
+        right={<h6 className="text-gr">{/* 공공데이터 매칭 */}</h6>}
       />
       <div className="mb-20">
         <BasicInfo

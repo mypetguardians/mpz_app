@@ -185,6 +185,14 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
       return;
     }
 
+    // 센터 회원인 경우 토스트 메시지 표시
+    if (user?.userType !== "일반사용자") {
+      setToastMessage("일반회원계정으로 로그인해주세요");
+      setToastType("error");
+      setShowToast(true);
+      return;
+    }
+
     // 구독 센터인 경우 전화번호 인증 상태에 따라 다른 경로로 이동
     if (isCenterSubscriber) {
       // 스토어에 동물 정보 설정
@@ -335,7 +343,7 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
       <Container>
         <div className="min-h-screen bg-gray-50">
           {/* TopBar 스켈레톤 */}
-          <div className="border-b border-lg bg-white">
+          <div className="bg-white border-b border-lg">
             <div className="flex items-center justify-between px-4 py-3">
               <div className="w-8 h-8 bg-gray-200 rounded animate-pulse" />
               <div className="w-24 h-6 bg-gray-200 rounded animate-pulse" />
@@ -344,7 +352,7 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
           </div>
 
           {/* 이미지 스켈레톤 */}
-          <div className="w-full h-80 bg-gray-200 animate-pulse" />
+          <div className="w-full bg-gray-200 h-80 animate-pulse" />
 
           {/* 정보 스켈레톤 */}
           <div className="px-4 py-6 space-y-4">
@@ -361,7 +369,7 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
   if (error || !animal) {
     return (
       <Container>
-        <div className="text-center py-8">동물을 찾을 수 없습니다.</div>
+        <div className="py-8 text-center">동물을 찾을 수 없습니다.</div>
       </Container>
     );
   }
@@ -383,7 +391,7 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
 
   return (
     <>
-      <Container className="min-h-screen bg-gray-50 pb-20">
+      <Container className="min-h-screen pb-20 bg-gray-50">
         <TopBar
           variant="variant5"
           className="border-b border-lg"
@@ -494,7 +502,7 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
               : undefined
           }
           isVerified={center?.verified || false}
-          className="border-y border-bg mt-6 mb-8 pb-5"
+          className="pb-5 mt-6 mb-8 border-y border-bg"
           isAuthenticated={isAuthenticated}
           onShowLoginModal={() => setShowLoginModal(true)}
         />

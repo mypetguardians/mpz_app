@@ -75,7 +75,7 @@ export default function CommunityPage() {
 
     return (
       <div className="py-5">
-        <div className="relative w-full h-20 rounded-lg overflow-hidden cursor-pointer">
+        <div className="relative w-full h-20 overflow-hidden rounded-lg cursor-pointer">
           {bannersLoading ? (
             <div className="w-full h-full bg-gray-200 animate-pulse" />
           ) : (
@@ -93,7 +93,7 @@ export default function CommunityPage() {
                 }}
               />
               <div className="absolute inset-0 flex items-center px-5">
-                <span className="text-sm text-white font-medium">
+                <span className="text-sm font-medium text-white">
                   {targetBanner.title}
                 </span>
               </div>
@@ -124,20 +124,10 @@ export default function CommunityPage() {
 
   const [activeTab, setActiveTab] = useState("latest");
 
-  // systemTags가 로드된 후 activeTab 업데이트
-  useEffect(() => {
-    if (systemTags && systemTags.length > 0 && activeTab === "latest") {
-      // 기본값은 "latest"로 유지
-    }
-  }, [systemTags, activeTab]);
+  // URL 동기화 없이 프론트 상태로만 필터링
 
-  // API 요청 파라미터 디버깅
-  const apiParams = useMemo(() => {
-    const params = {
-      tags: activeTab !== "latest" ? [activeTab] : undefined,
-    };
-    return params;
-  }, [activeTab]);
+  // API에는 태그 파라미터를 넘기지 않음 (클라이언트 측 필터링)
+  const apiParams = useMemo(() => ({} as const), []);
 
   // 센터권한자용 게시글 조회
   const {
@@ -161,7 +151,7 @@ export default function CommunityPage() {
     const publicPosts = publicPostsData?.data || [];
     const combined = [...centerPosts, ...publicPosts];
     return combined;
-  }, [centerPostsData, publicPostsData, activeTab]);
+  }, [centerPostsData, publicPostsData]);
 
   const postsData = useMemo(() => ({ data: allPosts }), [allPosts]);
   const isLoading = centerPostsLoading || publicPostsLoading;
@@ -202,7 +192,6 @@ export default function CommunityPage() {
   // 댓글 수를 포함한 CommunityCard 컴포넌트
   const CommunityCardWithComments = ({
     post,
-    index,
   }: {
     post: Post;
     index: number;
@@ -230,7 +219,6 @@ export default function CommunityPage() {
 
     return (
       <div key={post.id}>
-        {(index === 0 || (index + 1) % 3 === 0) && <BannerSection />}
         <div className="pt-4">
           <a href={`/community/${post.id}`} className="block">
             <CommunityCard
@@ -256,8 +244,12 @@ export default function CommunityPage() {
   };
 
   const filteredPosts: Post[] = useMemo(() => {
-    return posts;
-  }, [posts]);
+    if (activeTab === "latest") return posts;
+    const selected = activeTab.toLowerCase();
+    return posts.filter((p) =>
+      p.tags?.some((t) => (t.tag_name || "").toLowerCase() === selected)
+    );
+  }, [posts, activeTab]);
 
   const currentUserId = user?.id;
 
@@ -347,7 +339,6 @@ export default function CommunityPage() {
           <div className="space-y-4">
             {[...Array(5)].map((_, index) => (
               <div key={index}>
-                {(index === 0 || (index + 1) % 4 === 0) && <BannerSection />}
                 <div className="pt-4">
                   <CommunityCardSkeleton />
                 </div>
@@ -443,11 +434,15 @@ export default function CommunityPage() {
           tabs={tabs}
           variant="primary"
         />
-        {(() => {
-          return null;
-        })()}
       </div>
-      <div className="flex-1 mx-4 overflow-y-auto scrollbar-hide">
+      {/* 상단 고정 배너 */}
+      <div className="mx-4">
+        <BannerSection />
+      </div>
+      <div
+        className="flex-1 mx-4 overflow-y-auto scrollbar-hide"
+        key={activeTab}
+      >
         {isLoading ? (
           // 로딩 중일 때 스켈레톤 표시
           <div className="space-y-4">
@@ -461,8 +456,8 @@ export default function CommunityPage() {
             ))}
           </div>
         ) : filteredPosts.length === 0 ? (
-          <div className="flex flex-col h-full items-center justify-center">
-            <h5 className="text-lg text-sm text-center">
+          <div className="flex flex-col items-center justify-center h-full">
+            <h5 className="text-sm text-lg text-center">
               아직 업로드된 게시글이 없어요.
               <br />첫 번째 게시글을 작성해보세요!
             </h5>
@@ -482,12 +477,12 @@ export default function CommunityPage() {
       </div>
 
       {/* 글쓰기 플로팅 버튼 */}
-      <div className="fixed z-50 bottom-20 right-4">
+      <div className="fixed z-50 translate-x-20 bottom-20 left-1/2">
         <BigButton
           variant="primary"
           left={<Plus size={16} />}
           onClick={handleWritePost}
-          className="px-6"
+          className="px-3"
         >
           글쓰기
         </BigButton>

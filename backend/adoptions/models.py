@@ -52,6 +52,9 @@ class Adoption(BaseModel):
     # 센터 관리자의 처리 메모
     center_notes = models.TextField(blank=True, null=True, help_text="센터 메모")
     
+    # 입양 신청자에 대한 메모
+    user_memo = models.TextField(blank=True, null=True, help_text="입양 신청자에 대한 메모")
+    
     class Meta:
         db_table = 'adoptions'
         verbose_name = '입양 신청'

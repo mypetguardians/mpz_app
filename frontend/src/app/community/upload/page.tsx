@@ -68,10 +68,10 @@ export default function CommunityUploadPage() {
   const { user } = useAuth();
   const isAdmin = user?.userType !== "일반사용자";
 
-  // 사용자 타입에 따라 초기 공개 범위를 지정
+  // 사용자 타입에 따라 초기 공개 범위를 지정 - 센터 계정은 항상 전체공개
   useEffect(() => {
     if (!user) return;
-    setPublicType(isAdmin ? "center" : "public");
+    setPublicType(isAdmin ? "public" : "public");
   }, [isAdmin, user]);
 
   const { data: adoptionsData } = useGetUserAdoptions({
@@ -337,20 +337,20 @@ export default function CommunityUploadPage() {
 
         {/* 내용 입력 */}
         <div className="mb-6">
-          <h5 className="text-dg mb-2">내용</h5>
+          <h5 className="mb-2 text-dg">내용</h5>
           <textarea
             placeholder="오늘은 어떤 이야기를 나눠볼까요? 사진과 태그를 이용해 자유롭게 작성해보세요! #태그를 사용해보세요"
             value={content}
             onChange={handleContentChange}
-            className="w-full h-32 p-4 border border-lg rounded-md resize-none text-body placeholder:text-gr focus:outline-none focus:border-brand"
+            className="w-full h-32 p-4 border rounded-md resize-none border-lg text-body placeholder:text-gr focus:outline-none focus:border-brand"
           />
           {/* 추출된 태그 표시 */}
           {tags.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 mt-2">
               {tags.map((tag, index) => (
                 <span
                   key={index}
-                  className="px-2 py-1 bg-brand text-wh text-xs rounded-full"
+                  className="px-2 py-1 text-xs rounded-full bg-brand text-wh"
                 >
                   #{tag}
                 </span>
@@ -381,7 +381,7 @@ export default function CommunityUploadPage() {
                 icon={({ size }) => <X size={size} />}
                 size="iconS"
                 onClick={removePet}
-                className="absolute top-3 right-3 text-gray-400"
+                className="absolute text-gray-400 top-3 right-3"
               />
             </div>
           ) : (
@@ -393,8 +393,8 @@ export default function CommunityUploadPage() {
 
         {/* 사진/영상 업로드 */}
         <div className="mb-6">
-          <h5 className="text-dg mb-2">사진 / 영상 업로드</h5>
-          <div className="flex gap-3 flex-wrap">
+          <h5 className="mb-2 text-dg">사진 / 영상 업로드</h5>
+          <div className="flex flex-wrap gap-3">
             {/* 업로드 버튼 */}
             {uploadedImageUrls.length < 5 && (
               <label>
@@ -440,9 +440,9 @@ export default function CommunityUploadPage() {
       {/* 하단 고정 버튼 */}
       <FixedBottomBar
         variant="variant2"
-        resetButtonText={getPublicText()}
-        resetButtonLeft={getPublicIcon()}
-        onResetButtonClick={handlePublicChange}
+        resetButtonText={isAdmin ? "전체공개" : getPublicText()}
+        resetButtonLeft={isAdmin ? <Globe size={16} /> : getPublicIcon()}
+        onResetButtonClick={isAdmin ? undefined : handlePublicChange}
         applyButtonText={isPending ? "등록하는 중..." : "등록하기"}
         onApplyButtonClick={handleSave}
         applyButtonDisabled={!isFormValid || creating || uploading}

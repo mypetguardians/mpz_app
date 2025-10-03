@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useState, useMemo } from "react";
+import React, { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, LockSimple } from "@phosphor-icons/react";
 
@@ -13,12 +13,12 @@ import { BigButton } from "@/components/ui/BigButton";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Toast } from "@/components/ui/Toast";
 import { SectionLine } from "../../_components/SectionLine";
-import { useGetCenterAdoptions, useUpdateAdoptionStatus } from "@/hooks";
-import { useGetAdoptionMonitoringPosts } from "@/hooks/query/useGetAdoptionMonitoringPosts";
+import { useGetCenterAdoption, useUpdateAdoptionStatus } from "@/hooks";
+/* import { useGetAdoptionMonitoringPosts } from "@/hooks/query/useGetAdoptionMonitoringPosts"; */
 import { transformRawAnimalToPetCard } from "@/types/animal";
 import { useGetAnimalById } from "@/hooks/query/useGetAnimals";
-import type { CenterAdoptionData } from "@/types/center-adoption";
-import type { AdoptionMonitoringPost } from "@/types/adoption-monitoring";
+// import type { CenterAdoptionData } from "@/types/center-adoption";
+/* import type { AdoptionMonitoringPost } from "@/types/adoption-monitoring"; */
 
 interface AdoptionRequestPageProps {
   params: Promise<{ id: string }>;
@@ -32,30 +32,22 @@ export default function AdoptionRequestPage({
   const [showAcceptModal, setShowAcceptModal] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [userMemo, setUserMemo] = useState("");
   const { id } = use(params);
 
-  // 센터 입양 신청 목록 조회
+  // 개별 입양 신청 조회
   const {
-    data: adoptionsData,
+    data: currentAdoption,
     isLoading,
     error,
-  } = useGetCenterAdoptions({
-    page: 1,
-    limit: 100, // 충분한 데이터를 가져오기 위해 큰 값 설정
-  });
-
-  // 현재 입양 신청 찾기
-  const currentAdoption = useMemo((): CenterAdoptionData | null => {
-    if (!adoptionsData?.data) return null;
-    return adoptionsData.data.find((adoption) => adoption.id === id) || null;
-  }, [adoptionsData, id]);
+  } = useGetCenterAdoption(id);
 
   // 입양 모니터링 포스트 조회
-  const {
+/*   const {
     data: monitoringPostsData,
     isLoading: isPostsLoading,
     error: postsError,
-  } = useGetAdoptionMonitoringPosts(id, 1, 10);
+  } = useGetAdoptionMonitoringPosts(id, 1, 10); */
 
   // 동물 정보 가져오기 (입양 데이터에서 animal_id 추출)
   const {
@@ -67,6 +59,13 @@ export default function AdoptionRequestPage({
   // 입양 상태 업데이트
   const updateAdoptionStatus = useUpdateAdoptionStatus();
 
+  // user_memo 초기값 설정
+  React.useEffect(() => {
+    if (currentAdoption?.user_memo !== undefined) {
+      setUserMemo(currentAdoption.user_memo || "");
+    }
+  }, [currentAdoption?.user_memo]);
+
   const handleAcceptConfirm = async () => {
     if (!currentAdoption) return;
 
@@ -75,6 +74,7 @@ export default function AdoptionRequestPage({
         adoptionId: currentAdoption.id,
         status: "미팅",
         center_notes: "입양 신청이 수락되었습니다.",
+        user_memo: userMemo, // 현재 입력된 메모 사용
       });
 
       setShowAcceptModal(false);
@@ -100,6 +100,7 @@ export default function AdoptionRequestPage({
         adoptionId: currentAdoption.id,
         status: "취소",
         center_notes: "입양 신청이 거절되었어요.",
+        user_memo: userMemo, // 현재 입력된 메모 사용
       });
 
       setShowRejectModal(false);
@@ -158,9 +159,9 @@ export default function AdoptionRequestPage({
               </div>
             }
           />
-          <div className="flex-1 bg-white rounded-t-3xl -mt-4 relative z-10">
+          <div className="relative z-10 flex-1 -mt-4 bg-white rounded-t-3xl">
             <div className="p-4">
-              <div className="text-center py-8">로딩 중...</div>
+              <div className="py-8 text-center">로딩 중...</div>
             </div>
           </div>
         </Container>
@@ -171,7 +172,7 @@ export default function AdoptionRequestPage({
   // 데이터가 없는 경우 처리
   if (!currentAdoption || !animalData) {
     return (
-      <div className="min-h-screen bg-bg flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-screen bg-bg">
         <div className="text-center">
           <div className="text-red-500">데이터를 찾을 수 없습니다.</div>
         </div>
@@ -182,9 +183,9 @@ export default function AdoptionRequestPage({
   // 에러 상태 처리
   if (error) {
     return (
-      <div className="min-h-screen bg-bg flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-screen bg-bg">
         <div className="text-center">
-          <div className="text-red-500 mb-2">
+          <div className="mb-2 text-red-500">
             입양 신청 데이터를 불러오는 중 오류가 발생했습니다
           </div>
           <div className="text-sm text-gray-500">{error.message}</div>
@@ -195,9 +196,9 @@ export default function AdoptionRequestPage({
 
   if (animalError) {
     return (
-      <div className="min-h-screen bg-bg flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-screen bg-bg">
         <div className="text-center">
-          <div className="text-red-500 mb-2">
+          <div className="mb-2 text-red-500">
             동물 정보를 불러오는 중 오류가 발생했습니다
           </div>
           <div className="text-sm text-gray-500">{animalError.message}</div>
@@ -211,7 +212,7 @@ export default function AdoptionRequestPage({
 
   if (!petCardData) {
     return (
-      <div className="min-h-screen bg-bg flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-screen bg-bg">
         <div className="text-center">
           <div className="text-red-500">동물 정보를 변환할 수 없습니다.</div>
         </div>
@@ -238,10 +239,10 @@ export default function AdoptionRequestPage({
         />
 
         {/* Main Content */}
-        <div className="flex-1 bg-white rounded-t-3xl -mt-4 relative z-10">
+        <div className="relative z-10 flex-1 -mt-4 bg-white rounded-t-3xl">
           <div className="p-4">
             {/* Main Title */}
-            <h2 className="flex itemx-center justify-center text-bk mb-6">
+            <h2 className="flex justify-center mb-6 itemx-center text-bk">
               센터의 확인을 기다리고 있어요
             </h2>
 
@@ -250,63 +251,63 @@ export default function AdoptionRequestPage({
 
             {/* Pet Info */}
             <SectionLine>
-              <h3 className="text-bk mb-3">입양 신청 동물</h3>
+              <h3 className="mb-3 text-bk">입양 신청 동물</h3>
               <PetCard pet={petCardData} variant="variant4" />
             </SectionLine>
             <SectionLine>
               {/* My Information */}
               <div className="mb-6">
-                <h3 className="text-bk mb-3">입양 신청자 정보</h3>
-                <div className="bg-white rounded-lg p-4">
+                <h3 className="mb-3 text-bk">입양 신청자 정보</h3>
+                <div className="p-4 bg-white rounded-lg">
                   <table className="w-full">
                     <tbody className="space-y-1">
                       <tr>
-                        <td className="text-gr h5 py-1 pr-3 align-top w-20">
+                        <td className="w-20 py-1 pr-3 align-top text-gr h5">
                           이름
                         </td>
-                        <td className="text-sm py-1">
-                          <div className="py-1 px-3">
+                        <td className="py-1 text-sm">
+                          <div className="px-3 py-1">
                             {currentAdoption.user_info.name}
                           </div>
                         </td>
                       </tr>
                       <tr>
-                        <td className="text-gr h5 py-1 pr-3 align-top w-20">
+                        <td className="w-20 py-1 pr-3 align-top text-gr h5">
                           생년월일
                         </td>
-                        <td className="text-sm py-1">
-                          <div className="py-1 px-3 text-gr">
+                        <td className="py-1 text-sm">
+                          <div className="px-3 py-1 text-gr">
                             수락해야만 공개돼요
                           </div>
                         </td>
                       </tr>
                       <tr>
-                        <td className="text-gr h5 py-1 pr-3 align-top w-20">
+                        <td className="w-20 py-1 pr-3 align-top text-gr h5">
                           성별
                         </td>
-                        <td className="text-sm py-1">
-                          <div className="py-1 px-3 text-gr">
+                        <td className="py-1 text-sm">
+                          <div className="px-3 py-1 text-gr">
                             수락해야만 공개돼요
                           </div>
                         </td>
                       </tr>
                       <tr>
-                        <td className="text-gr h5 py-1 pr-3 align-top w-20">
+                        <td className="w-20 py-1 pr-3 align-top text-gr h5">
                           주소
                         </td>
-                        <td className="text-sm py-1">
-                          <div className="py-1 px-3 flex items-center gap-1 text-gr">
+                        <td className="py-1 text-sm">
+                          <div className="flex items-center gap-1 px-3 py-1 text-gr">
                             <LockSimple size={12} />
                             <p>수락해야만 공개돼요</p>
                           </div>
                         </td>
                       </tr>
                       <tr>
-                        <td className="text-gr h5 py-1 pr-3 align-top w-20">
+                        <td className="w-20 py-1 pr-3 align-top text-gr h5">
                           전화번호
                         </td>
-                        <td className="text-sm py-1">
-                          <div className="py-1 px-3 flex items-center gap-1 text-gr">
+                        <td className="py-1 text-sm">
+                          <div className="flex items-center gap-1 px-3 py-1 text-gr">
                             <LockSimple size={12} />
                             <p>수락해야만 공개돼요</p>
                           </div>
@@ -316,6 +317,24 @@ export default function AdoptionRequestPage({
                   </table>
                 </div>
               </div>
+              
+              {/* User Memo Section */}
+              <div className="mb-6">
+                <h3 className="mb-3 text-bk">신청자 메모</h3>
+                <div className="p-4 bg-white rounded-lg">
+                  <textarea
+                    className="w-full p-3 border border-gray-300 rounded-lg resize-none"
+                    rows={4}
+                    placeholder="입양 신청자에 대한 메모를 입력하세요..."
+                    value={userMemo}
+                    onChange={(e) => setUserMemo(e.target.value)}
+                  />
+                  <div className="mt-2 text-xs text-gray-500">
+                    이 메모는 상태 변경 시 함께 저장됩니다.
+                  </div>
+                </div>
+              </div>
+              
               <div className="flex flex-col items-center gap-2">
                 <BigButton
                   variant="variant5"
@@ -334,25 +353,25 @@ export default function AdoptionRequestPage({
               </div>
             </SectionLine>
 
-            <SectionLine>
-              <h3 className="text-bk mb-3">입양 신청자가 올린 글</h3>
+       {/*      <SectionLine>
+              <h3 className="mb-3 text-bk">입양 신청자가 올린 글</h3>
               {isPostsLoading ? (
                 <div className="flex flex-col gap-4">
                   {[1, 2, 3].map((i) => (
                     <div
                       key={i}
-                      className="h-32 bg-gray-200 animate-pulse rounded-lg"
+                      className="h-32 bg-gray-200 rounded-lg animate-pulse"
                     />
                   ))}
                 </div>
               ) : postsError ? (
-                <div className="text-center py-8 text-gray-500">
+                <div className="py-8 text-center text-gray-500">
                   아직 업로드된 게시글이 없어요.
                 </div>
               ) : !monitoringPostsData?.data ||
                 monitoringPostsData.data.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="text-lg text-sm mb-4">
+                <div className="py-8 text-center">
+                  <div className="mb-4 text-sm text-lg">
                     아직 업로드된 게시글이 없어요.
                   </div>
                 </div>
@@ -365,12 +384,12 @@ export default function AdoptionRequestPage({
                         className="cursor-pointer"
                         onClick={() => router.push(`/community/${post.id}`)}
                       >
-                        <div className="bg-white rounded-lg p-4 border border-gray-200">
+                        <div className="p-4 bg-white border border-gray-200 rounded-lg">
                           <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 bg-gray-300 rounded-full flex-shrink-0"></div>
+                            <div className="flex-shrink-0 w-10 h-10 bg-gray-300 rounded-full"></div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-2">
-                                <span className="font-medium text-sm text-gray-900">
+                                <span className="text-sm font-medium text-gray-900">
                                   {post.user_nickname}
                                 </span>
                                 <span className="text-xs text-gray-500">
@@ -379,13 +398,13 @@ export default function AdoptionRequestPage({
                                   ).toLocaleDateString()}
                                 </span>
                               </div>
-                              <h4 className="font-medium text-gray-900 mb-2 line-clamp-2">
+                              <h4 className="mb-2 font-medium text-gray-900 line-clamp-2">
                                 {post.title}
                               </h4>
                               <p className="text-sm text-gray-600 line-clamp-3">
                                 {post.content}
                               </p>
-                              {post.images && post.images.length > 0 && (
+                              {Array.isArray(post.images) && post.images.length > 0 && (
                                 <div className="mt-3">
                                   <div className="w-16 h-16 bg-gray-200 rounded-lg"></div>
                                 </div>
@@ -398,7 +417,7 @@ export default function AdoptionRequestPage({
                   )}
                 </div>
               )}
-            </SectionLine>
+            </SectionLine> */}
 
             {/* Action Buttons */}
             <div className="flex items-center gap-3">

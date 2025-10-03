@@ -202,7 +202,7 @@ export default function AddAnimal() {
             <h4>새로운 아이 업로드</h4>
           </div>
         }
-        right={<h6 className="text-gr">공공데이터 매칭</h6>}
+        right={<h6 className="text-gr">{/* 공공데이터 매칭 */}</h6>}
       />
       <div className="mb-20">
         <BasicInfo

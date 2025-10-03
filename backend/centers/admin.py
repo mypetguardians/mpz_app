@@ -82,7 +82,7 @@ class AdoptionContractTemplateAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(QuestionForm)
+""" @admin.register(QuestionForm)
 class QuestionFormAdmin(admin.ModelAdmin):
     list_display = ['center', 'question', 'type', 'is_required', 'sequence', 'created_at']
     list_filter = ['center', 'type', 'is_required']
@@ -101,4 +101,4 @@ class QuestionFormAdmin(admin.ModelAdmin):
             'fields': ('created_at', 'updated_at'),
             'classes': ('collapse',)
         }),
-    )
+    ) """

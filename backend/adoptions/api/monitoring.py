@@ -653,8 +653,8 @@ async def get_monitoring_posts(request, adoption_id: str):
             raise HttpError(404, "입양 신청을 찾을 수 없습니다")
         
         # 모니터링 포스트 조회
-         @sync_to_async
-         def get_monitoring_posts_list():
+        @sync_to_async
+        def get_monitoring_posts_list():
             return list(
                 AdoptionMonitoring.objects.filter(adoption=adoption)
                 .order_by('-created_at')

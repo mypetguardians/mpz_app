@@ -24,6 +24,10 @@ class UserAdmin(BaseUserAdmin):
         ('추가 정보', {
             'fields': ('birth', 'address', 'address_is_public')
         }),
+        ('관리자 정보', {
+            'fields': ('admin_memo',),
+            'classes': ('collapse',)
+        }),
         ('권한', {
             'fields': ('is_active', 'is_staff',  'groups', 'user_permissions')
         }),

@@ -511,7 +511,7 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
 
         <RelatedAnimals
           pets={relatedAnimals}
-          location={animal.found_location || ""}
+          location={center?.location?.split(' ')[0] || ""}
         />
       </Container>
 

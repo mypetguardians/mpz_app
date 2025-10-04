@@ -1412,3 +1412,33 @@ WARNING 2025-10-04 03:17:41,127 log 87726 6198292480 Not Found: /socket.io/
 WARNING 2025-10-04 03:17:41,127 basehttp 87726 6198292480 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 404 2654
 INFO 2025-10-04 03:20:56,398 autoreload 87726 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
 INFO 2025-10-04 03:20:57,448 autoreload 92518 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-04 11:03:04,858 basehttp 92518 6332624896 "OPTIONS /v1/banners?type=sub HTTP/1.1" 200 0
+INFO 2025-10-04 11:03:04,859 basehttp 92518 6349451264 "OPTIONS /v1/banners?type=main HTTP/1.1" 200 0
+INFO 2025-10-04 11:03:04,860 basehttp 92518 6366277632 "OPTIONS /v1/animals/?page_size=100&sort_by=admission_date&sort_order=asc&page=1 HTTP/1.1" 200 0
+INFO 2025-10-04 11:03:04,860 basehttp 92518 6298972160 "OPTIONS /v1/notifications/?page=1&page_size=10 HTTP/1.1" 200 0
+INFO 2025-10-04 11:03:04,861 basehttp 92518 6315798528 "OPTIONS /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 0
+INFO 2025-10-04 11:03:04,862 basehttp 92518 6332624896 "OPTIONS /v1/auth/me HTTP/1.1" 200 0
+INFO 2025-10-04 11:03:04,862 basehttp 92518 6298972160 "OPTIONS /v1/animals/?page_size=100&sort_by=megaphone_count&sort_order=desc&page=1 HTTP/1.1" 200 0
+INFO 2025-10-04 11:03:06,168 basehttp 92518 6282145792 "GET /v1/auth/me HTTP/1.1" 200 538
+INFO 2025-10-04 11:03:06,743 basehttp 92518 6265319424 "GET /v1/banners?type=main HTTP/1.1" 200 1083
+INFO 2025-10-04 11:03:06,747 basehttp 92518 6231666688 "GET /v1/banners?type=sub HTTP/1.1" 200 107
+INFO 2025-10-04 11:03:06,824 basehttp 92518 6248493056 "GET /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 1070
+INFO 2025-10-04 11:03:07,769 basehttp 92518 6298972160 "OPTIONS /v1/banners?type=main HTTP/1.1" 200 0
+INFO 2025-10-04 11:03:07,769 basehttp 92518 6332624896 "OPTIONS /v1/banners?type=sub HTTP/1.1" 200 0
+INFO 2025-10-04 11:03:07,840 basehttp 92518 6332624896 "OPTIONS /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 0
+INFO 2025-10-04 11:03:07,956 basehttp 92518 6231666688 "GET /v1/banners?type=sub HTTP/1.1" 200 107
+INFO 2025-10-04 11:03:07,972 basehttp 92518 6248493056 "GET /v1/banners?type=main HTTP/1.1" 200 1083
+INFO 2025-10-04 11:03:08,369 basehttp 92518 6214840320 "GET /v1/notifications/?page=1&page_size=10 HTTP/1.1" 200 7219
+INFO 2025-10-04 11:03:08,690 basehttp 92518 6265319424 "GET /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 1070
+INFO 2025-10-04 11:03:09,382 basehttp 92518 6332624896 "OPTIONS /v1/notifications/?page=1&page_size=10 HTTP/1.1" 200 0
+INFO 2025-10-04 11:03:10,085 basehttp 92518 6198013952 "GET /v1/animals/?page_size=100&sort_by=admission_date&sort_order=asc&page=1 HTTP/1.1" 200 164671
+INFO 2025-10-04 11:03:10,085 basehttp 92518 6198013952 - Broken pipe from ('127.0.0.1', 61094)
+INFO 2025-10-04 11:03:10,986 basehttp 92518 6282145792 "GET /v1/animals/?page_size=100&sort_by=megaphone_count&sort_order=desc&page=1 HTTP/1.1" 200 165614
+INFO 2025-10-04 11:03:10,987 basehttp 92518 6282145792 - Broken pipe from ('127.0.0.1', 61104)
+INFO 2025-10-04 11:03:11,090 basehttp 92518 6332624896 "OPTIONS /v1/animals/?page_size=100&sort_by=admission_date&sort_order=asc&page=1 HTTP/1.1" 200 0
+INFO 2025-10-04 11:03:12,014 basehttp 92518 6332624896 "OPTIONS /v1/animals/?page_size=100&sort_by=megaphone_count&sort_order=desc&page=1 HTTP/1.1" 200 0
+INFO 2025-10-04 11:03:12,098 basehttp 92518 6265319424 "GET /v1/notifications/?page=1&page_size=10 HTTP/1.1" 200 7219
+INFO 2025-10-04 11:03:15,106 basehttp 92518 6214840320 "GET /v1/animals/?page_size=100&sort_by=admission_date&sort_order=asc&page=1 HTTP/1.1" 200 164671
+INFO 2025-10-04 11:03:15,107 basehttp 92518 6214840320 - Broken pipe from ('127.0.0.1', 61098)
+INFO 2025-10-04 11:03:16,447 basehttp 92518 6248493056 "GET /v1/animals/?page_size=100&sort_by=megaphone_count&sort_order=desc&page=1 HTTP/1.1" 200 165614
+INFO 2025-10-04 11:03:16,448 basehttp 92518 6248493056 - Broken pipe from ('127.0.0.1', 61101)

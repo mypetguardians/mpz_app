@@ -49,10 +49,24 @@ class Banner(BaseModel):
         # 파일이 업로드된 경우 R2에 업로드하고 URL만 저장
         if self.image_file and hasattr(self.image_file, 'file'):
             try:
-                from cloudflare.services import R2Client
+                import boto3
                 
-                # R2 클라이언트 초기화
-                r2 = R2Client()
+                # R2 설정 (하드코딩)
+                R2_ACCOUNT_ID = "8d401410410a61e14cc2e67a1349462c"
+                R2_ACCESS_KEY = "941e949a32330cf45f5f702c0a8b494d"
+                R2_SECRET_KEY = "1e98588d8c9189f7974df479119ce80e2fba111619144c18e3ac9de0019a3d55"
+                R2_BUCKET = "mpz-animal-images"
+                R2_ENDPOINT = "https://8d401410410a61e14cc2e67a1349462c.r2.cloudflarestorage.com"
+                R2_PUBLIC_BASE_URL = "https://pub-cb782373d9db4c77afff3d6f1e4d28af.r2.dev"
+                
+                # boto3 클라이언트 생성
+                s3_client = boto3.client(
+                    's3',
+                    aws_access_key_id=R2_ACCESS_KEY,
+                    aws_secret_access_key=R2_SECRET_KEY,
+                    endpoint_url=R2_ENDPOINT,
+                    region_name='auto'
+                )
                 
                 # 파일 확장자 가져오기
                 file_extension = os.path.splitext(self.image_file.name)[1]
@@ -63,13 +77,16 @@ class Banner(BaseModel):
                 key = f"banners/{uuid.uuid4()}{file_extension}"
                 
                 # 파일을 R2에 업로드
-                file_data = self.image_file.read()
-                content_type = self.image_file.content_type or 'image/jpeg'
+                self.image_file.seek(0)  # 파일 포인터를 처음으로 이동
+                s3_client.upload_fileobj(
+                    self.image_file.file,
+                    R2_BUCKET,
+                    key,
+                    ExtraArgs={'ContentType': 'image/jpeg'}
+                )
                 
-                r2.upload_file(key=key, data=file_data, content_type=content_type)
-                
-                # R2 URL만 저장
-                self.image_url = f"{r2.public_base_url}/{key}"
+                # R2 URL 저장
+                self.image_url = f"{R2_PUBLIC_BASE_URL}/{key}"
                 
                 # 로컬 파일은 즉시 삭제
                 if self.image_file.name:

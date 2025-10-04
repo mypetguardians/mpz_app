@@ -214,6 +214,7 @@ export default function AdoptorlistDetailPage({
                 specialNotes: null,
                 healthNotes: null,
                 basicTraining: null,
+                trainerName: null,
                 trainerComment: null,
                 announceNumber: null,
                 announcementDate: null,

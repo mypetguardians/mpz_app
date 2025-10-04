@@ -32,6 +32,7 @@ class AnimalOut(Schema):
     special_notes: Optional[str] = Field(None, description="특이사항")
     health_notes: Optional[str] = Field(None, description="건강 정보")
     basic_training: Optional[int] = Field(None, description="기본 훈련 상태")
+    trainer_name: Optional[str] = Field(None, description="훈련사 이름")
     trainer_comment: Optional[str] = Field(None, description="훈련사 코멘트")
     announce_number: Optional[str] = Field(None, description="공고번호")
     display_notice_number: str = Field(..., description="표시용 공고번호 (announce_number 또는 public_notice_number)")

@@ -11,9 +11,18 @@ interface SubscriberDetailsProps {
   separationAnxiety?: number;
   healthNotes?: string[];
   basicTraining?: string;
+  trainerName?: string;
   trainerComment?: string;
   className?: string;
 }
+
+// 이름 마스킹 함수 (앞 두 글자만 보여주고 나머지는 oo로 처리)
+const maskName = (name: string | null | undefined): string => {
+  if (!name || name.length <= 2) {
+    return name || "";
+  }
+  return name.substring(0, 2) + "oo";
+};
 
 export default function SubscriberDetails({
   activityLevel = 0,
@@ -22,6 +31,7 @@ export default function SubscriberDetails({
   separationAnxiety = 0,
   healthNotes = [],
   basicTraining,
+  trainerName,
   trainerComment,
   className,
 }: SubscriberDetailsProps) {
@@ -33,8 +43,8 @@ export default function SubscriberDetails({
       )}
     >
       {/* 전문가 의견 */}
-      <div className="mb-3 border-b border-bg pb-3">
-        <h4 className="text-bk mb-3">전문가 의견 보기</h4>
+      <div className="pb-3 mb-3 border-b border-bg">
+        <h4 className="mb-3 text-bk">전문가 의견 보기</h4>
         <div className="grid grid-cols-2 gap-y-2 gap-x-5">
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">활동량</span>
@@ -73,15 +83,15 @@ export default function SubscriberDetails({
 
       {/* 건강 특이사항 */}
       <div className="mb-3">
-        <h5 className="text-gr mb-1">건강 특이사항</h5>
+        <h5 className="mb-1 text-gr">건강 특이사항</h5>
         {healthNotes && healthNotes.length > 0 ? (
           <ul className="space-y-1">
             {healthNotes.map((note, index) => (
               <li
                 key={index}
-                className="text-sm text-gray-700 flex items-start"
+                className="flex items-start text-sm text-gray-700"
               >
-                <span className="text-gray-400 mr-2">•</span>
+                <span className="mr-2 text-gray-400">•</span>
                 {note}
               </li>
             ))}
@@ -93,7 +103,7 @@ export default function SubscriberDetails({
 
       {/* 기본 훈련 여부 */}
       <div className="mb-3">
-        <h5 className="text-gr mb-1">기본 훈련 여부</h5>
+        <h5 className="mb-1 text-gr">기본 훈련 여부</h5>
         {basicTraining ? (
           <p className="text-sm text-gray-700">{basicTraining}</p>
         ) : (
@@ -103,13 +113,19 @@ export default function SubscriberDetails({
 
       {/* 훈련사 한 마디 */}
       <div className="mb-3">
-        <h5 className="text-gr mb-1">전문가 한 마디</h5>
+        <h5 className="mb-1 text-gr">전문가 한 마디</h5>
+       
         {trainerComment ? (
-          <p className="text-sm text-gray-700 leading-relaxed">
+          <p className="text-sm leading-relaxed text-gray-700">
             {trainerComment}
           </p>
         ) : (
           <p className="text-sm text-gray-700">내용이 없습니다.</p>
+        )}
+         {trainerName && (
+          <p className="mb-2 text-sm text-gray-600">
+            <span className="font-medium">훈련사:</span> {maskName(trainerName)}
+          </p>
         )}
       </div>
     </div>

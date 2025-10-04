@@ -40,6 +40,7 @@ interface ApiAnimalResponse {
   special_notes: string;
   health_notes: string;
   basic_training: number;
+  trainer_name: string;
   trainer_comment: string;
   announce_number: string;
   announcement_date: string;
@@ -92,6 +93,7 @@ const transformApiResponseToAnimal = (apiAnimal: ApiAnimalResponse): Animal => {
     specialNotes: apiAnimal.special_notes,
     healthNotes: apiAnimal.health_notes,
     basicTraining: apiAnimal.basic_training.toString(), // 숫자를 문자열로 변환
+    trainerName: apiAnimal.trainer_name,
     trainerComment: apiAnimal.trainer_comment,
     announceNumber: apiAnimal.announce_number,
     announcementDate: apiAnimal.announcement_date,

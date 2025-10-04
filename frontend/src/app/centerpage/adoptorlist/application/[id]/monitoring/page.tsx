@@ -270,7 +270,7 @@ export default function AdoptionMonitoringPage({
               </div>
               
               {/* User Memo Section */}
-              <div className="mb-6">
+              <div className="mt-4 mb-6">
                 <h3 className="mb-3 text-bk">신청자 메모</h3>
                 <div className="p-4 bg-white rounded-lg">
                   <textarea

@@ -244,11 +244,26 @@ export default function CommunityPage() {
   };
 
   const filteredPosts: Post[] = useMemo(() => {
-    if (activeTab === "latest") return posts;
-    const selected = activeTab.toLowerCase();
-    return posts.filter((p) =>
-      p.tags?.some((t) => (t.tag_name || "").toLowerCase() === selected)
-    );
+    let filtered = posts;
+    
+    // 탭 필터링
+    if (activeTab !== "latest") {
+      const selected = activeTab.toLowerCase();
+      filtered = posts.filter((p) =>
+        p.tags?.some((t) => (t.tag_name || "").toLowerCase() === selected)
+      );
+    }
+    
+    // 중복 제거 (id 기준으로)
+    const uniquePosts = filtered.reduce((acc, current) => {
+      const existingPost = acc.find(post => post.id === current.id);
+      if (!existingPost) {
+        acc.push(current);
+      }
+      return acc;
+    }, [] as Post[]);
+    
+    return uniquePosts;
   }, [posts, activeTab]);
 
   const currentUserId = user?.id;
@@ -466,7 +481,7 @@ export default function CommunityPage() {
           <div className="cursor-pointer">
             {filteredPosts.map((post, index) => (
               <CommunityCardWithComments
-                key={post.id}
+                key={`${post.id}-${index}`}
                 post={post}
                 index={index}
               />

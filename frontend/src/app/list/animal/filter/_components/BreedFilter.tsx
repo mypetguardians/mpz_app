@@ -106,6 +106,7 @@ export default function BreedFilter({
             placeholder="품종명을 검색해보세요"
             value={selectedBreed}
             onChange={(e) => setSelectedBreed(e.target.value)}
+            readOnly={true}
           />
         </div>
       </div>

@@ -28,6 +28,8 @@ import {
   useGetAnimalFavorites,
   useUploadImages,
 } from "@/hooks";
+import { useToast } from "@/hooks/useToast";
+import { NotificationToast } from "@/components/ui/NotificationToast";
 import type { PetCardAnimal } from "@/types/animal";
 import type { UserAdoptionOut } from "@/types/adoption";
 
@@ -67,6 +69,7 @@ export default function CommunityUploadPage() {
 
   const { user } = useAuth();
   const isAdmin = user?.userType !== "일반사용자";
+  const { showToast, hideToast, toast } = useToast();
 
   // 사용자 타입에 따라 초기 공개 범위를 지정 - 센터 계정은 항상 전체공개
   useEffect(() => {
@@ -79,6 +82,15 @@ export default function CommunityUploadPage() {
       status: undefined,
     },
   });
+
+  // 입양완료 상태의 입양 내역이 있는지 확인
+  const hasCompletedAdoptions = useMemo(() => {
+    const adoptionsArray =
+      (adoptionsData as { data?: UserAdoptionOut[] })?.data || adoptionsData;
+    if (!adoptionsArray || !Array.isArray(adoptionsArray)) return false;
+
+    return adoptionsArray.some((adoption) => adoption.status === "입양완료");
+  }, [adoptionsData]);
 
   const adoptionAnimals = useMemo(() => {
     const adoptionsArray =
@@ -185,6 +197,12 @@ export default function CommunityUploadPage() {
   };
 
   const handleSave = () => {
+    // 공고를 선택하지 않은 상태에서 센터공개로 글 작성 시도 시
+    if (!selectedPet && publicType === "center") {
+      showToast("동물을 선택해주세요", "error");
+      return;
+    }
+
     setShowSaveModal(true);
   };
 
@@ -446,6 +464,7 @@ export default function CommunityUploadPage() {
         applyButtonText={isPending ? "등록하는 중..." : "등록하기"}
         onApplyButtonClick={handleSave}
         applyButtonDisabled={!isFormValid || creating || uploading}
+        showResetButton={isAdmin || hasCompletedAdoptions}
       />
 
       {/* 공고 선택 BottomSheet */}
@@ -526,6 +545,15 @@ export default function CommunityUploadPage() {
         onLeftClick={() => setShowSaveModal(false)}
         onRightClick={handleConfirmSave}
       />
+
+      {/* 토스트 메시지 */}
+      {toast.show && (
+        <NotificationToast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
+      )}
     </Container>
   );
 }

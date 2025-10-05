@@ -253,10 +253,8 @@ export function PetCard({
               );
             })()}
             {createHeadingElement(
-              (breed || "종 미등록").length > 4
-                ? (breed || "종 미등록").slice(0, 4) + "..."
-                : breed || "종 미등록",
-              "text-bk"
+              breed || "종 미등록",
+              "text-bk truncate max-w-[80px]"
             )}
             {isFemale ? (
               <GenderFemale className="text-red" weight="bold" size={12} />
@@ -397,10 +395,8 @@ export function PetCard({
             );
           })()}
           {createHeadingElement(
-            (breed || "종 미등록").length > 4
-              ? (breed || "종 미등록").slice(0, 4) + "..."
-              : breed || "종 미등록",
-            cn("text-bk")
+            breed || "종 미등록",
+            cn("text-bk truncate max-w-[80px]")
           )}
           {isFemale ? (
             <GenderFemale className="text-red" weight="bold" />
@@ -449,10 +445,8 @@ export function PetCard({
           );
         })()}
         {createHeadingElement(
-          (breed || "종 미등록").length > 3
-            ? (breed || "종 미등록").slice(0, 3) + "..."
-            : breed || "종 미등록",
-          cn("text-bk")
+          breed || "종 미등록",
+          cn("text-bk truncate max-w-[60px]")
         )}
         {isFemale ? (
           <GenderFemale className="text-red" weight="bold" />

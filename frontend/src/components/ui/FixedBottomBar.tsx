@@ -10,7 +10,6 @@ export interface FixedBottomBarProps {
   children?: React.ReactNode;
   className?: string;
   variant?: "variant1" | "variant2" | "variant3";
-  // Variant 1 props (BigButton + IconButton)
   leftButtonText?: string;
   onLeftButtonClick?: () => void;
   leftButtonDisabled?: boolean;
@@ -29,6 +28,7 @@ export interface FixedBottomBarProps {
   resetButtonText?: string;
   resetButtonLeft?: React.ReactNode;
   onResetButtonClick?: () => void;
+  showResetButton?: boolean;
   applyButtonText?: string;
   applyButtonLeft?: React.ReactNode;
   applyButtonRight?: React.ReactNode;
@@ -61,6 +61,7 @@ export function FixedBottomBar({
   resetButtonText = "재설정",
   resetButtonLeft,
   onResetButtonClick,
+  showResetButton = true,
   applyButtonText = "적용하기",
   applyButtonLeft,
   applyButtonRight,
@@ -164,12 +165,14 @@ export function FixedBottomBar({
         </div>
       ) : (
         <div className="flex items-center gap-3">
-          <MiniButton
-            text={resetButtonText}
-            variant="primary"
-            leftIcon={resetButtonLeft}
-            onClick={onResetButtonClick}
-          />
+          {showResetButton && (
+            <MiniButton
+              text={resetButtonText}
+              variant="primary"
+              leftIcon={resetButtonLeft}
+              onClick={onResetButtonClick}
+            />
+          )}
 
           <BigButton
             variant="primary"

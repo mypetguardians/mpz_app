@@ -228,7 +228,7 @@ export default function CenterSettingName() {
 
   if (isLoading) {
     return (
-      <Container className="min-h-screen relative">
+      <Container className="relative min-h-screen">
         <TopBar
           variant="variant4"
           left={
@@ -251,7 +251,7 @@ export default function CenterSettingName() {
 
   if (!myCenter) {
     return (
-      <Container className="min-h-screen relative">
+      <Container className="relative min-h-screen">
         <TopBar
           variant="variant4"
           left={
@@ -273,7 +273,7 @@ export default function CenterSettingName() {
   }
 
   return (
-    <Container className="min-h-screen relative">
+    <Container className="relative min-h-screen">
       <TopBar
         variant="variant4"
         left={
@@ -343,7 +343,7 @@ export default function CenterSettingName() {
           <h5 className="text-dg">
             임시보호 가능 여부 <span className="text-brand">*</span>
           </h5>
-          {isSubscriber && (
+        {/*   {isSubscriber && ( */}
             <CustomInput
               variant="Variant7"
               value={isTemporaryAdoption}
@@ -351,11 +351,11 @@ export default function CenterSettingName() {
               twoOptions={["가능", "불가능"]}
               required={true}
             />
-          )}
+          {/* )} */}
           <h5 className="text-dg">
             봉사활동 가능 여부 <span className="text-brand">*</span>
           </h5>
-          {isSubscriber && (
+        {/*   {isSubscriber && ( */}
             <CustomInput
               variant="Variant7"
               value={isVolunteering}
@@ -363,10 +363,10 @@ export default function CenterSettingName() {
               twoOptions={["가능", "불가능"]}
               required={true}
             />
-          )}
+         {/*  )} */}
         </div>
       </div>
-      <div className="sticky bottom-0 left-0 right-0 pb-6 pt-2 px-5">
+      <div className="sticky bottom-0 left-0 right-0 px-5 pt-2 pb-6">
         <BigButton
           className="w-full"
           onClick={handleSave}

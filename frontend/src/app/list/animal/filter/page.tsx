@@ -251,7 +251,7 @@ function AnimalFilterContent() {
         }
       />
 
-      <div className="flex flex-col w-full px-4 py-3 gap-6 pb-20">
+      <div className="flex flex-col w-full gap-6 px-4 py-3 pb-20">
         {/* 품종 (Breed) */}
         <BreedFilter
           selectedBreed={selectedBreed}
@@ -313,8 +313,13 @@ function AnimalFilterContent() {
         {lastSelectedProtectionStatus === "보호중" && (
           <InfoCard>본래의 주인만 입양이 가능한 아이에요.</InfoCard>
         )}
-        {lastSelectedProtectionStatus === "입양가능" && (
-          <InfoCard>보호기간이 지나 누구나 입양 가능한 아이에요.</InfoCard>
+        {lastSelectedProtectionStatus === "방사" && (
+          <InfoCard>동물의 생존이나 구조 목적, 예외적 상황에 따라 자연으로 돌려보낸 아이에요.</InfoCard>
+        )}
+      
+    
+        {lastSelectedProtectionStatus === "반환" && (
+          <InfoCard>원래 주인에게 돌아간 아이에요.</InfoCard>
         )}
         {/* 
         전문가 분석 의견 (Expert Analysis Opinion)

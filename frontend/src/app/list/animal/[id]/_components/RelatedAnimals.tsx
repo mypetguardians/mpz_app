@@ -38,6 +38,8 @@ export function RelatedAnimals({
                       orderIndex: img.order_index,
                     })) || [],
                   foundLocation: pet.found_location || "",
+                  admissionDate: pet.admission_date,
+                  waitingDays: pet.waiting_days,
                 }}
                 variant="variant3"
                 imageSize="full"

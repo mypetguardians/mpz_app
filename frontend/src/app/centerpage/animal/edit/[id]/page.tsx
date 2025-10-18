@@ -37,6 +37,24 @@ interface FormData {
       sociability: number;
       separationAnxiety: number;
     };
+    // 사회성 세부 항목들
+    sociality: {
+      confidence: number;
+      independence: number;
+      physicalContact: number;
+      handlingAcceptance: number;
+      strangersAttitude: number;
+      objectsAttitude: number;
+      environmentAttitude: number;
+      dogsAttitude: number;
+    };
+    // 분리불안 세부 항목들
+    separationAnxietyDetail: {
+      copingAbility: number;
+      playfulnessLevel: number;
+      walkabilityLevel: number;
+      groomingAcceptanceLevel: number;
+    };
     trainerComment: string;
   };
   images: File[];
@@ -61,10 +79,28 @@ const initialFormData: FormData = {
   },
   detailInfo: {
     personality: {
-      activity: 1,
-      sensitivity: 1,
-      sociability: 1,
-      separationAnxiety: 1,
+      activity: 3,
+      sensitivity: 3,
+      sociability: 3,
+      separationAnxiety: 3,
+    },
+    // 사회성 세부 항목들
+    sociality: {
+      confidence: 3,
+      independence: 3,
+      physicalContact: 3,
+      handlingAcceptance: 3,
+      strangersAttitude: 3,
+      objectsAttitude: 3,
+      environmentAttitude: 3,
+      dogsAttitude: 3,
+    },
+    // 분리불안 세부 항목들
+    separationAnxietyDetail: {
+      copingAbility: 3,
+      playfulnessLevel: 3,
+      walkabilityLevel: 3,
+      groomingAcceptanceLevel: 3,
     },
     trainerComment: "",
   },
@@ -109,10 +145,28 @@ export default function EditAnimal({
         },
         detailInfo: {
           personality: {
-            activity: animalData.activity_level || 1,
-            sensitivity: animalData.sensitivity || 1,
-            sociability: animalData.sociability || 1,
-            separationAnxiety: animalData.separation_anxiety || 1,
+            activity: animalData.activity_level || 3,
+            sensitivity: animalData.sensitivity || 3,
+            sociability: animalData.sociability || 3,
+            separationAnxiety: animalData.separation_anxiety || 3,
+          },
+          // 사회성 세부 항목들
+          sociality: {
+            confidence: animalData.confidence || 3,
+            independence: animalData.independence || 3,
+            physicalContact: animalData.physical_contact || 3,
+            handlingAcceptance: animalData.handling_acceptance || 3,
+            strangersAttitude: animalData.strangers_attitude || 3,
+            objectsAttitude: animalData.objects_attitude || 3,
+            environmentAttitude: animalData.environment_attitude || 3,
+            dogsAttitude: animalData.dogs_attitude || 3,
+          },
+          // 분리불안 세부 항목들
+          separationAnxietyDetail: {
+            copingAbility: animalData.coping_ability || 3,
+            playfulnessLevel: animalData.playfulness_level || 3,
+            walkabilityLevel: animalData.walkability_level || 3,
+            groomingAcceptanceLevel: animalData.grooming_acceptance_level || 3,
           },
           trainerComment: animalData.trainer_comment || "",
         },
@@ -182,9 +236,25 @@ export default function EditAnimal({
         sensitivity: detailInfo.personality.sensitivity.toString(),
         sociability: detailInfo.personality.sociability.toString(),
         separation_anxiety: detailInfo.personality.separationAnxiety.toString(),
+        
+        // 사회성 세부 항목들
+        confidence: detailInfo.sociality.confidence.toString(),
+        independence: detailInfo.sociality.independence.toString(),
+        physical_contact: detailInfo.sociality.physicalContact.toString(),
+        handling_acceptance: detailInfo.sociality.handlingAcceptance.toString(),
+        strangers_attitude: detailInfo.sociality.strangersAttitude.toString(),
+        objects_attitude: detailInfo.sociality.objectsAttitude.toString(),
+        environment_attitude: detailInfo.sociality.environmentAttitude.toString(),
+        dogs_attitude: detailInfo.sociality.dogsAttitude.toString(),
+        
+        // 분리불안 세부 항목들
+        coping_ability: detailInfo.separationAnxietyDetail.copingAbility.toString(),
+        playfulness_level: detailInfo.separationAnxietyDetail.playfulnessLevel.toString(),
+        walkability_level: detailInfo.separationAnxietyDetail.walkabilityLevel.toString(),
+        grooming_acceptance_level: detailInfo.separationAnxietyDetail.groomingAcceptanceLevel.toString(),
+        
         special_notes: basicInfo.specialNotes || "",
         health_notes: basicInfo.healthNotes || "",
-        basic_training: "",
         trainer_comment: detailInfo.trainerComment || "",
         announce_number: null,
         admission_date: basicInfo.centerEntryDate || null,

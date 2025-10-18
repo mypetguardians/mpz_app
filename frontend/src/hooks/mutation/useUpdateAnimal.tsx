@@ -10,15 +10,28 @@ interface UpdateAnimalData {
   color?: string | null; // 색상
   breed?: string | null; // 품종
   description?: string | null; // 동물 설명
-  protection_status?: string | null; // 보호 상태 (보호중, 안락사, 자연사, 반환)
-  adoption_status?: string | null; // 입양 상태 (입양가능, 입양진행중, 입양완료, 입양불가)
+  protection_status?: string | null; // 보호 상태
+  adoption_status?: string | null; // 입양 상태
   activity_level?: string | null; // 활동량 수준
   sensitivity?: string | null; // 예민함 정도
   sociability?: string | null; // 사회성
   separation_anxiety?: string | null; // 분리불안 정도
+  // 사회성 세부 항목들
+  confidence?: string | null;
+  independence?: string | null;
+  physical_contact?: string | null;
+  handling_acceptance?: string | null;
+  strangers_attitude?: string | null;
+  objects_attitude?: string | null;
+  environment_attitude?: string | null;
+  dogs_attitude?: string | null;
+  // 분리불안 세부 항목들
+  coping_ability?: string | null;
+  playfulness_level?: string | null;
+  walkability_level?: string | null;
+  grooming_acceptance_level?: string | null;
   special_notes?: string | null; // 특이사항
   health_notes?: string | null; // 건강 정보
-  basic_training?: string | null; // 기본 훈련 상태
   trainer_comment?: string | null; // 훈련사 코멘트
   announce_number?: string | null; // 공고번호
   admission_date?: string | null; // 공고일 (YYYY-MM-DD 형식)

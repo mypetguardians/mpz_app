@@ -56,6 +56,7 @@ class ProcedureSettingsUpdateIn(Schema):
 
 class CenterListQueryIn(Schema):
     """센터 목록 조회 쿼리 스키마"""
+    name: Optional[str] = Field(None, max_length=100, description="센터명 필터링 (부분 검색)")
     location: Optional[str] = Field(None, max_length=100, description="센터 위치 필터링 (부분 검색)")
     region: Optional[str] = Field(None, max_length=50, description="센터 지역 필터링")
 

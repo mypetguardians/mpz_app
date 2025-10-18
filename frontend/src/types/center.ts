@@ -64,6 +64,7 @@ export interface CenterListResponse {
 
 // Center 검색/필터링용 타입
 export interface CenterSearchParams {
+  name?: string; // 센터명 검색
   location?: string;
   region?: string;
   page?: number;

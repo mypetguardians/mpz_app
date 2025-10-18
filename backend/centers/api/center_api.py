@@ -67,11 +67,15 @@ async def get_centers(request: HttpRequest, filters: CenterListQueryIn = Query(C
             # 기본 쿼리셋 (공개된 센터만)
             queryset = Center.objects.filter(is_public=True).select_related('owner')
             
-            # 지역별 필터링
+            # 센터명 필터링
+            if filters.name:
+                queryset = queryset.filter(name__icontains=filters.name)
+            
+            # 위치 필터링
             if filters.location:
                 queryset = queryset.filter(location__icontains=filters.location)
             
-            # 지역별 필터링
+            # 지역 필터링
             if filters.region:
                 queryset = queryset.filter(region__icontains=filters.region)
             
@@ -238,11 +242,15 @@ async def get_subscribed_centers(request: HttpRequest, filters: CenterListQueryI
             # 구독된 센터만 조회
             queryset = Center.objects.filter(is_subscribed=True, is_public=True).select_related('owner')
             
-            # 지역별 필터링
+            # 센터명 필터링
+            if filters.name:
+                queryset = queryset.filter(name__icontains=filters.name)
+            
+            # 위치 필터링
             if filters.location:
                 queryset = queryset.filter(location__icontains=filters.location)
             
-            # 지역별 필터링
+            # 지역 필터링
             if filters.region:
                 queryset = queryset.filter(region__icontains=filters.region)
             

@@ -200,6 +200,7 @@ function AnimalFilterContent() {
       protectionStatus: selectedProtectionStatus,
       expertOpinion: selectedExpertOpinion,
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleApply = () => {

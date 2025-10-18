@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import React from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 import { SearchInput } from "@/components/ui/SearchInput";
 import { CenterCard } from "@/components/ui/CenterCard";
@@ -18,7 +18,6 @@ interface CenterSearchSectionProps {
 export function CenterSearchSection({
   onSearchStateChange,
 }: CenterSearchSectionProps) {
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   const [searchValue, setSearchValue] = useState("");

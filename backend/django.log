@@ -1547,3 +1547,26 @@ WARNING 2025-10-18 16:46:50,205 basehttp 53828 6136410112 "GET /v1/auth/me HTTP/
 INFO 2025-10-18 16:46:52,376 basehttp 53828 6170062848 "GET /v1/animals/?page_size=20&sort_by=created_at&sort_order=desc&page=1 HTTP/1.1" 200 24391
 INFO 2025-10-18 16:46:52,507 basehttp 53828 6153236480 "GET /v1/animals/?page_size=20&page=1 HTTP/1.1" 200 24391
 INFO 2025-10-18 16:46:55,076 basehttp 53828 6153236480 "GET /v1/animals/?page_size=20&sort_by=created_at&sort_order=desc&page=2 HTTP/1.1" 200 25289
+<<<<<<< HEAD
+=======
+INFO 2025-10-18 16:49:59,890 autoreload 57866 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-18 16:51:35,331 basehttp 57866 6125891584 "GET /v1/centers/?page=1&page_size=10 HTTP/1.1" 200 8497
+INFO 2025-10-18 16:51:38,200 basehttp 57866 6125891584 "GET /v1/centers/?page=2&page_size=10 HTTP/1.1" 200 8504
+INFO 2025-10-18 16:51:38,972 basehttp 57866 6125891584 "GET /v1/centers/?page=3&page_size=10 HTTP/1.1" 200 8398
+INFO 2025-10-18 16:53:02,425 autoreload 57866 8525258944 /Users/rutdev/mpz_fullstack/backend/centers/schemas/inbound.py changed, reloading.
+INFO 2025-10-18 16:53:03,184 autoreload 59870 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-18 16:53:09,935 autoreload 59870 8525258944 /Users/rutdev/mpz_fullstack/backend/centers/api/center_api.py changed, reloading.
+INFO 2025-10-18 16:53:10,626 autoreload 59955 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-18 16:53:19,080 autoreload 59955 8525258944 /Users/rutdev/mpz_fullstack/backend/centers/api/center_api.py changed, reloading.
+INFO 2025-10-18 16:53:19,855 autoreload 60047 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-18 16:54:18,603 autoreload 60047 8525258944 /Users/rutdev/mpz_fullstack/backend/centers/schemas/inbound.py changed, reloading.
+INFO 2025-10-18 16:54:19,587 autoreload 60623 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-18 16:54:35,091 basehttp 60623 6190739456 "GET /v1/centers?page=4&page_size=10 HTTP/1.1" 301 0
+INFO 2025-10-18 16:54:37,166 basehttp 60623 6207565824 "GET /v1/centers/?page=4&page_size=10 HTTP/1.1" 200 8585
+WARNING 2025-10-18 17:00:59,304 log 60623 6190739456 Unauthorized: /v1/auth/me
+WARNING 2025-10-18 17:00:59,312 basehttp 60623 6190739456 "GET /v1/auth/me HTTP/1.1" 401 26
+INFO 2025-10-18 17:01:01,661 basehttp 60623 6190739456 "GET /v1/centers/?page=1&page_size=10 HTTP/1.1" 200 8497
+INFO 2025-10-18 17:01:05,396 basehttp 60623 6190739456 "GET /v1/centers?name=%EA%B5%AC%EB%A6%AC%EC%8B%9C&page=1&page_size=10 HTTP/1.1" 301 0
+INFO 2025-10-18 17:01:07,323 basehttp 60623 6190739456 "GET /v1/centers/?name=%EA%B5%AC%EB%A6%AC%EC%8B%9C&page=1&page_size=10 HTTP/1.1" 200 943
+>>>>>>> fe
+INFO 2025-10-18 17:01:49,852 autoreload 65689 8525258944 Watching for file changes with StatReloader

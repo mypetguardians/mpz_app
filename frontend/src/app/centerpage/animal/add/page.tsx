@@ -17,7 +17,6 @@ interface FormData {
   basicInfo: {
     name: string;
     protection_status: string;
-    adoption_status: string;
     breed: string;
     age: string;
     gender: string;
@@ -38,6 +37,24 @@ interface FormData {
       sociability: number;
       separationAnxiety: number;
     };
+    // 사회성 세부 항목들
+    sociality: {
+      confidence: number;
+      independence: number;
+      physicalContact: number;
+      handlingAcceptance: number;
+      strangersAttitude: number;
+      objectsAttitude: number;
+      environmentAttitude: number;
+      dogsAttitude: number;
+    };
+    // 분리불안 세부 항목들
+    separationAnxietyDetail: {
+      copingAbility: number;
+      playfulnessLevel: number;
+      walkabilityLevel: number;
+      groomingAcceptanceLevel: number;
+    };
     trainerComment: string;
   };
   images: File[];
@@ -47,7 +64,6 @@ const initialFormData: FormData = {
   basicInfo: {
     name: "",
     protection_status: "",
-    adoption_status: "",
     breed: "",
     age: "",
     gender: "",
@@ -62,10 +78,28 @@ const initialFormData: FormData = {
   },
   detailInfo: {
     personality: {
-      activity: 1,
-      sensitivity: 1,
-      sociability: 1,
-      separationAnxiety: 1,
+      activity: 3,
+      sensitivity: 3,
+      sociability: 3,
+      separationAnxiety: 3,
+    },
+    // 사회성 세부 항목들
+    sociality: {
+      confidence: 3,
+      independence: 3,
+      physicalContact: 3,
+      handlingAcceptance: 3,
+      strangersAttitude: 3,
+      objectsAttitude: 3,
+      environmentAttitude: 3,
+      dogsAttitude: 3,
+    },
+    // 분리불안 세부 항목들
+    separationAnxietyDetail: {
+      copingAbility: 3,
+      playfulnessLevel: 3,
+      walkabilityLevel: 3,
+      groomingAcceptanceLevel: 3,
     },
     trainerComment: "",
   },
@@ -114,7 +148,6 @@ export default function AddAnimal() {
     if (
       !basicInfo.name ||
       !basicInfo.protection_status ||
-      !basicInfo.adoption_status ||
       !basicInfo.breed ||
       !basicInfo.age ||
       !basicInfo.gender ||
@@ -137,18 +170,34 @@ export default function AddAnimal() {
         description: basicInfo.personality || "",
         protection_status: basicInfo.protection_status as
           | "보호중"
+          | "임시보호"
           | "안락사"
           | "자연사"
-          | "반환",
-        adoption_status: basicInfo.adoption_status as
-          | "입양가능"
-          | "입양진행중"
-          | "입양완료"
-          | "입양불가",
+          | "반환"
+          | "기증"
+          | "방사"
+          | "입양완료",
+        adoption_status: "입양가능" as "입양가능" | "입양진행중" | "입양완료" | "입양불가",
         activity_level: detailInfo.personality.activity.toString(),
         sensitivity: detailInfo.personality.sensitivity.toString(),
         sociability: detailInfo.personality.sociability.toString(),
         separation_anxiety: detailInfo.personality.separationAnxiety.toString(),
+        
+        // 사회성 세부 항목들
+        confidence: detailInfo.sociality.confidence.toString(),
+        independence: detailInfo.sociality.independence.toString(),
+        physical_contact: detailInfo.sociality.physicalContact.toString(),
+        handling_acceptance: detailInfo.sociality.handlingAcceptance.toString(),
+        strangers_attitude: detailInfo.sociality.strangersAttitude.toString(),
+        objects_attitude: detailInfo.sociality.objectsAttitude.toString(),
+        environment_attitude: detailInfo.sociality.environmentAttitude.toString(),
+        dogs_attitude: detailInfo.sociality.dogsAttitude.toString(),
+        
+        // 분리불안 세부 항목들
+        coping_ability: detailInfo.separationAnxietyDetail.copingAbility.toString(),
+        playfulness_level: detailInfo.separationAnxietyDetail.playfulnessLevel.toString(),
+        walkability_level: detailInfo.separationAnxietyDetail.walkabilityLevel.toString(),
+        grooming_acceptance_level: detailInfo.separationAnxietyDetail.groomingAcceptanceLevel.toString(),
         special_notes: basicInfo.specialNotes || "",
         health_notes: basicInfo.healthNotes || "",
         basic_training: "",

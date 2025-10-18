@@ -61,36 +61,53 @@ function AnimalFilterContent() {
     const expertOpinion =
       searchParams.get("expertOpinion")?.split(",").filter(Boolean) || [];
 
-    // localStorage에서도 필터 상태 복원 시도
-    const savedFilters = localStorage.getItem("animalFilters");
-    if (
-      savedFilters &&
-      !breed &&
-      weights.length === 0 &&
-      regions.length === 0
-    ) {
-      try {
-        const parsed = JSON.parse(savedFilters);
-        setSelectedBreed(parsed.breed || "");
-        setSelectedWeights(parsed.weights || []);
-        setSelectedRegions(parsed.regions || []);
-        setSelectedAges(parsed.ages || []);
-        setSelectedGenders(parsed.genders || []);
-        setSelectedProtectionStatus(parsed.protectionStatus || []);
-        setSelectedExpertOpinion(parsed.expertOpinion || []);
-        return;
-      } catch {
-        // localStorage 필터 파싱 오류 무시
-      }
-    }
+    console.log("URL 파라미터에서 읽은 필터:", {
+      breed, weights, regions, ages, genders, protectionStatus, expertOpinion
+    });
 
-    setSelectedBreed(breed);
-    setSelectedWeights(weights);
-    setSelectedRegions(regions);
-    setSelectedAges(ages);
-    setSelectedGenders(genders);
-    setSelectedProtectionStatus(protectionStatus);
-    setSelectedExpertOpinion(expertOpinion);
+    // URL에 파라미터가 있으면 URL 우선, 없으면 localStorage 사용
+    if (breed || weights.length > 0 || regions.length > 0 || ages.length > 0 || 
+        genders.length > 0 || protectionStatus.length > 0 || expertOpinion.length > 0) {
+      console.log("URL 파라미터 사용");
+      // URL 파라미터가 있으면 URL 값 사용
+      setSelectedBreed(breed);
+      setSelectedWeights(weights);
+      setSelectedRegions(regions);
+      setSelectedAges(ages);
+      setSelectedGenders(genders);
+      setSelectedProtectionStatus(protectionStatus);
+      setSelectedExpertOpinion(expertOpinion);
+    } else {
+      console.log("localStorage에서 복원 시도");
+      // URL 파라미터가 없으면 localStorage에서 복원 시도
+      const savedFilters = localStorage.getItem("animalFilters");
+      if (savedFilters) {
+        try {
+          const parsed = JSON.parse(savedFilters);
+          console.log("localStorage에서 복원된 필터:", parsed);
+          setSelectedBreed(parsed.breed || "");
+          setSelectedWeights(parsed.weights || []);
+          setSelectedRegions(parsed.regions || []);
+          setSelectedAges(parsed.ages || []);
+          setSelectedGenders(parsed.genders || []);
+          setSelectedProtectionStatus(parsed.protectionStatus || []);
+          setSelectedExpertOpinion(parsed.expertOpinion || []);
+          return;
+        } catch (error) {
+          console.error("localStorage 필터 파싱 오류:", error);
+        }
+      }
+      
+      console.log("초기값으로 설정");
+      // localStorage도 없으면 초기값으로 설정
+      setSelectedBreed("");
+      setSelectedWeights([]);
+      setSelectedRegions([]);
+      setSelectedAges([]);
+      setSelectedGenders([]);
+      setSelectedProtectionStatus([]);
+      setSelectedExpertOpinion([]);
+    }
   }, [searchParams]);
 
   // URL 업데이트 함수
@@ -172,6 +189,19 @@ function AnimalFilterContent() {
     isInitialized,
   ]);
 
+  // 컴포넌트 마운트 시 초기화 상태 확인
+  useEffect(() => {
+    console.log("필터 초기화 상태:", {
+      breed: selectedBreed,
+      weights: selectedWeights,
+      regions: selectedRegions,
+      ages: selectedAges,
+      genders: selectedGenders,
+      protectionStatus: selectedProtectionStatus,
+      expertOpinion: selectedExpertOpinion,
+    });
+  }, []);
+
   const handleApply = () => {
     const filters: FilterState = {
       breed: selectedBreed,
@@ -220,6 +250,9 @@ function AnimalFilterContent() {
   };
 
   const handleReset = () => {
+    console.log("필터 재설정 시작");
+    
+    // 모든 상태 초기화
     setSelectedBreed("");
     setSelectedWeights([]);
     setSelectedRegions([]);
@@ -233,6 +266,13 @@ function AnimalFilterContent() {
 
     // localStorage에서도 필터 상태 제거
     localStorage.removeItem("animalFilters");
+    
+    console.log("필터 재설정 완료 - 모든 상태 초기화됨");
+
+    // URL도 초기화 (약간의 지연을 두어 상태 업데이트 후 실행)
+    setTimeout(() => {
+      router.push("/list/animal/filter", { scroll: false });
+    }, 100);
   };
 
   return (
@@ -307,19 +347,20 @@ function AnimalFilterContent() {
         />
 
         {/* InfoCard - 마지막으로 선택된 보호상태만 표시 */}
-        {lastSelectedProtectionStatus === "공고중" && (
-          <InfoCard>보호소에서 보호받고 있는 아이에요.</InfoCard>
+        {lastSelectedProtectionStatus === "입양가능" && (
+          <InfoCard>입양이 가능한 아이들입니다. (보호중, 임시보호, 기증, 공고중 포함)</InfoCard>
         )}
-        {lastSelectedProtectionStatus === "보호중" && (
-          <InfoCard>본래의 주인만 입양이 가능한 아이에요.</InfoCard>
+        {lastSelectedProtectionStatus === "무지개" && (
+          <InfoCard>🌈 무지개 다리를 건넌 아이들입니다. (안락사, 자연사 포함)</InfoCard>
+        )}
+        {lastSelectedProtectionStatus === "반환" && (
+          <InfoCard>원래 주인에게 돌아간 아이에요.</InfoCard>
         )}
         {lastSelectedProtectionStatus === "방사" && (
           <InfoCard>동물의 생존이나 구조 목적, 예외적 상황에 따라 자연으로 돌려보낸 아이에요.</InfoCard>
         )}
-      
-    
-        {lastSelectedProtectionStatus === "반환" && (
-          <InfoCard>원래 주인에게 돌아간 아이에요.</InfoCard>
+        {lastSelectedProtectionStatus === "입양완료" && (
+          <InfoCard>새로운 가족을 만나 입양된 아이에요.</InfoCard>
         )}
         {/* 
         전문가 분석 의견 (Expert Analysis Opinion)

@@ -115,83 +115,87 @@ export function PetCard({
     protectionStatus?: string,
     adoptionStatus?: string
   ) => {
-    // 보호 상태가 "안락사"나 "자연사"인 경우 우선 표시
-    if (protectionStatus === "안락사" || protectionStatus === "자연사") {
-      return {
-        text: "🌈",
-        colorClass: "bg-orange-100/10",
-      };
-    }
-
-    // 보호 상태가 "반환"인 경우
-    if (protectionStatus === "반환") {
-      return {
-        text: protectionStatus,
-        colorClass: "bg-gr/10 text-gr",
-      };
-    }
-
-    // 보호 상태가 "보호중"인 경우 → "공고중"으로 표시
-    if (protectionStatus === "보호중") {
-      return {
-        text: "공고중",
-        colorClass: "bg-green/10 text-green",
-      };
-    }
-
-    // 입양 상태에 따른 표시
-    switch (adoptionStatus) {
-      case "입양완료":
-        return {
-          text: adoptionStatus,
-          colorClass: "bg-brand-sub2 text-brand",
-        };
-      case "입양진행중":
+    // 보호상태에 따른 필터 그룹 매핑
+    switch (protectionStatus) {
+      case "보호중":
+      case "임시보호":
+      case "기증":
         return {
           text: "입양가능",
           colorClass: "bg-green/10 text-green",
         };
+      case "안락사":
+      case "자연사":
         return {
-          text: "입양가능",
-          colorClass: "bg-green/10 text-green",
+          text: "🌈",
+          colorClass: "bg-orange-100/10",
         };
-      case "입양불가":
+      case "반환":
         return {
-          text: adoptionStatus,
-          colorClass: "bg-red-100/10 text-red-600",
+          text: "반환",
+          colorClass: "bg-gr/10 text-gr",
         };
-      // 입양 현황에서 사용하는 구체적인 상태들
-      case "신청":
+      case "방사":
         return {
-          text: "신청완료",
-          colorClass: "bg-yellow/10 text-yellow",
-        };
-      case "미팅":
-        return {
-          text: "미팅예정",
-          colorClass: "bg-blue/10 text-blue",
-        };
-      case "계약서작성":
-        return {
-          text: "계약진행",
-          colorClass: "bg-purple/10 text-purple",
-        };
-      case "모니터링":
-        return {
-          text: "모니터링",
-          colorClass: "bg-green/10 text-green",
-        };
-      case "취소":
-        return {
-          text: "취소됨",
+          text: "방사",
           colorClass: "bg-gray/10 text-gray",
         };
-      case "입양가능":
-      default:
+      case "입양완료":
         return {
-          text: adoptionStatus || "입양가능",
-          colorClass: "bg-green/10 text-green",
+          text: "입양완료",
+          colorClass: "bg-brand-sub2 text-brand",
         };
+      default:
+        // 보호상태가 없거나 매핑되지 않은 경우 입양상태 확인
+        switch (adoptionStatus) {
+          case "입양완료":
+            return {
+              text: adoptionStatus,
+              colorClass: "bg-brand-sub2 text-brand",
+            };
+          case "입양진행중":
+            return {
+              text: "입양가능",
+              colorClass: "bg-green/10 text-green",
+            };
+          case "입양불가":
+            return {
+              text: adoptionStatus,
+              colorClass: "bg-red-100/10 text-red-600",
+            };
+          // 입양 현황에서 사용하는 구체적인 상태들
+          case "신청":
+            return {
+              text: "신청완료",
+              colorClass: "bg-yellow/10 text-yellow",
+            };
+          case "미팅":
+            return {
+              text: "미팅예정",
+              colorClass: "bg-blue/10 text-blue",
+            };
+          case "계약서작성":
+            return {
+              text: "계약진행",
+              colorClass: "bg-purple/10 text-purple",
+            };
+          case "모니터링":
+            return {
+              text: "모니터링",
+              colorClass: "bg-green/10 text-green",
+            };
+          case "취소":
+            return {
+              text: "취소됨",
+              colorClass: "bg-gray/10 text-gray",
+            };
+          case "입양가능":
+          default:
+            return {
+              text: "입양가능",
+              colorClass: "bg-green/10 text-green",
+            };
+        }
     }
   };
 
@@ -227,6 +231,14 @@ export function PetCard({
                 />
               </div>
             )}
+            {/* 성별 아이콘 - 우측 상단 */}
+            <div className="absolute z-10 flex items-center justify-center w-6 h-6 rounded-full shadow-sm top-2 right-2 bg-white/90">
+              {isFemale ? (
+                <GenderFemale className="text-red" weight="bold" size={14} />
+              ) : (
+                <GenderMale className="text-brand" weight="bold" size={14} />
+              )}
+            </div>
             <Image
               src={getImageUrl()}
               alt={breed || "동물"}
@@ -242,7 +254,7 @@ export function PetCard({
           </div>
         </div>
         <div className="flex flex-col flex-1 min-w-0">
-          <div className="flex items-center mb-[6px] gap-1">
+          <div className="flex items-center mb-[6px] gap-1 w-full">
             {(() => {
               const statusInfo = getStatusInfo(
                 protection_status,
@@ -254,12 +266,7 @@ export function PetCard({
             })()}
             {createHeadingElement(
               breed || "종 미등록",
-              "text-bk truncate max-w-[80px]"
-            )}
-            {isFemale ? (
-              <GenderFemale className="text-red" weight="bold" size={12} />
-            ) : (
-              <GenderMale className="text-brand" weight="bold" size={12} />
+              "text-bk truncate flex-1"
             )}
           </div>
           <div className="mb-3 text-sm text-gray-600 line-clamp-2">
@@ -331,6 +338,14 @@ export function PetCard({
         onClick={handleCardClick}
       >
         <div className="relative w-[52px] h-[52px] rounded overflow-hidden flex-shrink-0">
+          {/* 성별 아이콘 - 우측 상단 */}
+          <div className="absolute z-10 flex items-center justify-center w-5 h-5 rounded-full shadow-sm top-1 right-1 bg-white/90">
+            {isFemale ? (
+              <GenderFemale className="text-red" weight="bold" size={12} />
+            ) : (
+              <GenderMale className="text-brand" weight="bold" size={12} />
+            )}
+          </div>
           <Image
             src={getImageUrl()}
             alt={breed || "동물"}
@@ -338,20 +353,15 @@ export function PetCard({
             className="object-cover"
           />
         </div>
-        <div className="flex-1">
-          <div className="flex items-center mb-[6px] gap-1">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center mb-[6px] gap-1 w-full">
             {(() => {
               const statusInfo = getStatusInfo(protection_status);
               return (
                 <Chip className={statusInfo.colorClass}>{statusInfo.text}</Chip>
               );
             })()}
-            {createHeadingElement(breed || "종 미등록", "text-bk")}
-            {isFemale ? (
-              <GenderFemale className="text-red" weight="bold" size={12} />
-            ) : (
-              <GenderMale className="text-brand" weight="bold" size={12} />
-            )}
+            {createHeadingElement(breed || "종 미등록", "text-bk truncate flex-1")}
           </div>
           <p className="text-xs text-gray-500">
             {showUpdatedAt && pet.updatedAt
@@ -378,13 +388,21 @@ export function PetCard({
             fill
             className="object-cover rounded-[10px]"
           />
+          {/* 성별 아이콘 - 우측 상단 */}
+          <div className="absolute flex items-center justify-center w-6 h-6 rounded-full shadow-sm top-2 right-2 bg-white/90">
+            {isFemale ? (
+              <GenderFemale className="text-red" weight="bold" size={16} />
+            ) : (
+              <GenderMale className="text-brand" weight="bold" size={16} />
+            )}
+          </div>
           {(currentWaitingDays || 0) > 21 && (
             <div className="absolute bottom-0 left-0 w-full bg-bk/50 text-white text-2xl px-2 py-1 rounded-b-[10px]">
               <h6>{currentWaitingDays || 0}일 째 기다리는 중</h6>
             </div>
           )}
         </div>
-        <div className="flex items-center mb-[6px] gap-1">
+        <div className="flex items-center mb-[6px] gap-1 w-full">
           {(() => {
             const statusInfo = getStatusInfo(
               protection_status,
@@ -396,12 +414,7 @@ export function PetCard({
           })()}
           {createHeadingElement(
             breed || "종 미등록",
-            cn("text-bk truncate max-w-[80px]")
-          )}
-          {isFemale ? (
-            <GenderFemale className="text-red" weight="bold" />
-          ) : (
-            <GenderMale className="text-brand" weight="bold" />
+            cn("text-bk truncate flex-1")
           )}
         </div>
         <h6 className="text-dg">{foundLocation || "위치 정보 없음"}</h6>
@@ -429,13 +442,21 @@ export function PetCard({
           fill
           className="object-cover rounded-[10px]"
         />
+        {/* 성별 아이콘 - 우측 상단 */}
+        <div className="absolute flex items-center justify-center w-6 h-6 rounded-full shadow-sm top-2 right-2 bg-white/90">
+          {isFemale ? (
+            <GenderFemale className="text-red" weight="bold" size={16} />
+          ) : (
+            <GenderMale className="text-brand" weight="bold" size={16} />
+          )}
+        </div>
         {(currentWaitingDays || 0) > 21 && (
           <div className="absolute bottom-0 left-0 w-full bg-bk/50 text-white text-2xl px-2 py-1 rounded-b-[10px]">
             <h6>{currentWaitingDays || 0}일 째 기다리는 중</h6>
           </div>
         )}
       </div>
-      <div className="flex items-center mb-[6px] gap-1">
+      <div className="flex items-center mb-[6px] gap-1 w-full">
         {(() => {
           // adoptionStatus prop이 전달된 경우 우선 사용, 없으면 기본 adoption_status 사용
           const statusToUse = adoptionStatus || adoption_status;
@@ -446,12 +467,7 @@ export function PetCard({
         })()}
         {createHeadingElement(
           breed || "종 미등록",
-          cn("text-bk truncate max-w-[60px]")
-        )}
-        {isFemale ? (
-          <GenderFemale className="text-red" weight="bold" />
-        ) : (
-          <GenderMale className="text-brand" weight="bold" />
+          cn("text-bk truncate flex-1")
         )}
       </div>
       <h6 className="text-dg">{foundLocation || "위치 정보 없음"}</h6>

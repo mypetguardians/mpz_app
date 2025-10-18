@@ -12,7 +12,7 @@ from animals.schemas.inbound import (
     AnimalListQueryIn, MegaphoneToggleIn, RelatedAnimalsQueryIn
 )
 from animals.schemas.outbound import (
-    AnimalOut, AnimalStatusUpdateOut,
+    AnimalOut, AnimalListItemOut, AnimalStatusUpdateOut,
     BreedsOut, SuccessOut, 
     ErrorOut, MegaphoneToggleOut, AdoptionStatusCountOut
 )
@@ -101,6 +101,31 @@ async def create_animal(request: HttpRequest, data: AnimalCreateIn):
             "found_location": data.found_location,
             "admission_date": data.announcement_date,  # announcement_date를 admission_date로 매핑
             "comment": data.comment,  # comment 필드 매핑
+            
+            # 기본 성격 지표들 (디폴트 3점)
+            "activity_level": int(data.activity_level) if data.activity_level else 3,
+            "sensitivity": int(data.sensitivity) if data.sensitivity else 3,
+            "sociability": int(data.sociability) if data.sociability else 3,
+            "separation_anxiety": int(data.separation_anxiety) if data.separation_anxiety else 3,
+            
+            # 사회성 세부 항목들
+            "confidence": int(data.confidence) if data.confidence else 3,
+            "independence": int(data.independence) if data.independence else 3,
+            "physical_contact": int(data.physical_contact) if data.physical_contact else 3,
+            "handling_acceptance": int(data.handling_acceptance) if data.handling_acceptance else 3,
+            "strangers_attitude": int(data.strangers_attitude) if data.strangers_attitude else 3,
+            "objects_attitude": int(data.objects_attitude) if data.objects_attitude else 3,
+            "environment_attitude": int(data.environment_attitude) if data.environment_attitude else 3,
+            "dogs_attitude": int(data.dogs_attitude) if data.dogs_attitude else 3,
+            
+            # 분리불안 세부 항목들
+            "coping_ability": int(data.coping_ability) if data.coping_ability else 3,
+            "playfulness_level": int(data.playfulness_level) if data.playfulness_level else 3,
+            "walkability_level": int(data.walkability_level) if data.walkability_level else 3,
+            "grooming_acceptance_level": int(data.grooming_acceptance_level) if data.grooming_acceptance_level else 3,
+            
+            
+            "trainer_comment": data.trainer_comment,
         }
         
         # DB에 동물 정보 삽입
@@ -147,9 +172,25 @@ async def create_animal(request: HttpRequest, data: AnimalCreateIn):
             sensitivity=animal.sensitivity,
             sociability=animal.sociability,
             separation_anxiety=animal.separation_anxiety,
+            
+            # 사회성 세부 항목들
+            confidence=animal.confidence,
+            independence=animal.independence,
+            physical_contact=animal.physical_contact,
+            handling_acceptance=animal.handling_acceptance,
+            strangers_attitude=animal.strangers_attitude,
+            objects_attitude=animal.objects_attitude,
+            environment_attitude=animal.environment_attitude,
+            dogs_attitude=animal.dogs_attitude,
+            
+            # 분리불안 세부 항목들
+            coping_ability=animal.coping_ability,
+            playfulness_level=animal.playfulness_level,
+            walkability_level=animal.walkability_level,
+            grooming_acceptance_level=animal.grooming_acceptance_level,
+            
             special_notes=animal.special_needs,
             health_notes=animal.health_notes,
-            basic_training=animal.basic_training,
             trainer_name=animal.trainer_name,
             trainer_comment=animal.trainer_comment,
             announce_number=animal.announce_number,
@@ -191,94 +232,113 @@ async def create_animal(request: HttpRequest, data: AnimalCreateIn):
 
 @router.get(
     "/",
-    summary="[R] 동물 목록 조회",
+    summary="[R] 동물 목록 조회 (최적화)",
     description="동물 목록을 조회합니다. 다양한 필터와 페이지네이션을 지원합니다.",
     response={
-        200: List[AnimalOut],
+        200: dict,  # 페이지네이션 응답 구조
         500: ErrorOut,
     },
 )
-@paginate
-async def get_animals(request: HttpRequest, filters: AnimalListQueryIn = Query(AnimalListQueryIn())):
-    """동물 목록을 조회합니다."""
+async def get_animals(
+    request: HttpRequest, 
+    filters: AnimalListQueryIn = Query(AnimalListQueryIn()),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100)
+):
+    """동물 목록을 조회합니다. (최적화 버전 - 수동 페이지네이션)"""
     try:
-        @sync_to_async
-        def get_animals_list():
-            # 기본 쿼리셋 생성
-            queryset = Animal.objects.select_related('center').prefetch_related('animalimage_set')
-            
-            # 필터 조건 적용
-            if filters.status:
-                from django.db.models import Q
-                # 특별한 필터 처리
-                if filters.status == '무지개다리':
-                    # 무지개다리는 자연사, 안락사, 반환 모두 포함
-                    queryset = queryset.filter(
-                        Q(protection_status='자연사') | 
-                        Q(protection_status='안락사') | 
-                        Q(protection_status='반환')
-                    )
-                elif filters.status == '입양가능':
-                    # 입양가능은 입양가능과 입양진행중 모두 포함
-                    queryset = queryset.filter(
-                        Q(adoption_status='입양가능') | 
-                        Q(adoption_status='입양진행중')
-                    )
-                elif filters.status == '공고중':
-                    # 공고중은 보호중 상태의 동물들을 포함
-                    queryset = queryset.filter(protection_status='보호중')
-                else:
-                    # 기존 status 필터를 protection_status와 adoption_status로 분리
-                    if filters.status in ['보호중', '안락사', '자연사', '반환']:
-                        queryset = queryset.filter(protection_status=filters.status)
-                    elif filters.status in ['입양가능', '입양진행중', '입양완료', '입양불가']:
-                        queryset = queryset.filter(adoption_status=filters.status)
-            if filters.center_id:
-                queryset = queryset.filter(center_id=filters.center_id)
-            if filters.gender:
-                is_female = filters.gender == "female"
-                queryset = queryset.filter(is_female=is_female)
-            # 체중 범위 필터링
-            if filters.weight_min is not None:
-                queryset = queryset.filter(weight__gte=filters.weight_min)
-            if filters.weight_max is not None:
-                queryset = queryset.filter(weight__lte=filters.weight_max)
-            
-            # 나이 범위 필터링
-            if filters.age_min is not None:
-                queryset = queryset.filter(age__gte=filters.age_min)
-            if filters.age_max is not None:
-                queryset = queryset.filter(age__lte=filters.age_max)
-            if filters.has_trainer_comment:
-                if filters.has_trainer_comment == "true":
-                    queryset = queryset.exclude(trainer_comment__isnull=True).exclude(trainer_comment="")
-                else:
-                    queryset = queryset.filter(Q(trainer_comment__isnull=True) | Q(trainer_comment=""))
-            if filters.breed:
-                queryset = queryset.filter(breed__icontains=filters.breed)
-            if filters.region:
-                queryset = queryset.filter(center__region=filters.region)
-            
-            # 정렬 기능 추가
-            sort_by = filters.sort_by or "created_at"
-            sort_order = filters.sort_order or "desc"
-            
-            if sort_by == "admission_date":
-                order_field = "admission_date"
-            elif sort_by == "megaphone_count":
-                order_field = "megaphone_count"
-            else:
-                order_field = "created_at"
-            
-            if sort_order == "asc":
-                queryset = queryset.order_by(order_field)
-            else:
-                queryset = queryset.order_by(f"-{order_field}")
-            
-            return list(queryset)
+        # 기본 쿼리셋 생성 (lazy evaluation 유지)
+        queryset = Animal.objects.select_related('center').prefetch_related('animalimage_set')
         
-        # 동물 목록 조회
-        animals_list = await get_animals_list()
+        # 필터 조건 적용 - 새로운 보호상태 그룹 매핑
+        if filters.status:
+            from django.db.models import Q
+            # 필터 그룹별 실제 보호상태 매핑
+            if filters.status == '입양가능':
+                # 입양가능: 보호중, 임시보호, 기증, 공고중(공공데이터)
+                queryset = queryset.filter(
+                    Q(protection_status='보호중') | 
+                    Q(protection_status='임시보호') | 
+                    Q(protection_status='기증')
+                )
+            elif filters.status == '무지개':
+                # 무지개: 안락사, 자연사
+                queryset = queryset.filter(
+                    Q(protection_status='안락사') | 
+                    Q(protection_status='자연사')
+                )
+            elif filters.status == '반환':
+                # 반환
+                queryset = queryset.filter(protection_status='반환')
+            elif filters.status == '방사':
+                # 방사
+                queryset = queryset.filter(protection_status='방사')
+            elif filters.status == '입양완료':
+                # 입양완료
+                queryset = queryset.filter(protection_status='입양완료')
+            else:
+                # 기존 status 필터를 protection_status로 직접 매핑 (호환성)
+                if filters.status in ['보호중', '임시보호', '안락사', '자연사', '반환', '기증', '방사', '입양완료']:
+                    queryset = queryset.filter(protection_status=filters.status)
+        if filters.center_id:
+            queryset = queryset.filter(center_id=filters.center_id)
+        if filters.gender:
+            is_female = filters.gender == "female"
+            queryset = queryset.filter(is_female=is_female)
+        # 체중 범위 필터링
+        if filters.weight_min is not None:
+            queryset = queryset.filter(weight__gte=filters.weight_min)
+        if filters.weight_max is not None:
+            queryset = queryset.filter(weight__lte=filters.weight_max)
+        
+        # 나이 범위 필터링
+        if filters.age_min is not None:
+            queryset = queryset.filter(age__gte=filters.age_min)
+        if filters.age_max is not None:
+            queryset = queryset.filter(age__lte=filters.age_max)
+        if filters.has_trainer_comment:
+            if filters.has_trainer_comment == "true":
+                queryset = queryset.exclude(trainer_comment__isnull=True).exclude(trainer_comment="")
+            else:
+                queryset = queryset.filter(Q(trainer_comment__isnull=True) | Q(trainer_comment=""))
+        if filters.breed:
+            queryset = queryset.filter(breed__icontains=filters.breed)
+        if filters.region:
+            queryset = queryset.filter(center__region=filters.region)
+        
+        # 정렬 기능 추가
+        sort_by = filters.sort_by or "created_at"
+        sort_order = filters.sort_order or "desc"
+        
+        if sort_by == "admission_date":
+            order_field = "admission_date"
+        elif sort_by == "megaphone_count":
+            order_field = "megaphone_count"
+        else:
+            order_field = "created_at"
+        
+        if sort_order == "asc":
+            queryset = queryset.order_by(order_field)
+        else:
+            queryset = queryset.order_by(f"-{order_field}")
+        
+        # 페이지네이션 처리 (async)
+        @sync_to_async
+        def get_total_count():
+            return queryset.count()
+        
+        @sync_to_async
+        def get_paginated_list(offset, limit):
+            # 필요한 페이지만 슬라이싱하여 로드
+            return list(queryset[offset:offset + limit])
+        
+        # 전체 개수 및 페이지 계산
+        total_count = await get_total_count()
+        offset = (page - 1) * page_size
+        total_pages = (total_count + page_size - 1) // page_size
+        
+        # 해당 페이지의 동물만 로드
+        animals_list = await get_paginated_list(offset, page_size)
         
         # 현재 사용자 정보 가져오기
         current_user = None
@@ -287,54 +347,56 @@ async def get_animals(request: HttpRequest, filters: AnimalListQueryIn = Query(A
             if hasattr(current_user, '__await__'):
                 current_user = await current_user
         
+        # 사용자의 확성기 목록을 한 번에 조회 (N+1 쿼리 방지)
+        megaphoned_animal_ids = set()
+        if current_user and len(animals_list) > 0:
+            @sync_to_async
+            def get_megaphoned_ids():
+                from .models import AnimalMegaphone
+                return set(
+                    AnimalMegaphone.objects.filter(
+                        user=current_user,
+                        animal_id__in=[animal.id for animal in animals_list]
+                    ).values_list('animal_id', flat=True)
+                )
+            try:
+                megaphoned_animal_ids = await get_megaphoned_ids()
+            except Exception:
+                megaphoned_animal_ids = set()
+        
         # 응답 데이터 변환
         animals_response = []
         for animal in animals_list:
             # 이미지 처리 (prefetch_related로 가져온 데이터 사용)
             images = list(animal.animalimage_set.all())
             
-            # 현재 사용자의 확성기 상태 확인
-            is_megaphoned = False
-            if current_user:
-                try:
-                    from .models import AnimalMegaphone
-                    megaphone_exists = await AnimalMegaphone.objects.filter(
-                        user=current_user,
-                        animal=animal
-                    ).aexists()
-                    is_megaphoned = megaphone_exists
-                except Exception:
-                    is_megaphoned = False
+            # 현재 사용자의 확성기 상태 확인 (미리 조회한 데이터 사용)
+            is_megaphoned = animal.id in megaphoned_animal_ids
             
-            animal_data = AnimalOut(
+            # 목록 조회용 경량 데이터 (상세 성격 항목 제외)
+            animal_data = AnimalListItemOut(
                 id=str(animal.id),
                 name=animal.name,
                 is_female=animal.is_female,
                 age=animal.age,
                 weight=animal.weight,
-                color=None,  # Animal 모델에 없는 필드
                 breed=animal.breed,
                 description=animal.description,
                 protection_status=animal.protection_status,
-            adoption_status=animal.adoption_status,
+                adoption_status=animal.adoption_status,
                 waiting_days=0,
+                
+                # 기본 성격 지표만 포함
                 activity_level=animal.activity_level,
                 sensitivity=animal.sensitivity,
                 sociability=animal.sociability,
-                separation_anxiety=animal.separation_anxiety,
-                special_notes=getattr(animal, 'special_needs', None),  # special_needs로 매핑
-                health_notes=animal.health_notes,
-                basic_training=animal.basic_training,
-                trainer_name=animal.trainer_name,
-                trainer_comment=animal.trainer_comment,
-                announce_number=animal.announce_number,
-                display_notice_number=animal.display_notice_number,  # 표시용 공고번호
-                announcement_date=None,  # Animal 모델에 없는 필드
+                
+                display_notice_number=animal.display_notice_number,
                 found_location=animal.found_location,
                 admission_date=animal.admission_date.isoformat() if animal.admission_date else None,
                 personality=animal.personality,
                 megaphone_count=animal.megaphone_count,
-                is_megaphoned=is_megaphoned,  # 사용자별 동적 상태
+                is_megaphoned=is_megaphoned,
                 center_id=str(animal.center_id),
                 animal_images=[
                     {
@@ -345,19 +407,23 @@ async def get_animals(request: HttpRequest, filters: AnimalListQueryIn = Query(A
                     }
                     for img in images
                 ],
-                created_at=animal.created_at.isoformat(),
                 updated_at=animal.updated_at.isoformat(),
                 
                 # 공공데이터 관련 필드
                 is_public_data=animal.is_public_data,
-                public_notice_number=animal.public_notice_number,
-                comment=animal.comment,  # 공공데이터 특이사항 코멘트
-                notice_sdt=animal.notice_start_date.isoformat() if animal.notice_start_date else None,
-                notice_edt=animal.notice_end_date.isoformat() if animal.notice_end_date else None,
             )
             animals_response.append(animal_data)
         
-        return animals_response
+        # 페이지네이션 응답 구조 반환
+        return {
+            "count": len(animals_response),
+            "totalCnt": total_count,
+            "pageCnt": total_pages,
+            "curPage": page,
+            "nextPage": page + 1 if page < total_pages else None,
+            "previousPage": page - 1 if page > 1 else None,
+            "data": animals_response
+        }
         
     except Exception as e:
         raise HttpError(500, f"동물 목록 조회 중 오류가 발생했습니다: {str(e)}")
@@ -474,9 +540,25 @@ async def get_animal_by_id(request: HttpRequest, animal_id: str):
             sensitivity=animal.sensitivity,
             sociability=animal.sociability,
             separation_anxiety=animal.separation_anxiety,
+            
+            # 사회성 세부 항목들
+            confidence=animal.confidence,
+            independence=animal.independence,
+            physical_contact=animal.physical_contact,
+            handling_acceptance=animal.handling_acceptance,
+            strangers_attitude=animal.strangers_attitude,
+            objects_attitude=animal.objects_attitude,
+            environment_attitude=animal.environment_attitude,
+            dogs_attitude=animal.dogs_attitude,
+            
+            # 분리불안 세부 항목들
+            coping_ability=animal.coping_ability,
+            playfulness_level=animal.playfulness_level,
+            walkability_level=animal.walkability_level,
+            grooming_acceptance_level=animal.grooming_acceptance_level,
+            
             special_notes=animal.special_needs,
             health_notes=animal.health_notes,
-            basic_training=animal.basic_training,
             trainer_name=animal.trainer_name,
             trainer_comment=animal.trainer_comment,
             announce_number=animal.announce_number,

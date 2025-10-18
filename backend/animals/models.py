@@ -10,9 +10,13 @@ class Animal(BaseModel):
     
     PROTECTION_STATUS_CHOICES = [
         ('보호중', '보호중'),
+        ('임시보호', '임시보호'),
         ('안락사', '안락사'),
         ('자연사', '자연사'),
         ('반환', '반환'),
+        ('기증', '기증'),
+        ('방사', '방사'),
+        ('입양완료', '입양완료'),
     ]
     
     ADOPTION_STATUS_CHOICES = [
@@ -61,11 +65,27 @@ class Animal(BaseModel):
     adoption_fee = models.IntegerField(default=0, help_text="입양비")
     megaphone_count = models.PositiveIntegerField(default=0, help_text="확성기(좋아요) 수")
     is_public = models.BooleanField(default=True, help_text="공개 여부")
-    activity_level = models.PositiveIntegerField(default=0, help_text="활동량 수준")
-    sensitivity = models.PositiveIntegerField(default=0, help_text="예민함 정도")
-    sociability = models.PositiveIntegerField(default=0, help_text="사회성")
-    separation_anxiety = models.PositiveIntegerField(default=0, help_text="분리불안 정도")
-    basic_training = models.PositiveIntegerField(default=0, help_text="기본 훈련 상태")
+    activity_level = models.PositiveIntegerField(default=3, help_text="활동량 수준 (1-5)")
+    sensitivity = models.PositiveIntegerField(default=3, help_text="예민함 정도 (1-5)")
+    sociability = models.PositiveIntegerField(default=3, help_text="사회성 (1-5)")
+    separation_anxiety = models.PositiveIntegerField(default=3, help_text="분리불안 정도 (1-5)")
+    
+    # 사회성 세부 항목들 (이미지 기준)
+    confidence = models.PositiveIntegerField(default=3, help_text="새로운 자극/상황 적극성 (1-5)")
+    independence = models.PositiveIntegerField(default=3, help_text="독립성 있는 행동 (1-5)")
+    physical_contact = models.PositiveIntegerField(default=3, help_text="사람 터치 긍정적 수용 (1-5)")
+    handling_acceptance = models.PositiveIntegerField(default=3, help_text="몸 만지기 저항감 (1-5)")
+    strangers_attitude = models.PositiveIntegerField(default=3, help_text="낯선 사람 반응 (1-5)")
+    objects_attitude = models.PositiveIntegerField(default=3, help_text="낯선 사물 반응 (1-5)")
+    environment_attitude = models.PositiveIntegerField(default=3, help_text="낯선 환경 반응 (1-5)")
+    dogs_attitude = models.PositiveIntegerField(default=3, help_text="낯선 강아지 반응 (1-5)")
+    
+    # 분리불안 세부 항목들 (이미지 기준)
+    coping_ability = models.PositiveIntegerField(default=3, help_text="낯선 공간 혼자 남겨졌을 때 반응 (1-5)")
+    playfulness_level = models.PositiveIntegerField(default=3, help_text="장난감/바디시그널 놀이 유도 반응 (1-5)")
+    walkability_level = models.PositiveIntegerField(default=3, help_text="산책 과정에서 모습 (1-5)")
+    grooming_acceptance_level = models.PositiveIntegerField(default=3, help_text="그루밍 진행 시 모습 (1-5)")
+    
     trainer_name = models.CharField(max_length=100, blank=True, null=True, help_text="훈련사 이름")
     trainer_comment = models.TextField(blank=True, null=True, help_text="훈련사 코멘트")
     

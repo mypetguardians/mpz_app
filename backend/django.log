@@ -1442,3 +1442,108 @@ INFO 2025-10-04 11:03:15,106 basehttp 92518 6214840320 "GET /v1/animals/?page_si
 INFO 2025-10-04 11:03:15,107 basehttp 92518 6214840320 - Broken pipe from ('127.0.0.1', 61098)
 INFO 2025-10-04 11:03:16,447 basehttp 92518 6248493056 "GET /v1/animals/?page_size=100&sort_by=megaphone_count&sort_order=desc&page=1 HTTP/1.1" 200 165614
 INFO 2025-10-04 11:03:16,448 basehttp 92518 6248493056 - Broken pipe from ('127.0.0.1', 61101)
+INFO 2025-10-18 16:07:07,738 autoreload 34042 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-18 16:08:43,054 autoreload 34924 8525258944 Watching for file changes with StatReloader
+WARNING 2025-10-18 16:09:42,479 log 34924 6124810240 Unauthorized: /v1/notifications/
+WARNING 2025-10-18 16:09:42,500 basehttp 34924 6124810240 "GET /v1/notifications/?page=1&page_size=10 HTTP/1.1" 401 26
+WARNING 2025-10-18 16:09:42,507 log 34924 6124810240 Unauthorized: /v1/auth/me
+WARNING 2025-10-18 16:09:42,507 basehttp 34924 6124810240 "GET /v1/auth/me HTTP/1.1" 401 26
+WARNING 2025-10-18 16:09:43,507 log 34924 6124810240 Unauthorized: /v1/notifications/
+WARNING 2025-10-18 16:09:43,508 basehttp 34924 6124810240 "GET /v1/notifications/?page=1&page_size=10 HTTP/1.1" 401 26
+INFO 2025-10-18 16:09:44,061 basehttp 34924 6175289344 "GET /v1/banners?type=main HTTP/1.1" 200 107
+INFO 2025-10-18 16:09:44,084 basehttp 34924 6158462976 "GET /v1/banners?type=sub HTTP/1.1" 200 107
+INFO 2025-10-18 16:09:44,603 basehttp 34924 6141636608 "GET /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 107
+ERROR 2025-10-18 16:09:44,962 log 34924 6208942080 Internal Server Error: /v1/animals/
+ERROR 2025-10-18 16:09:44,962 basehttp 34924 6208942080 "GET /v1/animals/?page_size=100&sort_by=megaphone_count&sort_order=desc&region=%EC%84%9C%EC%9A%B8&page=1 HTTP/1.1" 500 166
+ERROR 2025-10-18 16:09:45,178 log 34924 6192115712 Internal Server Error: /v1/animals/
+ERROR 2025-10-18 16:09:45,178 basehttp 34924 6192115712 "GET /v1/animals/?page_size=100&sort_by=admission_date&sort_order=asc&region=%EC%84%9C%EC%9A%B8&page=1 HTTP/1.1" 500 166
+ERROR 2025-10-18 16:09:46,861 log 34924 6192115712 Internal Server Error: /v1/animals/
+ERROR 2025-10-18 16:09:46,861 basehttp 34924 6192115712 "GET /v1/animals/?page_size=100&sort_by=megaphone_count&sort_order=desc&region=%EC%84%9C%EC%9A%B8&page=1 HTTP/1.1" 500 166
+ERROR 2025-10-18 16:09:47,286 log 34924 6208942080 Internal Server Error: /v1/animals/
+ERROR 2025-10-18 16:09:47,286 basehttp 34924 6208942080 "GET /v1/animals/?page_size=100&sort_by=admission_date&sort_order=asc&region=%EC%84%9C%EC%9A%B8&page=1 HTTP/1.1" 500 166
+INFO 2025-10-18 16:10:34,673 autoreload 34924 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/schemas/outbound.py changed, reloading.
+INFO 2025-10-18 16:10:35,438 autoreload 35866 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-18 16:10:48,044 autoreload 35866 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-18 16:10:48,964 autoreload 36002 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-18 16:11:09,561 autoreload 36002 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-18 16:11:10,285 autoreload 36190 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-18 16:11:23,933 autoreload 36190 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-18 16:11:24,604 autoreload 36310 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-18 16:11:32,104 autoreload 36310 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-18 16:11:32,797 autoreload 36383 8525258944 Watching for file changes with StatReloader
+WARNING 2025-10-18 16:14:56,497 log 36383 6129872896 Unauthorized: /v1/notifications/
+WARNING 2025-10-18 16:14:56,497 basehttp 36383 6129872896 "GET /v1/notifications/?page=1&page_size=10 HTTP/1.1" 401 26
+WARNING 2025-10-18 16:14:56,503 log 36383 6129872896 Unauthorized: /v1/auth/me
+WARNING 2025-10-18 16:14:56,503 basehttp 36383 6129872896 "GET /v1/auth/me HTTP/1.1" 401 26
+WARNING 2025-10-18 16:14:57,504 log 36383 6129872896 Unauthorized: /v1/notifications/
+WARNING 2025-10-18 16:14:57,504 basehttp 36383 6129872896 "GET /v1/notifications/?page=1&page_size=10 HTTP/1.1" 401 26
+INFO 2025-10-18 16:14:58,037 basehttp 36383 6180352000 "GET /v1/banners?type=main HTTP/1.1" 200 107
+INFO 2025-10-18 16:14:58,047 basehttp 36383 6163525632 "GET /v1/banners?type=sub HTTP/1.1" 200 107
+INFO 2025-10-18 16:14:59,049 basehttp 36383 6146699264 "GET /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 107
+INFO 2025-10-18 16:14:59,907 basehttp 36383 6197178368 "GET /v1/animals/?page_size=100&sort_by=admission_date&sort_order=asc&region=%EC%84%9C%EC%9A%B8&page=1 HTTP/1.1" 200 203059
+INFO 2025-10-18 16:14:59,907 basehttp 36383 6214004736 "GET /v1/animals/?page_size=100&sort_by=megaphone_count&sort_order=desc&region=%EC%84%9C%EC%9A%B8&page=1 HTTP/1.1" 200 204268
+INFO 2025-10-18 16:15:33,916 basehttp 36383 6214004736 "GET /v1/animals/?page_size=20&page=1 HTTP/1.1" 200 38057
+INFO 2025-10-18 16:15:37,549 basehttp 36383 6197178368 "GET /v1/animals/?page_size=20&sort_by=created_at&sort_order=desc&page=1 HTTP/1.1" 200 38057
+INFO 2025-10-18 16:16:25,836 autoreload 36383 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-18 16:16:26,803 autoreload 38846 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-18 16:16:43,590 autoreload 38846 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/schemas/outbound.py changed, reloading.
+INFO 2025-10-18 16:16:44,445 autoreload 39005 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-18 16:16:49,951 autoreload 39005 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-18 16:16:50,845 autoreload 39079 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-18 16:16:57,332 autoreload 39079 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-18 16:16:58,479 autoreload 39154 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-18 16:17:15,864 autoreload 39154 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-18 16:17:16,775 autoreload 39303 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-18 16:17:33,608 autoreload 39303 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-18 16:17:34,726 autoreload 39464 8525258944 Watching for file changes with StatReloader
+WARNING 2025-10-18 16:36:33,600 log 39464 6197506048 Unauthorized: /v1/auth/me
+WARNING 2025-10-18 16:36:33,601 basehttp 39464 6197506048 "GET /v1/auth/me HTTP/1.1" 401 26
+INFO 2025-10-18 16:36:46,249 basehttp 39464 6231158784 "GET /v1/animals/?page_size=20&sort_by=created_at&sort_order=desc&page=1 HTTP/1.1" 200 24391
+INFO 2025-10-18 16:36:49,968 basehttp 39464 6214332416 "GET /v1/animals/?page_size=20&page=1 HTTP/1.1" 200 24391
+WARNING 2025-10-18 16:37:00,069 log 39464 6214332416 Unauthorized: /v1/auth/me
+WARNING 2025-10-18 16:37:00,075 basehttp 39464 6214332416 "GET /v1/auth/me HTTP/1.1" 401 26
+INFO 2025-10-18 16:37:08,926 basehttp 39464 6214332416 "GET /v1/animals/?page_size=20&page=1 HTTP/1.1" 200 24391
+INFO 2025-10-18 16:37:13,420 basehttp 39464 6231158784 "GET /v1/animals/?page_size=20&sort_by=created_at&sort_order=desc&page=1 HTTP/1.1" 200 24391
+INFO 2025-10-18 16:37:46,330 basehttp 39464 6247985152 "GET /v1/animals/?page_size=20&page=1 HTTP/1.1" 200 24391
+INFO 2025-10-18 16:38:05,518 basehttp 39464 6247985152 "GET /v1/animals/?page_size=5&page=1 HTTP/1.1" 200 5967
+INFO 2025-10-18 16:38:20,002 basehttp 39464 6247985152 "GET /v1/animals/?page_size=2&page=1 HTTP/1.1" 200 2367
+INFO 2025-10-18 16:38:49,567 autoreload 39464 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-18 16:38:50,561 autoreload 50348 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-18 16:39:25,651 autoreload 50348 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-18 16:39:26,789 autoreload 50669 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-18 16:39:49,304 autoreload 50669 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-18 16:39:50,279 autoreload 50877 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-18 16:40:07,544 basehttp 50877 6202552320 "GET /v1/animals/?page_size=20&page=1 HTTP/1.1" 200 24391
+INFO 2025-10-18 16:40:19,792 autoreload 50877 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-18 16:40:20,720 autoreload 51144 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-18 16:42:16,460 autoreload 51144 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-18 16:42:18,043 autoreload 52140 8525258944 Watching for file changes with StatReloader
+WARNING 2025-10-18 16:42:38,814 log 52140 6159233024 Unauthorized: /v1/auth/me
+WARNING 2025-10-18 16:42:38,825 basehttp 52140 6159233024 "GET /v1/auth/me HTTP/1.1" 401 26
+WARNING 2025-10-18 16:42:51,230 log 52140 6159233024 Unauthorized: /v1/auth/me
+WARNING 2025-10-18 16:42:51,231 basehttp 52140 6159233024 "GET /v1/auth/me HTTP/1.1" 401 26
+INFO 2025-10-18 16:42:59,065 basehttp 52140 6192885760 "GET /v1/animals/?page_size=20&sort_by=created_at&sort_order=desc&page=1 HTTP/1.1" 200 24391
+INFO 2025-10-18 16:42:59,066 basehttp 52140 6192885760 - Broken pipe from ('127.0.0.1', 59330)
+INFO 2025-10-18 16:43:03,973 basehttp 52140 6176059392 "GET /v1/animals/?page_size=20&page=1 HTTP/1.1" 200 24391
+INFO 2025-10-18 16:43:03,974 basehttp 52140 6176059392 - Broken pipe from ('127.0.0.1', 59328)
+INFO 2025-10-18 16:43:14,849 basehttp 52140 6209712128 "GET /v1/animals/?page_size=20&sort_by=created_at&sort_order=desc&page=1 HTTP/1.1" 200 24391
+INFO 2025-10-18 16:43:20,770 basehttp 52140 6159233024 "GET /v1/animals/?page_size=20&page=1 HTTP/1.1" 200 24391
+INFO 2025-10-18 16:44:04,984 autoreload 52140 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-18 16:44:06,178 autoreload 53083 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-18 16:44:18,844 autoreload 53083 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-18 16:44:19,548 autoreload 53205 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-18 16:44:28,837 autoreload 53205 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-18 16:44:30,768 autoreload 53307 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-18 16:44:45,219 autoreload 53307 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-18 16:44:46,222 autoreload 53454 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-18 16:44:56,980 autoreload 53454 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-18 16:44:57,686 autoreload 53548 8525258944 Watching for file changes with StatReloader
+INFO 2025-10-18 16:45:04,902 basehttp 53548 6194950144 "GET /v1/animals/?page_size=20&page=1 HTTP/1.1" 200 24391
+INFO 2025-10-18 16:45:13,829 basehttp 53548 6194376704 "GET /v1/animals/?page_size=20&page=1 HTTP/1.1" 200 24391
+INFO 2025-10-18 16:45:26,776 autoreload 53548 8525258944 /Users/rutdev/mpz_fullstack/backend/animals/api.py changed, reloading.
+INFO 2025-10-18 16:45:27,842 autoreload 53828 8525258944 Watching for file changes with StatReloader
+WARNING 2025-10-18 16:46:50,204 log 53828 6136410112 Unauthorized: /v1/auth/me
+WARNING 2025-10-18 16:46:50,205 basehttp 53828 6136410112 "GET /v1/auth/me HTTP/1.1" 401 26
+INFO 2025-10-18 16:46:52,376 basehttp 53828 6170062848 "GET /v1/animals/?page_size=20&sort_by=created_at&sort_order=desc&page=1 HTTP/1.1" 200 24391
+INFO 2025-10-18 16:46:52,507 basehttp 53828 6153236480 "GET /v1/animals/?page_size=20&page=1 HTTP/1.1" 200 24391
+INFO 2025-10-18 16:46:55,076 basehttp 53828 6153236480 "GET /v1/animals/?page_size=20&sort_by=created_at&sort_order=desc&page=2 HTTP/1.1" 200 25289

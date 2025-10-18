@@ -38,7 +38,7 @@ export default function SubscriberDetails({
   return (
     <div
       className={cn(
-        "bg-white rounded-lg p-4 mx-4 mb-4 border border-lg rounded-lg",
+        "bg-white rounded-lg p-4 mx-4 mb-4 border border-lg ",
         className
       )}
     >

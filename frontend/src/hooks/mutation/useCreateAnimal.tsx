@@ -9,12 +9,26 @@ interface CreateAnimalData {
   color?: string | null;
   breed?: string | null;
   description?: string | null;
-  protection_status?: "보호중" | "안락사" | "자연사" | "반환" | null; // default: "보호중"
+  protection_status?: "보호중" | "임시보호" | "안락사" | "자연사" | "반환" | "기증" | "방사" | "입양완료" | null; // default: "보호중"
   adoption_status?: "입양가능" | "입양진행중" | "입양완료" | "입양불가" | null; // default: "입양가능"
   activity_level?: string | null;
   sensitivity?: string | null;
   sociability?: string | null;
   separation_anxiety?: string | null;
+  // 사회성 세부 항목들
+  confidence?: string | null;
+  independence?: string | null;
+  physical_contact?: string | null;
+  handling_acceptance?: string | null;
+  strangers_attitude?: string | null;
+  objects_attitude?: string | null;
+  environment_attitude?: string | null;
+  dogs_attitude?: string | null;
+  // 분리불안 세부 항목들
+  coping_ability?: string | null;
+  playfulness_level?: string | null;
+  walkability_level?: string | null;
+  grooming_acceptance_level?: string | null;
   special_notes?: string | null;
   health_notes?: string | null;
   basic_training?: string | null;
@@ -23,6 +37,7 @@ interface CreateAnimalData {
   announcement_date?: string | null;
   found_location?: string | null;
   personality?: string | null;
+  image_urls?: string[]; // 업로드된 이미지 URL들
   comment?: string | null; // 공공데이터 특이사항 코멘트
 }
 

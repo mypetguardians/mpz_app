@@ -23,6 +23,20 @@ export interface Animal {
   sensitivity: string | null;
   sociability: string | null;
   separationAnxiety: string | null;
+  // 사회성 세부 항목들
+  confidence?: number | null;
+  independence?: number | null;
+  physical_contact?: number | null;
+  handling_acceptance?: number | null;
+  strangers_attitude?: number | null;
+  objects_attitude?: number | null;
+  environment_attitude?: number | null;
+  dogs_attitude?: number | null;
+  // 분리불안 세부 항목들
+  coping_ability?: number | null;
+  playfulness_level?: number | null;
+  walkability_level?: number | null;
+  grooming_acceptance_level?: number | null;
   specialNotes: string | null;
   healthNotes: string | null;
   basicTraining: string | null;
@@ -92,6 +106,20 @@ export interface RawAnimalResponse {
   sensitivity: number | null;
   sociability: number | null;
   separation_anxiety: number | null;
+  // 사회성 세부 항목들
+  confidence?: number | null;
+  independence?: number | null;
+  physical_contact?: number | null;
+  handling_acceptance?: number | null;
+  strangers_attitude?: number | null;
+  objects_attitude?: number | null;
+  environment_attitude?: number | null;
+  dogs_attitude?: number | null;
+  // 분리불안 세부 항목들
+  coping_ability?: number | null;
+  playfulness_level?: number | null;
+  walkability_level?: number | null;
+  grooming_acceptance_level?: number | null;
   special_notes: string | null;
   health_notes: string | null;
   basic_training: number | null;
@@ -183,6 +211,20 @@ export function transformRawAnimalToAnimal(raw: RawAnimalResponse): Animal {
     sensitivity: raw.sensitivity?.toString() || null,
     sociability: raw.sociability?.toString() || null,
     separationAnxiety: raw.separation_anxiety?.toString() || null,
+    // 사회성 세부 항목들
+    confidence: raw.confidence || null,
+    independence: raw.independence || null,
+    physical_contact: raw.physical_contact || null,
+    handling_acceptance: raw.handling_acceptance || null,
+    strangers_attitude: raw.strangers_attitude || null,
+    objects_attitude: raw.objects_attitude || null,
+    environment_attitude: raw.environment_attitude || null,
+    dogs_attitude: raw.dogs_attitude || null,
+    // 분리불안 세부 항목들
+    coping_ability: raw.coping_ability || null,
+    playfulness_level: raw.playfulness_level || null,
+    walkability_level: raw.walkability_level || null,
+    grooming_acceptance_level: raw.grooming_acceptance_level || null,
     specialNotes: raw.special_notes,
     healthNotes: raw.health_notes,
     basicTraining: raw.basic_training?.toString() || null,

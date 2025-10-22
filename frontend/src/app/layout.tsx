@@ -46,14 +46,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "ko_KR",
-    url: "/",
+    url: "https://mpz.kr",
     title: "마펫즈",
     description:
       "전국 유기동물 보호센터 정보와 입양 절차를 한눈에 확인하기! 반려동물 입양 플랫폼",
     siteName: "마펫즈",
     images: [
       {
-        url: "/og-image.png",
+        url: "/img/og-image.png",
         width: 1200,
         height: 630,
         alt: "마펫즈",
@@ -65,7 +65,7 @@ export const metadata: Metadata = {
     title: "마펫즈",
     description:
       "전국 유기동물 보호센터 정보와 입양 절차를 한눈에 확인하기! 반려동물 입양 플랫폼",
-    images: ["/og-image.png"],
+    images: ["/img/og-image.png"],
   },
   icons: {
     icon: [

@@ -12,21 +12,24 @@ import { BottomSheet } from "@/components/ui/BottomSheet";
 import { CustomModal } from "@/components/ui/CustomModal";
 import { Toast } from "@/components/ui/Toast";
 import { IconButton } from "@/components/ui/IconButton";
+import { ImageCarouselModal } from "@/components/ui/ImageCarouselModal";
 import {
   CommunityDetailSkeleton,
   CommentSectionSkeleton,
 } from "@/components/ui";
-import { useGetPublicPostDetail } from "@/hooks/query/useGetPublicPosts";
-import { useGetCenterPostDetail } from "@/hooks/query/useGetCenterPosts";
-import { useGetComments } from "@/hooks/query/useGetComments";
-import { useDeletePost } from "@/hooks/mutation/useDeletePost";
+import {
+  useGetPublicPostDetail,
+  useGetCenterPostDetail,
+  useGetComments,
+  useDeletePost,
+} from "@/hooks";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useKakaoSDK } from "@/hooks/useKakaoSDK";
 
 export default function CommunityDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isLoading: authLoading } = useAuth();
   const { isLoaded, isInitialized } = useKakaoSDK();
 
   const [showBottomSheet, setShowBottomSheet] = useState(false);
@@ -39,37 +42,40 @@ export default function CommunityDetailPage() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [imageModalData, setImageModalData] = useState<{
+    images: string[];
+    initialIndex: number;
+  }>({ images: [], initialIndex: 0 });
 
-  // 사용자 권한에 따라 적절한 API 호출
+  // 사용자 권한에 따라 적절한 API 호출 (인증 로딩 완료 후에만)
   const isCenterUser =
-    user?.userType === "센터관리자" ||
-    user?.userType === "훈련사" ||
-    user?.userType === "센터최고관리자";
+    !authLoading &&
+    isAuthenticated &&
+    (user?.userType === "센터관리자" ||
+      user?.userType === "훈련사" ||
+      user?.userType === "센터최고관리자");
 
-  // 센터권한자용 게시글 상세조회
-  const {
-    data: centerPostDetailData,
-    isLoading: isCenterPostLoading,
-    error: centerPostError,
-    refetch: refetchCenterPost,
-  } = useGetCenterPostDetail(params.id as string);
+  // 센터권한자용 게시글 상세조회 (로그인한 센터 사용자만)
+  const centerPostQuery = useGetCenterPostDetail(params.id as string, {
+    enabled: !authLoading && isAuthenticated && isCenterUser,
+  });
 
-  // 일반 사용자용 게시글 상세조회
-  const {
-    data: publicPostDetailData,
-    isLoading: isPublicPostLoading,
-    error: publicPostError,
-    refetch: refetchPublicPost,
-  } = useGetPublicPostDetail(params.id as string);
+  // 일반 사용자용 게시글 상세조회 (미로그인 및 일반 사용자)
+  const publicPostQuery = useGetPublicPostDetail(params.id as string);
 
-  // 권한에 따라 적절한 데이터 선택
-  const postDetailData = isCenterUser
-    ? centerPostDetailData
-    : publicPostDetailData;
-  const isPostLoading = isCenterUser
-    ? isCenterPostLoading
-    : isPublicPostLoading;
-  const postError = isCenterUser ? centerPostError : publicPostError;
+  // 권한에 따라 적절한 쿼리 선택
+  // 센터 사용자: 센터 API 우선, 실패 시 Public API
+  // 일반/미로그인 사용자: Public API만 사용
+  const activeQuery =
+    isCenterUser && !centerPostQuery.error ? centerPostQuery : publicPostQuery;
+
+  const postDetailData = activeQuery.data;
+  const isPostLoading = activeQuery.isLoading;
+  const postError = activeQuery.error;
+
+  const refetchCenterPost = centerPostQuery.refetch;
+  const refetchPublicPost = publicPostQuery.refetch;
 
   const {
     data: commentsData,
@@ -177,7 +183,7 @@ export default function CommunityDetailPage() {
   }, [showToast]);
 
   // 로딩 상태 또는 데이터가 없을 때 스켈레톤 표시
-  if (isLoading || isPostLoading || !postDetailData || !post) {
+  if (authLoading || isLoading || isPostLoading || !postDetailData || !post) {
     return (
       <Container className="min-h-screen bg-white">
         <TopBar
@@ -303,6 +309,11 @@ export default function CommunityDetailPage() {
     router.push(`/community/user/${userId}`);
   };
 
+  const handleImageClick = (images: string[], initialIndex: number) => {
+    setImageModalData({ images, initialIndex });
+    setShowImageModal(true);
+  };
+
   const getBottomSheetContent = () => {
     switch (bottomSheetVariant) {
       case "report":
@@ -368,6 +379,7 @@ export default function CommunityDetailPage() {
             onPostAction={handlePostAction}
             onUserClick={handleUserClick}
             onLoginRequired={() => setShowLoginModal(true)}
+            onImageClick={handleImageClick}
           />
         </div>
 
@@ -421,6 +433,14 @@ export default function CommunityDetailPage() {
         variant="variant2"
         ctaText="로그인하기"
         onCtaClick={() => (window.location.href = "/login")}
+      />
+
+      {/* 이미지 캐러셀 모달 */}
+      <ImageCarouselModal
+        open={showImageModal}
+        onClose={() => setShowImageModal(false)}
+        images={imageModalData.images}
+        initialIndex={imageModalData.initialIndex}
       />
 
       {/* 토스트 */}

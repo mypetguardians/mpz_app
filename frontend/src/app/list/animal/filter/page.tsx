@@ -213,7 +213,15 @@ function AnimalFilterContent() {
       protectionStatus: selectedProtectionStatus,
       expertOpinion: selectedExpertOpinion,
     });
-  }, []);
+  }, [
+    selectedAges,
+    selectedBreed,
+    selectedExpertOpinion,
+    selectedGenders,
+    selectedProtectionStatus,
+    selectedRegions,
+    selectedWeights,
+  ]);
 
   const handleApply = () => {
     const filters: FilterState = {

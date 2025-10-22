@@ -25,7 +25,7 @@ class AnimalAdmin(admin.ModelAdmin):
             'fields': ('found_location', 'admission_date')
         }),
         ('행동 및 훈련 정보', {
-            'fields': ('activity_level', 'sensitivity', 'sociability', 'separation_anxiety', 'basic_training', 'trainer_name', 'trainer_comment')
+            'fields': ('activity_level', 'sensitivity', 'sociability', 'separation_anxiety', 'trainer_name', 'trainer_comment')
         }),
         ('기타', {
             'fields': ('adoption_fee', 'is_public')

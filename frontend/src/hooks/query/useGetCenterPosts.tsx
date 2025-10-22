@@ -49,7 +49,14 @@ const getCenterPostDetail = async (
 };
 
 // 센터권한자용 게시글 목록 조회 훅
-export const useGetCenterPosts = (params?: GetPostsParams) => {
+interface UseGetCenterPostsOptions {
+  enabled?: boolean;
+}
+
+export const useGetCenterPosts = (
+  params?: GetPostsParams,
+  options?: UseGetCenterPostsOptions
+) => {
   return useQuery({
     queryKey: ["center-posts", params],
     queryFn: () => getCenterPosts(params),
@@ -69,21 +76,31 @@ export const useGetCenterPosts = (params?: GetPostsParams) => {
         },
       };
     },
+    enabled: options?.enabled !== undefined ? options.enabled : true,
     staleTime: 0,
     gcTime: 10 * 60 * 1000, // 10분
-    retry: 1,
+    retry: false, // 미인증 시 재시도하지 않음
     refetchOnWindowFocus: true,
   });
 };
 
 // 센터권한자용 게시글 상세조회 훅
-export const useGetCenterPostDetail = (postId: string) => {
+interface UseGetCenterPostDetailOptions {
+  enabled?: boolean;
+}
+
+export const useGetCenterPostDetail = (
+  postId: string,
+  options?: UseGetCenterPostDetailOptions
+) => {
   return useQuery({
     queryKey: ["center-posts", postId],
     queryFn: () => getCenterPostDetail(postId),
-    enabled: !!postId,
+    enabled:
+      options?.enabled !== undefined ? options.enabled && !!postId : !!postId,
     staleTime: 0, // 항상 최신 데이터 요청
     gcTime: 10 * 60 * 1000, // 10분
     refetchOnWindowFocus: true,
+    retry: false, // 미인증 시 재시도하지 않음
   });
 };

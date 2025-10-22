@@ -28,6 +28,7 @@ interface CommunityDetailProps {
   onUserClick?: (userId: string) => void;
   onLoginRequired?: () => void;
   isAuthorSubscriber?: boolean;
+  onImageClick?: (images: string[], initialIndex: number) => void;
 }
 
 export function CommunityDetail({
@@ -39,6 +40,7 @@ export function CommunityDetail({
   onUserClick,
   onLoginRequired,
   isAuthorSubscriber,
+  onImageClick,
 }: CommunityDetailProps) {
   const {
     images,
@@ -142,7 +144,10 @@ export function CommunityDetail({
     return (
       <div className="mb-3 w-full">
         {imageUrls.length === 1 ? (
-          <div className="relative w-full max-w-[420px] mx-auto h-[330px] overflow-hidden">
+          <div
+            className="relative w-full max-w-[420px] mx-auto h-[330px] overflow-hidden cursor-pointer"
+            onClick={() => onImageClick?.(imageUrls, 0)}
+          >
             <Image
               src={imageUrls[0]}
               alt={title}
@@ -155,7 +160,8 @@ export function CommunityDetail({
             {imageUrls.map((url, i) => (
               <div
                 key={i}
-                className="relative flex-shrink-0 w-[330px] h-[330px] overflow-hidden"
+                className="relative flex-shrink-0 w-[330px] h-[330px] overflow-hidden cursor-pointer"
+                onClick={() => onImageClick?.(imageUrls, i)}
               >
                 <Image
                   src={url}

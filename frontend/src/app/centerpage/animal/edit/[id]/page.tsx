@@ -37,6 +37,22 @@ interface FormData {
       sociability: number;
       separationAnxiety: number;
     };
+    sociality: {
+      confidence: number;
+      independence: number;
+      physicalContact: number;
+      handlingAcceptance: number;
+      strangersAttitude: number;
+      objectsAttitude: number;
+      environmentAttitude: number;
+      dogsAttitude: number;
+    };
+    separationAnxietyDetail: {
+      copingAbility: number;
+      playfulnessLevel: number;
+      walkabilityLevel: number;
+      groomingAcceptanceLevel: number;
+    };
     trainerComment: string;
   };
   images: File[];
@@ -65,6 +81,22 @@ const initialFormData: FormData = {
       sensitivity: 1,
       sociability: 1,
       separationAnxiety: 1,
+    },
+    sociality: {
+      confidence: 1,
+      independence: 1,
+      physicalContact: 1,
+      handlingAcceptance: 1,
+      strangersAttitude: 1,
+      objectsAttitude: 1,
+      environmentAttitude: 1,
+      dogsAttitude: 1,
+    },
+    separationAnxietyDetail: {
+      copingAbility: 1,
+      playfulnessLevel: 1,
+      walkabilityLevel: 1,
+      groomingAcceptanceLevel: 1,
     },
     trainerComment: "",
   },
@@ -113,6 +145,22 @@ export default function EditAnimal({
             sensitivity: animalData.sensitivity || 1,
             sociability: animalData.sociability || 1,
             separationAnxiety: animalData.separation_anxiety || 1,
+          },
+          sociality: {
+            confidence: 1,
+            independence: 1,
+            physicalContact: 1,
+            handlingAcceptance: 1,
+            strangersAttitude: 1,
+            objectsAttitude: 1,
+            environmentAttitude: 1,
+            dogsAttitude: 1,
+          },
+          separationAnxietyDetail: {
+            copingAbility: 1,
+            playfulnessLevel: 1,
+            walkabilityLevel: 1,
+            groomingAcceptanceLevel: 1,
           },
           trainerComment: animalData.trainer_comment || "",
         },

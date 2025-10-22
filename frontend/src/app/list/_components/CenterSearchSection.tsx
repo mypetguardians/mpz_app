@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import React from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 import { SearchInput } from "@/components/ui/SearchInput";
 import { CenterCard } from "@/components/ui/CenterCard";
@@ -18,7 +18,6 @@ interface CenterSearchSectionProps {
 export function CenterSearchSection({
   onSearchStateChange,
 }: CenterSearchSectionProps) {
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   const [searchValue, setSearchValue] = useState("");
@@ -166,7 +165,8 @@ export function CenterSearchSection({
           {!isSearchLoading && !searchError && !hasSearchResults && (
             <div className="text-center py-8">
               <div className="text-gray-500">
-                &ldquo;{searchValue}&rdquo;에 해당하는 보호센터를 찾을 수 없습니다
+                &ldquo;{searchValue}&rdquo;에 해당하는 보호센터를 찾을 수
+                없습니다
               </div>
             </div>
           )}

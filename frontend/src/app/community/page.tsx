@@ -106,7 +106,7 @@ export default function CommunityPage() {
 
   // 기본 탭과 시스템 태그를 조합하여 탭 옵션 생성
   const tabs = useMemo(() => {
-    const baseTabs = [{ label: "최신글", value: "latest" }];
+    const baseTabs = [{ label: "전체", value: "latest" }];
 
     if (systemTags && Array.isArray(systemTags)) {
       const tagTabs = systemTags.map((tag) => {
@@ -245,7 +245,7 @@ export default function CommunityPage() {
 
   const filteredPosts: Post[] = useMemo(() => {
     let filtered = posts;
-    
+
     // 탭 필터링
     if (activeTab !== "latest") {
       const selected = activeTab.toLowerCase();
@@ -253,16 +253,16 @@ export default function CommunityPage() {
         p.tags?.some((t) => (t.tag_name || "").toLowerCase() === selected)
       );
     }
-    
+
     // 중복 제거 (id 기준으로)
     const uniquePosts = filtered.reduce((acc, current) => {
-      const existingPost = acc.find(post => post.id === current.id);
+      const existingPost = acc.find((post) => post.id === current.id);
       if (!existingPost) {
         acc.push(current);
       }
       return acc;
     }, [] as Post[]);
-    
+
     return uniquePosts;
   }, [posts, activeTab]);
 

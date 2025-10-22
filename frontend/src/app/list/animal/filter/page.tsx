@@ -62,12 +62,25 @@ function AnimalFilterContent() {
       searchParams.get("expertOpinion")?.split(",").filter(Boolean) || [];
 
     console.log("URL 파라미터에서 읽은 필터:", {
-      breed, weights, regions, ages, genders, protectionStatus, expertOpinion
+      breed,
+      weights,
+      regions,
+      ages,
+      genders,
+      protectionStatus,
+      expertOpinion,
     });
 
     // URL에 파라미터가 있으면 URL 우선, 없으면 localStorage 사용
-    if (breed || weights.length > 0 || regions.length > 0 || ages.length > 0 || 
-        genders.length > 0 || protectionStatus.length > 0 || expertOpinion.length > 0) {
+    if (
+      breed ||
+      weights.length > 0 ||
+      regions.length > 0 ||
+      ages.length > 0 ||
+      genders.length > 0 ||
+      protectionStatus.length > 0 ||
+      expertOpinion.length > 0
+    ) {
       console.log("URL 파라미터 사용");
       // URL 파라미터가 있으면 URL 값 사용
       setSelectedBreed(breed);
@@ -97,7 +110,7 @@ function AnimalFilterContent() {
           console.error("localStorage 필터 파싱 오류:", error);
         }
       }
-      
+
       console.log("초기값으로 설정");
       // localStorage도 없으면 초기값으로 설정
       setSelectedBreed("");
@@ -251,7 +264,7 @@ function AnimalFilterContent() {
 
   const handleReset = () => {
     console.log("필터 재설정 시작");
-    
+
     // 모든 상태 초기화
     setSelectedBreed("");
     setSelectedWeights([]);
@@ -266,7 +279,7 @@ function AnimalFilterContent() {
 
     // localStorage에서도 필터 상태 제거
     localStorage.removeItem("animalFilters");
-    
+
     console.log("필터 재설정 완료 - 모든 상태 초기화됨");
 
     // URL도 초기화 (약간의 지연을 두어 상태 업데이트 후 실행)
@@ -284,7 +297,7 @@ function AnimalFilterContent() {
             <IconButton
               icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
               size="iconM"
-              onClick={() => router.push("/list/animal")}
+              onClick={() => router.back()}
             />
             <h4>필터</h4>
           </div>
@@ -348,16 +361,23 @@ function AnimalFilterContent() {
 
         {/* InfoCard - 마지막으로 선택된 보호상태만 표시 */}
         {lastSelectedProtectionStatus === "입양가능" && (
-          <InfoCard>입양이 가능한 아이들입니다. (보호중, 임시보호, 기증, 공고중 포함)</InfoCard>
+          <InfoCard>
+            입양이 가능한 아이들입니다. (보호중, 임시보호, 기증, 공고중 포함)
+          </InfoCard>
         )}
         {lastSelectedProtectionStatus === "무지개" && (
-          <InfoCard>🌈 무지개 다리를 건넌 아이들입니다. (안락사, 자연사 포함)</InfoCard>
+          <InfoCard>
+            🌈 무지개 다리를 건넌 아이들입니다. (안락사, 자연사 포함)
+          </InfoCard>
         )}
         {lastSelectedProtectionStatus === "반환" && (
           <InfoCard>원래 주인에게 돌아간 아이에요.</InfoCard>
         )}
         {lastSelectedProtectionStatus === "방사" && (
-          <InfoCard>동물의 생존이나 구조 목적, 예외적 상황에 따라 자연으로 돌려보낸 아이에요.</InfoCard>
+          <InfoCard>
+            동물의 생존이나 구조 목적, 예외적 상황에 따라 자연으로 돌려보낸
+            아이에요.
+          </InfoCard>
         )}
         {lastSelectedProtectionStatus === "입양완료" && (
           <InfoCard>새로운 가족을 만나 입양된 아이에요.</InfoCard>

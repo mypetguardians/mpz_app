@@ -15,6 +15,7 @@ import { Toast } from "@/components/ui/Toast";
 import { cn } from "@/lib/utils";
 import { useCheckCenterFavorite, useToggleCenterFavorite } from "@/hooks";
 import { useKakaoSDK } from "@/hooks/useKakaoSDK";
+import { useRouter } from "next/navigation";
 
 interface CenterDetailHeaderProps {
   centerName: string;
@@ -31,6 +32,7 @@ export function CenterDetailHeader({
   isKakaoLoaded,
   isKakaoInitialized,
 }: CenterDetailHeaderProps) {
+  const router = useRouter();
   const { isLoaded: hookIsLoaded, isInitialized: hookIsInitialized } =
     useKakaoSDK();
 
@@ -52,10 +54,6 @@ export function CenterDetailHeader({
   // 토스트 상태
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
-
-  const handleBackClick = () => {
-    window.history.back();
-  };
 
   const handleFavoriteClick = () => {
     if (isCheckingFavorite || toggleCenterFavorite.isPending) return;
@@ -159,7 +157,7 @@ export function CenterDetailHeader({
           <IconButton
             icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
             size="iconM"
-            onClick={handleBackClick}
+            onClick={() => router.back()}
           />
         </div>
       }

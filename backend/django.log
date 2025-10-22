@@ -1442,6 +1442,7 @@ INFO 2025-10-04 11:03:15,106 basehttp 92518 6214840320 "GET /v1/animals/?page_si
 INFO 2025-10-04 11:03:15,107 basehttp 92518 6214840320 - Broken pipe from ('127.0.0.1', 61098)
 INFO 2025-10-04 11:03:16,447 basehttp 92518 6248493056 "GET /v1/animals/?page_size=100&sort_by=megaphone_count&sort_order=desc&page=1 HTTP/1.1" 200 165614
 INFO 2025-10-04 11:03:16,448 basehttp 92518 6248493056 - Broken pipe from ('127.0.0.1', 61101)
+<<<<<<< HEAD
 INFO 2025-10-18 16:07:07,738 autoreload 34042 8525258944 Watching for file changes with StatReloader
 INFO 2025-10-18 16:08:43,054 autoreload 34924 8525258944 Watching for file changes with StatReloader
 WARNING 2025-10-18 16:09:42,479 log 34924 6124810240 Unauthorized: /v1/notifications/
@@ -1570,3 +1571,163 @@ INFO 2025-10-18 17:01:05,396 basehttp 60623 6190739456 "GET /v1/centers?name=%EA
 INFO 2025-10-18 17:01:07,323 basehttp 60623 6190739456 "GET /v1/centers/?name=%EA%B5%AC%EB%A6%AC%EC%8B%9C&page=1&page_size=10 HTTP/1.1" 200 943
 >>>>>>> fe
 INFO 2025-10-18 17:01:49,852 autoreload 65689 8525258944 Watching for file changes with StatReloader
+=======
+ERROR 2025-10-22 09:40:12,555 exception 10853 6113472512 Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/http/request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+WARNING 2025-10-22 09:40:12,560 log 10853 6113472512 Bad Request: /v1/centers/
+WARNING 2025-10-22 09:40:12,561 basehttp 10853 6113472512 "GET /v1/centers/ HTTP/1.1" 400 143
+ERROR 2025-10-22 09:40:59,423 exception 10853 6130298880 Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/http/request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+WARNING 2025-10-22 09:40:59,428 log 10853 6130298880 Bad Request: /docs/
+WARNING 2025-10-22 09:40:59,429 basehttp 10853 6130298880 "GET /docs/ HTTP/1.1" 400 143
+ERROR 2025-10-22 09:40:59,459 exception 10853 6147125248 Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/http/request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+WARNING 2025-10-22 09:40:59,463 log 10853 6147125248 Bad Request: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-22 09:40:59,479 basehttp 10853 6147125248 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 400 143
+ERROR 2025-10-22 09:41:00,760 exception 10853 6163951616 Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/http/request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+WARNING 2025-10-22 09:41:00,761 log 10853 6163951616 Bad Request: /docs/
+WARNING 2025-10-22 09:41:00,762 basehttp 10853 6163951616 "GET /docs/ HTTP/1.1" 400 143
+ERROR 2025-10-22 09:41:00,777 exception 10853 6180777984 Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/http/request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+WARNING 2025-10-22 09:41:00,781 log 10853 6180777984 Bad Request: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-22 09:41:00,782 basehttp 10853 6180777984 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 400 143
+ERROR 2025-10-22 09:41:01,896 exception 10853 6197604352 Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/http/request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+ERROR 2025-10-22 09:41:01,898 exception 10853 6214430720 Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/http/request.py", line 151, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '127.0.0.1:8000'. You may need to add '127.0.0.1' to ALLOWED_HOSTS.
+WARNING 2025-10-22 09:41:01,900 log 10853 6197604352 Bad Request: /v1/centers
+WARNING 2025-10-22 09:41:01,902 log 10853 6214430720 Bad Request: /v1/centers
+WARNING 2025-10-22 09:41:01,904 basehttp 10853 6197604352 "GET /v1/centers?page=1&page_size=10 HTTP/1.1" 400 143
+WARNING 2025-10-22 09:41:01,906 basehttp 10853 6214430720 "GET /v1/centers?region=%EC%84%9C%EC%9A%B8&page=1&page_size=10 HTTP/1.1" 400 143
+INFO 2025-10-22 09:41:50,039 basehttp 12989 6173913088 "GET /v1/centers/?page=1&page_size=5 HTTP/1.1" 200 4365
+INFO 2025-10-22 09:41:59,094 basehttp 12989 6173339648 "GET /v1/centers/?region=%EC%84%9C%EC%9A%B8&page=1&page_size=3 HTTP/1.1" 200 2641
+INFO 2025-10-22 09:42:07,524 basehttp 12989 6206992384 "GET /v1/centers/?region=%EA%B2%BD%EA%B8%B0&page=1&page_size=3 HTTP/1.1" 200 2644
+WARNING 2025-10-22 09:54:28,222 log 12989 6240645120 Unauthorized: /v1/auth/me
+WARNING 2025-10-22 09:54:28,230 basehttp 12989 6240645120 "GET /v1/auth/me HTTP/1.1" 401 26
+INFO 2025-10-22 09:54:28,366 basehttp 12989 6173339648 "GET /v1/centers?region=%EC%84%9C%EC%9A%B8&page=1&page_size=10 HTTP/1.1" 301 0
+INFO 2025-10-22 09:54:28,367 basehttp 12989 6240645120 "GET /v1/centers?page=1&page_size=10 HTTP/1.1" 301 0
+INFO 2025-10-22 09:54:30,654 basehttp 12989 6190166016 "GET /v1/centers/?region=%EC%84%9C%EC%9A%B8&page=1&page_size=10 HTTP/1.1" 200 8502
+INFO 2025-10-22 09:54:31,183 basehttp 12989 6206992384 "GET /v1/centers/?page=1&page_size=10 HTTP/1.1" 200 8497
+INFO 2025-10-22 09:54:32,774 basehttp 12989 6274297856 "GET /docs/ HTTP/1.1" 302 0
+INFO 2025-10-22 09:54:32,805 basehttp 12989 6274297856 "GET /admin/login/?next=/docs/ HTTP/1.1" 200 4184
+WARNING 2025-10-22 09:54:32,847 log 12989 6274297856 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-22 09:54:32,849 basehttp 12989 6274297856 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-22 09:54:32,878 basehttp 12989 6223818752 "GET /static/admin/css/dark_mode.css HTTP/1.1" 200 2682
+INFO 2025-10-22 09:54:32,879 basehttp 12989 6291124224 "GET /static/admin/css/login.css HTTP/1.1" 200 958
+INFO 2025-10-22 09:54:32,881 basehttp 12989 6274297856 "GET /static/admin/js/theme.js HTTP/1.1" 200 1943
+INFO 2025-10-22 09:54:32,882 basehttp 12989 6173339648 "GET /static/admin/css/responsive.css HTTP/1.1" 200 17905
+INFO 2025-10-22 09:54:32,884 basehttp 12989 6240645120 "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 200 2810
+INFO 2025-10-22 09:54:32,885 basehttp 12989 6291124224 "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 200 3063
+INFO 2025-10-22 09:54:32,886 basehttp 12989 6257471488 "GET /static/admin/css/base.css HTTP/1.1" 200 21544
+INFO 2025-10-22 09:54:38,226 basehttp 12989 6257471488 "POST /admin/login/?next=/docs/ HTTP/1.1" 200 4350
+INFO 2025-10-22 09:54:38,259 basehttp 12989 6173339648 "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 200 2810
+INFO 2025-10-22 09:54:38,260 basehttp 12989 6240645120 "GET /static/admin/css/dark_mode.css HTTP/1.1" 200 2682
+INFO 2025-10-22 09:54:38,262 basehttp 12989 6274297856 "GET /static/admin/css/login.css HTTP/1.1" 200 958
+INFO 2025-10-22 09:54:38,264 basehttp 12989 6223818752 "GET /static/admin/css/responsive.css HTTP/1.1" 200 17905
+INFO 2025-10-22 09:54:38,264 basehttp 12989 6291124224 "GET /static/admin/css/base.css HTTP/1.1" 200 21544
+WARNING 2025-10-22 09:54:38,270 log 12989 6257471488 Not Found: /.well-known/appspecific/com.chrome.devtools.json
+WARNING 2025-10-22 09:54:38,270 basehttp 12989 6257471488 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 28625
+INFO 2025-10-22 09:54:38,276 basehttp 12989 6257471488 "GET /static/admin/js/theme.js HTTP/1.1" 200 1943
+INFO 2025-10-22 09:54:38,277 basehttp 12989 6291124224 "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 200 3063
+INFO 2025-10-22 09:54:44,072 basehttp 12989 6206992384 "GET /v1/centers?location=%EC%84%9C%EC%9A%B8&page=1&page_size=10 HTTP/1.1" 301 0
+INFO 2025-10-22 09:54:44,492 basehttp 12989 6190166016 "GET /v1/centers/?location=%EC%84%9C%EC%9A%B8&page=1&page_size=10 HTTP/1.1" 200 8449
+INFO 2025-10-22 09:54:45,753 basehttp 12989 6190166016 "GET /v1/centers?region=%EC%84%9C%EC%9A%B8&page=2&page_size=10 HTTP/1.1" 301 0
+INFO 2025-10-22 09:54:47,551 basehttp 12989 6190166016 "GET /v1/centers/?region=%EC%84%9C%EC%9A%B8&page=2&page_size=10 HTTP/1.1" 200 8444
+INFO 2025-10-22 09:54:50,939 basehttp 12989 6190166016 "GET /v1/centers?region=%EC%84%9C%EC%9A%B8&page=3&page_size=10 HTTP/1.1" 301 0
+INFO 2025-10-22 09:54:52,747 basehttp 12989 6307950592 "GET /v1/centers/?region=%EC%84%9C%EC%9A%B8&page=3&page_size=10 HTTP/1.1" 200 8353
+INFO 2025-10-22 09:54:53,905 basehttp 12989 6307950592 "GET /v1/centers?region=%EC%84%9C%EC%9A%B8&page=4&page_size=10 HTTP/1.1" 301 0
+INFO 2025-10-22 09:54:55,764 basehttp 12989 6190166016 "GET /v1/centers/?region=%EC%84%9C%EC%9A%B8&page=4&page_size=10 HTTP/1.1" 200 2535
+INFO 2025-10-22 09:55:20,720 basehttp 12989 6307950592 "GET /v1/centers/?page=1&page_size=100 HTTP/1.1" 200 83885
+INFO 2025-10-22 09:56:20,008 basehttp 12989 6206992384 "GET /v1/centers/?region=%EC%84%9C%EC%9A%B8&page=1&page_size=100 HTTP/1.1" 200 11723
+INFO 2025-10-22 09:56:28,866 basehttp 12989 6324776960 "GET /v1/centers/?region=%EA%B2%BD%EA%B8%B0&page=1&page_size=5 HTTP/1.1" 200 4355
+ERROR 2025-10-22 09:56:46,556 log 12989 6190166016 Internal Server Error: /v1/animals/
+ERROR 2025-10-22 09:56:46,557 basehttp 12989 6190166016 "GET /v1/animals/?page_size=20&page=1 HTTP/1.1" 500 310
+ERROR 2025-10-22 09:56:47,824 log 12989 6358429696 Internal Server Error: /v1/animals/
+ERROR 2025-10-22 09:56:47,824 basehttp 12989 6358429696 "GET /v1/animals/?page_size=20&sort_by=created_at&sort_order=desc&page=1 HTTP/1.1" 500 310
+ERROR 2025-10-22 09:56:47,964 log 12989 6190166016 Internal Server Error: /v1/animals/
+ERROR 2025-10-22 09:56:47,964 basehttp 12989 6190166016 "GET /v1/animals/?page_size=20&page=1 HTTP/1.1" 500 310
+ERROR 2025-10-22 09:56:49,231 log 12989 6190166016 Internal Server Error: /v1/animals/
+ERROR 2025-10-22 09:56:49,231 basehttp 12989 6190166016 "GET /v1/animals/?page_size=20&sort_by=created_at&sort_order=desc&page=1 HTTP/1.1" 500 310
+WARNING 2025-10-22 09:57:17,318 log 12989 6190166016 Unauthorized: /v1/auth/me
+WARNING 2025-10-22 09:57:17,319 basehttp 12989 6190166016 "GET /v1/auth/me HTTP/1.1" 401 26
+INFO 2025-10-22 09:57:17,431 basehttp 12989 6190166016 "GET /v1/centers?page=1&page_size=10 HTTP/1.1" 301 0
+INFO 2025-10-22 09:57:17,431 basehttp 12989 6358429696 "GET /v1/centers?region=%EC%84%9C%EC%9A%B8&page=1&page_size=10 HTTP/1.1" 301 0
+INFO 2025-10-22 09:57:19,125 basehttp 12989 6307950592 "GET /v1/centers/?region=%EC%84%9C%EC%9A%B8&page=1&page_size=10 HTTP/1.1" 200 8449
+INFO 2025-10-22 09:57:19,724 basehttp 12989 6190166016 "GET /v1/centers/?page=1&page_size=10 HTTP/1.1" 200 8497
+WARNING 2025-10-22 09:58:40,090 log 30032 6153498624 Unauthorized: /v1/auth/me
+WARNING 2025-10-22 09:58:40,091 basehttp 30032 6153498624 "GET /v1/auth/me HTTP/1.1" 401 26
+INFO 2025-10-22 09:58:40,191 basehttp 30032 6187151360 "GET /v1/centers?region=%EC%84%9C%EC%9A%B8&page=1&page_size=10 HTTP/1.1" 301 0
+INFO 2025-10-22 09:58:40,211 basehttp 30032 6170324992 "GET /v1/centers?page=1&page_size=10 HTTP/1.1" 301 0
+INFO 2025-10-22 09:58:41,973 basehttp 30032 6153498624 "GET /v1/centers/?region=%EC%84%9C%EC%9A%B8&page=1&page_size=10 HTTP/1.1" 200 8449
+INFO 2025-10-22 09:58:43,008 basehttp 30032 6220804096 "GET /v1/centers/?page=1&page_size=10 HTTP/1.1" 200 8497
+INFO 2025-10-22 10:00:50,972 basehttp 30032 6170324992 "GET /v1/animals/?page=1&page_size=1 HTTP/1.1" 200 1536
+INFO 2025-10-22 10:02:46,222 basehttp 30032 6153498624 "GET /v1/animals/?page_size=20&sort_by=created_at&sort_order=desc&page=1 HTTP/1.1" 200 32673
+INFO 2025-10-22 10:02:47,585 basehttp 30032 6220804096 "GET /v1/animals/?page_size=20&page=1 HTTP/1.1" 200 32673
+INFO 2025-10-22 10:02:53,364 basehttp 30032 6203977728 "GET /v1/animals/?page_size=50&page=1 HTTP/1.1" 200 83176
+INFO 2025-10-22 10:03:08,367 basehttp 30032 6220804096 "GET /v1/animals/?page_size=20&sort_by=created_at&sort_order=desc&breed=%EB%A7%90%ED%8B%B0%EC%A6%88&page=1 HTTP/1.1" 200 34127
+INFO 2025-10-22 10:03:08,945 basehttp 30032 6203977728 "GET /v1/animals/?breed=%EB%A7%90%ED%8B%B0%EC%A6%88&page_size=20&page=1 HTTP/1.1" 200 34127
+>>>>>>> bcacaa18 (fix: be 배포사이트 에러)

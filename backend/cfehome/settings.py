@@ -45,6 +45,8 @@ if DEBUG:
 CSRF_TRUSTED_ORIGINS = [
     "http://*.railway.app",
     "https://*.railway.app",
+    "http://*.mpz.kr",
+    "https://*.mpz.kr",
 ]
 
 

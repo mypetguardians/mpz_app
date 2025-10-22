@@ -75,9 +75,9 @@ async def get_centers(request: HttpRequest, filters: CenterListQueryIn = Query(C
             if filters.location:
                 queryset = queryset.filter(location__icontains=filters.location)
             
-            # 지역 필터링
+            # 지역별 필터링 (정확한 일치)
             if filters.region:
-                queryset = queryset.filter(region__icontains=filters.region)
+                queryset = queryset.filter(region=filters.region)
             
             # 최신순 정렬
             queryset = queryset.order_by('-created_at')
@@ -250,9 +250,9 @@ async def get_subscribed_centers(request: HttpRequest, filters: CenterListQueryI
             if filters.location:
                 queryset = queryset.filter(location__icontains=filters.location)
             
-            # 지역 필터링
+            # 지역별 필터링 (정확한 일치)
             if filters.region:
-                queryset = queryset.filter(region__icontains=filters.region)
+                queryset = queryset.filter(region=filters.region)
             
             # 최신순 정렬
             queryset = queryset.order_by('-created_at')

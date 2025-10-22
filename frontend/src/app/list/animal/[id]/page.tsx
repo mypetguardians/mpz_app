@@ -158,7 +158,7 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
     toggleRecommend.mutate(
       { animalId: id },
       {
-        onSuccess: (response: { is_megaphoned: boolean; }) => {
+        onSuccess: (response: { is_megaphoned: boolean }) => {
           const isMegaphonedFromApi = response.is_megaphoned ?? false;
           setIsMegaphoned(isMegaphonedFromApi);
           setToastMessage(
@@ -509,10 +509,7 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
           onShowLoginModal={() => setShowLoginModal(true)}
         />
 
-        <RelatedAnimals
-          pets={relatedAnimals}
-          location={center?.location?.split(' ')[0] || ""}
-        />
+        <RelatedAnimals pets={relatedAnimals} location={center?.region || ""} />
       </Container>
 
       {isCenterSubscriber ? (

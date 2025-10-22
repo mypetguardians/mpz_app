@@ -13,12 +13,14 @@ import { CommunityCard, CommunityCardSkeleton } from "@/components/ui";
 import { TabButton } from "@/components/ui/TabButton";
 import { BigButton } from "@/components/ui/BigButton";
 import { IconButton } from "@/components/ui/IconButton";
-import { useGetPublicPosts } from "@/hooks/query/useGetPublicPosts";
-import { useGetCenterPosts } from "@/hooks/query/useGetCenterPosts";
-import { useGetSystemTags } from "@/hooks/query/useGetSystemTags";
-import { useGetComments } from "@/hooks/query/useGetComments";
-import { useGetNotifications } from "@/hooks/query/useGetNotifications";
-import { useDeletePost } from "@/hooks/mutation/useDeletePost";
+import {
+  useGetPublicPosts,
+  useGetCenterPosts,
+  useGetSystemTags,
+  useGetComments,
+  useGetNotifications,
+  useDeletePost,
+} from "@/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useNotificationSocket } from "@/hooks/useNotificationSocket";
@@ -29,14 +31,16 @@ import { Post } from "@/types/posts";
 
 export default function CommunityPage() {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isLoading: authLoading } = useAuth();
   const queryClient = useQueryClient();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
-  // 알림 관련 hooks (메인페이지와 동일한 로직)
-  const { data: notificationsData } = useGetNotifications();
+  // 알림 관련 hooks (로그인한 사용자만)
+  const { data: notificationsData } = useGetNotifications({
+    enabled: !authLoading && isAuthenticated,
+  });
   const { unreadCount: socketUnreadCount, isConnected } =
     useNotificationSocket();
 
@@ -129,15 +133,25 @@ export default function CommunityPage() {
   // API에는 태그 파라미터를 넘기지 않음 (클라이언트 측 필터링)
   const apiParams = useMemo(() => ({} as const), []);
 
-  // 센터권한자용 게시글 조회
+  // 센터 권한 확인
+  const isCenterUser =
+    !authLoading &&
+    isAuthenticated &&
+    (user?.userType === "센터관리자" ||
+      user?.userType === "훈련사" ||
+      user?.userType === "센터최고관리자");
+
+  // 센터권한자용 게시글 조회 (로그인한 센터 사용자만)
   const {
     data: centerPostsData,
     isLoading: centerPostsLoading,
     error: centerPostsError,
     refetch: refetchCenterPosts,
-  } = useGetCenterPosts(apiParams);
+  } = useGetCenterPosts(apiParams, {
+    enabled: !authLoading && isAuthenticated && isCenterUser,
+  });
 
-  // 일반 사용자용 게시글 조회
+  // 일반 사용자용 게시글 조회 (미로그인 포함)
   const {
     data: publicPostsData,
     isLoading: publicPostsLoading,
@@ -154,7 +168,7 @@ export default function CommunityPage() {
   }, [centerPostsData, publicPostsData]);
 
   const postsData = useMemo(() => ({ data: allPosts }), [allPosts]);
-  const isLoading = centerPostsLoading || publicPostsLoading;
+  const isLoading = authLoading || centerPostsLoading || publicPostsLoading;
   const error = centerPostsError || publicPostsError;
 
   // 페이지 마운트 시 및 사용자 타입 변경 시 모든 데이터 새로고침

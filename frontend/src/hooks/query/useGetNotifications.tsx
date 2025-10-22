@@ -5,10 +5,11 @@ import { NotificationsResponse } from "@/types/notifications";
 interface GetNotificationsParams {
   page?: number;
   page_size?: number;
+  enabled?: boolean;
 }
 
 const fetchNotifications = async (
-  params?: GetNotificationsParams
+  params?: Omit<GetNotificationsParams, "enabled">
 ): Promise<NotificationsResponse> => {
   const response = await instance.get<NotificationsResponse>(
     "/notifications/",
@@ -24,9 +25,11 @@ const fetchNotifications = async (
 
 // 기존 단일 쿼리 (하위 호환성 유지)
 export const useGetNotifications = (params?: GetNotificationsParams) => {
+  const { enabled, ...queryParams } = params || {};
   return useQuery({
-    queryKey: ["notifications", params],
-    queryFn: () => fetchNotifications(params),
+    queryKey: ["notifications", queryParams],
+    queryFn: () => fetchNotifications(queryParams),
+    enabled: enabled !== undefined ? enabled : true,
     staleTime: 1 * 60 * 1000, // 1분
     gcTime: 10 * 60 * 1000, // 10분
   });

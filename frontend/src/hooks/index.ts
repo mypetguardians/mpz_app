@@ -26,6 +26,8 @@ export { useGetCenterNotices } from "./query/useGetCenterNotices";
 export { useCreatePost } from "./mutation/useCreatePost";
 export { useUpdatePost } from "./mutation/useUpdatePost";
 export { useDeletePost } from "./mutation/useDeletePost";
+export { useUpdateComment } from "./mutation/useUpdateComment";
+export { useDeleteComment } from "./mutation/useDeleteComment";
 export {
   useGetAnimalFavorites,
   useGetCenterFavorites,

@@ -22,7 +22,7 @@ class AnimalOut(Schema):
     color: Optional[str] = Field(None, description="색상")
     breed: Optional[str] = Field(None, description="품종")
     description: Optional[str] = Field(None, description="동물 설명")
-    protection_status: str = Field(..., description="보호 상태 (보호중, 안락사, 자연사, 반환)")
+    protection_status: str = Field(..., description="보호 상태 (보호중, 임시보호, 안락사, 자연사, 반환, 기증, 방사, 입양완료)")
     adoption_status: str = Field(..., description="입양 상태 (입양가능, 입양진행중, 입양완료, 입양불가)")
     waiting_days: int = Field(0, description="보호 기간 (일)")
     activity_level: Optional[int] = Field(None, description="활동량 수준")

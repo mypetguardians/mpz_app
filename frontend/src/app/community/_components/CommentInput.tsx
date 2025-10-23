@@ -11,6 +11,9 @@ interface CommentInputProps {
   className?: string;
   type?: "comment" | "reply";
   disabled?: boolean;
+  value?: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  maxLength?: number;
 }
 
 export function CommentInput({
@@ -19,13 +22,30 @@ export function CommentInput({
   variant = "primary",
   className = "",
   disabled = false,
+  value: controlledValue,
+  onChange: controlledOnChange,
+  maxLength,
 }: CommentInputProps) {
-  const [text, setText] = useState("");
+  const [internalText, setInternalText] = useState("");
+
+  // Controlled vs Uncontrolled
+  const isControlled = controlledValue !== undefined;
+  const text = isControlled ? controlledValue : internalText;
 
   const handleSubmit = () => {
     if (text.trim() && onSubmit && !disabled) {
       onSubmit(text.trim());
-      setText("");
+      if (!isControlled) {
+        setInternalText("");
+      }
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isControlled && controlledOnChange) {
+      controlledOnChange(e);
+    } else {
+      setInternalText(e.target.value);
     }
   };
 
@@ -43,10 +63,11 @@ export function CommentInput({
       <input
         type="text"
         value={text}
-        onChange={(e) => setText(e.target.value)}
+        onChange={handleChange}
         onKeyPress={handleKeyPress}
         placeholder={disabled ? "작성 중..." : placeholder}
         disabled={disabled}
+        maxLength={maxLength}
         className={`w-full px-4 py-3 pr-12 bg-transparent outline-none text-sm ${textColor} placeholder-gray-400 ${
           disabled ? "opacity-50 cursor-not-allowed" : ""
         }`}

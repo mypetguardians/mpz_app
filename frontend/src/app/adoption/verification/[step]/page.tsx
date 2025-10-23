@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { stepConfig } from "@/lib/stepConfig";
 import { X, ArrowLeft } from "@phosphor-icons/react";
 
@@ -19,7 +19,12 @@ import LinearProgressBar from "@/components/ui/LinearProgressBar";
 export default function VeriticationPage() {
   const router = useRouter();
   const { step } = useParams();
+  const searchParams = useSearchParams();
   const currentStep = Number(step);
+
+  // 전화번호 인증 완료로 바로 step5에 접근했는지 확인
+  const isDirectAccess =
+    searchParams.get("directAccess") === "true" && currentStep === 5;
 
   // 스크롤 위치 유지 로직
   useEffect(() => {
@@ -94,7 +99,7 @@ export default function VeriticationPage() {
       <TopBar
         variant="variant6"
         left={
-          currentStep > 1 ? (
+          currentStep > 1 && !isDirectAccess ? (
             <IconButton
               icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
               size="iconM"

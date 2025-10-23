@@ -19,7 +19,7 @@ from centers.schemas.outbound import (
 
 router = Router(tags=["Centers"])
 
-def _build_center_response(center, show_private_location=False):
+def _build_center_response(center):
     """센터 응답 데이터를 구성합니다."""
     return CenterOut(
         id=str(center.id),
@@ -27,9 +27,9 @@ def _build_center_response(center, show_private_location=False):
         name=center.name,
         center_number=center.center_number,
         description=center.description,
-        location=center.location if (show_private_location or (center.is_public and center.show_location)) else None,
+        location=center.location,
         region=center.region,
-        phone_number=center.phone_number if (show_private_location or (center.is_public and center.show_phone_number)) else None,
+        phone_number=center.phone_number,
         adoption_procedure=center.adoption_procedure,
         adoption_guidelines=center.adoption_guidelines,
         has_monitoring=center.has_monitoring,
@@ -37,14 +37,11 @@ def _build_center_response(center, show_private_location=False):
         monitoring_interval_days=center.monitoring_interval_days,
         monitoring_description=center.monitoring_description,
         verified=center.verified,
-        is_public=center.is_public,
         adoption_price=center.adoption_price,
         image_url=center.image_url,
         is_subscribed=center.is_subscribed,
         has_volunteer=center.has_volunteer,
         has_foster_care=center.has_foster_care,
-        show_phone_number=center.show_phone_number,
-        show_location=center.show_location,
         created_at=center.created_at.isoformat(),
         updated_at=center.updated_at.isoformat(),
     )
@@ -64,8 +61,8 @@ async def get_centers(request: HttpRequest, filters: CenterListQueryIn = Query(C
     try:
         @sync_to_async
         def get_centers_list():
-            # 기본 쿼리셋 (공개된 센터만)
-            queryset = Center.objects.filter(is_public=True).select_related('owner')
+            # 기본 쿼리셋 (모든 센터 노출)
+            queryset = Center.objects.all().select_related('owner')
             
             # 센터명 필터링
             if filters.name:
@@ -82,9 +79,9 @@ async def get_centers(request: HttpRequest, filters: CenterListQueryIn = Query(C
             # 최신순 정렬
             queryset = queryset.order_by('-created_at')
             
-            # 응답 데이터 변환 (주소 공개 여부에 따라 조건부 노출)
+            # 응답 데이터 변환
             centers_response = [
-                _build_center_response(center, show_private_location=False)
+                _build_center_response(center)
                 for center in queryset
             ]
             
@@ -116,8 +113,8 @@ async def get_center_by_id(request: HttpRequest, center_id: str):
             except Center.DoesNotExist:
                 raise HttpError(404, "보호소를 찾을 수 없습니다")
             
-            # 응답 데이터 변환 (주소 공개 여부에 따라 조건부 노출)
-            return _build_center_response(center, show_private_location=False)
+            # 응답 데이터 변환
+            return _build_center_response(center)
         
         return await get_center_detail()
         
@@ -240,7 +237,7 @@ async def get_subscribed_centers(request: HttpRequest, filters: CenterListQueryI
         @sync_to_async
         def get_subscribed_centers_list():
             # 구독된 센터만 조회
-            queryset = Center.objects.filter(is_subscribed=True, is_public=True).select_related('owner')
+            queryset = Center.objects.filter(is_subscribed=True).select_related('owner')
             
             # 센터명 필터링
             if filters.name:
@@ -259,7 +256,7 @@ async def get_subscribed_centers(request: HttpRequest, filters: CenterListQueryI
             
             # 응답 데이터 변환
             centers_response = [
-                _build_center_response(center, show_private_location=False)
+                _build_center_response(center)
                 for center in queryset
             ]
             

@@ -5,8 +5,14 @@ import { CommentInput } from "./CommentInput";
 import { CommentItem } from "./CommentItem";
 import type { Comment } from "@/types/posts";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { useCreateComment, useCreateReply } from "@/hooks/mutation";
+import {
+  useCreateComment,
+  useCreateReply,
+  useUpdateComment,
+  useDeleteComment,
+} from "@/hooks/mutation";
 import { CustomModal } from "@/components/ui/CustomModal";
+import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Toast } from "@/components/ui/Toast";
 
 interface CommentSectionProps {
@@ -73,6 +79,10 @@ export function CommentSection({
   }, [comments, allUsers]);
 
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState("");
   const [toast, setToast] = useState<{
     show: boolean;
     message: string;
@@ -85,6 +95,8 @@ export function CommentSection({
 
   const createCommentMutation = useCreateComment();
   const createReplyMutation = useCreateReply();
+  const updateCommentMutation = useUpdateComment();
+  const deleteCommentMutation = useDeleteComment();
 
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ show: true, message, type });
@@ -148,6 +160,82 @@ export function CommentSection({
     }));
   };
 
+  const handleEditComment = (commentId: string) => {
+    // 수정할 댓글 찾기
+    let contentToEdit = "";
+
+    // 메인 댓글에서 찾기
+    const mainComment = enhancedComments.find((c) => c.id === commentId);
+    if (mainComment) {
+      contentToEdit = mainComment.content;
+    } else {
+      // 대댓글에서 찾기
+      for (const comment of enhancedComments) {
+        const reply = comment.replies?.find((r) => r.id === commentId);
+        if (reply) {
+          contentToEdit = reply.content;
+          break;
+        }
+      }
+    }
+
+    if (contentToEdit) {
+      setEditingCommentId(commentId);
+      setEditingContent(contentToEdit);
+    }
+  };
+
+  const handleUpdateComment = async (commentId: string, content: string) => {
+    if (!content.trim()) {
+      showToast("댓글 내용을 입력해주세요.", "error");
+      return;
+    }
+
+    try {
+      await updateCommentMutation.mutateAsync({
+        commentId,
+        content: content.trim(),
+      });
+      showToast("댓글이 수정되었습니다.", "success");
+      setEditingCommentId(null);
+      setEditingContent("");
+    } catch (error) {
+      console.error("댓글 수정 실패:", error);
+      showToast("댓글 수정에 실패했습니다.", "error");
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCommentId(null);
+    setEditingContent("");
+  };
+
+  const handleEditingContentChange = (content: string) => {
+    setEditingContent(content);
+  };
+
+  const handleDeleteComment = (commentId: string) => {
+    setDeleteTargetId(commentId);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteComment = async () => {
+    if (!deleteTargetId) return;
+
+    try {
+      await deleteCommentMutation.mutateAsync({
+        postId,
+        commentId: deleteTargetId,
+      });
+      showToast("댓글이 삭제되었습니다.", "success");
+      setShowDeleteModal(false);
+      setDeleteTargetId(null);
+    } catch (error) {
+      console.error("댓글 삭제 실패:", error);
+      showToast("댓글 삭제에 실패했습니다.", "error");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex flex-col gap-2 items-start px-4 py-4">
@@ -176,7 +264,6 @@ export function CommentSection({
             // 총 댓글 수 = 메인 댓글 + 모든 대댓글
             const totalCount = mainCommentCount + replyCount;
 
-
             return totalCount;
           })()}
         </h4>
@@ -201,6 +288,15 @@ export function CommentSection({
                 onToggleReplies={() => toggleReplies(comment.id)}
                 onAddReply={() => showReplyInput(comment.id)}
                 onLoginRequired={() => setIsLoginModalOpen(true)}
+                onEdit={handleEditComment}
+                onDelete={handleDeleteComment}
+                isEditing={editingCommentId === comment.id}
+                editingContent={editingContent}
+                onEditingContentChange={handleEditingContentChange}
+                onSaveEdit={() =>
+                  handleUpdateComment(comment.id, editingContent)
+                }
+                onCancelEdit={handleCancelEdit}
               />
 
               {/* 답글들 */}
@@ -214,6 +310,15 @@ export function CommentSection({
                           comment={reply}
                           variant="reply"
                           onLoginRequired={() => setIsLoginModalOpen(true)}
+                          onEdit={handleEditComment}
+                          onDelete={handleDeleteComment}
+                          isEditing={editingCommentId === reply.id}
+                          editingContent={editingContent}
+                          onEditingContentChange={handleEditingContentChange}
+                          onSaveEdit={() =>
+                            handleUpdateComment(reply.id, editingContent)
+                          }
+                          onCancelEdit={handleCancelEdit}
                         />
                       </div>
                     ))}
@@ -244,6 +349,25 @@ export function CommentSection({
         variant="variant2"
         ctaText="로그인하기"
         onCtaClick={() => (window.location.href = "/login")}
+      />
+
+      {/* 삭제 확인 모달 */}
+      <BottomSheet
+        open={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setDeleteTargetId(null);
+        }}
+        variant="primary"
+        title="정말 삭제하시겠습니까?"
+        description="삭제된 댓글은 되돌릴 수 없어요."
+        leftButtonText="아니요"
+        rightButtonText="네, 삭제할래요"
+        onLeftClick={() => {
+          setShowDeleteModal(false);
+          setDeleteTargetId(null);
+        }}
+        onRightClick={confirmDeleteComment}
       />
 
       {/* 알림 토스트 */}

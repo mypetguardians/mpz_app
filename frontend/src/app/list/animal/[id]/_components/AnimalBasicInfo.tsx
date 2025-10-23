@@ -20,6 +20,7 @@ interface AnimalBasicInfoProps {
   color: string;
   breed: string;
   imageUrls: string[];
+  onImageClick?: (images: string[], initialIndex: number) => void;
 }
 
 export default function AnimalBasicInfo({
@@ -32,6 +33,7 @@ export default function AnimalBasicInfo({
   color,
   breed,
   imageUrls,
+  onImageClick,
 }: AnimalBasicInfoProps) {
   // 유효한 이미지 URL만 필터링하고 중복 제거
   const validImageUrls = Array.from(
@@ -44,53 +46,69 @@ export default function AnimalBasicInfo({
     protectionStatus?: string,
     adoptionStatus?: string
   ) => {
-    // 보호 상태가 "안락사"나 "자연사"인 경우 우선 표시
-    if (protectionStatus === "안락사" || protectionStatus === "자연사") {
-      return {
-        text: "🌈",
-        colorClass: "bg-orange-100/10",
-      };
-    }
-
-    // 보호 상태가 "반환"인 경우
-    if (protectionStatus === "반환") {
-      return {
-        text: protectionStatus,
-        colorClass: "bg-gr/10 text-gr",
-      };
-    }
-
-    // 보호 상태가 "보호중"인 경우 → "공고중"으로 표시
-    if (protectionStatus === "보호중") {
-      return {
-        text: "공고중",
-        colorClass: "bg-green/10 text-green",
-      };
-    }
-
-    // 입양 상태에 따른 표시
-    switch (adoptionStatus) {
-      case "입양완료":
+    // 보호 상태 우선 표시
+    switch (protectionStatus) {
+      case "보호중":
         return {
-          text: adoptionStatus,
-          colorClass: "bg-brand/10 text-brand",
-        };
-      case "입양진행중":
-        return {
-          text: adoptionStatus,
-          colorClass: "bg-blue/10 text-blue",
-        };
-      case "입양불가":
-        return {
-          text: adoptionStatus,
-          colorClass: "bg-red-100/10 text-red-600",
-        };
-      case "입양가능":
-      default:
-        return {
-          text: adoptionStatus || "입양가능",
+          text: "보호중",
           colorClass: "bg-green/10 text-green",
         };
+      case "임시보호":
+        return {
+          text: "임시보호",
+          colorClass: "bg-blue/10 text-blue",
+        };
+      case "기증":
+        return {
+          text: "기증",
+          colorClass: "bg-purple/10 text-purple",
+        };
+      case "안락사":
+      case "자연사":
+        return {
+          text: "🌈",
+          colorClass: "bg-orange-100/10",
+        };
+      case "반환":
+        return {
+          text: "반환",
+          colorClass: "bg-gr/10 text-gr",
+        };
+      case "방사":
+        return {
+          text: "방사",
+          colorClass: "bg-gray/10 text-gray",
+        };
+      case "입양완료":
+        return {
+          text: "입양완료",
+          colorClass: "bg-brand-sub2 text-brand",
+        };
+      default:
+        // 보호 상태가 없는 경우 입양 상태에 따른 표시
+        switch (adoptionStatus) {
+          case "입양완료":
+            return {
+              text: adoptionStatus,
+              colorClass: "bg-brand/10 text-brand",
+            };
+          case "입양진행중":
+            return {
+              text: adoptionStatus,
+              colorClass: "bg-blue/10 text-blue",
+            };
+          case "입양불가":
+            return {
+              text: adoptionStatus,
+              colorClass: "bg-red-100/10 text-red-600",
+            };
+          case "입양가능":
+          default:
+            return {
+              text: adoptionStatus || "입양가능",
+              colorClass: "bg-green/10 text-green",
+            };
+        }
     }
   };
 
@@ -120,8 +138,9 @@ export default function AnimalBasicInfo({
           src={currentImageUrl}
           alt={`${name} - 이미지 ${currentImageIndex}`}
           fill
-          className="object-cover"
+          className="object-cover cursor-pointer"
           unoptimized={currentImageUrl.includes("openapi.animal.go.kr")}
+          onClick={() => onImageClick?.(validImageUrls, currentImageIndex)}
           onError={(e) => {
             console.warn("이미지 로딩 실패:", currentImageUrl);
             // 에러 시 기본 이미지로 대체

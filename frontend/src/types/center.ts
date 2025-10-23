@@ -8,7 +8,6 @@ export interface CenterBasic {
   region: string | null;
   phoneNumber: string | null;
   verified: boolean;
-  isPublic: boolean;
   adoptionPrice: number;
   imageUrl: string | null;
   isSubscriber: boolean;
@@ -94,14 +93,11 @@ export interface RawCenterResponse {
   monitoring_interval_days: number;
   monitoring_description: string;
   verified: boolean;
-  is_public: boolean;
   adoption_price: number;
   image_url: string;
   is_subscribed: boolean;
   has_volunteer: boolean;
   has_foster_care: boolean;
-  show_phone_number: boolean;
-  show_location: boolean;
   created_at: string;
   updated_at: string;
   is_fav?: boolean; // 찜하기 상태 추가
@@ -136,7 +132,6 @@ export function transformRawCenterToCenter(raw: RawCenterResponse): Center {
     monitoringIntervalDays: raw.monitoring_interval_days,
     monitoringDescription: raw.monitoring_description,
     verified: raw.verified,
-    isPublic: raw.is_public,
     adoptionPrice: raw.adoption_price,
     imageUrl: raw.image_url,
     hasFosterCare: raw.has_foster_care,

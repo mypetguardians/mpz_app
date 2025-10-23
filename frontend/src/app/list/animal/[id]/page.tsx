@@ -38,6 +38,7 @@ import { useKakaoSDK } from "@/hooks/useKakaoSDK";
 import { NotificationToast } from "@/components/ui/NotificationToast";
 import { CustomModal } from "@/components/ui/CustomModal";
 import { BottomSheet } from "@/components/ui/BottomSheet";
+import { ImageCarouselModal } from "@/components/ui/ImageCarouselModal";
 import { useRouter } from "next/navigation";
 
 interface AnimalDetailPageProps {
@@ -68,6 +69,9 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
 
   // 센터의 구독 상태 확인 (공고를 올린 센터가 구독자인지)
   const isCenterSubscriber = center?.isSubscriber === true;
+
+  // 센터의 임시보호 제공 여부 확인
+  const isFosterCareAvailable = center?.hasFosterCare === true;
 
   // 사용자 프로필 정보 가져오기 (전화번호 인증 상태 확인용)
   const { data: userProfile } = useGetMyProfile();
@@ -100,6 +104,7 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
   // 바텀시트 상태
   const [showShareBottomSheet, setShowShareBottomSheet] = useState(false);
   const [showAdoptionBottomSheet, setShowAdoptionBottomSheet] = useState(false);
+  const [showFosterBottomSheet, setShowFosterBottomSheet] = useState(false);
 
   // 공유 토스트 상태
   const [showShareToast, setShowShareToast] = useState(false);
@@ -107,6 +112,19 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
   const [shareToastType, setShareToastType] = useState<"success" | "error">(
     "success"
   );
+
+  // 이미지 모달 상태
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [imageModalData, setImageModalData] = useState<{
+    images: string[];
+    initialIndex: number;
+  }>({ images: [], initialIndex: 0 });
+
+  // 이미지 클릭 핸들러
+  const handleImageClick = (images: string[], initialIndex: number) => {
+    setImageModalData({ images, initialIndex });
+    setShowImageModal(true);
+  };
 
   // 찜하기 토글 핸들러
   const handleFavoriteToggle = () => {
@@ -202,19 +220,19 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
       // 사용자 정보를 스토어에 로드
       if (userProfile) {
         adoptionStore.loadUserData({
-          phone: userProfile.phoneNumber || undefined,
-          phoneVerification: userProfile.isPhoneVerified || false,
+          phone: userProfile.phone_number || undefined,
+          phoneVerification: userProfile.is_phone_verified || false,
           name: userProfile.name || undefined,
           birth: userProfile.birth || undefined,
           address: userProfile.address || undefined,
         });
       }
 
-      const isPhoneVerified = userProfile?.isPhoneVerified === true;
+      const isPhoneVerified = userProfile?.is_phone_verified === true;
 
       if (isPhoneVerified) {
-        // 전화번호 인증이 완료된 경우 step5로 이동
-        router.push(`/adoption/verification/5`);
+        // 전화번호 인증이 완료된 경우 step5로 이동 (뒤로가기 버튼 숨김 플래그 추가)
+        router.push(`/adoption/verification/5?directAccess=true`);
       } else {
         // 전화번호 인증이 안된 경우 step1부터 시작
         router.push(`/adoption/verification/1`);
@@ -224,6 +242,31 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
 
     // 일반 센터인 경우 기존 바텀시트 표시
     setShowAdoptionBottomSheet(true);
+  };
+
+  // 임시보호 버튼 핸들러
+  const handleFosterClick = async () => {
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      return;
+    }
+
+    // 센터 회원인 경우 토스트 메시지 표시
+    if (user?.userType !== "일반사용자") {
+      setToastMessage("일반회원계정으로 로그인해주세요");
+      setToastType("error");
+      setShowToast(true);
+      return;
+    }
+
+    // 구독 센터인 경우 입양신청과 같은 절차로 진행
+    if (isCenterSubscriber) {
+      handleAdoptionClick();
+      return;
+    }
+
+    // 비구독 센터인 경우 전화번호 바텀시트 표시
+    setShowFosterBottomSheet(true);
   };
 
   // 공유하기 버튼 클릭 핸들러
@@ -426,6 +469,7 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
               ? animal.animal_images.map((img) => img.image_url)
               : []
           }
+          onImageClick={handleImageClick}
         />
 
         <WaitingStatus admissionDate={animal.admission_date || ""} />
@@ -512,11 +556,11 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
         <RelatedAnimals pets={relatedAnimals} location={center?.region || ""} />
       </Container>
 
-      {isCenterSubscriber ? (
+      {isFosterCareAvailable ? (
         <FixedBottomBar
           variant="variant3"
           leftButtonText="임시 보호"
-          onLeftButtonClick={handleAdoptionClick}
+          onLeftButtonClick={handleFosterClick}
           primaryButtonText="입양 신청"
           onPrimaryButtonClick={handleAdoptionClick}
           showDivider
@@ -626,7 +670,7 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
         open={showAdoptionBottomSheet}
         onClose={() => setShowAdoptionBottomSheet(false)}
         variant="variant6"
-        title="입양 신청"
+        title="센터로 전화해주세요!"
         description={`센터 전화번호: ${
           center?.phoneNumber || "연락처 정보 없음"
         }`}
@@ -639,6 +683,23 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
         }}
       />
 
+      <BottomSheet
+        open={showFosterBottomSheet}
+        onClose={() => setShowFosterBottomSheet(false)}
+        variant="variant6"
+        title="센터로 전화해주세요!"
+        description={`센터 전화번호: ${
+          center?.phoneNumber || "연락처 정보 없음"
+        }`}
+        rightButtonText="전화 연결하기"
+        onRightClick={() => {
+          if (center?.phoneNumber) {
+            window.location.href = `tel:${center.phoneNumber}`;
+          }
+          setShowFosterBottomSheet(false);
+        }}
+      />
+
       {showShareToast && (
         <NotificationToast
           message={shareToastMessage}
@@ -646,6 +707,13 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
           onClose={() => setShowShareToast(false)}
         />
       )}
+
+      <ImageCarouselModal
+        open={showImageModal}
+        onClose={() => setShowImageModal(false)}
+        images={imageModalData.images}
+        initialIndex={imageModalData.initialIndex}
+      />
     </>
   );
 }

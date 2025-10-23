@@ -1,18 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import instance from "@/lib/axios-instance";
 
-interface UserProfile {
+export interface UserProfile {
   id: string;
   name: string;
   email: string;
   birth?: string | null;
   address?: string | null;
   nickname?: string | null;
-  phoneNumber?: string | null;
-  userType: "일반사용자" | "센터관리자" | "훈련사" | "센터최고관리자" | null;
-  isPhoneVerified: boolean | null;
+  phone_number?: string | null;
+  user_type: "일반사용자" | "센터관리자" | "훈련사" | "센터최고관리자" | null;
+  is_phone_verified: boolean | null;
   image?: string | null;
-  createdAt: string;
+  created_at: string;
 }
 
 export const useGetMyProfile = () => {

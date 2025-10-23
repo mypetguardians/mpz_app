@@ -75,13 +75,10 @@ class CenterUpdateIn(Schema):
     monitoring_period_months: Optional[int] = Field(None, ge=1, le=60, description="모니터링 기간 (개월)")
     monitoring_interval_days: Optional[int] = Field(None, ge=1, le=365, description="모니터링 간격 (일)")
     monitoring_description: Optional[str] = Field(None, max_length=1000, description="모니터링 설명")
-    is_public: Optional[bool] = Field(None, description="공개 센터 여부")
     adoption_price: Optional[int] = Field(None, ge=0, description="입양비 (원)")
     image_url: Optional[str] = Field(None, max_length=500, description="센터 이미지 URL")
     has_volunteer: Optional[bool] = Field(None, description="봉사활동 여부")
     has_foster_care: Optional[bool] = Field(None, description="임시보호 여부")
-    show_phone_number: Optional[bool] = Field(None, description="전화번호 노출 여부")
-    show_location: Optional[bool] = Field(None, description="위치 노출 여부")
 
 
 class CenterAnimalsQueryIn(Schema):

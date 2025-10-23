@@ -16,7 +16,15 @@ export interface Animal {
     | "임시보호중"
     | "반환"
     | "방사";
-  protection_status: "보호중" | "안락사" | "자연사" | "반환";
+  protection_status:
+    | "보호중"
+    | "임시보호"
+    | "안락사"
+    | "자연사"
+    | "반환"
+    | "기증"
+    | "방사"
+    | "입양완료";
   adoption_status: "입양가능" | "입양진행중" | "입양완료" | "입양불가";
   waitingDays: number | null;
   activityLevel: string | null;
@@ -67,12 +75,15 @@ export interface Animal {
 export interface GetAnimalsParams {
   status?:
     | "보호중"
+    | "임시보호"
     | "안락사"
     | "자연사"
     | "반환"
+    | "기증"
+    | "방사"
+    | "입양완료"
     | "입양가능"
     | "입양진행중"
-    | "입양완료"
     | "입양불가";
   center_id?: string;
   gender?: "male" | "female";
@@ -99,7 +110,15 @@ export interface RawAnimalResponse {
   color: string | null;
   breed: string | null;
   description: string | null;
-  protection_status: "보호중" | "안락사" | "자연사" | "반환";
+  protection_status:
+    | "보호중"
+    | "임시보호"
+    | "안락사"
+    | "자연사"
+    | "반환"
+    | "기증"
+    | "방사"
+    | "입양완료";
   adoption_status: "입양가능" | "입양진행중" | "입양완료" | "입양불가";
   waiting_days: number | null;
   activity_level: number | null;
@@ -162,7 +181,15 @@ export type PetCardAnimal = {
   name: string;
   breed: string | null;
   isFemale: boolean;
-  protection_status: "보호중" | "안락사" | "자연사" | "반환";
+  protection_status:
+    | "보호중"
+    | "임시보호"
+    | "안락사"
+    | "자연사"
+    | "반환"
+    | "기증"
+    | "방사"
+    | "입양완료";
   adoption_status: "입양가능" | "입양진행중" | "입양완료" | "입양불가";
   centerId: string;
   animalImages:
@@ -323,7 +350,15 @@ export interface RelatedAnimalsResponse {
   color: string;
   breed: string;
   description: string;
-  protection_status: "보호중" | "안락사" | "자연사" | "반환";
+  protection_status:
+    | "보호중"
+    | "임시보호"
+    | "안락사"
+    | "자연사"
+    | "반환"
+    | "기증"
+    | "방사"
+    | "입양완료";
   adoption_status: "입양가능" | "입양진행중" | "입양완료" | "입양불가";
   waiting_days: number;
   activity_level: number;

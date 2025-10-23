@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import React from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 import { SearchInput } from "@/components/ui/SearchInput";
 import { CenterCard } from "@/components/ui/CenterCard";
@@ -19,26 +19,49 @@ export function CenterSearchSection({
   onSearchStateChange,
 }: CenterSearchSectionProps) {
   const searchParams = useSearchParams();
+  const router = useRouter();
 
-  const [searchValue, setSearchValue] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [localIsSearching, setLocalIsSearching] = useState(false);
-  const [likedCenters, setLikedCenters] = useState<Set<string>>(new Set());
-
-  // URL에서 region 파라미터 읽기
+  // URL에서 검색어와 지역 파라미터 읽기
+  const nameFromUrl = searchParams.get("name") || "";
   const regionFromUrl = searchParams.get("region");
 
-  // 검색어 디바운싱 (300ms)
+  const [searchValue, setSearchValue] = useState(nameFromUrl);
+  const [debouncedSearch, setDebouncedSearch] = useState(nameFromUrl);
+  const [localIsSearching, setLocalIsSearching] = useState(!!nameFromUrl);
+  const [likedCenters, setLikedCenters] = useState<Set<string>>(new Set());
+
+  // URL 파라미터가 변경되면 검색어 동기화
+  useEffect(() => {
+    const urlName = searchParams.get("name") || "";
+    setSearchValue(urlName);
+    setDebouncedSearch(urlName);
+    setLocalIsSearching(!!urlName);
+  }, [searchParams]);
+
+  // 검색어 디바운싱 및 URL 업데이트 (300ms)
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       setDebouncedSearch(searchValue);
       if (searchValue.trim()) {
         setLocalIsSearching(true);
+        // URL에 검색어 반영
+        const params = new URLSearchParams(searchParams.toString());
+        params.set("name", searchValue.trim());
+        router.replace(`/list/center?${params.toString()}`, { scroll: false });
+      } else if (searchParams.get("name")) {
+        // 검색어가 비어있고 URL에 name 파라미터가 있으면 제거
+        const params = new URLSearchParams(searchParams.toString());
+        params.delete("name");
+        const newUrl = params.toString()
+          ? `/list/center?${params.toString()}`
+          : "/list/center";
+        router.replace(newUrl, { scroll: false });
+        setLocalIsSearching(false);
       }
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [searchValue]);
+  }, [searchValue, router, searchParams]);
 
   // 통합 검색 - 센터명 또는 지역으로 검색
   const {
@@ -111,6 +134,14 @@ export function CenterSearchSection({
     setDebouncedSearch("");
     setLocalIsSearching(false);
     onSearchStateChange(false);
+
+    // URL에서 검색 파라미터 제거
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("name");
+    const newUrl = params.toString()
+      ? `/list/center?${params.toString()}`
+      : "/list/center";
+    router.replace(newUrl, { scroll: false });
   };
 
   const handleLikeToggle = (centerId: string) => {

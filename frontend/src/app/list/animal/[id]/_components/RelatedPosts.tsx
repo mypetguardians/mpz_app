@@ -5,6 +5,8 @@ import { CaretDown } from "@phosphor-icons/react";
 import { MiniButton } from "@/components/ui/MiniButton";
 import { CommunityCard } from "@/components/ui/CommunityCard";
 import { useGetPublicPosts } from "@/hooks/query/useGetPublicPosts";
+import { useGetCenterPosts } from "@/hooks/query/useGetCenterPosts";
+import { useAuth } from "@/components/providers/AuthProvider";
 import type { Animal } from "@/types/animal";
 import type { ApiPostResponse, Post } from "@/types/posts";
 
@@ -15,16 +17,42 @@ interface RelatedPostsProps {
 
 export default function RelatedPosts({ currentPet }: RelatedPostsProps) {
   const router = useRouter();
+  const { isAuthenticated, user, isLoading: authLoading } = useAuth();
 
-  // 선택된 동물 ID와 관련된 게시물 가져오기
-  const {
-    data: postsData,
-    isLoading,
-    error,
-  } = useGetPublicPosts({
+  // 센터 사용자 체크
+  const isCenterUser =
+    !authLoading &&
+    isAuthenticated &&
+    (user?.userType === "센터관리자" ||
+      user?.userType === "훈련사" ||
+      user?.userType === "센터최고관리자");
+
+  // 센터권한자용 게시물 조회 (로그인한 센터 사용자만)
+  const centerPostsQuery = useGetCenterPosts(
+    {
+      animalId: currentPet.id,
+      page_size: 6,
+    },
+    {
+      enabled: !authLoading && isAuthenticated && isCenterUser,
+    }
+  );
+
+  // 일반 사용자용 게시물 조회 (미로그인 및 일반 사용자)
+  const publicPostsQuery = useGetPublicPosts({
     animalId: currentPet.id,
     page_size: 6,
   });
+
+  // 권한에 따라 적절한 쿼리 선택
+  const activeQuery =
+    isCenterUser && !centerPostsQuery.error
+      ? centerPostsQuery
+      : publicPostsQuery;
+
+  const postsData = activeQuery.data;
+  const isLoading = activeQuery.isLoading;
+  const error = activeQuery.error;
 
   // 현재 동물과 관련된 게시물
   const relatedPosts = postsData?.data || [];

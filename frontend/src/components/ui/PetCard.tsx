@@ -118,11 +118,19 @@ export function PetCard({
     // 보호상태에 따른 필터 그룹 매핑
     switch (protectionStatus) {
       case "보호중":
+        return {
+          text: "보호중",
+          colorClass: "bg-green/10 text-green",
+        };
       case "임시보호":
+        return {
+          text: "임시보호",
+          colorClass: "bg-blue/10 text-blue",
+        };
       case "기증":
         return {
-          text: "입양가능",
-          colorClass: "bg-green/10 text-green",
+          text: "기증",
+          colorClass: "bg-purple/10 text-purple",
         };
       case "안락사":
       case "자연사":
@@ -361,7 +369,10 @@ export function PetCard({
                 <Chip className={statusInfo.colorClass}>{statusInfo.text}</Chip>
               );
             })()}
-            {createHeadingElement(breed || "종 미등록", "text-bk truncate flex-1")}
+            {createHeadingElement(
+              breed || "종 미등록",
+              "text-bk truncate flex-1"
+            )}
           </div>
           <p className="text-xs text-gray-500">
             {showUpdatedAt && pet.updatedAt

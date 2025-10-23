@@ -4,6 +4,8 @@ export { useDeletePost } from "./useDeletePost";
 export { useToggleLike } from "./useToggleLike";
 export { useCreateComment } from "./useCreateComment";
 export { useCreateReply } from "./useCreateReply";
+export { useUpdateComment } from "./useUpdateComment";
+export { useDeleteComment } from "./useDeleteComment";
 export { useUpdateProfile } from "./useUpdateProfile";
 export { useDeleteKakaoAccount } from "./useDeleteKakaoAccount";
 export { useToggleAnimalFavorite } from "./useToggleAnimalFavorite";

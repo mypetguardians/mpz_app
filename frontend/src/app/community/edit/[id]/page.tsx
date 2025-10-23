@@ -13,13 +13,7 @@ import { PetCard } from "@/components/ui/PetCard";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { ImageCard } from "@/components/ui/ImageCard";
 import { getFullImageUrl } from "@/lib/utils";
-import {
-  ArrowLeft,
-  X,
-  ArrowDownLeft,
-  Globe,
-  LockSimple,
-} from "@phosphor-icons/react";
+import { ArrowLeft, X, ArrowDownLeft } from "@phosphor-icons/react";
 import { IconButton } from "@/components/ui/IconButton";
 import { MiniButton } from "@/components/ui/MiniButton";
 import {
@@ -62,6 +56,18 @@ export default function CommunityEditPage({
   const [deletedImageUrls, setDeletedImageUrls] = useState<string[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [showPetSelection, setShowPetSelection] = useState(false);
+
+  // blob URL 정리 (메모리 누수 방지)
+  useEffect(() => {
+    return () => {
+      // 컴포넌트 unmount 시 모든 blob URL 해제
+      newImageUrls.forEach((url) => {
+        if (url.startsWith("blob:")) {
+          URL.revokeObjectURL(url);
+        }
+      });
+    };
+  }, [newImageUrls]);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showBackConfirmSheet, setShowBackConfirmSheet] = useState(false);
   const [activeTab, setActiveTab] = useState("adoption");
@@ -260,11 +266,39 @@ export default function CommunityEditPage({
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files) {
-      const newFiles = Array.from(files);
-      const newUrls = newFiles.map((file) => URL.createObjectURL(file));
-      setUploadedFiles((prev) => [...prev, ...newFiles]);
-      setNewImageUrls((prev) => [...prev, ...newUrls]);
+      const allowedFormats = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/webp",
+        "image/gif",
+      ];
+      const maxSize = 10 * 1024 * 1024; // 10MB
+
+      const newFiles = Array.from(files).filter((file) => {
+        // 포맷 체크
+        if (!allowedFormats.includes(file.type)) {
+          alert(
+            `${file.name}은(는) 지원하지 않는 형식입니다. (JPG, PNG, WEBP, GIF만 가능)`
+          );
+          return false;
+        }
+        // 파일 크기 체크
+        if (file.size > maxSize) {
+          alert(`${file.name}의 크기가 너무 큽니다. (최대 10MB)`);
+          return false;
+        }
+        return true;
+      });
+
+      if (newFiles.length > 0) {
+        const newUrls = newFiles.map((file) => URL.createObjectURL(file));
+        setUploadedFiles((prev) => [...prev, ...newFiles]);
+        setNewImageUrls((prev) => [...prev, ...newUrls]);
+      }
     }
+    // input 값 초기화 (같은 파일 다시 선택 가능하도록)
+    event.target.value = "";
   };
 
   const removeExistingImage = (index: number) => {
@@ -276,6 +310,12 @@ export default function CommunityEditPage({
   };
 
   const removeNewImage = (index: number) => {
+    // blob URL 해제 (메모리 정리)
+    const urlToRemove = newImageUrls[index];
+    if (urlToRemove && urlToRemove.startsWith("blob:")) {
+      URL.revokeObjectURL(urlToRemove);
+    }
+
     // 새 이미지와 파일 목록에서 제거
     setNewImageUrls((prev) => prev.filter((_, i) => i !== index));
     setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
@@ -298,22 +338,6 @@ export default function CommunityEditPage({
 
   const handleSave = () => {
     setShowSaveModal(true);
-  };
-
-  const handlePublicChange = () => {
-    setPublicType(publicType === "public" ? "center" : "public");
-  };
-
-  const getPublicIcon = () => {
-    return publicType === "center" ? (
-      <LockSimple size={16} />
-    ) : (
-      <Globe size={16} />
-    );
-  };
-
-  const getPublicText = () => {
-    return publicType === "center" ? "센터공개" : "전체공개";
   };
 
   // 태그 추출 함수 - 초성, 자음, 모음도 포함
@@ -567,7 +591,7 @@ export default function CommunityEditPage({
               <input
                 type="file"
                 multiple
-                accept="image/*"
+                accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
                 onChange={handleImageUpload}
                 className="hidden"
               />
@@ -603,12 +627,10 @@ export default function CommunityEditPage({
       {/* 하단 고정 버튼 */}
       <FixedBottomBar
         variant="variant2"
-        resetButtonText={getPublicText()}
-        resetButtonLeft={getPublicIcon()}
-        onResetButtonClick={handlePublicChange}
         applyButtonText="수정하기"
         onApplyButtonClick={handleSave}
         applyButtonDisabled={false}
+        showResetButton={false}
       />
 
       {/* 공고 선택 BottomSheet */}

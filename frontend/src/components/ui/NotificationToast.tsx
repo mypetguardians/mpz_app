@@ -32,7 +32,6 @@ export function NotificationToast({
       <XCircle size={20} className="text-red flex-shrink-0" />
     );
 
-  const bgColor = type === "success" && "bg-wh";
   const borderColor = type === "success" ? "border-brand" : "border-red";
   const textColor = type === "success" ? "text-brand" : "text-red";
 
@@ -42,7 +41,7 @@ export function NotificationToast({
         "fixed bottom-24 left-1/2 transform -translate-x-1/2 z-[9999]",
         "flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg",
         "border max-w-sm w-full mx-auto",
-        bgColor,
+        "bg-white opacity-100",
         borderColor,
         textColor,
         className

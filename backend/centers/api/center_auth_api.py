@@ -20,7 +20,7 @@ from ninja.pagination import paginate, Query
 
 router = Router(tags=["Center Auth"])
 
-def _build_center_response(center, show_private_location=False):
+def _build_center_response(center):
     """센터 응답 데이터를 구성합니다."""
     return CenterOut(
         id=str(center.id),
@@ -28,9 +28,9 @@ def _build_center_response(center, show_private_location=False):
         name=center.name,
         center_number=center.center_number,
         description=center.description,
-        location=center.location if (show_private_location or (center.is_public and center.show_location)) else None,
+        location=center.location,
         region=center.region,
-        phone_number=center.phone_number if (show_private_location or (center.is_public and center.show_phone_number)) else None,
+        phone_number=center.phone_number,
         adoption_procedure=center.adoption_procedure,
         adoption_guidelines=center.adoption_guidelines,
         has_monitoring=center.has_monitoring,
@@ -38,14 +38,11 @@ def _build_center_response(center, show_private_location=False):
         monitoring_interval_days=center.monitoring_interval_days,
         monitoring_description=center.monitoring_description,
         verified=center.verified,
-        is_public=center.is_public,
         adoption_price=center.adoption_price,
         image_url=center.image_url,
         is_subscribed=center.is_subscribed,
         has_volunteer=center.has_volunteer,
         has_foster_care=center.has_foster_care,
-        show_phone_number=center.show_phone_number,
-        show_location=center.show_location,
         created_at=center.created_at.isoformat(),
         updated_at=center.updated_at.isoformat(),
     )
@@ -96,8 +93,8 @@ async def get_my_center(request: HttpRequest):
                 except AttributeError:
                     raise HttpError(404, "등록된 센터가 없습니다")
             
-            # 응답 데이터 변환 (자신의 센터이므로 private location도 노출)
-            return _build_center_response(user_center, show_private_location=True)
+            # 응답 데이터 변환
+            return _build_center_response(user_center)
         
         return await get_my_center_info()
         
@@ -167,13 +164,10 @@ async def update_center_settings(request: HttpRequest, data: CenterUpdateIn):
                 'monitoring_period_months': data.monitoring_period_months,
                 'monitoring_interval_days': data.monitoring_interval_days,
                 'monitoring_description': data.monitoring_description,
-                'is_public': data.is_public,
                 'adoption_price': data.adoption_price,
                 'image_url': data.image_url,
                 'has_volunteer': data.has_volunteer,
                 'has_foster_care': data.has_foster_care,
-                'show_phone_number': data.show_phone_number,
-                'show_location': data.show_location
             }
             
             # None이 아니고 빈 문자열이 아닌 값만 업데이트 (단, image_url은 빈 문자열도 허용)
@@ -194,7 +188,7 @@ async def update_center_settings(request: HttpRequest, data: CenterUpdateIn):
             updated_center = Center.objects.select_related('owner').get(id=user_center.id)
             
             # 응답 데이터 변환
-            return _build_center_response(updated_center, show_private_location=True)
+            return _build_center_response(updated_center)
         
         return await update_center()
         

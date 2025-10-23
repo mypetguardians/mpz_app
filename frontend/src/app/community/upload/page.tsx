@@ -55,16 +55,24 @@ export default function CommunityUploadPage() {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [showPetSelection, setShowPetSelection] = useState(false);
+
+  // blob URL 정리 (메모리 누수 방지)
+  useEffect(() => {
+    return () => {
+      // 컴포넌트 unmount 시 모든 blob URL 해제
+      uploadedImageUrls.forEach((url) => {
+        if (url.startsWith("blob:")) {
+          URL.revokeObjectURL(url);
+        }
+      });
+    };
+  }, [uploadedImageUrls]);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showBackConfirmSheet, setShowBackConfirmSheet] = useState(false);
   const [activeTab, setActiveTab] = useState("adoption");
   const [publicType, setPublicType] = useState<PublicType>("center");
 
-  const {
-    mutate: createPost,
-    isPending: creating,
-    isPending: isPending,
-  } = useCreatePost();
+  const { mutate: createPost, isPending } = useCreatePost();
   const { mutate: uploadImages, isPending: uploading } = useUploadImages();
 
   const { user } = useAuth();
@@ -170,8 +178,36 @@ export default function CommunityUploadPage() {
       return;
     }
 
+    // 포맷 및 크기 검증
+    const allowedFormats = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+    ];
+    const maxSize = 10 * 1024 * 1024; // 10MB
+
+    const validFiles = files.filter((file) => {
+      // 포맷 체크
+      if (!allowedFormats.includes(file.type)) {
+        alert(
+          `${file.name}은(는) 지원하지 않는 형식입니다. (JPG, PNG, WEBP, GIF만 가능)`
+        );
+        return false;
+      }
+      // 파일 크기 체크
+      if (file.size > maxSize) {
+        alert(`${file.name}의 크기가 너무 큽니다. (최대 10MB)`);
+        return false;
+      }
+      return true;
+    });
+
+    if (validFiles.length === 0) return;
+
     // 남은 슬롯만큼만 파일 추가
-    const filesToAdd = files.slice(0, remainingSlots);
+    const filesToAdd = validFiles.slice(0, remainingSlots);
     const newImageUrls = filesToAdd.map((file) => URL.createObjectURL(file));
 
     setUploadedFiles((prev) => [...prev, ...filesToAdd]);
@@ -424,12 +460,14 @@ export default function CommunityUploadPage() {
                 <input
                   type="file"
                   multiple
-                  accept="image/*"
+                  accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
                   onChange={(e) => {
                     const files = e.target.files;
                     if (files) {
                       handleImageUpload(Array.from(files));
                     }
+                    // input 값 초기화 (같은 파일 다시 선택 가능하도록)
+                    e.target.value = "";
                   }}
                   className="hidden"
                 />
@@ -461,9 +499,15 @@ export default function CommunityUploadPage() {
         resetButtonText={isAdmin ? "전체공개" : getPublicText()}
         resetButtonLeft={isAdmin ? <Globe size={16} /> : getPublicIcon()}
         onResetButtonClick={isAdmin ? undefined : handlePublicChange}
-        applyButtonText={isPending ? "등록하는 중..." : "등록하기"}
+        applyButtonText={
+          isPending || uploading
+            ? uploading
+              ? "이미지 업로드 중..."
+              : "등록하는 중..."
+            : "등록하기"
+        }
         onApplyButtonClick={handleSave}
-        applyButtonDisabled={!isFormValid || creating || uploading}
+        applyButtonDisabled={!isFormValid || isPending || uploading}
         showResetButton={isAdmin || hasCompletedAdoptions}
       />
 
@@ -537,12 +581,12 @@ export default function CommunityUploadPage() {
       {/* 저장 확인 모달 */}
       <CustomModal
         open={showSaveModal}
-        onClose={() => setShowSaveModal(false)}
-        title="글을 등록할까요?"
+        onClose={() => !isPending && setShowSaveModal(false)}
+        title={isPending ? "글을 등록하는 중..." : "글을 등록할까요?"}
         variant="variant1"
         leftButtonText="취소"
-        rightButtonText="등록하기"
-        onLeftClick={() => setShowSaveModal(false)}
+        rightButtonText={isPending ? "등록 중..." : "등록하기"}
+        onLeftClick={() => !isPending && setShowSaveModal(false)}
         onRightClick={handleConfirmSave}
       />
 

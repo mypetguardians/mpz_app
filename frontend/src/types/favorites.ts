@@ -22,7 +22,15 @@ export interface AnimalFavorite {
     | "임시보호중"
     | "반환"
     | "방사";
-  protection_status: "보호중" | "안락사" | "자연사" | "반환";
+  protection_status:
+    | "보호중"
+    | "임시보호"
+    | "안락사"
+    | "자연사"
+    | "반환"
+    | "기증"
+    | "방사"
+    | "입양완료";
   adoption_status: "입양가능" | "입양진행중" | "입양완료" | "입양불가";
   personality: string | null;
   centerId: string;
@@ -72,7 +80,15 @@ export interface ApiAnimalFavorite {
     | "임시보호중"
     | "반환"
     | "방사";
-  protection_status: "보호중" | "안락사" | "자연사" | "반환";
+  protection_status:
+    | "보호중"
+    | "임시보호"
+    | "안락사"
+    | "자연사"
+    | "반환"
+    | "기증"
+    | "방사"
+    | "입양완료";
   adoption_status: "입양가능" | "입양진행중" | "입양완료" | "입양불가";
   personality: string | null;
   centerId: string;

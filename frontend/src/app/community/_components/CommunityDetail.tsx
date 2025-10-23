@@ -145,14 +145,14 @@ export function CommunityDetail({
       <div className="mb-3 w-full">
         {imageUrls.length === 1 ? (
           <div
-            className="relative w-full max-w-[420px] mx-auto h-[330px] overflow-hidden cursor-pointer"
+            className="relative w-full max-w-[420px] mx-auto h-[330px] overflow-hidden cursor-pointer bg-white"
             onClick={() => onImageClick?.(imageUrls, 0)}
           >
             <Image
               src={imageUrls[0]}
               alt={title}
               fill
-              className="object-cover"
+              className="object-contain"
             />
           </div>
         ) : (
@@ -160,14 +160,14 @@ export function CommunityDetail({
             {imageUrls.map((url, i) => (
               <div
                 key={i}
-                className="relative flex-shrink-0 w-[330px] h-[330px] overflow-hidden cursor-pointer"
+                className="relative flex-shrink-0 w-[330px] h-[330px] overflow-hidden cursor-pointer bg-white"
                 onClick={() => onImageClick?.(imageUrls, i)}
               >
                 <Image
                   src={url}
                   alt={`feed-img-${i}`}
                   fill
-                  className="object-cover"
+                  className="object-contain"
                 />
               </div>
             ))}

@@ -47,7 +47,7 @@ export function ImageCarouselModal({
 
   return (
     <div
-      className="fixed inset-0 z-[10001] bg-black bg-opacity-95 flex items-center justify-center"
+      className="fixed inset-0 z-[10001] bg-black/70 flex items-center justify-center"
       onClick={onClose}
     >
       {/* 닫기 버튼 */}
@@ -75,7 +75,8 @@ export function ImageCarouselModal({
           <IconButton
             icon={({ size }) => <CaretLeft size={size} weight="bold" />}
             size="iconM"
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               handlePrevious();
             }}
             className="bg-white/10 hover:bg-white/20 text-white"
@@ -106,7 +107,8 @@ export function ImageCarouselModal({
           <IconButton
             icon={({ size }) => <CaretRight size={size} weight="bold" />}
             size="iconM"
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               handleNext();
             }}
             className="bg-white/10 hover:bg-white/20 text-white"

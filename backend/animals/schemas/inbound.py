@@ -66,7 +66,7 @@ class AnimalUpdateIn(Schema):
     color: Optional[str] = Field(None, max_length=50, description="색상")
     breed: Optional[str] = Field(None, max_length=50, description="품종")
     description: Optional[str] = Field(None, max_length=1000, description="동물 설명")
-    protection_status: Optional[str] = Field(None, description="보호 상태 (보호중, 안락사, 자연사, 반환)")
+    protection_status: Optional[str] = Field(None, description="보호 상태 (보호중, 임시보호, 안락사, 자연사, 반환, 기증, 방사, 입양완료)")
     adoption_status: Optional[str] = Field(None, description="입양 상태 (입양가능, 입양진행중, 입양완료, 입양불가)")
     activity_level: Optional[str] = Field(None, max_length=50, description="활동량 수준")
     sensitivity: Optional[str] = Field(None, max_length=50, description="예민함 정도")

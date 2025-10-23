@@ -175,13 +175,17 @@ export default function CommunityPage() {
   useEffect(() => {
     const refreshAllData = async () => {
       try {
-        // 모든 데이터를 병렬로 새로고침
+        // 공통 데이터 새로고침
         await Promise.all([
           refetchBanners(),
           refetchSystemTags(),
-          refetchCenterPosts(),
           refetchPublicPosts(),
         ]);
+
+        // 센터 권한자인 경우에만 센터 게시글 새로고침
+        if (!authLoading && isAuthenticated && isCenterUser) {
+          await refetchCenterPosts();
+        }
       } catch (error) {
         console.error("데이터 새로고침 실패:", error);
       }
@@ -193,7 +197,10 @@ export default function CommunityPage() {
     refetchSystemTags,
     refetchCenterPosts,
     refetchPublicPosts,
-  ]); // 페이지 마운트 시 실행
+    authLoading,
+    isAuthenticated,
+    isCenterUser,
+  ]); // 페이지 마운트 시 및 권한 변경 시 실행
 
   // 게시글 삭제 훅
   const deletePostMutation = useDeletePost();
@@ -506,7 +513,7 @@ export default function CommunityPage() {
       </div>
 
       {/* 글쓰기 플로팅 버튼 */}
-      <div className="fixed z-50 translate-x-20 bottom-20 left-1/2">
+      <div className="fixed bottom-20 right-4 z-50 md:right-8 lg:right-12">
         <BigButton
           variant="primary"
           left={<Plus size={16} />}

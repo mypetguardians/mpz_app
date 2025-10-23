@@ -52,7 +52,7 @@ class R2Client:
             "s3",
             aws_access_key_id=self.access_key,
             aws_secret_access_key=self.secret_key,
-            endpoint_url=self.endpoint,     # 예: https://<accountid>.r2.cloudflarestorage.com
+            endpoint_url=self.endpoint,
             config=Config(signature_version="s3v4"),
             region_name="auto",
         )

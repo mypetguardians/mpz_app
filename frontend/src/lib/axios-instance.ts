@@ -12,7 +12,6 @@ const instance: AxiosInstance = axios.create({
   withCredentials: true,
 });
 
-// header
 instance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     return config;

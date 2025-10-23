@@ -4,11 +4,11 @@ import axios, {
   InternalAxiosRequestConfig,
 } from "axios";
 
-//const BASE_URL = "https://api.mpz.kr/v1/";
-const TEST_BASE_URL = "http://127.0.0.1:8000/v1/";
+const BASE_URL = "https://api.mpz.kr/v1/";
+//const BASE_URL = "http://127.0.0.1:8000/v1/";
 
 const instance: AxiosInstance = axios.create({
-  baseURL: TEST_BASE_URL,
+  baseURL: BASE_URL,
   withCredentials: true,
 });
 

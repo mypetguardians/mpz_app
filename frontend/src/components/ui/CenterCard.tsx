@@ -8,7 +8,7 @@ interface CenterCardProps {
   imageUrl: string;
   name: string;
   location: string;
-  verified?: boolean;
+  isSubscribed?: boolean;
   isLiked?: boolean;
   onLikeToggle?: () => void;
   centerId?: string;
@@ -18,7 +18,7 @@ function CenterCard({
   imageUrl,
   name,
   location,
-  verified = false,
+  isSubscribed = false,
   isLiked = false,
   onLikeToggle,
   centerId,
@@ -51,7 +51,7 @@ function CenterCard({
         <div className="flex flex-col justify-center min-w-0 gap-1">
           <div className="flex items-center gap-1">
             <h4 className="text-bk">{name}</h4>
-            {verified && (
+            {isSubscribed && (
               <SealCheck size={14} className="text-brand-light" weight="fill" />
             )}
           </div>

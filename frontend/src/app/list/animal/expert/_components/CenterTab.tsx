@@ -89,7 +89,7 @@ function CenterTab() {
               imageUrl={center.imgUrl}
               name={center.name}
               location={center.location}
-              verified={center.id === "1" || center.id === "3"} // 예시: 특정 센터만 인증됨
+              isSubscribed={center.id === "1" || center.id === "3"}
               isLiked={likedCenters.has(center.id)}
               onLikeToggle={() => handleLikeToggle(center.id)}
               centerId={center.id}

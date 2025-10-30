@@ -216,10 +216,17 @@ export function CenterAnimalsTab({
             <div className="mb-2">동물 정보를 불러오는데 실패했습니다.</div>
             <div className="text-sm text-red-500">{error.message}</div>
           </div>
-        ) : variant === "simple" ? (
-          "현재 보호 중인 동물이 없습니다."
         ) : (
-          "등록된 동물이 없습니다"
+          <>
+            <div className="mb-3">조건에 해당하는 동물이 없습니다.</div>
+            <button
+              type="button"
+              onClick={handleClearFilters}
+              className="text-sm text-gray-600 underline"
+            >
+              필터 초기화
+            </button>
+          </>
         )}
       </div>
     </div>
@@ -308,16 +315,31 @@ export function CenterAnimalsTab({
     return renderLoadingState();
   }
 
-  // 데이터가 없는 경우
-  if (filteredAnimals.length === 0) {
-    return renderEmptyState();
-  }
+  const handleClearFilters = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    [
+      "breed",
+      "weights",
+      "regions",
+      "ages",
+      "genders",
+      "protectionStatus",
+      "expertOpinion",
+    ].forEach((key) => params.delete(key));
+    params.set("tab", "animals");
+    const query = params.toString();
+    router.push(`/list/center/${centerId}${query ? `?${query}` : ""}`);
+  };
 
   return (
     <div className={`px-4 ${className}`}>
       {renderFilterOptions()}
 
-      {variant === "simple" ? renderSimpleView() : renderDetailedView()}
+      {filteredAnimals.length === 0
+        ? renderEmptyState()
+        : variant === "simple"
+        ? renderSimpleView()
+        : renderDetailedView()}
     </div>
   );
 }

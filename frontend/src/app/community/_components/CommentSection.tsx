@@ -348,7 +348,11 @@ export function CommentSection({
         title="로그인 후 이용해주세요"
         variant="variant2"
         ctaText="로그인하기"
-        onCtaClick={() => (window.location.href = "/login")}
+        onCtaClick={() => {
+          const next = `${window.location.pathname}${window.location.search}`;
+          document.cookie = `redirect_after_login=${encodeURIComponent(next)}; path=/; max-age=600`;
+          window.location.href = `/login?next=${encodeURIComponent(next)}`;
+        }}
       />
 
       {/* 삭제 확인 모달 */}

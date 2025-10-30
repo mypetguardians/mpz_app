@@ -67,7 +67,8 @@ function AnimalFilterContent() {
   }, [searchParams]);
 
   const handleBack = () => {
-    router.back();
+    const centerId = window.location.pathname.split("/")[3];
+    router.push(`/list/center/${centerId}?tab=animals`);
   };
 
   const handleApply = () => {

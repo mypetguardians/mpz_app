@@ -288,8 +288,6 @@ function AnimalFilterContent() {
     // localStorage에서도 필터 상태 제거
     localStorage.removeItem("animalFilters");
 
-    console.log("필터 재설정 완료 - 모든 상태 초기화됨");
-
     // URL도 초기화 (약간의 지연을 두어 상태 업데이트 후 실행)
     setTimeout(() => {
       router.push("/list/animal/filter", { scroll: false });

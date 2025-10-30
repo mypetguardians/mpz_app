@@ -18,8 +18,10 @@ export interface StepProps {
 
 export function Step5({ onNext }: StepProps) {
   const { user } = useAuth();
-  const { data: storeData } = useAdoptionVerificationStore(user?.id);
-  const centerId = storeData?.centerId;
+  const { data: userStoreData } = useAdoptionVerificationStore(user?.id);
+  const { data: anonymousStoreData } =
+    useAdoptionVerificationStore("anonymous");
+  const centerId = userStoreData?.centerId || anonymousStoreData?.centerId;
 
   const {
     data: questionsData,
@@ -50,13 +52,17 @@ export function Step5({ onNext }: StepProps) {
     }));
   };
 
-  // 모든 필수 질문이 답변되었는지 확인
+  // 모든 필수 질문이 답변되었는지 확인 (질문이 없으면 통과)
   const isAllRequiredAnswered = React.useMemo(() => {
-    if (!questionsData?.questions) return false;
+    const questions = questionsData?.questions;
+    if (!questions) return false; // 아직 로딩되지 않음
+    if (questions.length === 0) return true; // 질문이 없으면 바로 진행 가능
 
-    const requiredQuestions = questionsData.questions.filter(
+    const requiredQuestions = questions.filter(
       (q: CenterProcedureQuestion) => q.is_required
     );
+    if (requiredQuestions.length === 0) return true;
+
     return requiredQuestions.every(
       (q: CenterProcedureQuestion) => (answers[q.id] || "").trim().length > 0
     );
@@ -121,30 +127,36 @@ export function Step5({ onNext }: StepProps) {
     <>
       <Container className="min-h-screen pb-28">
         <h2 className="text-bk mb-6">답변을 작성해주세요.</h2>
-        <div className="flex flex-col gap-3">
-          {questionsData?.questions
-            ?.sort(
-              (a: CenterProcedureQuestion, b: CenterProcedureQuestion) =>
-                a.sequence - b.sequence
-            )
-            .map((question: CenterProcedureQuestion) => (
-              <CustomInput
-                key={question.id}
-                variant="primary"
-                label={question.question}
-                placeholder="자유롭게 작성해주세요."
-                required={question.is_required}
-                value={answers[question.id] || ""}
-                onChange={(e) =>
-                  handleAnswerChange(question.id, e.target.value)
-                }
-                inputMode="text"
-                maxLength={500}
-                multiline={true}
-                rows={4}
-              />
-            ))}
-        </div>
+        {questionsData?.questions && questionsData.questions.length === 0 ? (
+          <div className="text-center text-gray-600 py-10">
+            현재 이 센터에서 수집하는 추가 질문이 없습니다.
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {questionsData?.questions
+              ?.sort(
+                (a: CenterProcedureQuestion, b: CenterProcedureQuestion) =>
+                  a.sequence - b.sequence
+              )
+              .map((question: CenterProcedureQuestion) => (
+                <CustomInput
+                  key={question.id}
+                  variant="primary"
+                  label={question.question}
+                  placeholder="자유롭게 작성해주세요."
+                  required={question.is_required}
+                  value={answers[question.id] || ""}
+                  onChange={(e) =>
+                    handleAnswerChange(question.id, e.target.value)
+                  }
+                  inputMode="text"
+                  maxLength={500}
+                  multiline={true}
+                  rows={4}
+                />
+              ))}
+          </div>
+        )}
       </Container>
 
       <FixedBottomBar

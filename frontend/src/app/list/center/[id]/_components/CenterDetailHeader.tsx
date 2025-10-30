@@ -157,7 +157,7 @@ export function CenterDetailHeader({
           <IconButton
             icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
             size="iconM"
-            onClick={() => router.back()}
+            onClick={() => router.push(`/list/center`)}
           />
         </div>
       }

@@ -84,11 +84,11 @@ export function ImageCarouselModal({
       )}
 
       {/* 이미지 */}
-      <div
-        className="relative w-full h-full flex items-center justify-center px-16"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="relative max-w-full max-h-full w-auto h-auto">
+      <div className="relative w-full h-full flex items-center justify-center px-16 pointer-events-none">
+        <div
+          className="relative max-w-full max-h-full w-auto h-auto pointer-events-auto"
+          onClick={(e) => e.stopPropagation()}
+        >
           <Image
             src={images[currentIndex]}
             alt={`이미지 ${currentIndex + 1}`}

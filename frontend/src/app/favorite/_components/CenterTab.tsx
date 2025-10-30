@@ -124,7 +124,7 @@ function CenterTab() {
                 imageUrl={center.imageUrl || "/img/dummyImg.png"} // 실제 이미지 URL 사용, 없으면 더미 이미지
                 name={center.name}
                 location={center.location || center.region || "위치 정보 없음"}
-                verified={false} // 임시
+                isSubscribed={Boolean((center as { isSubscriber?: boolean }).isSubscriber)}
                 isLiked={isLiked}
                 onLikeToggle={() => handleLikeToggle(center.id)}
                 centerId={center.id}

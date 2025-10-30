@@ -14,6 +14,8 @@ const transformCenterFavorites = (apiResponse: CenterFavoritesApiResponse) => {
       imageUrl: item.image_url,
       isFavorited: item.is_favorited,
       favoritedAt: item.favorited_at,
+      verified: item.verified ?? false,
+      isSubscriber: item.is_subscribed ?? false,
     })),
     total: apiResponse.totalCnt,
     page: apiResponse.curPage,

@@ -53,6 +53,8 @@ export interface CenterFavorite {
   imageUrl: string | null;
   isFavorited: boolean;
   favoritedAt: string;
+  verified?: boolean;
+  isSubscriber?: boolean;
 }
 
 // API 응답에 맞춘 새로운 타입들
@@ -65,6 +67,8 @@ export interface ApiCenterFavorite {
   image_url: string;
   is_favorited: boolean;
   favorited_at: string;
+  verified?: boolean;
+  is_subscribed?: boolean;
 }
 
 export interface ApiAnimalFavorite {

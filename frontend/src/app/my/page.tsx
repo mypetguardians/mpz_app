@@ -116,7 +116,7 @@ export default function MyPage() {
     // },
     {
       id: "3",
-      label: "고객센터",
+      label: "피드백 및 건의사항",
       onClick: () => {
         if (!isAuthenticated) {
           setIsLoginModalOpen(true);
@@ -308,7 +308,11 @@ export default function MyPage() {
         title="로그인 후 이용해주세요"
         variant="variant2"
         ctaText="로그인하기"
-        onCtaClick={() => (window.location.href = "/login")}
+        onCtaClick={() => {
+          const next = `${window.location.pathname}${window.location.search}`;
+          document.cookie = `redirect_after_login=${encodeURIComponent(next)}; path=/; max-age=600`;
+          window.location.href = `/login?next=${encodeURIComponent(next)}`;
+        }}
       />
 
       {/* 로그아웃 확인 바텀시트 */}

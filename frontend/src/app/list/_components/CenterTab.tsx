@@ -210,7 +210,7 @@ function CenterCardWithFavorite({
       imageUrl="/img/dummyImg.png"
       name={center.name}
       location={center.location || "주소 정보 없음"}
-      verified={center.verified || false}
+      isSubscribed={center.isSubscriber || false}
       isLiked={isLiked}
       onLikeToggle={isAuthenticated ? () => onLikeToggle(center.id) : undefined}
       centerId={center.id}

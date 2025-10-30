@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { PetCard } from "@/components/ui";
 import { PetCardSkeleton } from "@/components/ui/PetCardSkeleton";
@@ -8,19 +8,48 @@ import { useGetAnimalFavorites } from "@/hooks";
 
 const ITEMS_PER_PAGE = 10;
 
+type FavoriteAnimal = Record<string, unknown> & { id: string };
+
 function AnimalTab() {
   const [page, setPage] = useState(1);
+  const [accumulatedPets, setAccumulatedPets] = useState<FavoriteAnimal[]>([]);
   const {
     data: favoritesData,
     isLoading,
     error,
     isFetching,
   } = useGetAnimalFavorites(page, ITEMS_PER_PAGE);
-  console.log(favoritesData);
   const router = useRouter();
-  const pets = favoritesData?.animals || [];
-  const hasMore = favoritesData?.hasNext || false;
-  const total = favoritesData?.total || 0;
+
+  const currentPets = useMemo(
+    () => (favoritesData?.animals as FavoriteAnimal[]) || [],
+    [favoritesData]
+  );
+  const hasMore = (favoritesData?.hasNext as boolean) || false;
+  const total = (favoritesData?.total as number) || 0;
+
+  // 페이지 데이터 누적 관리 (무한스크롤)
+  useEffect(() => {
+    if (!favoritesData) return;
+    if (page === 1) {
+      setAccumulatedPets(currentPets);
+    } else if (currentPets.length > 0) {
+      setAccumulatedPets((prev) => {
+        const seen = new Set(prev.map((p) => p.id));
+        const merged = [...prev];
+        for (const item of currentPets) {
+          const id = item.id;
+          if (!seen.has(id)) {
+            merged.push(item);
+            seen.add(id);
+          }
+        }
+        return merged;
+      });
+    }
+  }, [favoritesData, currentPets, page]);
+
+  const pets = useMemo(() => accumulatedPets, [accumulatedPets]);
 
   // 무한스크롤 처리
   const loadMorePets = useCallback(() => {

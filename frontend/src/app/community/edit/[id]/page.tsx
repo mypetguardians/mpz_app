@@ -340,18 +340,36 @@ export default function CommunityEditPage({
     setShowSaveModal(true);
   };
 
-  // 태그 추출 함수 - 초성, 자음, 모음도 포함
-  const extractTags = (text: string): string[] => {
+  // 태그 추출 함수 - 초성, 자음, 모음도 포함, 순서 유지
+  const extractTags = (text: string, existingTags: string[] = []): string[] => {
     const tagRegex = /#([ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9_-]+)/g;
-    const matches = text.match(tagRegex);
-    if (!matches) return [];
+    const matches: string[] = [];
+    let match;
+    
+    // 정규식의 lastIndex를 활용하여 순서대로 추출
+    while ((match = tagRegex.exec(text)) !== null) {
+      const tag = match[1];
+      if (tag && tag.length > 0 && !matches.includes(tag)) {
+        matches.push(tag);
+      }
+    }
 
-    // # 제거하고 중복 제거, 빈 문자열 필터링
-    return [
-      ...new Set(
-        matches.map((tag) => tag.slice(1)).filter((tag) => tag.length > 0)
-      ),
-    ];
+    // 기존 태그가 있으면 순서 유지하면서 처리
+    if (existingTags.length > 0) {
+      const extractedSet = new Set(matches);
+      
+      // 기존 태그 중에서 텍스트에 아직 존재하는 것만 유지 (순서 유지)
+      const preservedTags = existingTags.filter((tag) => extractedSet.has(tag));
+      
+      // 새로 추가된 태그만 추출 (기존 태그에 없는 것만)
+      const existingSet = new Set(existingTags);
+      const newTags = matches.filter((tag) => !existingSet.has(tag));
+      
+      // 기존 태그 순서 유지 + 새로운 태그를 처음 등장 순서대로 추가
+      return [...preservedTags, ...newTags];
+    }
+
+    return matches;
   };
 
   // 내용이 변경될 때마다 태그 추출
@@ -359,10 +377,8 @@ export default function CommunityEditPage({
     const newContent = e.target.value;
     setContent(newContent);
 
-    // 새로 추출된 태그만 설정 (기존 태그는 이미 초기화 시에 설정됨)
-    const extractedTags = extractTags(newContent);
-
-    setTags(extractedTags);
+    // 기존 태그 순서를 유지하면서 새 태그만 추가
+    setTags((prevTags) => extractTags(newContent, prevTags));
   };
 
   const handleConfirmSave = async () => {

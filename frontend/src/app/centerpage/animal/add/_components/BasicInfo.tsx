@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { ImageCard } from "@/components/ui/ImageCard";
 import { CustomInput } from "@/components/ui/CustomInput";
 import { SearchInput } from "@/components/ui/SearchInput";
+import { CustomModal } from "@/components/ui";
 import { AddButton } from "@/components/ui/AddButton";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 // 고정 품종 목록
@@ -192,6 +193,9 @@ export default function BasicInfo({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [extraFeatures, setExtraFeatures] = useState<string[]>([]);
   const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
+  const [isFoundLocationDialogOpen, setIsFoundLocationDialogOpen] =
+    useState(false);
+  const [isManualFoundLocation, setIsManualFoundLocation] = useState(false);
 
   // 품종 검색 결과 필터링
   const filteredBreeds = breedList.filter((breed) =>
@@ -485,13 +489,16 @@ export default function BasicInfo({
         <div className="flex flex-col gap-2">
           <h5 className="text-dg">발견장소</h5>
           <div className="flex flex-col gap-2">
-            <div onClick={handleFoundLocationSearch} className="cursor-pointer">
+            <div
+              onClick={() => setIsFoundLocationDialogOpen(true)}
+              className="cursor-pointer"
+            >
               <SearchInput
                 variant="variant2"
                 placeholder="주소를 검색해보세요"
                 value={data.foundLocation}
                 onChange={(e) => onChange({ foundLocation: e.target.value })}
-                onSearch={handleFoundLocationSearch}
+                onSearch={() => setIsFoundLocationDialogOpen(true)}
               />
             </div>
             <CustomInput
@@ -500,6 +507,24 @@ export default function BasicInfo({
               value={data.foundLocation}
               onChange={(e) => handleDetailAddressChange(e.target.value)}
             />
+            <div className="flex justify-end">
+              <button
+                type="button"
+                className="text-sm text-brand hover:underline"
+                onClick={() => {
+                  if (isManualFoundLocation) {
+                    setIsManualFoundLocation(false);
+                    handleFoundLocationSearch();
+                  } else {
+                    setIsManualFoundLocation(true);
+                  }
+                }}
+              >
+                {isManualFoundLocation
+                  ? "주소 검색으로 전환"
+                  : "직접 입력으로 전환"}
+              </button>
+            </div>
           </div>
         </div>
         <div className="flex flex-col gap-2">
@@ -534,7 +559,7 @@ export default function BasicInfo({
             key={index}
             variant="primary"
             label="건강데이터 추가"
-            placeholder="예) 산책 시 줄당김 없음"
+            placeholder="예) 심장사상충 치료 시작 2025.05.24"
             value={feature}
             onChange={(e) => {
               const updated = [...extraFeatures];
@@ -601,6 +626,28 @@ export default function BasicInfo({
           </div>
         </div>
       </BottomSheet>
+
+      {/* 발견장소 입력 방식 선택 모달 */}
+      <CustomModal
+        open={isFoundLocationDialogOpen}
+        onClose={() => setIsFoundLocationDialogOpen(false)}
+        title="발견장소 입력 방식 선택"
+        description="어떻게 입력할까요?"
+        variant="variant1"
+        leftButtonText="직접입력"
+        rightButtonText="카카오맵으로 입력"
+        onLeftClick={() => {
+          setIsManualFoundLocation(true);
+          setIsFoundLocationDialogOpen(false);
+        }}
+        onRightClick={() => {
+          setIsFoundLocationDialogOpen(false);
+          setTimeout(() => {
+            setIsManualFoundLocation(false);
+            handleFoundLocationSearch();
+          }, 0);
+        }}
+      />
 
       {/* 토스트 메시지 */}
       {showToast && (

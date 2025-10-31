@@ -8,7 +8,7 @@ import Link from "next/link";
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
-import { BigButton } from "@/components/ui/BigButton";
+import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
 import { AddButton } from "@/components/ui/AddButton";
 import { CustomInput } from "@/components/ui/CustomInput";
 import { Add } from "@/components/ui/Add";
@@ -411,7 +411,7 @@ export default function CenterProcessCustomForm() {
           </div>
         }
       />
-      <div className="w-full flex flex-col pt-4 px-4 gap-6 min-h-[100px]">
+      <div className="w-full flex flex-col pt-4 px-4 pb-[100px] gap-6 min-h-[100px]">
         <div className="w-full flex flex-col gap-2">
           <h2 className="text-bk">
             예비 입양자에게 제공받고 싶은
@@ -419,8 +419,9 @@ export default function CenterProcessCustomForm() {
             정보를 선택해주세요.
           </h2>
           <p className="body2 text-gr">
-            이름, 생년월일, 성별, 거주지 주소, 전화번호 등 총 5개의 정보는 필수
-            정보로 제공받아요.
+            이름, 생년월일, 성별, 거주지 주소, 전화번호 총 5개의 정보는
+            마펫쯔에서 필수 정보로 받아드려요. 해당 정보를 제외한 신청서를
+            만들어주세요.
           </p>
         </div>
         <div className="w-full flex flex-col gap-3">
@@ -478,24 +479,25 @@ export default function CenterProcessCustomForm() {
           <AddButton onClick={handleAddQuestion}>새로 만들기</AddButton>
         </div>
       </div>
-      <div className="absolute bottom-0 left-0 right-0 pb-6 pt-2 px-5">
-        <BigButton
-          className="w-full"
-          disabled={
-            questionInputs.length === 0 ||
-            questionInputs.every((q) => q.text.trim() === "") ||
-            createQuestionForm.isPending ||
-            updateQuestionForm.isPending ||
-            updateQuestionSequence.isPending ||
-            deleteQuestionForm.isPending
-          }
-          onClick={handleSave}
-        >
-          {createQuestionForm.isPending || updateQuestionForm.isPending
+      <FixedBottomBar
+        variant="variant4"
+        primaryButtonText={
+          createQuestionForm.isPending || updateQuestionForm.isPending
             ? "저장 중..."
-            : "저장하기"}
-        </BigButton>
-      </div>
+            : "저장하기"
+        }
+        onPrimaryButtonClick={handleSave}
+        primaryButtonDisabled={
+          questionInputs.length === 0 ||
+          questionInputs.every((q) => q.text.trim() === "") ||
+          createQuestionForm.isPending ||
+          updateQuestionForm.isPending ||
+          updateQuestionSequence.isPending ||
+          deleteQuestionForm.isPending
+        }
+        showSafeArea={true}
+        padding="md"
+      />
 
       {/* 토스트 메시지 */}
       {toast.show && (

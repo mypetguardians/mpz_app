@@ -145,6 +145,22 @@ class QuestionFormDeleteOut(Schema):
     message: str = Field(..., description="삭제 완료 메시지")
 
 
+class PresetQuestionOut(Schema):
+    """기본 질문 출력 스키마"""
+    id: str = Field(..., description="기본 질문 ID")
+    category: str = Field(..., description="질문 카테고리 (lifeEnvironment, experience, responsibility)")
+    question: str = Field(..., description="질문 내용")
+    sequence: int = Field(..., description="질문 순서")
+    is_active: bool = Field(..., description="활성화 여부")
+    created_at: str = Field(..., description="생성일시 (ISO 형식)")
+    updated_at: str = Field(..., description="수정일시 (ISO 형식)")
+
+
+class PresetQuestionListOut(Schema):
+    """기본 질문 목록 출력 스키마"""
+    questions: List[PresetQuestionOut] = Field(..., description="기본 질문 목록")
+
+
 class CenterNoticeOut(Schema):
     """센터 공지사항 출력 스키마"""
     id: str = Field(..., description="공지사항 ID")

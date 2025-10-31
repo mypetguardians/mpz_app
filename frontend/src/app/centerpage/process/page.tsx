@@ -9,7 +9,7 @@ import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
 import { CustomInput } from "@/components/ui/CustomInput";
-import { BigButton } from "@/components/ui/BigButton";
+import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
 import { AddButton } from "@/components/ui/AddButton";
 import { InfoCard } from "@/components/ui/InfoCard";
 import { NotificationToast } from "@/components/ui/NotificationToast";
@@ -323,15 +323,14 @@ export default function CenterProcess() {
           </InfoCard>
         </div>
       </div>
-      <div className="sticky bottom-0 left-0 right-0 pb-6 pt-2 px-5 bg-white">
-        <BigButton
-          className="w-full"
-          onClick={handleSave}
-          disabled={isLoading || isLoadingSettings}
-        >
-          {isLoading ? "저장 중..." : "저장하기"}
-        </BigButton>
-      </div>
+      <FixedBottomBar
+        variant="variant4"
+        primaryButtonText={isLoading ? "저장 중..." : "저장하기"}
+        onPrimaryButtonClick={handleSave}
+        primaryButtonDisabled={isLoading || isLoadingSettings}
+        showSafeArea={true}
+        padding="md"
+      />
 
       {/* 토스트 */}
       {toast.show && (

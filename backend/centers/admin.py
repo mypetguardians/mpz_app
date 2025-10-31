@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.db import models
-from centers.models import Center, AdoptionContractTemplate, QuestionForm
+from centers.models import Center, AdoptionContractTemplate, QuestionForm, PresetQuestion
 
 
 @admin.register(Center)
@@ -82,13 +82,34 @@ class AdoptionContractTemplateAdmin(admin.ModelAdmin):
     )
 
 
-""" @admin.register(QuestionForm)
+@admin.register(PresetQuestion)
+class PresetQuestionAdmin(admin.ModelAdmin):
+    list_display = ['category', 'question', 'sequence', 'is_active', 'created_at']
+    list_filter = ['category', 'is_active']
+    search_fields = ['question']
+    list_editable = ['is_active', 'sequence']
+    ordering = ['category', 'sequence']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('기본 정보', {
+            'fields': ('category', 'question', 'sequence', 'is_active')
+        }),
+        ('시간 정보', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(QuestionForm)
 class QuestionFormAdmin(admin.ModelAdmin):
     list_display = ['center', 'question', 'type', 'is_required', 'sequence', 'created_at']
     list_filter = ['center', 'type', 'is_required']
     search_fields = ['center__name', 'question']
     list_editable = ['is_required', 'sequence']
     ordering = ['center', 'sequence']
+    readonly_fields = ['created_at', 'updated_at']
     
     fieldsets = (
         ('기본 정보', {
@@ -101,4 +122,4 @@ class QuestionFormAdmin(admin.ModelAdmin):
             'fields': ('created_at', 'updated_at'),
             'classes': ('collapse',)
         }),
-    ) """
+    )

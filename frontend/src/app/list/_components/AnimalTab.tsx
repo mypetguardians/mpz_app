@@ -1,17 +1,33 @@
 "use client";
 
-import { useEffect, useMemo, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useCallback, useState } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
 import { PetCard, PetCardSkeleton } from "@/components/ui";
 import { useGetAnimals } from "@/hooks/query/useGetAnimals";
-import { transformRawAnimalToPetCard, GetAnimalsParams } from "@/types/animal";
+import {
+  transformRawAnimalToPetCard,
+  GetAnimalsParams,
+  RawAnimalResponse,
+} from "@/types/animal";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { useToggleAnimalFavorite } from "@/hooks/mutation/useToggleAnimalFavorite";
+import { useCheckAnimalFavorite } from "@/hooks/query/useCheckAnimalFavorite";
+import { IconButton } from "@/components/ui/IconButton";
+import { Heart } from "@phosphor-icons/react";
+import { cn } from "@/lib/utils";
 
 const ITEMS_PER_PAGE = 20;
 
 function AnimalTab() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const { isAuthenticated } = useAuth();
+  const toggleFavorite = useToggleAnimalFavorite();
+  const [localFavorites, setLocalFavorites] = useState<Record<string, boolean>>(
+    {}
+  );
 
   // URL 파라미터에서 필터 상태 읽기
   const filters = useMemo(() => {
@@ -163,6 +179,50 @@ function AnimalTab() {
     };
   }, [loadMoreAnimals]);
 
+  // 좋아요 토글 핸들러 (동물)
+  const handleLikeToggle = useCallback(
+    (animalId: string) => {
+      if (!isAuthenticated) {
+        const qs = searchParams.toString();
+        const currentUrl = `${pathname}${qs ? `?${qs}` : ""}`;
+        router.push(`/login?redirect=${encodeURIComponent(currentUrl)}`);
+        return;
+      }
+
+      const currentFavorite =
+        localFavorites[animalId] !== undefined
+          ? localFavorites[animalId]
+          : false;
+
+      // optimistic update
+      setLocalFavorites((prev) => ({ ...prev, [animalId]: !currentFavorite }));
+
+      toggleFavorite.mutate(
+        { animalId },
+        {
+          onSuccess: (data) => {
+            const isFavorited = data.is_favorited ?? false;
+            setLocalFavorites((prev) => ({ ...prev, [animalId]: isFavorited }));
+          },
+          onError: () => {
+            setLocalFavorites((prev) => ({
+              ...prev,
+              [animalId]: currentFavorite,
+            }));
+          },
+        }
+      );
+    },
+    [
+      isAuthenticated,
+      localFavorites,
+      toggleFavorite,
+      pathname,
+      router,
+      searchParams,
+    ]
+  );
+
   // 필터 초기화 함수
   const handleClearFilters = useCallback(() => {
     const params = new URLSearchParams(searchParams.toString());
@@ -248,18 +308,14 @@ function AnimalTab() {
         {allAnimals
           .filter((animal) => animal && animal.id)
           .map((animal) => (
-            <div
+            <AnimalCardWithFavorite
               key={animal.id}
-              className="w-[calc(50%-4px)]"
-              onClick={() => router.push(`/list/animal/${animal.id}`)}
-            >
-              <PetCard
-                pet={transformRawAnimalToPetCard(animal)}
-                variant="primary"
-                imageSize="full"
-                className="w-full"
-              />
-            </div>
+              animal={animal}
+              isAuthenticated={isAuthenticated}
+              localFavorite={localFavorites[animal.id]}
+              onLikeToggle={handleLikeToggle}
+              onNavigate={() => router.push(`/list/animal/${animal.id}`)}
+            />
           ))}
       </div>
 
@@ -284,3 +340,68 @@ function AnimalTab() {
 }
 
 export { AnimalTab };
+
+// 좋아요 상태를 확인하는 개별 동물 카드 컴포넌트
+function AnimalCardWithFavorite({
+  animal,
+  isAuthenticated,
+  onLikeToggle,
+  localFavorite,
+  onNavigate,
+}: {
+  animal: RawAnimalResponse;
+  isAuthenticated: boolean;
+  onLikeToggle: (animalId: string) => void;
+  localFavorite?: boolean;
+  onNavigate: () => void;
+}) {
+  const { data: favoriteData } = useCheckAnimalFavorite(
+    animal.id,
+    isAuthenticated && localFavorite === undefined
+  );
+
+  const isLiked =
+    isAuthenticated &&
+    (localFavorite !== undefined
+      ? localFavorite
+      : favoriteData
+      ? favoriteData.is_favorited
+      : false);
+
+  return (
+    <div className="w-[calc(50%-4px)]" onClick={onNavigate}>
+      <div className="relative">
+        <PetCard
+          pet={transformRawAnimalToPetCard(animal)}
+          variant="primary"
+          imageSize="full"
+          className="w-full"
+        />
+
+        {isAuthenticated && (
+          <div
+            className="absolute top-2 left-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <IconButton
+              icon={({ size, className }) => (
+                <Heart
+                  size={size}
+                  className={cn(
+                    className,
+                    isLiked ? "text-brand" : "text-lg",
+                    isLiked && "fill-current"
+                  )}
+                  weight={isLiked ? "fill" : "regular"}
+                />
+              )}
+              size="iconM"
+              label="찜"
+              onClick={() => onLikeToggle(animal.id)}
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

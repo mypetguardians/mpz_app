@@ -22,8 +22,8 @@ export const viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "마펫즈",
-    template: "%s | 마펫즈",
+    default: "마펫쯔",
+    template: "%s | 마펫쯔",
   },
   description:
     "전국 유기동물 보호센터 정보와 입양 절차를 한눈에 확인하기! 반려동물 입양 플랫폼",
@@ -35,34 +35,32 @@ export const metadata: Metadata = {
     "동물보호센터",
     "펫 매칭",
     "AI 반려동물 추천",
-    "마펫즈",
+    "마펫쯔",
   ],
-  authors: [{ name: "마펫즈" }],
-  creator: "마펫즈",
-  publisher: "마펫즈",
-  metadataBase: new URL(
-    "https://mpz.kr"
-  ),
+  authors: [{ name: "마펫쯔" }],
+  creator: "마펫쯔",
+  publisher: "마펫쯔",
+  metadataBase: new URL("https://mpz.kr"),
   openGraph: {
     type: "website",
     locale: "ko_KR",
     url: "https://mpz.kr",
-    title: "마펫즈",
+    title: "마펫쯔",
     description:
       "전국 유기동물 보호센터 정보와 입양 절차를 한눈에 확인하기! 반려동물 입양 플랫폼",
-    siteName: "마펫즈",
+    siteName: "마펫쯔",
     images: [
       {
         url: "/img/og-image.png",
         width: 1200,
         height: 630,
-        alt: "마펫즈",
+        alt: "마펫쯔",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "마펫즈",
+    title: "마펫쯔",
     description:
       "전국 유기동물 보호센터 정보와 입양 절차를 한눈에 확인하기! 반려동물 입양 플랫폼",
     images: ["/img/og-image.png"],

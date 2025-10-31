@@ -20,13 +20,13 @@ import {
   useGetComments,
   useGetNotifications,
   useDeletePost,
+  useGetBanners,
 } from "@/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useNotificationSocket } from "@/hooks/useNotificationSocket";
 import { CustomModal } from "@/components/ui/CustomModal";
 import { Toast } from "@/components/ui/Toast";
-import { useGetBanners } from "@/hooks/query/useGetBanners";
 import { Post } from "@/types/posts";
 
 export default function CommunityPage() {
@@ -70,39 +70,80 @@ export default function CommunityPage() {
 
   // 배너 섹션 컴포넌트
   const BannerSection = () => {
-    // 로딩 중이거나 배너가 없으면 섹션 자체를 렌더링하지 않음
-    if (bannersLoading || !banners?.data || banners.data.length === 0) {
+    // 로딩 중이면 스켈레톤 표시
+    if (bannersLoading) {
+      return (
+        <div className="py-5">
+          <div className="relative w-full h-20 overflow-hidden rounded-lg">
+            <div className="w-full h-full bg-gray-200 animate-pulse" />
+          </div>
+        </div>
+      );
+    }
+
+    // 배너 데이터가 없거나 배열이 비어있으면 표시하지 않음
+    if (!banners?.data || banners.data.length === 0) {
       return null;
     }
 
-    const targetBanner = banners.data[0];
+    // 활성화된 배너만 필터링 (is_active가 true인 것만)
+    const activeBanners = banners.data.filter(
+      (banner) => banner.is_active === true
+    );
+
+    if (activeBanners.length === 0) {
+      return null;
+    }
+
+    // order_index로 정렬하여 첫 번째 배너 선택
+    const sortedBanners = [...activeBanners].sort(
+      (a, b) => (a.order_index || 0) - (b.order_index || 0)
+    );
+    const targetBanner = sortedBanners[0];
+
+    // 이미지 URL 처리
+    const imageUrl = targetBanner.image_url || "/img/banner.jpg";
+
+    // 링크 URL 처리 (프로토콜이 없으면 https:// 추가)
+    const getFullUrl = (url: string): string => {
+      if (!url) return "";
+      // 이미 http:// 또는 https://로 시작하면 그대로 반환
+      if (url.startsWith("http://") || url.startsWith("https://")) {
+        return url;
+      }
+      // 프로토콜이 없으면 https:// 추가
+      return `https://${url}`;
+    };
+
+    const linkUrl = targetBanner.link_url
+      ? getFullUrl(targetBanner.link_url)
+      : "";
 
     return (
       <div className="py-5">
-        <div className="relative w-full h-20 overflow-hidden rounded-lg cursor-pointer">
-          {bannersLoading ? (
-            <div className="w-full h-full bg-gray-200 animate-pulse" />
-          ) : (
-            <>
-              <Image
-                // TODO: targetBanner.image_url
-                src="/img/banner.jpg"
-                alt={targetBanner.alt}
-                fill
-                className="object-cover"
-                onClick={() => {
-                  if (targetBanner.link_url) {
-                    window.open(targetBanner.link_url, "_blank");
-                  }
-                }}
-              />
-              <div className="absolute inset-0 flex items-center px-5">
-                <span className="text-sm font-medium text-white">
-                  {targetBanner.title}
-                </span>
-              </div>
-            </>
-          )}
+        <div
+          className="relative w-full h-20 overflow-hidden rounded-lg cursor-pointer"
+          onClick={() => {
+            if (linkUrl) {
+              window.open(linkUrl, "_blank", "noopener,noreferrer");
+            }
+          }}
+        >
+          <Image
+            src={imageUrl}
+            alt={targetBanner.alt || targetBanner.title || "배너"}
+            fill
+            className="object-cover"
+            unoptimized
+            onError={(e) => {
+              e.currentTarget.src = "/img/banner.jpg";
+            }}
+          />
+          <div className="absolute inset-0 flex items-center px-5">
+            <span className="text-sm font-medium text-white drop-shadow-md">
+              {targetBanner.title}
+            </span>
+          </div>
         </div>
       </div>
     );

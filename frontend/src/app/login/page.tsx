@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight } from "@phosphor-icons/react";
@@ -11,20 +11,15 @@ import { MiniButton } from "@/components/ui/MiniButton";
 import { KakaoButton } from "@/components/auth/KakaoButton";
 import { useAuth } from "@/components/providers/AuthProvider";
 
-function LogInContent() {
+export default function LogIn() {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const next = searchParams?.get("next");
-    if (next) {
-      document.cookie = `redirect_after_login=${encodeURIComponent(next)}; path=/; max-age=600`;
-    }
     if (isAuthenticated) {
-      router.replace(next || "/");
+      router.replace("/");
     }
-  }, [isAuthenticated, router, searchParams]);
+  }, [isAuthenticated, router]);
 
   return (
     <Container className="min-h-screen flex flex-col justify-between px-4">
@@ -56,25 +51,20 @@ function LogInContent() {
           />
         </div>
       </div>
-
-      <div className="flex flex-col gap-3 mb-[100px]">
-        <KakaoButton />
-        <Link href="/login/center" className="flex justify-center">
+      <div className="flex flex-col gap-4 pb-6">
+        <KakaoButton className="mx-auto" />
+        <Link
+          href="/login/center"
+          className="cursor-pointer items-center justify-center"
+        >
           <MiniButton
-            variant="outline"
-            text="센터 계정으로 로그인"
-            rightIcon={<ArrowUpRight size={18} />}
+            text="센터 계정으로 시작하기"
+            variant="filterOff"
+            className="w-full border-none"
+            leftIcon={<ArrowUpRight size={12} />}
           />
         </Link>
       </div>
     </Container>
-  );
-}
-
-export default function LogIn() {
-  return (
-    <Suspense fallback={<div />}> 
-      <LogInContent />
-    </Suspense>
   );
 }

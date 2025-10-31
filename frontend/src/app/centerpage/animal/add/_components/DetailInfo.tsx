@@ -82,10 +82,10 @@ export default function DetailInfo({ data, onChange }: DetailInfoProps) {
 
   return (
     <div className="flex flex-col w-full gap-4 px-4 pb-4">
-      <h4 className="text-left">상세 성격 정보</h4>
+      <h4 className="text-left">상세 성향 정보</h4>
       <InfoCard>
-        매칭과정에서 사용될 정보로, 꼼꼼히 적어주시면 입양 확률이 높아질
-        가능성이 있어요!
+        반려동물 추천에서 사용될 정보로, 정확히 적어주시면 입양 확률이 높아질 수
+        있어요!
       </InfoCard>
 
       {/* 전체 토글 버튼 */}

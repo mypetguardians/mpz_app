@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowsClockwise } from "@phosphor-icons/react";
+import { ArrowLeft } from "@phosphor-icons/react";
 
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
@@ -277,9 +277,7 @@ export default function AddAnimal() {
         )}
       </div>
       <FixedBottomBar
-        variant="variant2"
-        resetButtonText="재설정"
-        resetButtonLeft={<ArrowsClockwise />}
+        variant="variant4"
         onResetButtonClick={handleReset}
         applyButtonText="적용하기"
         onApplyButtonClick={handleSubmit}

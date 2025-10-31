@@ -9,7 +9,7 @@ import { MiniButton } from "./MiniButton";
 export interface FixedBottomBarProps {
   children?: React.ReactNode;
   className?: string;
-  variant?: "variant1" | "variant2" | "variant3";
+  variant?: "variant1" | "variant2" | "variant3" | "variant4";
   leftButtonText?: string;
   onLeftButtonClick?: () => void;
   leftButtonDisabled?: boolean;
@@ -58,7 +58,7 @@ export function FixedBottomBar({
   onRightIcon2Click,
   showDivider = false,
   // Variant 2 props
-  resetButtonText = "재설정",
+  resetButtonText = "",
   resetButtonLeft,
   onResetButtonClick,
   showResetButton = true,
@@ -162,6 +162,17 @@ export function FixedBottomBar({
               className="text-gr"
             />
           )}
+        </div>
+      ) : variant === "variant4" ? (
+        <div className="flex items-center">
+          <BigButton
+            variant="primary"
+            onClick={onPrimaryButtonClick}
+            disabled={primaryButtonDisabled}
+            className="w-full h-12"
+          >
+            {primaryButtonText}
+          </BigButton>
         </div>
       ) : (
         <div className="flex items-center gap-3">

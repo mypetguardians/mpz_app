@@ -99,6 +99,14 @@ export default function MyPage() {
     },
     {
       id: "6",
+      label: "고객센터  ",
+      onClick: () => {
+        console.log("피드백 및 건의사항");
+      },
+      href: isAuthenticated ? "/centerpage/proposal" : undefined,
+    },
+    {
+      id: "7",
       label: "공지사항",
       onClick: () => {
         console.log("공지사항");
@@ -106,7 +114,7 @@ export default function MyPage() {
       href: isAuthenticated ? "/centerpage/notice" : undefined,
     },
     {
-      id: "7",
+      id: "8",
       label: "로그아웃",
       onClick: () => {
         if (isAuthenticated) {

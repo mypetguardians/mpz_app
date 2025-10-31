@@ -258,23 +258,43 @@ export default function CommunityUploadPage() {
     return publicType === "center" ? "센터공개" : "전체공개";
   };
 
-  // 태그 추출 함수 - 초성, 자음, 모음도 포함
-  const extractTags = (text: string): string[] => {
+  // 태그 추출 함수 - 초성, 자음, 모음도 포함, 순서 유지
+  const extractTags = (text: string, existingTags: string[] = []): string[] => {
     const tagRegex = /#([ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9_-]+)/g;
-    const matches = text.match(tagRegex);
-    if (!matches) return [];
+    const matches: string[] = [];
+    let match;
 
-    // # 제거하고 중복 제거
-    const extractedTags = [...new Set(matches.map((tag) => tag.slice(1)))];
-    console.log("추출된 태그:", extractedTags);
-    return extractedTags;
+    // 정규식의 lastIndex를 활용하여 순서대로 추출
+    while ((match = tagRegex.exec(text)) !== null) {
+      const tag = match[1];
+      if (tag && !matches.includes(tag)) {
+        matches.push(tag);
+      }
+    }
+
+    // 기존 태그가 있으면 순서 유지하면서 처리
+    if (existingTags.length > 0) {
+      const extractedSet = new Set(matches);
+
+      // 기존 태그 중에서 텍스트에 아직 존재하는 것만 유지 (순서 유지)
+      const preservedTags = existingTags.filter((tag) => extractedSet.has(tag));
+
+      // 새로 추가된 태그만 추출 (기존 태그에 없는 것만)
+      const existingSet = new Set(existingTags);
+      const newTags = matches.filter((tag) => !existingSet.has(tag));
+
+      // 기존 태그 순서 유지 + 새로운 태그를 처음 등장 순서대로 추가
+      return [...preservedTags, ...newTags];
+    }
+
+    return matches;
   };
 
   // 내용이 변경될 때마다 태그 추출
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newContent = e.target.value;
     setContent(newContent);
-    setTags(extractTags(newContent));
+    setTags((prevTags) => extractTags(newContent, prevTags));
   };
 
   // Form validation
@@ -499,13 +519,7 @@ export default function CommunityUploadPage() {
         resetButtonText={isAdmin ? "전체공개" : getPublicText()}
         resetButtonLeft={isAdmin ? <Globe size={16} /> : getPublicIcon()}
         onResetButtonClick={isAdmin ? undefined : handlePublicChange}
-        applyButtonText={
-          isPending || uploading
-            ? uploading
-              ? "이미지 업로드 중..."
-              : "등록하는 중..."
-            : "등록하기"
-        }
+        applyButtonText={isPending ? "등록하는 중..." : "등록하기"}
         onApplyButtonClick={handleSave}
         applyButtonDisabled={!isFormValid || isPending || uploading}
         showResetButton={isAdmin || hasCompletedAdoptions}

@@ -137,3 +137,27 @@ class QuestionForm(BaseModel):
     
     def __str__(self):
         return f"{self.center.name} - {self.question[:50]}"
+
+
+class PresetQuestion(BaseModel):
+    """기본 질문 프리셋"""
+    
+    CATEGORY_CHOICES = [
+        ('lifeEnvironment', '생활 환경'),
+        ('experience', '반려 경험'),
+        ('responsibility', '책임과 계획'),
+    ]
+    
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, help_text="질문 카테고리")
+    question = models.TextField(help_text="질문 내용")
+    sequence = models.IntegerField(default=1, help_text="질문 순서")
+    is_active = models.BooleanField(default=True, help_text="활성화 여부")
+    
+    class Meta:
+        db_table = 'preset_questions'
+        verbose_name = '기본 질문'
+        verbose_name_plural = '기본 질문들'
+        ordering = ['category', 'sequence']
+    
+    def __str__(self):
+        return f"{self.get_category_display()} - {self.question[:50]}"

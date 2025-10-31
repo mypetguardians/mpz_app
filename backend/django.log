@@ -3060,3 +3060,5 @@ INFO 2025-10-31 10:52:13,137 basehttp 48599 6154727424 "GET /v1/centers/procedur
 INFO 2025-10-31 10:52:13,187 basehttp 48599 6171553792 "GET /v1/centers/procedures/consent/ HTTP/1.1" 200 2
 INFO 2025-10-31 10:52:13,321 basehttp 48599 6121074688 "GET /v1/centers/procedures/questions/ HTTP/1.1" 200 1615
 INFO 2025-10-31 10:52:14,508 basehttp 48599 6188380160 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+INFO 2025-10-31 10:52:19,517 basehttp 48599 6154727424 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+INFO 2025-10-31 10:52:24,528 basehttp 48599 6171553792 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0

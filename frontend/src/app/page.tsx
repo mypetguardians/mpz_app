@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Image from "next/image";
+import { useState } from "react";
 
 import { Container } from "@/components/common/Container";
 import { NavBar } from "@/components/common/NavBar";
@@ -22,6 +21,7 @@ import {
   clearMatchingData,
 } from "@/lib/storage-utils";
 import { useRouter } from "next/navigation";
+import { Banner } from "@/components/ui/Banner";
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
@@ -32,16 +32,11 @@ export default function Home() {
     }
     return "";
   });
-  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  // 메인 배너는 공통 로직 컴포넌트로 대체
   const [showMatchingNotification, setShowMatchingNotification] =
     useState(false);
   //const { aiMatchingResult, setAIMatchingResult } = useMatchingStepStore();
-  const { data: banners, isLoading: bannerLoading } = useGetBanners({
-    type: "main",
-  });
+  const { isLoading: bannerLoading } = useGetBanners({ type: "main" });
 
   // TopPetSection용 쿼리 - admission_date 오래된 순
   const {
@@ -117,64 +112,7 @@ export default function Home() {
     router.push("/matching/result");
   };
 
-  // 자동 슬라이드 기능
-  useEffect(() => {
-    if (!banners || banners.data.length <= 1 || !isAutoPlaying) return;
-
-    const interval = setInterval(() => {
-      setCurrentBannerIndex(
-        (prevIndex) => (prevIndex + 1) % banners.data.length
-      );
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [banners, isAutoPlaying]);
-
-  // 배너 클릭 핸들러
-  const handleBannerClick = () => {
-    if (banners && banners.data[currentBannerIndex]?.link_url) {
-      window.open(banners.data[currentBannerIndex].link_url, "_blank");
-    }
-  };
-
-  // 인디케이터 클릭 핸들러
-  const handleIndicatorClick = (index: number) => {
-    setCurrentBannerIndex(index);
-  };
-
-  // 터치/스와이프 핸들러
-  const minSwipeDistance = 50;
-
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (!banners || banners.data.length <= 1) return;
-
-    if (isLeftSwipe) {
-      // 왼쪽 스와이프 - 다음 슬라이드
-      setCurrentBannerIndex(
-        (prevIndex) => (prevIndex + 1) % banners.data.length
-      );
-    } else if (isRightSwipe) {
-      // 오른쪽 스와이프 - 이전 슬라이드
-      setCurrentBannerIndex((prevIndex) =>
-        prevIndex === 0 ? banners.data.length - 1 : prevIndex - 1
-      );
-    }
-  };
+  // 캐러셀 로직 제거
 
   return (
     <Container>
@@ -202,64 +140,10 @@ export default function Home() {
       )}
 
       <div>
-        {bannerLoading && (
+        {bannerLoading ? (
           <div className="w-full h-[232px] bg-gray-200 animate-pulse" />
-        )}
-        {!bannerLoading && banners && banners.data.length > 0 && (
-          <div
-            className="relative w-full h-[232px] overflow-hidden"
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
-            onMouseEnter={() => setIsAutoPlaying(false)}
-            onMouseLeave={() => setIsAutoPlaying(true)}
-          >
-            {/* 캐러셀 컨테이너 */}
-            <div
-              className="flex h-full transition-transform duration-500 ease-in-out"
-              style={{
-                transform: `translateX(-${currentBannerIndex * 100}%)`,
-              }}
-            >
-              {banners.data.map((banner, index) => (
-                <div
-                  key={banner.id || index}
-                  className="relative flex-shrink-0 h-full min-w-full cursor-pointer"
-                  onClick={handleBannerClick}
-                >
-                  <Image
-                    src={banner.image_url}
-                    alt={banner.alt}
-                    fill
-                    className="object-cover"
-                    sizes="100vw"
-                    priority={index === 0}
-                  />
-                </div>
-              ))}
-            </div>
-
-            {/* 인디케이터 */}
-            {banners.data.length > 1 && (
-              <div className="absolute flex space-x-2 transform -translate-x-1/2 bottom-4 left-1/2">
-                {banners.data.map((_, index) => (
-                  <button
-                    key={index}
-                    className={`w-2 h-2 rounded-full transition-all duration-200 ${
-                      index === currentBannerIndex
-                        ? "bg-white scale-125"
-                        : "bg-white/50 hover:bg-white/70"
-                    }`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleIndicatorClick(index);
-                    }}
-                    aria-label={`배너 ${index + 1}로 이동`}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+        ) : (
+          <Banner variant="main" />
         )}
       </div>
       <TopPetSection

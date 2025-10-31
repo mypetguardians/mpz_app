@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+
+import { Banner } from "@/components/ui/Banner";
 import Link from "next/link";
 import { Bell, Plus } from "@phosphor-icons/react";
 
@@ -53,11 +54,7 @@ export default function CommunityPage() {
         )
     : false;
 
-  const {
-    data: banners,
-    isLoading: bannersLoading,
-    refetch: refetchBanners,
-  } = useGetBanners({
+  const { refetch: refetchBanners } = useGetBanners({
     type: "sub",
   });
 
@@ -68,86 +65,7 @@ export default function CommunityPage() {
     refetch: refetchSystemTags,
   } = useGetSystemTags();
 
-  // 배너 섹션 컴포넌트
-  const BannerSection = () => {
-    // 로딩 중이면 스켈레톤 표시
-    if (bannersLoading) {
-      return (
-        <div className="py-5">
-          <div className="relative w-full h-20 overflow-hidden rounded-lg">
-            <div className="w-full h-full bg-gray-200 animate-pulse" />
-          </div>
-        </div>
-      );
-    }
-
-    // 배너 데이터가 없거나 배열이 비어있으면 표시하지 않음
-    if (!banners?.data || banners.data.length === 0) {
-      return null;
-    }
-
-    // 활성화된 배너만 필터링 (is_active가 true인 것만)
-    const activeBanners = banners.data.filter(
-      (banner) => banner.is_active === true
-    );
-
-    if (activeBanners.length === 0) {
-      return null;
-    }
-
-    // order_index로 정렬하여 첫 번째 배너 선택
-    const sortedBanners = [...activeBanners].sort(
-      (a, b) => (a.order_index || 0) - (b.order_index || 0)
-    );
-    const targetBanner = sortedBanners[0];
-
-    // 이미지 URL 처리
-    const imageUrl = targetBanner.image_url || "/img/banner.jpg";
-
-    // 링크 URL 처리 (프로토콜이 없으면 https:// 추가)
-    const getFullUrl = (url: string): string => {
-      if (!url) return "";
-      // 이미 http:// 또는 https://로 시작하면 그대로 반환
-      if (url.startsWith("http://") || url.startsWith("https://")) {
-        return url;
-      }
-      // 프로토콜이 없으면 https:// 추가
-      return `https://${url}`;
-    };
-
-    const linkUrl = targetBanner.link_url
-      ? getFullUrl(targetBanner.link_url)
-      : "";
-
-    return (
-      <div className="py-5">
-        <div
-          className="relative w-full h-20 overflow-hidden rounded-lg cursor-pointer"
-          onClick={() => {
-            if (linkUrl) {
-              window.open(linkUrl, "_blank", "noopener,noreferrer");
-            }
-          }}
-        >
-          <Image
-            src={imageUrl}
-            alt={targetBanner.alt || targetBanner.title || "배너"}
-            fill
-            className="object-cover"
-            unoptimized
-            onError={(e) => {
-              e.currentTarget.src = "/img/banner.jpg";
-            }}
-          />
-          <div className="absolute inset-0 flex items-center px-5">
-            <span className="text-sm font-medium text-white drop-shadow-md">
-              {targetBanner.title}
-            </span>
-          </div>
-        </div>
-      </div>
-    );
-  };
+  // 공통 배너 컴포넌트 사용
 
   // 기본 탭과 시스템 태그를 조합하여 탭 옵션 생성
   const tabs = useMemo(() => {
@@ -514,7 +432,7 @@ export default function CommunityPage() {
       </div>
       {/* 상단 고정 배너 */}
       <div className="mx-4">
-        <BannerSection />
+        <Banner variant="sub" />
       </div>
       <div
         className="flex-1 mx-4 overflow-y-auto scrollbar-hide"
@@ -525,7 +443,9 @@ export default function CommunityPage() {
           <div className="space-y-4">
             {[...Array(5)].map((_, index) => (
               <div key={index}>
-                {(index === 0 || (index + 1) % 3 === 0) && <BannerSection />}
+                {(index === 0 || (index + 1) % 3 === 0) && (
+                  <Banner variant="sub" />
+                )}
                 <div className="pt-4">
                   <CommunityCardSkeleton />
                 </div>

@@ -4,6 +4,7 @@ from ninja.pagination import paginate
 from django.http import HttpRequest
 from asgiref.sync import sync_to_async
 from typing import List
+import uuid
 from centers.models import Center
 from centers.schemas.inbound import (
     CenterListQueryIn,
@@ -107,6 +108,12 @@ async def get_centers(request: HttpRequest, filters: CenterListQueryIn = Query(C
 async def get_center_by_id(request: HttpRequest, center_id: str):
     """센터 상세 정보를 조회합니다."""
     try:
+        # UUID 형식 검증
+        try:
+            uuid.UUID(center_id)
+        except ValueError:
+            raise HttpError(404, "보호소를 찾을 수 없습니다")
+        
         @sync_to_async
         def get_center_detail():
             try:
@@ -138,6 +145,12 @@ async def get_center_by_id(request: HttpRequest, center_id: str):
 async def get_center_notices(request: HttpRequest, center_id: str):
     """센터 공지사항을 조회합니다."""
     try:
+        # UUID 형식 검증
+        try:
+            uuid.UUID(center_id)
+        except ValueError:
+            raise HttpError(404, "보호소를 찾을 수 없습니다")
+        
         @sync_to_async
         def get_center_notices_list():
             # 센터 존재 확인
@@ -192,6 +205,12 @@ async def get_center_notices(request: HttpRequest, center_id: str):
 async def update_center_subscription(request: HttpRequest, center_id: str, payload: CenterSubscriptionUpdateIn):
     """센터 구독 상태를 변경합니다."""
     try:
+        # UUID 형식 검증
+        try:
+            uuid.UUID(center_id)
+        except ValueError:
+            raise HttpError(404, "보호소를 찾을 수 없습니다")
+        
         @sync_to_async
         def update_subscription():
             try:

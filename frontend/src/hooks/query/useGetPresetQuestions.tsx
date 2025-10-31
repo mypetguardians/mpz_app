@@ -41,7 +41,7 @@ const getPresetQuestions = async (): Promise<{
   questions: PresetQuestion[];
 }> => {
   const response = await instance.get<GetPresetQuestionsResponse>(
-    "/centers/preset-questions"
+    "/preset-questions"
   );
   return {
     questions: response.data.questions.map(transformPresetQuestion),

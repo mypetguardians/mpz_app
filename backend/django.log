@@ -2994,3 +2994,69 @@ INFO 2025-10-31 10:27:40,137 basehttp 7494 6219788288 "GET /socket.io/?EIO=4&tra
 INFO 2025-10-31 10:27:45,147 basehttp 7494 6236614656 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
 INFO 2025-10-31 10:28:03,147 basehttp 7494 6253441024 "GET /admin/centers/presetquestion/ HTTP/1.1" 200 40557
 INFO 2025-10-31 10:28:03,456 basehttp 7494 6253441024 "GET /admin/jsi18n/ HTTP/1.1" 200 9861
+INFO 2025-10-31 10:45:09,770 basehttp 32955 6116765696 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+INFO 2025-10-31 10:45:11,115 basehttp 32955 6133592064 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+INFO 2025-10-31 10:45:13,662 basehttp 32955 6150418432 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+INFO 2025-10-31 10:45:18,271 basehttp 32955 6167244800 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+INFO 2025-10-31 10:45:23,289 basehttp 32955 6184071168 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+INFO 2025-10-31 10:45:28,313 basehttp 32955 6200897536 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+WARNING 2025-10-31 10:47:55,517 log 32955 6217723904 Unauthorized: /v1/notifications/
+WARNING 2025-10-31 10:47:55,519 basehttp 32955 6217723904 "GET /v1/notifications/?page=1&page_size=10 HTTP/1.1" 401 26
+WARNING 2025-10-31 10:47:55,544 log 32955 6217723904 Unauthorized: /v1/auth/me
+WARNING 2025-10-31 10:47:55,545 basehttp 32955 6217723904 "GET /v1/auth/me HTTP/1.1" 401 26
+INFO 2025-10-31 10:47:56,138 basehttp 32955 6251376640 "GET /v1/banners?type=sub HTTP/1.1" 200 540
+INFO 2025-10-31 10:47:56,330 basehttp 32955 6285029376 "GET /v1/banners?type=main HTTP/1.1" 200 1082
+INFO 2025-10-31 10:47:56,478 basehttp 32955 6234550272 "GET /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 107
+WARNING 2025-10-31 10:47:56,532 log 32955 6234550272 Unauthorized: /v1/notifications/
+WARNING 2025-10-31 10:47:56,532 basehttp 32955 6234550272 "GET /v1/notifications/?page=1&page_size=10 HTTP/1.1" 401 26
+INFO 2025-10-31 10:47:56,651 basehttp 32955 6285029376 "GET /v1/banners?type=main HTTP/1.1" 200 1082
+INFO 2025-10-31 10:47:56,869 basehttp 32955 6167244800 "GET /v1/animals/?page_size=100&sort_by=megaphone_count&sort_order=desc&page=1 HTTP/1.1" 200 126293
+INFO 2025-10-31 10:47:57,064 basehttp 32955 6268203008 "GET /v1/animals/?page_size=100&sort_by=admission_date&sort_order=asc&page=1 HTTP/1.1" 200 126746
+INFO 2025-10-31 10:48:13,855 basehttp 32955 6116192256 "OPTIONS /v1/auth/login HTTP/1.1" 200 0
+INFO 2025-10-31 10:48:15,232 basehttp 32955 6133018624 "POST /v1/auth/login HTTP/1.1" 200 32
+INFO 2025-10-31 10:48:15,529 basehttp 32955 6133018624 "GET /v1/auth/me HTTP/1.1" 200 414
+INFO 2025-10-31 10:48:15,563 basehttp 32955 6166671360 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+INFO 2025-10-31 10:48:17,067 basehttp 32955 6149844992 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+INFO 2025-10-31 10:48:17,569 basehttp 32955 6218297344 "GET /v1/banners?type=main HTTP/1.1" 200 1082
+INFO 2025-10-31 10:48:17,606 basehttp 32955 6116192256 "GET /v1/banners?type=sub HTTP/1.1" 200 540
+INFO 2025-10-31 10:48:17,964 basehttp 32955 6235123712 "GET /v1/posts/all/?page=1&page_size=3&tags=%EC%9E%85%EC%96%91%ED%9B%84%EA%B8%B0 HTTP/1.1" 200 107
+INFO 2025-10-31 10:48:17,969 basehttp 32955 6183497728 "GET /v1/notifications/?page=1&page_size=10 HTTP/1.1" 200 1992
+INFO 2025-10-31 10:48:18,617 basehttp 32955 6166671360 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+INFO 2025-10-31 10:48:23,368 basehttp 32955 6183497728 "GET /v1/centers/me HTTP/1.1" 200 883
+INFO 2025-10-31 10:48:23,625 basehttp 32955 6218297344 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+INFO 2025-10-31 10:48:28,881 basehttp 32955 6251950080 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+INFO 2025-10-31 10:48:28,929 basehttp 32955 6285602816 "GET /v1/centers/procedures/questions HTTP/1.1" 301 0
+INFO 2025-10-31 10:48:29,761 basehttp 32955 6268776448 "GET /v1/centers/procedures/settings/ HTTP/1.1" 200 396
+INFO 2025-10-31 10:48:29,931 basehttp 32955 6116192256 "GET /v1/centers/procedures/consent/ HTTP/1.1" 200 2
+INFO 2025-10-31 10:48:30,051 basehttp 32955 6166671360 "GET /v1/centers/procedures/questions/ HTTP/1.1" 200 1615
+INFO 2025-10-31 10:48:33,893 basehttp 32955 6201470976 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+WARNING 2025-10-31 10:48:39,466 log 32955 6218297344 Not Found: /v1/centers/preset-questions
+WARNING 2025-10-31 10:48:39,469 basehttp 32955 6218297344 "GET /v1/centers/preset-questions HTTP/1.1" 404 83
+WARNING 2025-10-31 10:48:40,487 log 32955 6218297344 Not Found: /v1/centers/preset-questions
+WARNING 2025-10-31 10:48:40,488 basehttp 32955 6218297344 "GET /v1/centers/preset-questions HTTP/1.1" 404 83
+WARNING 2025-10-31 10:50:23,047 log 45585 6106673152 Not Found: /v1/centers/preset-questions
+WARNING 2025-10-31 10:50:23,055 basehttp 45585 6106673152 "GET /v1/centers/preset-questions HTTP/1.1" 404 83
+INFO 2025-10-31 10:50:23,996 basehttp 45585 6123499520 "GET /v1/auth/me HTTP/1.1" 200 414
+INFO 2025-10-31 10:50:24,220 basehttp 45585 6140325888 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+WARNING 2025-10-31 10:50:24,762 log 45585 6123499520 Not Found: /v1/centers/preset-questions
+WARNING 2025-10-31 10:50:24,764 basehttp 45585 6123499520 "GET /v1/centers/preset-questions HTTP/1.1" 404 83
+INFO 2025-10-31 10:50:24,980 basehttp 45585 6157152256 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+WARNING 2025-10-31 10:50:26,783 log 45585 6173978624 Not Found: /v1/centers/preset-questions
+WARNING 2025-10-31 10:50:26,784 basehttp 45585 6173978624 "GET /v1/centers/preset-questions HTTP/1.1" 404 83
+INFO 2025-10-31 10:50:28,132 basehttp 45585 6106673152 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+INFO 2025-10-31 10:50:31,159 basehttp 45585 6190804992 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+INFO 2025-10-31 10:50:36,167 basehttp 45585 6123499520 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+INFO 2025-10-31 10:50:41,177 basehttp 45585 6106673152 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+WARNING 2025-10-31 10:51:41,115 log 45585 6140325888 Not Found: /v1/centers/preset-questions
+WARNING 2025-10-31 10:51:41,116 basehttp 45585 6140325888 "GET /v1/centers/preset-questions HTTP/1.1" 404 83
+INFO 2025-10-31 10:52:07,060 basehttp 48599 6121648128 "GET /v1/preset-questions HTTP/1.1" 301 0
+INFO 2025-10-31 10:52:07,794 basehttp 48599 6172127232 "GET /v1/preset-questions/ HTTP/1.1" 200 5348
+INFO 2025-10-31 10:52:07,893 basehttp 48599 6138474496 "GET /v1/auth/me HTTP/1.1" 200 414
+INFO 2025-10-31 10:52:07,984 basehttp 48599 6205779968 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+INFO 2025-10-31 10:52:08,688 basehttp 48599 6121648128 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+INFO 2025-10-31 10:52:09,895 basehttp 48599 6121074688 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+INFO 2025-10-31 10:52:12,220 basehttp 48599 6137901056 "GET /v1/centers/procedures/questions HTTP/1.1" 301 0
+INFO 2025-10-31 10:52:13,137 basehttp 48599 6154727424 "GET /v1/centers/procedures/settings/ HTTP/1.1" 200 396
+INFO 2025-10-31 10:52:13,187 basehttp 48599 6171553792 "GET /v1/centers/procedures/consent/ HTTP/1.1" 200 2
+INFO 2025-10-31 10:52:13,321 basehttp 48599 6121074688 "GET /v1/centers/procedures/questions/ HTTP/1.1" 200 1615
+INFO 2025-10-31 10:52:14,508 basehttp 48599 6188380160 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0

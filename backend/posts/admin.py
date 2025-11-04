@@ -62,16 +62,16 @@ class PostTagAdmin(admin.ModelAdmin):
 
 @admin.register(SystemTag)
 class SystemTagAdmin(admin.ModelAdmin):
-    list_display = ['name', 'is_active', 'usage_count', 'created_at']
+    list_display = ['name', 'sequence', 'is_active', 'usage_count', 'created_at']
     list_filter = ['is_active', 'created_at']
     search_fields = ['name', 'description']
-    list_editable = ['is_active']
+    list_editable = ['sequence', 'is_active']
     readonly_fields = ['usage_count', 'created_at', 'updated_at']
-    ordering = ['name']
+    ordering = ['sequence', 'name']
     
     fieldsets = (
         ('기본 정보', {
-            'fields': ('name', 'description', 'is_active')
+            'fields': ('name', 'description', 'sequence', 'is_active')
         }),
         ('통계 정보', {
             'fields': ('usage_count',),

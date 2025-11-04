@@ -93,6 +93,7 @@ export interface GetAnimalsParams {
   age_max?: number;
   breed?: string;
   region?: string;
+  city?: string;
   has_trainer_comment?: "true" | "false";
   sort_by?: "created_at" | "admission_date" | "megaphone_count";
   sort_order?: "asc" | "desc";

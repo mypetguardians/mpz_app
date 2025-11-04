@@ -909,7 +909,7 @@ async def get_system_tags(request: HttpRequest):
     try:
         @sync_to_async
         def get_system_tags_sync():
-            tags = SystemTag.objects.filter(is_active=True).order_by('name')
+            tags = SystemTag.objects.filter(is_active=True).order_by('sequence', 'name')
             
             tags_data = []
             for tag in tags:
@@ -919,6 +919,7 @@ async def get_system_tags(request: HttpRequest):
                     "description": tag.description,
                     "usage_count": tag.usage_count,
                     "is_active": tag.is_active,
+                    "sequence": getattr(tag, 'sequence', 0),
                     "created_at": tag.created_at.isoformat(),
                     "updated_at": tag.updated_at.isoformat(),
                 })

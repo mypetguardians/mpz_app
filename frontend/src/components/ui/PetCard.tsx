@@ -443,7 +443,7 @@ export function PetCard({
   // Variant 1 - Primary
   return (
     <div
-      className={cn("flex flex-col items-start pb-3 cursor-pointer", className)}
+      className={cn("flex flex-col items-start cursor-pointer", className)}
       onClick={handleCardClick}
     >
       <div className={cn("relative mb-2", getImageSize())}>

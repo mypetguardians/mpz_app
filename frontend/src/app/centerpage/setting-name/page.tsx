@@ -109,7 +109,7 @@ export default function CenterSettingName() {
     }
 
     if (!centerNumber.trim()) {
-      showToastMessage("보호센터 번호를 입력해주세요.");
+      showToastMessage("보호센터 전화번호를 입력해주세요.");
       return;
     }
 
@@ -313,8 +313,8 @@ export default function CenterSettingName() {
         />
         <CustomInput
           variant="primary"
-          label="보호센터 번호"
-          placeholder="000-0000-0000"
+          label="보호센터 전화번호"
+          placeholder="보호센터 전화번호를 입력해주세요."
           required={true}
           value={centerNumber}
           onChange={(e) => setCenterNumber(e.target.value)}

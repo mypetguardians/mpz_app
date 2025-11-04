@@ -19,6 +19,8 @@ export function ImageCarouselModal({
   onClose,
 }: ImageCarouselModalProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchDeltaX, setTouchDeltaX] = useState(0);
 
   useEffect(() => {
     setCurrentIndex(initialIndex);
@@ -44,29 +46,56 @@ export function ImageCarouselModal({
     setCurrentIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0));
   };
 
+  const handleTouchStart: React.TouchEventHandler<HTMLDivElement> = (e) => {
+    if (e.touches.length === 1) {
+      setTouchStartX(e.touches[0].clientX);
+      setTouchDeltaX(0);
+    }
+  };
+
+  const handleTouchMove: React.TouchEventHandler<HTMLDivElement> = (e) => {
+    if (touchStartX !== null && e.touches.length === 1) {
+      const currentX = e.touches[0].clientX;
+      setTouchDeltaX(currentX - touchStartX);
+    }
+  };
+
+  const handleTouchEnd: React.TouchEventHandler<HTMLDivElement> = () => {
+    const threshold = 50; // 스와이프 임계값(px)
+    if (touchDeltaX > threshold) {
+      handlePrevious();
+    } else if (touchDeltaX < -threshold) {
+      handleNext();
+    }
+    setTouchStartX(null);
+    setTouchDeltaX(0);
+  };
+
   return (
     <div
       className="fixed inset-0 z-[10001] bg-black/70 flex items-center justify-center animate-in fade-in-0 duration-200"
       onClick={onClose}
     >
       {/* 닫기 버튼 */}
-      <div className="absolute top-4 right-4 z-[10002]">
+      <div className="absolute top-4 right-4 z-[10002] ">
         <IconButton
           icon={({ size }) => <X size={size} weight="bold" />}
           size="iconM"
           onClick={onClose}
-          className="bg-white/10 hover:bg-white/20 text-white"
+          className="bg-white/10 hover:bg-white/20 text-white p-2"
         />
       </div>
 
-      {/* 이미지 카운터 */}
-      {images.length > 1 && (
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-[10002] bg-black/50 px-3 py-1 rounded-full">
-          <span className="text-white text-sm">
-            {currentIndex + 1} / {images.length}
-          </span>
-        </div>
-      )}
+      {/* 상단 정보 바: 카운터 + 원본 토글 */}
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-[10002] flex items-center gap-2">
+        {images.length > 1 && (
+          <div className="bg-black/50 px-3 py-1 rounded-full">
+            <span className="text-white text-sm">
+              {currentIndex + 1} / {images.length}
+            </span>
+          </div>
+        )}
+      </div>
 
       {/* 이전 버튼 */}
       {images.length > 1 && (
@@ -78,25 +107,32 @@ export function ImageCarouselModal({
               e.stopPropagation();
               handlePrevious();
             }}
-            className="bg-white/10 hover:bg-white/20 text-white"
+            className="bg-white/10 hover:bg-white/20 text-white p-2"
           />
         </div>
       )}
 
-      {/* 이미지 */}
-      <div className="relative w-full h-full flex items-center justify-center px-16 pointer-events-none">
+      {/* 이미지 (스와이프 제스처 + 원본 표시 지원) */}
+      <div
+        className="relative w-full h-full flex items-center justify-center px-16 pointer-events-none"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         <div
           className="relative max-w-full max-h-full w-auto h-auto pointer-events-auto"
           onClick={(e) => e.stopPropagation()}
         >
-          <Image
-            src={images[currentIndex]}
-            alt={`이미지 ${currentIndex + 1}`}
-            width={1200}
-            height={1200}
-            className="object-contain max-w-full max-h-[90vh] transition-opacity duration-200"
-            unoptimized
-          />
+          <div className="relative max-w-[100vw] max-h-[90vh] overflow-auto">
+            <Image
+              src={images[currentIndex]}
+              alt={`이미지 ${currentIndex + 1}`}
+              width={1600}
+              height={1600}
+              className="object-none transition-opacity duration-200"
+              unoptimized
+            />
+          </div>
         </div>
       </div>
 
@@ -110,7 +146,7 @@ export function ImageCarouselModal({
               e.stopPropagation();
               handleNext();
             }}
-            className="bg-white/10 hover:bg-white/20 text-white"
+            className="bg-white/10 hover:bg-white/20 text-white p-2"
           />
         </div>
       )}

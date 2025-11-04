@@ -24,6 +24,7 @@ import {
   useGetPublicPostDetail,
   useGetAnimalById,
 } from "@/hooks";
+import { useGetSystemTags } from "@/hooks";
 import type { PetCardAnimal, RawAnimalResponse } from "@/types/animal";
 import type { UserAdoptionOut } from "@/types/adoption";
 
@@ -56,6 +57,7 @@ export default function CommunityEditPage({
   const [deletedImageUrls, setDeletedImageUrls] = useState<string[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [showPetSelection, setShowPetSelection] = useState(false);
+  const { data: systemTags } = useGetSystemTags();
 
   // blob URL 정리 (메모리 누수 방지)
   useEffect(() => {
@@ -72,6 +74,8 @@ export default function CommunityEditPage({
   const [showBackConfirmSheet, setShowBackConfirmSheet] = useState(false);
   const [activeTab, setActiveTab] = useState("adoption");
   const [publicType, setPublicType] = useState<PublicType>("center");
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
+  const [isUpdatingPost, setIsUpdatingPost] = useState(false);
 
   const {
     data: postData,
@@ -230,24 +234,46 @@ export default function CommunityEditPage({
   // 찜한 동물 목록
   const { data: favoriteAnimalsData } = useGetAnimalFavorites(1, 100);
 
-  const favoriteAnimals = useMemo(() => {
-    if (!favoriteAnimalsData?.animals) {
-      return [];
-    }
+  type FavoriteAnimalItem = {
+    id: string;
+    name: string;
+    breed: string | null;
+    isFemale: boolean;
+    protection_status?: PetCardAnimal["protection_status"];
+    adoption_status?: PetCardAnimal["adoption_status"];
+    centerId: string;
+    foundLocation?: string | null;
+    found_location?: string | null;
+    animalImages?: string[];
+  };
 
-    const transformed = favoriteAnimalsData.animals.map((favoriteAnimal) => {
+  const favoriteAnimals = useMemo(() => {
+    if (!favoriteAnimalsData?.animals) return [];
+
+    const transformed = (
+      favoriteAnimalsData.animals as FavoriteAnimalItem[]
+    ).map((fav) => {
+      const imageObjs = Array.isArray(fav.animalImages)
+        ? fav.animalImages.map((url, index) => ({
+            id: `img-${index}`,
+            imageUrl: url,
+            orderIndex: index,
+          }))
+        : [];
+
       return {
-        id: favoriteAnimal.id,
-        name: favoriteAnimal.name,
-        breed: favoriteAnimal.breed,
-        isFemale: favoriteAnimal.isFemale,
-        protection_status: "보호중",
-        adoption_status: "입양가능",
-        centerId: favoriteAnimal.centerId,
-        animalImages: [],
-        foundLocation: "위치 정보 확인 불가", // 기본 지역 설정
-      };
-    }) as PetCardAnimal[];
+        id: fav.id,
+        name: fav.name,
+        breed: fav.breed ?? null,
+        isFemale: fav.isFemale,
+        protection_status: fav.protection_status || "보호중",
+        adoption_status: fav.adoption_status || "입양가능",
+        centerId: fav.centerId,
+        animalImages: imageObjs,
+        foundLocation:
+          fav.foundLocation || fav.found_location || "위치 정보 확인 불가",
+      } as PetCardAnimal;
+    });
 
     return transformed;
   }, [favoriteAnimalsData]);
@@ -275,7 +301,25 @@ export default function CommunityEditPage({
       ];
       const maxSize = 10 * 1024 * 1024; // 10MB
 
-      const newFiles = Array.from(files).filter((file) => {
+      // 현재 총 이미지 개수(기존 + 새 이미지)
+      const currentCount = existingImageUrls.length + newImageUrls.length;
+      const remainingSlots = 5 - currentCount;
+      if (remainingSlots <= 0) {
+        alert("이미지는 최대 5개까지 업로드할 수 있습니다.");
+        event.target.value = "";
+        return;
+      }
+
+      const allSelected = Array.from(files);
+      if (allSelected.length > remainingSlots) {
+        alert(
+          `이미지는 최대 5개까지 선택할 수 있습니다. 남은 슬롯이 ${remainingSlots}개뿐이므로 ${remainingSlots}개만 선택됩니다.`
+        );
+      }
+
+      const selectedLimited = allSelected.slice(0, remainingSlots);
+
+      const newFiles = selectedLimited.filter((file) => {
         // 포맷 체크
         if (!allowedFormats.includes(file.type)) {
           alert(
@@ -340,46 +384,24 @@ export default function CommunityEditPage({
     setShowSaveModal(true);
   };
 
-  // 태그 추출 함수 - 초성, 자음, 모음도 포함, 순서 유지
-  const extractTags = (text: string, existingTags: string[] = []): string[] => {
-    const tagRegex = /#([ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9_-]+)/g;
-    const matches: string[] = [];
-    let match;
-    
-    // 정규식의 lastIndex를 활용하여 순서대로 추출
-    while ((match = tagRegex.exec(text)) !== null) {
-      const tag = match[1];
-      if (tag && tag.length > 0 && !matches.includes(tag)) {
-        matches.push(tag);
-      }
-    }
+  // (사용 안 함) 기존 해시태그 파싱 로직 제거
 
-    // 기존 태그가 있으면 순서 유지하면서 처리
-    if (existingTags.length > 0) {
-      const extractedSet = new Set(matches);
-      
-      // 기존 태그 중에서 텍스트에 아직 존재하는 것만 유지 (순서 유지)
-      const preservedTags = existingTags.filter((tag) => extractedSet.has(tag));
-      
-      // 새로 추가된 태그만 추출 (기존 태그에 없는 것만)
-      const existingSet = new Set(existingTags);
-      const newTags = matches.filter((tag) => !existingSet.has(tag));
-      
-      // 기존 태그 순서 유지 + 새로운 태그를 처음 등장 순서대로 추가
-      return [...preservedTags, ...newTags];
-    }
-
-    return matches;
-  };
-
-  // 내용이 변경될 때마다 태그 추출
+  // 내용 변경 (태그는 시스템 태그 선택으로만 관리)
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newContent = e.target.value;
     setContent(newContent);
-
-    // 기존 태그 순서를 유지하면서 새 태그만 추가
-    setTags((prevTags) => extractTags(newContent, prevTags));
   };
+
+  const addTag = (tagName: string) => {
+    setTags((prev) => (prev.includes(tagName) ? prev : [...prev, tagName]));
+  };
+
+  const removeTag = (tagName: string) => {
+    setTags((prev) => prev.filter((t) => t !== tagName));
+  };
+
+  // 전체 로딩 상태 (이미지 업로드 + 포스트 수정)
+  const isLoading = isUploadingImages || isUpdatingPost;
 
   const handleConfirmSave = async () => {
     try {
@@ -388,11 +410,16 @@ export default function CommunityEditPage({
       // 1. 새로 업로드할 파일이 있으면 먼저 업로드
       let uploadedImageUrls: string[] = [];
       if (uploadedFiles.length > 0) {
-        const uploadResult = await uploadImages({
-          postId: postId,
-          images: uploadedFiles,
-        });
-        uploadedImageUrls = uploadResult.images;
+        setIsUploadingImages(true);
+        try {
+          const uploadResult = await uploadImages({
+            postId: postId,
+            images: uploadedFiles,
+          });
+          uploadedImageUrls = uploadResult.images;
+        } finally {
+          setIsUploadingImages(false);
+        }
       }
 
       // 2. 최종 이미지 목록 계산
@@ -413,23 +440,30 @@ export default function CommunityEditPage({
       const imagesToSend = finalImageUrls.length > 0 ? finalImageUrls : [];
 
       // 3. 포스트 수정
-      const updateData = {
-        title,
-        content,
-        tags,
-        animal_id: selectedPet?.id || null,
-        is_all_access: publicType === "public",
-        images: imagesToSend.length > 0 ? imagesToSend : [],
-      };
+      setIsUpdatingPost(true);
+      try {
+        const updateData = {
+          title,
+          content,
+          tags,
+          animal_id: selectedPet?.id || null,
+          is_all_access: publicType === "public",
+          images: imagesToSend.length > 0 ? imagesToSend : [],
+        };
 
-      await updatePost({
-        postId: postId,
-        data: updateData,
-      });
+        await updatePost({
+          postId: postId,
+          data: updateData,
+        });
 
-      router.back();
+        router.back();
+      } finally {
+        setIsUpdatingPost(false);
+      }
     } catch (error) {
       console.error("저장 실패:", error);
+      setIsUploadingImages(false);
+      setIsUpdatingPost(false);
       setShowSaveModal(true); // 모달 다시 열기
       alert("저장에 실패했습니다. 다시 시도해주세요.");
     }
@@ -546,17 +580,35 @@ export default function CommunityEditPage({
             onChange={handleContentChange}
             className="w-full h-32 p-4 border border-lg rounded-md resize-none text-body placeholder:text-gr focus:outline-none focus:border-brand"
           />
-          {/* 추출된 태그 표시 */}
+          {/* 선택된 태그 표시 */}
           {tags.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-2">
-              {tags.map((tag, index) => (
-                <span
-                  key={index}
-                  className="px-2 py-1 bg-brand-op text-white text-xs rounded-full"
+              {tags.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => removeTag(tag)}
+                  className="px-2 py-1 text-xs rounded-full bg-white text-brand border border-brand"
+                  title="클릭하여 태그 제거"
                 >
                   #{tag}
-                </span>
+                </button>
               ))}
+            </div>
+          )}
+
+          {/* 시스템 태그 드롭다운 (CustomInput) */}
+          {Array.isArray(systemTags) && systemTags.length > 0 && (
+            <div className="mt-2">
+              <CustomInput
+                variant="tagdropdown"
+                placeholder="태그를 선택하세요"
+                value={tags.length > 0 ? `태그 ${tags.length}개 선택됨` : ""}
+                options={systemTags
+                  .filter((t) => !tags.includes(t.name))
+                  .map((t) => t.name)}
+                onChangeOption={(selected) => addTag(selected)}
+              />
             </div>
           )}
         </div>
@@ -597,21 +649,23 @@ export default function CommunityEditPage({
         <div className="mb-6">
           <h5 className="text-dg mb-2">사진 / 영상 업로드</h5>
           <div className="flex gap-3 flex-wrap">
-            {/* 업로드 버튼 */}
-            <label>
-              <ImageCard
-                variant="add"
-                onClick={() => {}}
-                className="w-20 h-20"
-              />
-              <input
-                type="file"
-                multiple
-                accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
-                onChange={handleImageUpload}
-                className="hidden"
-              />
-            </label>
+            {/* 업로드 버튼 - 총 5개 미만일 때만 표시 */}
+            {existingImageUrls.length + newImageUrls.length < 5 && (
+              <label>
+                <ImageCard
+                  variant="add"
+                  onClick={() => {}}
+                  className="w-20 h-20"
+                />
+                <input
+                  type="file"
+                  multiple
+                  accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+              </label>
+            )}
 
             {/* 기존 이미지들 */}
             {existingImageUrls.map((imageUrl, index) => (
@@ -643,9 +697,15 @@ export default function CommunityEditPage({
       {/* 하단 고정 버튼 */}
       <FixedBottomBar
         variant="variant2"
-        applyButtonText="수정하기"
+        applyButtonText={
+          isLoading
+            ? isUploadingImages
+              ? "사진 업로드 중..."
+              : "수정하는 중..."
+            : "수정하기"
+        }
         onApplyButtonClick={handleSave}
-        applyButtonDisabled={false}
+        applyButtonDisabled={isLoading}
         showResetButton={false}
       />
 
@@ -726,12 +786,24 @@ export default function CommunityEditPage({
       {/* 저장 확인 모달 */}
       <CustomModal
         open={showSaveModal}
-        onClose={() => setShowSaveModal(false)}
-        title="글을 수정할까요?"
+        onClose={() => !isLoading && setShowSaveModal(false)}
+        title={
+          isLoading
+            ? isUploadingImages
+              ? "사진을 업로드하는 중..."
+              : "글을 수정하는 중..."
+            : "글을 수정할까요?"
+        }
         variant="variant1"
         leftButtonText="취소"
-        rightButtonText="수정하기"
-        onLeftClick={() => setShowSaveModal(false)}
+        rightButtonText={
+          isLoading
+            ? isUploadingImages
+              ? "업로드 중..."
+              : "수정 중..."
+            : "수정하기"
+        }
+        onLeftClick={() => !isLoading && setShowSaveModal(false)}
         onRightClick={handleConfirmSave}
       />
     </Container>

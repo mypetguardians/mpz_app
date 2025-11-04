@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeSlash } from "@phosphor-icons/react";
 import Image from "next/image";
 
@@ -18,8 +18,9 @@ interface LoginFormData {
   password: string;
 }
 
-export default function CenterLogIn() {
+function CenterLogInInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { centerLogin, setLoggingIn } = useAuth();
   const [formData, setFormData] = useState<LoginFormData>({
     username: "",
@@ -77,10 +78,24 @@ export default function CenterLogIn() {
         setToastMessage(result.message);
         setShowToast(true);
 
-        // 로그인 성공 시 바로 홈으로 이동
+        // 로그인 성공 시 이전 페이지 또는 지정된 redirect로 이동
         setTimeout(() => {
-          router.push("/");
-        }, 500); // 0.5초 후 이동
+          const redirect = searchParams.get("redirect");
+          if (redirect && typeof redirect === "string") {
+            router.replace(redirect);
+            return;
+          }
+          if (typeof window !== "undefined") {
+            const sameHost =
+              document.referrer &&
+              new URL(document.referrer).host === window.location.host;
+            if (sameHost) {
+              router.back();
+              return;
+            }
+          }
+          router.replace("/");
+        }, 500);
       } else {
         setToastMessage(result.message);
         setShowToast(true);
@@ -196,6 +211,14 @@ export default function CenterLogIn() {
           {toastMessage}
         </Toast>
       )}
-    </Container>
+      </Container>
+  );
+}
+
+export default function CenterLogIn() {
+  return (
+    <Suspense fallback={null}>
+      <CenterLogInInner />
+    </Suspense>
   );
 }

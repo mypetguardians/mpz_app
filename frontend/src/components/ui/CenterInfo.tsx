@@ -4,6 +4,7 @@ import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Heart, SealCheck } from "@phosphor-icons/react";
+import { NotificationToast } from "@/components/ui/NotificationToast";
 import { cn } from "@/lib/utils";
 import { MiniButton } from "./MiniButton";
 import { useCheckCenterFavorite, useToggleCenterFavorite } from "@/hooks";
@@ -19,7 +20,7 @@ interface CenterInfoProps {
   className?: string;
   isAuthenticated?: boolean;
   onShowLoginModal?: () => void;
-  imageUrl?: string | null; // 센터 이미지 URL 추가
+  imageUrl?: string | null;
 }
 
 export function CenterInfo({
@@ -37,6 +38,12 @@ export function CenterInfo({
 }: CenterInfoProps) {
   const router = useRouter();
 
+  const [showToast, setShowToast] = React.useState(false);
+  const [toastMessage, setToastMessage] = React.useState("");
+  const [toastType, setToastType] = React.useState<"success" | "error">(
+    "success"
+  );
+
   // 찜 상태 확인
   const { data: favoriteData, isLoading: isCheckingFavorite } =
     useCheckCenterFavorite(centerId);
@@ -52,7 +59,21 @@ export function CenterInfo({
       return;
     }
 
-    toggleCenterFavorite.mutate({ centerId });
+    toggleCenterFavorite.mutate(
+      { centerId },
+      {
+        onSuccess: () => {
+          setToastType("success");
+          setToastMessage("센터를 찜했습니다 !");
+          setShowToast(true);
+        },
+        onError: () => {
+          setToastType("error");
+          setToastMessage("센터 찜을 실패했습니다.");
+          setShowToast(true);
+        },
+      }
+    );
   };
 
   // 센터 프로필 클릭 핸들러
@@ -109,15 +130,14 @@ export function CenterInfo({
       {/* Information Fields */}
       <table className="w-full">
         <tbody className="space-y-1">
-          {variant === "primary" && location && (
+          {location ? (
             <tr>
               <td className="text-gr h5 py-1 pr-3 align-top w-20">위치</td>
               <td className="text-sm py-1">
                 <div>{location}</div>
               </td>
             </tr>
-          )}
-
+          ) : null}
           <tr>
             <td className="text-gr h5 py-1 pr-3 align-top w-20">전화번호</td>
             <td className="text-sm py-1">
@@ -125,16 +145,30 @@ export function CenterInfo({
             </td>
           </tr>
 
-          {variant === "subscriber" && adoptionProcedure && (
+          {variant === "subscriber" && adoptionProcedure ? (
             <tr>
               <td className="text-gr h5 py-1 pr-3 align-top w-20">입양 절차</td>
               <td className="text-sm py-1">
                 <div className="leading-relaxed">{adoptionProcedure}</div>
               </td>
             </tr>
+          ) : (
+            <tr>
+              <td className="text-gr h5 py-1 pr-3 align-top w-20">입양 절차</td>
+              <td className="text-sm py-1">
+                <div className="leading-relaxed">입양 절차 정보 없음</div>
+              </td>
+            </tr>
           )}
         </tbody>
       </table>
+      {showToast && (
+        <NotificationToast
+          message={toastMessage}
+          type={toastType}
+          onClose={() => setShowToast(false)}
+        />
+      )}
     </div>
   );
 }

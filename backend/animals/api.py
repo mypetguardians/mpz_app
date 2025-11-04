@@ -306,6 +306,25 @@ async def get_animals(
         if filters.region:
             queryset = queryset.filter(center__region=filters.region)
         
+        # 시/군 필터링
+        if filters.city:
+            # center의 location 필드에서 시/군 파싱하여 필터링
+            @sync_to_async
+            def filter_by_city():
+                center_ids = []
+                # 정규식 없이 단순 문자열 포함 여부로 필터링
+                for center in Center.objects.all():
+                    if center.location and filters.city in center.location:
+                        center_ids.append(center.id)
+                return center_ids
+            
+            center_ids = await filter_by_city()
+            if center_ids:
+                queryset = queryset.filter(center_id__in=center_ids)
+            else:
+                # 매칭되는 센터가 없으면 빈 결과 반환
+                queryset = queryset.none()
+        
         # 정렬 기능 추가
         sort_by = filters.sort_by or "created_at"
         sort_order = filters.sort_order or "desc"
@@ -980,12 +999,29 @@ async def get_related_animals_by_distance(
                 # 현재 동물 정보 조회
                 animal = Animal.objects.select_related('center').get(id=animal_id)
                 
-                # 같은 지역의 다른 동물들을 가져오기 (거리 기반 정렬)
-                # 실제 거리 계산이 어려우므로 같은 지역 내에서 최신순으로 정렬
-                related_animals = Animal.objects.select_related('center').prefetch_related('animalimage_set').filter(
-                    center_id=animal.center_id,  # 같은 보호소
-                    protection_status="보호중"  # 보호중인 동물만
-                ).exclude(id=animal_id).order_by('-created_at')[:query.limit]
+                # 센터의 location에서 시/군 파싱
+                import re
+                center_location = animal.center.location or ""
+                match = re.search(r'([가-힣]+(?:시|군))', center_location)
+                city_name = match.group(1) if match else None
+                
+                # 같은 지역의 다른 동물들을 가져오기
+                if city_name:
+                    # 시/군 기준으로 필터링
+                    same_city_centers = Center.objects.filter(
+                        location__contains=city_name
+                    ).values_list('id', flat=True)
+                    
+                    related_animals = Animal.objects.select_related('center').prefetch_related('animalimage_set').filter(
+                        center_id__in=same_city_centers,
+                        protection_status="보호중"
+                    ).exclude(id=animal_id).order_by('-created_at')[:query.limit]
+                else:
+                    # 시/군 추출 실패 시 같은 보호소만
+                    related_animals = Animal.objects.select_related('center').prefetch_related('animalimage_set').filter(
+                        center_id=animal.center_id,
+                        protection_status="보호중"
+                    ).exclude(id=animal_id).order_by('-created_at')[:query.limit]
                 
                 # 이미지 데이터와 날짜 필드를 미리 처리하여 async context 문제 방지
                 animals_with_images = []
@@ -1001,15 +1037,15 @@ async def get_related_animals_by_distance(
                     
                     animals_with_images.append((related_animal, images_data, notice_start_date, notice_end_date))
                 
-                return animals_with_images, animal
+                return animals_with_images, animal, city_name
             except Animal.DoesNotExist:
-                return None, None
+                return None, None, None
         
         result = await get_related_animals_list()
         if result[0] is None:
             raise HttpError(404, "동물을 찾을 수 없습니다")
         
-        animals_with_images, animal = result
+        animals_with_images, animal, city_name = result
         
         # 응답 데이터 변환
         animals_response = []

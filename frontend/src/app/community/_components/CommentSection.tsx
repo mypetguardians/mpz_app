@@ -11,6 +11,8 @@ import {
   useUpdateComment,
   useDeleteComment,
 } from "@/hooks/mutation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import instance from "@/lib/axios-instance";
 import { CustomModal } from "@/components/ui/CustomModal";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Toast } from "@/components/ui/Toast";
@@ -81,6 +83,7 @@ export function CommentSection({
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [deleteTargetIsReply, setDeleteTargetIsReply] = useState(false);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState("");
   const [toast, setToast] = useState<{
@@ -97,6 +100,20 @@ export function CommentSection({
   const createReplyMutation = useCreateReply();
   const updateCommentMutation = useUpdateComment();
   const deleteCommentMutation = useDeleteComment();
+
+  // 대댓글 삭제 훅 (간단 내장)
+  const queryClient = useQueryClient();
+  const deleteReplyMutation = useMutation({
+    mutationFn: async ({ replyId }: { replyId: string }) => {
+      const response = await instance.delete<{ message: string }>(
+        `/comments/replies/${replyId}`
+      );
+      return response.data;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["comments", postId] });
+    },
+  });
 
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ show: true, message, type });
@@ -214,8 +231,9 @@ export function CommentSection({
     setEditingContent(content);
   };
 
-  const handleDeleteComment = (commentId: string) => {
+  const handleDeleteComment = (commentId: string, isReply = false) => {
     setDeleteTargetId(commentId);
+    setDeleteTargetIsReply(isReply);
     setShowDeleteModal(true);
   };
 
@@ -223,13 +241,18 @@ export function CommentSection({
     if (!deleteTargetId) return;
 
     try {
-      await deleteCommentMutation.mutateAsync({
-        postId,
-        commentId: deleteTargetId,
-      });
+      if (deleteTargetIsReply) {
+        await deleteReplyMutation.mutateAsync({ replyId: deleteTargetId });
+      } else {
+        await deleteCommentMutation.mutateAsync({
+          postId,
+          commentId: deleteTargetId,
+        });
+      }
       showToast("댓글이 삭제되었습니다.", "success");
       setShowDeleteModal(false);
       setDeleteTargetId(null);
+      setDeleteTargetIsReply(false);
     } catch (error) {
       console.error("댓글 삭제 실패:", error);
       showToast("댓글 삭제에 실패했습니다.", "error");
@@ -250,7 +273,7 @@ export function CommentSection({
   return (
     <>
       {/* 댓글 헤더와 상단 입력 필드 */}
-      <div className="flex flex-col gap-2 items-start px-4 py-4 ">
+      <div className="flex flex-col gap-2 items-start px-4 py-4 w-full overflow-x-hidden">
         <h4 className="text-bk">
           댓글{" "}
           {(() => {
@@ -278,9 +301,9 @@ export function CommentSection({
         />
 
         {/* 댓글 목록 */}
-        <div className="space-y-4">
+        <div className="flex flex-col gap-4 w-full">
           {enhancedComments.map((comment) => (
-            <div key={comment.id} className="space-y-3">
+            <div key={comment.id} className="flex flex-col gap-3 w-full">
               {/* 메인 댓글 */}
               <CommentItem
                 comment={comment}
@@ -289,7 +312,7 @@ export function CommentSection({
                 onAddReply={() => showReplyInput(comment.id)}
                 onLoginRequired={() => setIsLoginModalOpen(true)}
                 onEdit={handleEditComment}
-                onDelete={handleDeleteComment}
+                onDelete={(id) => handleDeleteComment(id, false)}
                 isEditing={editingCommentId === comment.id}
                 editingContent={editingContent}
                 onEditingContentChange={handleEditingContentChange}
@@ -303,7 +326,7 @@ export function CommentSection({
               {comment.replies &&
                 comment.replies.length > 0 &&
                 showReplies[comment.id] && (
-                  <div className="ml-11 space-y-3">
+                  <div className="ml-11 space-y-3 pr-4">
                     {comment.replies.map((reply) => (
                       <div key={reply.id}>
                         <CommentItem
@@ -311,7 +334,7 @@ export function CommentSection({
                           variant="reply"
                           onLoginRequired={() => setIsLoginModalOpen(true)}
                           onEdit={handleEditComment}
-                          onDelete={handleDeleteComment}
+                          onDelete={(id) => handleDeleteComment(id, true)}
                           isEditing={editingCommentId === reply.id}
                           editingContent={editingContent}
                           onEditingContentChange={handleEditingContentChange}
@@ -327,12 +350,19 @@ export function CommentSection({
 
               {/* 메인 댓글에 대한 답글 입력 필드 */}
               {replyInputStates[comment.id] && (
-                <div className="ml-8 mt-2 w-[360px]">
+                <div className="ml-8 mt-2 pr-4">
                   <CommentInput
                     placeholder="답글을 남겨보세요"
-                    onSubmit={(text) => handleReply(text, comment.id)}
+                    onSubmit={(text) => {
+                      handleReply(text, comment.id);
+                      setReplyInputStates((prev) => ({
+                        ...prev,
+                        [comment.id]: false,
+                      }));
+                    }}
                     variant="primary"
                     disabled={createReplyMutation.isPending}
+                    className="w-full"
                   />
                 </div>
               )}
@@ -350,7 +380,9 @@ export function CommentSection({
         ctaText="로그인하기"
         onCtaClick={() => {
           const next = `${window.location.pathname}${window.location.search}`;
-          document.cookie = `redirect_after_login=${encodeURIComponent(next)}; path=/; max-age=600`;
+          document.cookie = `redirect_after_login=${encodeURIComponent(
+            next
+          )}; path=/; max-age=600`;
           window.location.href = `/login?next=${encodeURIComponent(next)}`;
         }}
       />

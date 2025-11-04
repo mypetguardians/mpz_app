@@ -47,7 +47,7 @@ export function FixedBottomBar({
   leftButtonText,
   onLeftButtonClick,
   leftButtonDisabled = false,
-  primaryButtonText = "입양 신청",
+  primaryButtonText,
   primaryButtonLeft,
   primaryButtonRight,
   onPrimaryButtonClick,

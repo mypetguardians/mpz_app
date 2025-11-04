@@ -32,7 +32,7 @@ export function PetSection({
   if (isLoading) {
     if (isExpertAnalysis) {
       return (
-        <MainSection>
+        <MainSection className="py-8">
           <div className="flex flex-col gap-3">
             {[...Array(3)].map((_, index) => (
               <PetCardSkeleton key={index} variant="variant2" />
@@ -49,7 +49,7 @@ export function PetSection({
     }
 
     return (
-      <div className="mb-8 mx-4">
+      <div className="mb-8 mx-4 py-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold">{title}</h2>
           <Link href="/list/animal">
@@ -80,7 +80,7 @@ export function PetSection({
   if (error) {
     if (isExpertAnalysis) {
       return (
-        <MainSection>
+        <MainSection className="py-8">
           <div className="flex items-center justify-center h-32">
             <div className="text-lg text-error">
               동물 정보를 불러오는데 실패했습니다.
@@ -115,7 +115,7 @@ export function PetSection({
     const analysisAnimals = limitedAnimals.slice(0, 3);
 
     return (
-      <MainSection>
+      <MainSection className="py-8">
         <div className="flex flex-col gap-3">
           {analysisAnimals.map((animal) => (
             <PetCard
@@ -137,7 +137,7 @@ export function PetSection({
 
   // 일반 PetSection 모드일 때
   return (
-    <MainSection title={title} rightSlot={rightSlot}>
+    <MainSection title={title} rightSlot={rightSlot} className="py-8">
       {showLocationFilter && (
         <div className="flex items-center overflow-x-auto scrollbar-hide gap-[6px] -mx-4 px-4">
           {locations.map((loc) => (

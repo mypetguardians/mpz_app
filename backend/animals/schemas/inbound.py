@@ -99,6 +99,7 @@ class AnimalListQueryIn(Schema):
     age_max: Optional[int] = Field(None, description="최대 나이 (개월)")
     breed: Optional[str] = Field(None, description="품종 필터")
     region: Optional[str] = Field(None, description="지역 필터")
+    city: Optional[str] = Field(None, description="시/군 필터 (예: 서울시, 수원시)")
     has_trainer_comment: Optional[str] = Field(None, description="훈련사 코멘트 존재 여부 (true/false)")
     sort_by: Optional[str] = Field("created_at", description="정렬 기준 (created_at, admission_date, megaphone_count)")
     sort_order: Optional[str] = Field("desc", description="정렬 순서 (asc/desc)")

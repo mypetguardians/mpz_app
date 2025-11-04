@@ -11,6 +11,7 @@ interface SearchInputProps {
   variant?: SearchInputVariant;
   className?: string;
   readOnly?: boolean;
+  autoFocus?: boolean;
 }
 
 export function SearchInput({
@@ -21,6 +22,7 @@ export function SearchInput({
   variant = "primary",
   className,
   readOnly = false,
+  autoFocus = false,
 }: SearchInputProps) {
   const isPrimaryGroup = variant === "primary" || variant === "variant2";
 
@@ -57,6 +59,7 @@ export function SearchInput({
         onChange={onChange}
         onKeyDown={(e) => e.key === "Enter" && onSearch?.()}
         readOnly={readOnly}
+        autoFocus={autoFocus}
       />
       <button
         type="button"

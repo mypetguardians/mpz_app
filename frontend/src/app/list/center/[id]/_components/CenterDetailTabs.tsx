@@ -18,8 +18,8 @@ export function CenterDetailTabs({
   center,
 }: CenterDetailTabsProps) {
   const tabs = [
-    { label: "보호센터 정보", value: "info" as TabType },
     { label: "보호 동물", value: "animals" as TabType },
+    { label: "보호센터 정보", value: "info" as TabType },
   ];
 
   const renderTabContent = () => {
@@ -29,6 +29,13 @@ export function CenterDetailTabs({
           <CenterInfoTab
             centerNumber={center.phoneNumber || undefined}
             location={center.location || undefined}
+            isPublicData={!center.userId}
+            isSubscribed={center.isSubscriber}
+            adoptionProcedure={center.adoptionProcedure || undefined}
+            adoptionGuidelines={center.adoptionGuidelines || undefined}
+            hasMonitoring={center.hasMonitoring}
+            hasVolunteer={center.hasVolunteer}
+            hasFosterCare={center.hasFosterCare}
           />
         );
       case "animals":

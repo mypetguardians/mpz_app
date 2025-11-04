@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, X } from "@phosphor-icons/react";
+import { ArrowLeft } from "@phosphor-icons/react";
 import { useGetUserAdoptionDetail } from "@/hooks/query/useGetUserAdoptionDetail";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useWithdrawAdoption } from "@/hooks/mutation";
@@ -15,7 +15,6 @@ import { InfoCard } from "@/components/ui/InfoCard";
 import { CenterInfo } from "@/components/ui/CenterInfo";
 import { PetCard } from "@/components/ui/PetCard";
 import { BigButton } from "@/components/ui/BigButton";
-import { MiniButton } from "@/components/ui/MiniButton";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Toast } from "@/components/ui/Toast";
 import { SectionLine } from "../../_components/SectionLine";
@@ -46,10 +45,6 @@ export default function AdoptionRequestPage({
 
   const handleBack = () => {
     router.push("/my/adoption");
-  };
-
-  const handleWithdrawClick = () => {
-    setShowWithdrawModal(true);
   };
 
   const handleWithdrawConfirm = () => {
@@ -282,14 +277,6 @@ export default function AdoptionRequestPage({
               >
                 동의서 보기
               </BigButton>
-              <MiniButton
-                text={isWithdrawing ? "철회 중..." : "입양 신청 철회하기"}
-                variant="primary"
-                leftIcon={<X size={16} />}
-                onClick={handleWithdrawClick}
-                disabled={isWithdrawing}
-                className="w-full"
-              />
             </div>
           </div>
         </div>

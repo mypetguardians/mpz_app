@@ -31,7 +31,7 @@ export function TopPetSection({
   title,
   rightSlot,
   animals,
-  variant,
+  variant, // eslint-disable-line @typescript-eslint/no-unused-vars
   showLocationFilter = false,
   locations = [],
   isLoading = false,
@@ -84,10 +84,10 @@ export function TopPetSection({
   if (isExpertAnalysis) {
     if (isLoading) {
       return (
-        <MainSection>
+        <MainSection className="pt-5 pb-8">
           <div className="flex flex-col gap-3">
             {[...Array(3)].map((_, index) => (
-              <PetCardSkeleton key={index} variant="variant2" />
+              <PetCardSkeleton key={index} variant="primary" />
             ))}
           </div>
           <MiniButton
@@ -102,7 +102,7 @@ export function TopPetSection({
 
     if (error) {
       return (
-        <MainSection>
+        <MainSection className="pt-5 pb-8">
           <div className="flex items-center justify-center h-32">
             <div className="text-lg text-error">
               동물 정보를 불러오는데 실패했습니다.
@@ -123,13 +123,13 @@ export function TopPetSection({
       .slice(0, 3);
 
     return (
-      <MainSection>
+      <MainSection className="pt-5 pb-8">
         <div className="flex flex-col gap-3">
           {analysisAnimals.map((animal) => (
             <PetCard
               key={animal.id}
               pet={transformRawAnimalToPetCard(animal)}
-              variant="variant2"
+              variant="primary"
             />
           ))}
         </div>
@@ -167,6 +167,7 @@ export function TopPetSection({
       title={title}
       rightSlot={rightSlot}
       onRightClick={() => router.push("/list/animal")}
+      className="pt-5 pb-8"
     >
       {/* 지역 필터 */}
       {showLocationFilter && (
@@ -202,26 +203,18 @@ export function TopPetSection({
       )}
 
       {/* 동물 카드 목록 */}
-      <div
-        className={`flex gap-3 overflow-x-auto scrollbar-hide flex-nowrap -mx-4 px-4 ${
-          variant === "variant2" ? "flex-col" : ""
-        } ${
-          variant === "variant3"
-            ? "grid grid-cols-3 gap-x-2 gap-y-3 flex-nowrap"
-            : ""
-        }`}
-      >
+      <div className="flex gap-3 overflow-x-auto scrollbar-hide flex-nowrap -mx-4 px-4">
         {isLoading
           ? // 스켈레톤 로딩 상태
             [...Array(10)].map((_, index) => (
-              <PetCardSkeleton key={index} variant={variant} />
+              <PetCardSkeleton key={index} variant="primary" />
             ))
           : // 실제 데이터 표시
             displayAnimals.map((animal) => (
               <PetCard
                 key={animal.id}
                 pet={transformRawAnimalToPetCard(animal)}
-                variant={variant}
+                variant="primary"
               />
             ))}
       </div>

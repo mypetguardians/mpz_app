@@ -375,12 +375,12 @@ function AnimalCardWithFavorite({
           pet={transformRawAnimalToPetCard(animal)}
           variant="primary"
           imageSize="full"
-          className="w-full"
+          className="w-full pb-3"
         />
 
         {isAuthenticated && (
           <div
-            className="absolute top-2 left-2"
+            className="absolute bottom-2 right-2"
             onClick={(e) => e.stopPropagation()}
           >
             <IconButton

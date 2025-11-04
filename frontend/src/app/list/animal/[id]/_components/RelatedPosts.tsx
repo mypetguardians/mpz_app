@@ -15,7 +15,10 @@ interface RelatedPostsProps {
   title?: string;
 }
 
-export default function RelatedPosts({ currentPet }: RelatedPostsProps) {
+export default function RelatedPosts({
+  currentPet,
+  title = "이 아이에 대해 더 알고싶다면",
+}: RelatedPostsProps) {
   const router = useRouter();
   const { isAuthenticated, user, isLoading: authLoading } = useAuth();
 
@@ -68,7 +71,7 @@ export default function RelatedPosts({ currentPet }: RelatedPostsProps) {
   if (isLoading) {
     return (
       <div className="mx-4 my-3">
-        <h2 className="text-bk mb-4">관련 게시물</h2>
+        <h2 className="text-bk mb-4">{title}</h2>
         <div className="text-center py-4 text-gray-500">로딩 중...</div>
       </div>
     );
@@ -77,7 +80,7 @@ export default function RelatedPosts({ currentPet }: RelatedPostsProps) {
   if (error) {
     return (
       <div className="mx-4 my-3">
-        <h2 className="text-bk mb-4">관련 게시물</h2>
+        <h2 className="text-bk mb-4">{title}</h2>
         <div className="text-center py-4 text-red-500">
           게시물을 불러오는데 실패했습니다
         </div>
@@ -88,7 +91,7 @@ export default function RelatedPosts({ currentPet }: RelatedPostsProps) {
   return (
     <div className="mx-4 my-3 flex flex-col gap-4">
       <div>
-        <h2 className="text-bk mb-4">이 아이에 대해 더 알고싶다면</h2>
+        <h2 className="text-bk mb-4">{title}</h2>
         {displayPosts.length > 0 ? (
           <div className="flex flex-col gap-2.5">
             {displayPosts.slice(0, 3).map((post: ApiPostResponse) => (

@@ -195,7 +195,6 @@ export default function BasicInfo({
   const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
   const [isFoundLocationDialogOpen, setIsFoundLocationDialogOpen] =
     useState(false);
-  const [isManualFoundLocation, setIsManualFoundLocation] = useState(false);
 
   // 품종 검색 결과 필터링
   const filteredBreeds = breedList.filter((breed) =>
@@ -503,28 +502,11 @@ export default function BasicInfo({
             </div>
             <CustomInput
               variant="primary"
-              placeholder="상세주소를 입력해주세요 (예: 101동 201호, 상가 1층)"
+              placeholder="직접입력/상세주소를 입력해주세요 (예: 101동 201호, 상가 1층)"
               value={data.foundLocation}
               onChange={(e) => handleDetailAddressChange(e.target.value)}
+              id="detailAddress"
             />
-            <div className="flex justify-end">
-              <button
-                type="button"
-                className="text-sm text-brand hover:underline"
-                onClick={() => {
-                  if (isManualFoundLocation) {
-                    setIsManualFoundLocation(false);
-                    handleFoundLocationSearch();
-                  } else {
-                    setIsManualFoundLocation(true);
-                  }
-                }}
-              >
-                {isManualFoundLocation
-                  ? "주소 검색으로 전환"
-                  : "직접 입력으로 전환"}
-              </button>
-            </div>
           </div>
         </div>
         <div className="flex flex-col gap-2">
@@ -600,6 +582,7 @@ export default function BasicInfo({
             placeholder="품종으로 검색해보세요"
             value={breedSearchTerm}
             onChange={(e) => setBreedSearchTerm(e.target.value)}
+            autoFocus={true}
           />
           <div className="overflow-y-auto max-h-60 scrollbar-hide">
             {filteredBreeds.length > 0 ? (
@@ -635,15 +618,19 @@ export default function BasicInfo({
         description="어떻게 입력할까요?"
         variant="variant1"
         leftButtonText="직접입력"
-        rightButtonText="카카오맵으로 입력"
+        rightButtonText="주소찾기"
         onLeftClick={() => {
-          setIsManualFoundLocation(true);
           setIsFoundLocationDialogOpen(false);
+          setTimeout(() => {
+            const el = document.getElementById(
+              "detailAddress"
+            ) as HTMLInputElement | null;
+            el?.focus();
+          }, 0);
         }}
         onRightClick={() => {
           setIsFoundLocationDialogOpen(false);
           setTimeout(() => {
-            setIsManualFoundLocation(false);
             handleFoundLocationSearch();
           }, 0);
         }}

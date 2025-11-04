@@ -213,6 +213,9 @@ export default function ProfileEditPage() {
             {/* 이미지 섹션 */}
             <div className="space-y-3">
               <h5 className="font-medium text-black">이미지</h5>
+              <p className="text-gr text-xs">
+                *PNG, JPG, JPEG 형식의 파일만 업로드 가능합니다.
+              </p>
               <div className="flex items-center space-x-4">
                 <div className="relative">
                   <label>

@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, X } from "@phosphor-icons/react";
+import { ArrowLeft } from "@phosphor-icons/react";
 import { useGetUserAdoptionDetail } from "@/hooks/query/useGetUserAdoptionDetail";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { useWithdrawAdoption } from "@/hooks/mutation";
 
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
@@ -15,9 +14,6 @@ import { InfoCard } from "@/components/ui/InfoCard";
 import { CenterInfo } from "@/components/ui/CenterInfo";
 import { PetCard } from "@/components/ui/PetCard";
 import { BigButton } from "@/components/ui/BigButton";
-import { MiniButton } from "@/components/ui/MiniButton";
-import { BottomSheet } from "@/components/ui/BottomSheet";
-import { Toast } from "@/components/ui/Toast";
 import { SectionLine } from "../../_components/SectionLine";
 
 export default function MeetingPage({
@@ -28,12 +24,6 @@ export default function MeetingPage({
   const { id } = React.use(params);
   const router = useRouter();
   const { user } = useAuth();
-  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
-  const [showToast, setShowToast] = useState(false);
-
-  // 입양 신청 철회 훅
-  const { mutate: withdrawAdoption, isPending: isWithdrawing } =
-    useWithdrawAdoption();
 
   const {
     data: adoptionDetail,
@@ -45,39 +35,6 @@ export default function MeetingPage({
 
   const handleBack = () => {
     router.push("/my/adoption");
-  };
-
-  const handleWithdrawClick = () => {
-    setShowWithdrawModal(true);
-  };
-
-  const handleWithdrawConfirm = () => {
-    setShowWithdrawModal(false);
-
-    // 입양 신청 철회 API 호출
-    withdrawAdoption(id, {
-      onSuccess: (data) => {
-        console.log("철회 완료:", data.message);
-        setShowToast(true);
-        // 3초 후 토스트 숨기기
-        setTimeout(() => {
-          setShowToast(false);
-          router.back();
-        }, 3000);
-      },
-      onError: (error) => {
-        console.error("철회 실패:", error);
-        // 에러 토스트 표시
-        setShowToast(true);
-        setTimeout(() => {
-          setShowToast(false);
-        }, 3000);
-      },
-    });
-  };
-
-  const handleWithdrawCancel = () => {
-    setShowWithdrawModal(false);
   };
 
   if (isLoading) {
@@ -280,39 +237,9 @@ export default function MeetingPage({
               >
                 동의서 보기
               </BigButton>
-              <MiniButton
-                text={isWithdrawing ? "철회 중..." : "입양 신청 철회하기"}
-                variant="primary"
-                leftIcon={<X size={16} />}
-                onClick={handleWithdrawClick}
-                disabled={isWithdrawing}
-                className="w-full"
-              />
             </div>
           </div>
         </div>
-
-        {/* Withdraw Modal */}
-        <BottomSheet
-          open={showWithdrawModal}
-          onClose={handleWithdrawCancel}
-          variant="primary"
-          title="정말 철회하시겠습니까?"
-          description={`${
-            user?.nickname || "사용자"
-          }님의 신중하고 현명한 결정을 존중해요.`}
-          leftButtonText="아니요"
-          rightButtonText={isWithdrawing ? "철회 중..." : "네, 철회할래요"}
-          onLeftClick={handleWithdrawCancel}
-          onRightClick={isWithdrawing ? undefined : handleWithdrawConfirm}
-        />
-
-        {/* Toast */}
-        {showToast && (
-          <div className="fixed bottom-4 left-4 right-4 z-[10000]">
-            <Toast>입양 신청이 철회되었습니다.</Toast>
-          </div>
-        )}
       </Container>
     </div>
   );

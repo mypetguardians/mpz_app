@@ -5,8 +5,8 @@ import { SelectButton } from "./SelectButton";
 import { DropdownBottomSheet } from "./DropdownBottomSheet";
 
 const inputBaseClass =
-  "flex w-full rounded-md border border-lg bg-background px-4 py-3 h5 ring-offset-background placeholder:text-gr placeholder:text-body" +
-  "focus-visible:outline-none focus-visible:border-brand disabled:cursor-not-allowed disabled:bg-bg";
+  "w-full min-w-0 rounded-md border border-lg bg-background px-4 py-3 h5 ring-offset-background placeholder:text-gr placeholder:text-body" +
+  " focus-visible:outline-none focus-visible:border-brand disabled:cursor-not-allowed disabled:bg-bg";
 
 const variantMap: Record<string, string> = {
   primary: "",

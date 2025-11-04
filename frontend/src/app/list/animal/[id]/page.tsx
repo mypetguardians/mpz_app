@@ -549,7 +549,6 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
           variant={isCenterSubscriber ? "subscriber" : "primary"}
           centerId={center?.id || ""}
           name={center?.name || "보호센터 정보 없음"}
-          location={center?.location || "주소 정보 없음"}
           phoneNumber={center?.phoneNumber || "연락처 정보 없음"}
           adoptionProcedure={
             isCenterSubscriber && center?.adoptionProcedure
@@ -562,7 +561,16 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
           onShowLoginModal={() => setShowLoginModal(true)}
         />
 
-        <RelatedAnimals pets={relatedAnimals} location={center?.region || ""} />
+        <RelatedAnimals
+          pets={relatedAnimals}
+          location={((): string => {
+            if (!center?.location) return center?.region || "";
+
+            // 주소에서 시/군 추출 (예: "서울시 강남구" -> "서울시", "경기도 수원시" -> "수원시")
+            const match = center.location.match(/([가-힣]+(?:시|군))/);
+            return match ? match[1] : center?.region || "";
+          })()}
+        />
       </Container>
 
       {isFosterCareAvailable ? (
@@ -699,7 +707,7 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
         title="센터로 전화해주세요!"
         description={`센터 전화번호: ${
           center?.phoneNumber || "연락처 정보 없음"
-        }`}
+        } \n 전화 가능시간: ${center?.callAvailableTime || "정보 없음"}`}
         rightButtonText="전화 연결하기"
         onRightClick={() => {
           if (center?.phoneNumber) {

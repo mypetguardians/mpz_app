@@ -96,12 +96,13 @@ class SystemTag(BaseModel):
     description = models.TextField(blank=True, null=True, help_text="태그 설명")
     is_active = models.BooleanField(default=True, help_text="활성화 여부", db_index=True)
     usage_count = models.IntegerField(default=0, help_text="사용된 횟수")
+    sequence = models.IntegerField(default=0, help_text="표시 순서")
     
     class Meta:
         db_table = 'system_tags'
         verbose_name = '시스템 태그'
         verbose_name_plural = '시스템 태그들'
-        ordering = ['name']
+        ordering = ['sequence', 'name']
         indexes = [
             models.Index(fields=['name']),  # 태그명 검색 최적화
             models.Index(fields=['is_active', 'name']),  # 활성 태그 검색 최적화

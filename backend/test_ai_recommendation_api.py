@@ -57,16 +57,10 @@ def login_and_get_token():
             result = response.json()
             token = result.get("access_token") or result.get("token")
             if token:
-                print("✅ 로그인 성공! JWT 토큰을 받았습니다.")
-                print(f"Token (처음 20자): {token[:20]}...")
                 return token
             else:
-                print("❌ 토큰을 찾을 수 없습니다.")
-                print(f"응답 데이터: {result}")
                 return None
         else:
-            print(f"❌ 로그인 실패: {response.status_code}")
-            print(f"오류 내용: {response.text}")
             return None
             
     except Exception as e:
@@ -75,9 +69,6 @@ def login_and_get_token():
 
 def test_ai_recommendation(jwt_token):
     """AI 동물 추천 API 테스트"""
-    print("="*50)
-    print("AI 동물 추천 API 테스트 시작")
-    print("="*50)
     
     headers = {
         "Content-Type": "application/json",

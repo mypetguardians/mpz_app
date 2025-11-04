@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight } from "@phosphor-icons/react";
@@ -11,15 +11,30 @@ import { MiniButton } from "@/components/ui/MiniButton";
 import { KakaoButton } from "@/components/auth/KakaoButton";
 import { useAuth } from "@/components/providers/AuthProvider";
 
-export default function LogIn() {
+function LogInInner() {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (isAuthenticated) {
+      const redirect = searchParams.get("redirect");
+      if (redirect && typeof redirect === "string") {
+        router.replace(redirect);
+        return;
+      }
+      if (typeof window !== "undefined") {
+        const sameHost =
+          document.referrer &&
+          new URL(document.referrer).host === window.location.host;
+        if (sameHost) {
+          router.back();
+          return;
+        }
+      }
       router.replace("/");
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, searchParams]);
 
   return (
     <Container className="min-h-screen flex flex-col justify-between px-4">
@@ -65,6 +80,14 @@ export default function LogIn() {
           />
         </Link>
       </div>
-    </Container>
+      </Container>
+  );
+}
+
+export default function LogIn() {
+  return (
+    <Suspense fallback={null}>
+      <LogInInner />
+    </Suspense>
   );
 }

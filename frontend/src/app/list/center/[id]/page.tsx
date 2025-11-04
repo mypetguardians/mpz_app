@@ -22,7 +22,7 @@ export default function CenterDetailPage() {
   const toggleCenterFavorite = useToggleCenterFavorite();
 
   // 상태 관리
-  const [activeTab, setActiveTab] = useState<TabType>("info");
+  const [activeTab, setActiveTab] = useState<TabType>("animals");
 
   // URL 쿼리 파라미터에서 탭 설정
   useEffect(() => {

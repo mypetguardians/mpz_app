@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { PetCard } from "@/components/ui";
 import { PetCardSkeleton } from "@/components/ui/PetCardSkeleton";
@@ -11,6 +11,8 @@ const ITEMS_PER_PAGE = 10;
 type FavoriteAnimal = Record<string, unknown> & { id: string };
 
 function AnimalTab() {
+  const SCROLL_KEY = "favorite_animals_scrollY";
+  const restoredRef = useRef(false);
   const [page, setPage] = useState(1);
   const [accumulatedPets, setAccumulatedPets] = useState<FavoriteAnimal[]>([]);
   const {
@@ -50,6 +52,39 @@ function AnimalTab() {
   }, [favoritesData, currentPets, page]);
 
   const pets = useMemo(() => accumulatedPets, [accumulatedPets]);
+
+  // 상세로 이동 전 현재 스크롤 위치 저장
+  const navigateToDetail = useCallback(
+    (id: string) => {
+      try {
+        sessionStorage.setItem(SCROLL_KEY, String(window.scrollY || 0));
+      } catch {}
+      router.push(`/list/animal/${id}`);
+    },
+    [router]
+  );
+
+  // 뒤로 돌아왔을 때 스크롤 위치 복원 (데이터 로드 이후 1회만)
+  useEffect(() => {
+    if (restoredRef.current) return;
+    if (isLoading || isFetching) return;
+
+    try {
+      const saved = sessionStorage.getItem(SCROLL_KEY);
+      if (saved) {
+        const y = parseInt(saved, 10);
+        // 렌더 안정화 후 스크롤 (모바일 호환 위해 약간 지연)
+        setTimeout(() => {
+          window.scrollTo({
+            top: Number.isFinite(y) ? y : 0,
+            behavior: "auto",
+          });
+        }, 0);
+        restoredRef.current = true;
+        sessionStorage.removeItem(SCROLL_KEY);
+      }
+    } catch {}
+  }, [isLoading, isFetching, pets.length]);
 
   // 무한스크롤 처리
   const loadMorePets = useCallback(() => {
@@ -136,9 +171,7 @@ function AnimalTab() {
             <div
               key={petData.id as string}
               className="w-[calc(50%-4px)]"
-              onClick={() =>
-                router.push(`/list/animal/${petData.id as string}`)
-              }
+              onClick={() => navigateToDetail(petData.id as string)}
             >
               <PetCard
                 pet={petCardData}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 import { Banner } from "@/components/ui/Banner";
 import Link from "next/link";
@@ -32,6 +32,7 @@ import { Post } from "@/types/posts";
 
 export default function CommunityPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const { isAuthenticated, user, isLoading: authLoading } = useAuth();
   const queryClient = useQueryClient();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -503,11 +504,15 @@ export default function CommunityPage() {
         variant="variant2"
         onCtaClick={() => {
           setIsLoginModalOpen(false);
-          router.push("/login");
+          router.push(
+            `/login?redirect=${encodeURIComponent(pathname ?? "/community")}`
+          );
         }}
         onSubLinkClick={() => {
           setIsLoginModalOpen(false);
-          router.push("/login");
+          router.push(
+            `/login?redirect=${encodeURIComponent(pathname ?? "/community")}`
+          );
         }}
       />
     </Container>

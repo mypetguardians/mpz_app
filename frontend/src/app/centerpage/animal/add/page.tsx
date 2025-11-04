@@ -279,7 +279,7 @@ export default function AddAnimal() {
       <FixedBottomBar
         variant="variant4"
         onResetButtonClick={handleReset}
-        applyButtonText="적용하기"
+        primaryButtonText="등록하기"
         onApplyButtonClick={handleSubmit}
         applyButtonDisabled={isLoading}
       />

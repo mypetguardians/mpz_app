@@ -42,6 +42,7 @@ export function CenterAnimalsTab({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [filteredAnimals, setFilteredAnimals] = useState<Animal[]>([]);
+  const STORAGE_KEY = useMemo(() => `center_filters_${centerId}`, [centerId]);
 
   // 센터 동물 데이터 가져오기
   const {
@@ -78,6 +79,78 @@ export function CenterAnimalsTab({
         searchParams.get("expertOpinion")?.split(",").filter(Boolean) || [],
     };
   }, [searchParams, showFilters]);
+
+  // 필터 상태를 로컬 스토리지에 저장
+  useEffect(() => {
+    if (!showFilters) return;
+    const params = new URLSearchParams(searchParams.toString());
+    const state: FilterState = {
+      breed: params.get("breed") || "",
+      weights: params.get("weights")?.split(",").filter(Boolean) || [],
+      regions: params.get("regions")?.split(",").filter(Boolean) || [],
+      ages: params.get("ages")?.split(",").filter(Boolean) || [],
+      genders: params.get("genders")?.split(",").filter(Boolean) || [],
+      protectionStatus:
+        params.get("protectionStatus")?.split(",").filter(Boolean) || [],
+      expertOpinion:
+        params.get("expertOpinion")?.split(",").filter(Boolean) || [],
+    };
+    // 하나라도 값이 있으면 저장, 모두 비어있으면 삭제
+    const hasAny =
+      state.breed ||
+      state.weights.length ||
+      state.regions.length ||
+      state.ages.length ||
+      state.genders.length ||
+      state.protectionStatus.length ||
+      state.expertOpinion.length;
+    try {
+      if (hasAny) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } else {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    } catch (error) {
+      console.error(error);
+      // 저장 실패는 무시
+    }
+  }, [searchParams, showFilters, STORAGE_KEY]);
+
+  // 재진입 시(초기 로드) URL에 필터가 없고, 저장된 상태가 있으면 복원
+  useEffect(() => {
+    if (!showFilters) return;
+    const hasAnyParam = [
+      "breed",
+      "weights",
+      "regions",
+      "ages",
+      "genders",
+      "protectionStatus",
+      "expertOpinion",
+    ].some((key) => searchParams.get(key));
+    if (hasAnyParam) return;
+
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const saved: FilterState = JSON.parse(raw);
+      const params = new URLSearchParams(searchParams.toString());
+      if (saved.breed) params.set("breed", saved.breed);
+      if (saved.weights.length) params.set("weights", saved.weights.join(","));
+      if (saved.regions.length) params.set("regions", saved.regions.join(","));
+      if (saved.ages.length) params.set("ages", saved.ages.join(","));
+      if (saved.genders.length) params.set("genders", saved.genders.join(","));
+      if (saved.protectionStatus.length)
+        params.set("protectionStatus", saved.protectionStatus.join(","));
+      if (saved.expertOpinion.length)
+        params.set("expertOpinion", saved.expertOpinion.join(","));
+      params.set("tab", "animals");
+      const query = params.toString();
+      router.replace(`/list/center/${centerId}${query ? `?${query}` : ""}`);
+    } catch (error) {
+      console.error(error);
+    }
+  }, [showFilters, STORAGE_KEY]);
 
   // 필터링 로직을 별도 함수로 분리
   const applyFilters = useMemo(() => {
@@ -197,7 +270,24 @@ export function CenterAnimalsTab({
   }, [showFilters, filters, centerId]);
 
   const handleFilterClick = (path: string) => {
-    router.push(path);
+    // 현재 적용 중인 필터 쿼리를 필터 페이지로 전달하여 재진입 시 상태 유지
+    const current = new URLSearchParams(searchParams.toString());
+    const passthroughKeys = [
+      "breed",
+      "weights",
+      "regions",
+      "ages",
+      "genders",
+      "protectionStatus",
+      "expertOpinion",
+    ];
+    const params = new URLSearchParams();
+    passthroughKeys.forEach((key) => {
+      const value = current.get(key);
+      if (value) params.set(key, value);
+    });
+    const query = params.toString();
+    router.push(`${path}${query ? `?${query}` : ""}`);
   };
 
   const renderLoadingState = () => (

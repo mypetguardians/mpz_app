@@ -94,20 +94,22 @@ export function CommentItem({
                 </div>
               )}
             </Avatar>
-            <div className="flex-1">
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-semibold text-sm text-gray-600">
+            <div className="flex-1 min-w-0 relative">
+              <div className="flex items-center gap-2 mb-1 pr-8">
+                <span className="font-semibold text-sm text-gray-600 truncate">
                   {nickname}
                 </span>
-                {isMyComment && !isEditing && (
+              </div>
+              {isMyComment && !isEditing && (
+                <div className="absolute top-0 right-0">
                   <IconButton
                     icon={({ size }) => <DotsThree size={size} weight="bold" />}
                     size="iconS"
                     onClick={() => setShowActionSheet(true)}
                     className="text-gray-500"
                   />
-                )}
-              </div>
+                </div>
+              )}
 
               {isEditing ? (
                 <div className="space-y-2">
@@ -187,20 +189,22 @@ export function CommentItem({
                 )}
               </Avatar>
             </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-semibold text-xs text-gray-600">
+            <div className="flex-1 min-w-0 relative">
+              <div className="flex items-center gap-2 mb-1 pr-8">
+                <span className="font-semibold text-xs text-gray-600 truncate">
                   {nickname}
                 </span>
-                {isMyComment && !isEditing && (
+              </div>
+              {isMyComment && !isEditing && (
+                <div className="absolute top-0 right-0">
                   <IconButton
                     icon={({ size }) => <DotsThree size={size} weight="bold" />}
                     size="iconS"
                     onClick={() => setShowActionSheet(true)}
                     className="text-gray-500"
                   />
-                )}
-              </div>
+                </div>
+              )}
 
               {isEditing ? (
                 <div className="space-y-2">

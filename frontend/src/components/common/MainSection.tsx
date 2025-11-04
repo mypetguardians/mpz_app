@@ -16,7 +16,7 @@ export function MainSection({
   className,
 }: MainSectionProps) {
   return (
-    <section className={`${className} py-8 px-4 flex flex-col gap-3`}>
+    <section className={`px-4 flex flex-col gap-3 ${className || ""}`}>
       <div className="flex justify-between items-center mb-2">
         <div>
           <h2 className="text-bk whitespace-pre-line">{title}</h2>

@@ -79,7 +79,7 @@ async def create_reply(request: HttpRequest, comment_id: str, data: ReplyCreateI
 
 
 @router.put(
-    "/{reply_id}",
+    "/replies/{reply_id}",
     summary="[U] 대댓글 수정",
     description="대댓글을 수정합니다.",
     response={
@@ -124,7 +124,7 @@ async def update_reply(request: HttpRequest, reply_id: str, data: ReplyUpdateIn)
 
 
 @router.delete(
-    "/{reply_id}",
+    "/replies/{reply_id}",
     summary="[D] 대댓글 삭제",
     description="대댓글을 삭제합니다.",
     response={

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import axios from "axios";
 
 import { Input } from "@/components/ui/CustomInput";
 import { Container } from "@/components/common/Container";
@@ -35,6 +36,7 @@ export function Step1({ onNext }: StepProps) {
   const [otp, setOtp] = React.useState("");
   const [expireAt, setExpireAt] = React.useState<number | null>(null);
   const [nowTs, setNowTs] = React.useState<number>(Date.now());
+  const [generatedOtp, setGeneratedOtp] = React.useState<string>("");
 
   // toast state
   const [showToast, setShowToast] = React.useState(false);
@@ -62,20 +64,46 @@ export function Step1({ onNext }: StepProps) {
     setShowToast(true);
   };
 
+  const generateOtp = (): string => {
+    // 6자리 랜덤 인증번호 생성
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  };
+
+  const sendSmsOtp = async (phoneNumber: string, otpCode: string) => {
+    const response = await axios.post(
+      "https://blink-production-37f6.up.railway.app/v1/sms/eddb3903-746e-4833-ba19-e8f3aede8680/send",
+      {
+        recipient_phone: phoneNumber,
+        message: `인증번호는 [${otpCode}] 입니다.`,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Key": "S1jNIx7UUWKasmzpFGE7F6dET9syiR3R_BLqsyHjMiA",
+        },
+      }
+    );
+    return response.data;
+  };
+
   const requestOtp = async () => {
     if (!isPhoneValid) {
       showErrorToast("올바른 휴대폰 번호를 입력해주세요.");
       return;
     }
     try {
+      const otpCode = generateOtp();
       sessionStorage.setItem("verification.phone", phoneDigits);
-      // TODO: 실제 OTP 발급 API 연동
+      sessionStorage.setItem("verification.otp", otpCode);
+      setGeneratedOtp(otpCode);
+      await sendSmsOtp(phoneDigits, otpCode);
       setExpireAt(Date.now() + 3 * 60 * 1000);
       setOtp("");
       setStage("otp");
-    } catch (error) {
+    } catch (error: any) {
       console.error("OTP 발급 실패:", error);
-      showErrorToast("인증번호 발송에 실패했습니다. 다시 시도해주세요.");
+      const errorMessage = error.response?.data?.message || "인증번호 발송에 실패했습니다. 다시 시도해주세요.";
+      showErrorToast(errorMessage);
     }
   };
 
@@ -89,12 +117,20 @@ export function Step1({ onNext }: StepProps) {
       return;
     }
     try {
-      // TODO: 실제 검증 API 연동
-      // 임시로 성공 처리
-      onNext();
-    } catch (error) {
+      // 프론트엔드에서 생성한 인증번호와 비교
+      const storedOtp = sessionStorage.getItem("verification.otp");
+
+      if (otp.trim() === storedOtp) {
+        // 인증 성공
+        sessionStorage.removeItem("verification.otp"); // 사용한 인증번호 제거
+        sessionStorage.removeItem("verification.phone"); // 전화번호도 제거
+        onNext();
+      } else {
+        showErrorToast("인증번호가 올바르지 않습니다. 다시 확인해주세요.");
+      }
+    } catch (error: any) {
       console.error("OTP 검증 실패:", error);
-      showErrorToast("인증번호가 올바르지 않습니다. 다시 확인해주세요.");
+      showErrorToast("인증번호 검증에 실패했습니다. 다시 시도해주세요.");
     }
   };
 
@@ -104,22 +140,26 @@ export function Step1({ onNext }: StepProps) {
       return;
     }
     try {
-      // TODO: 재전송 API 연동
+      const otpCode = generateOtp();
+      sessionStorage.setItem("verification.otp", otpCode);
+      setGeneratedOtp(otpCode);
+      await sendSmsOtp(phoneDigits, otpCode);
       setExpireAt(Date.now() + 3 * 60 * 1000);
       setOtp("");
       setToastMessage("인증번호를 재전송했습니다.");
       setToastType("success");
       setShowToast(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error("OTP 재전송 실패:", error);
-      showErrorToast("인증번호 재전송에 실패했습니다. 다시 시도해주세요.");
+      const errorMessage = error.response?.data?.message || "인증번호 재전송에 실패했습니다. 다시 시도해주세요.";
+      showErrorToast(errorMessage);
     }
   };
 
   return (
     <>
       <Container className="min-h-screen pb-28">
-        <h2 className="text-bk mb-6">휴대폰 번호를 인증해주세요.</h2>
+        <h2 className="mb-6 text-bk">휴대폰 번호를 인증해주세요.</h2>
 
         <div className="flex flex-col gap-3">
           <Input
@@ -134,7 +174,7 @@ export function Step1({ onNext }: StepProps) {
             readOnly={stage === "otp"}
           />
           {raw.length > 0 && stage === "phone" && !isPhoneValid && (
-            <p className="text-error text-sm">올바른 형식으로 입력해주세요.</p>
+            <p className="text-sm text-error">올바른 형식으로 입력해주세요.</p>
           )}
 
           {stage === "otp" && (

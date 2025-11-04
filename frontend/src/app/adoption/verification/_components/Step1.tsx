@@ -36,7 +36,6 @@ export function Step1({ onNext }: StepProps) {
   const [otp, setOtp] = React.useState("");
   const [expireAt, setExpireAt] = React.useState<number | null>(null);
   const [nowTs, setNowTs] = React.useState<number>(Date.now());
-  const [generatedOtp, setGeneratedOtp] = React.useState<string>("");
 
   // toast state
   const [showToast, setShowToast] = React.useState(false);
@@ -95,14 +94,16 @@ export function Step1({ onNext }: StepProps) {
       const otpCode = generateOtp();
       sessionStorage.setItem("verification.phone", phoneDigits);
       sessionStorage.setItem("verification.otp", otpCode);
-      setGeneratedOtp(otpCode);
       await sendSmsOtp(phoneDigits, otpCode);
       setExpireAt(Date.now() + 3 * 60 * 1000);
       setOtp("");
       setStage("otp");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("OTP 발급 실패:", error);
-      const errorMessage = error.response?.data?.message || "인증번호 발송에 실패했습니다. 다시 시도해주세요.";
+      const errorMessage =
+        (error as { response?: { data?: { message?: string } } })?.response
+          ?.data?.message ||
+        "인증번호 발송에 실패했습니다. 다시 시도해주세요.";
       showErrorToast(errorMessage);
     }
   };
@@ -128,7 +129,7 @@ export function Step1({ onNext }: StepProps) {
       } else {
         showErrorToast("인증번호가 올바르지 않습니다. 다시 확인해주세요.");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("OTP 검증 실패:", error);
       showErrorToast("인증번호 검증에 실패했습니다. 다시 시도해주세요.");
     }
@@ -142,16 +143,18 @@ export function Step1({ onNext }: StepProps) {
     try {
       const otpCode = generateOtp();
       sessionStorage.setItem("verification.otp", otpCode);
-      setGeneratedOtp(otpCode);
       await sendSmsOtp(phoneDigits, otpCode);
       setExpireAt(Date.now() + 3 * 60 * 1000);
       setOtp("");
       setToastMessage("인증번호를 재전송했습니다.");
       setToastType("success");
       setShowToast(true);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("OTP 재전송 실패:", error);
-      const errorMessage = error.response?.data?.message || "인증번호 재전송에 실패했습니다. 다시 시도해주세요.";
+      const errorMessage =
+        (error as { response?: { data?: { message?: string } } })?.response
+          ?.data?.message ||
+        "인증번호 재전송에 실패했습니다. 다시 시도해주세요.";
       showErrorToast(errorMessage);
     }
   };

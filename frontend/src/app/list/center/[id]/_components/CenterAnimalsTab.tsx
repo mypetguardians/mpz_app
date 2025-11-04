@@ -150,7 +150,7 @@ export function CenterAnimalsTab({
     } catch (error) {
       console.error(error);
     }
-  }, [showFilters, STORAGE_KEY]);
+  }, [showFilters, STORAGE_KEY, centerId, router, searchParams]);
 
   // 필터링 로직을 별도 함수로 분리
   const applyFilters = useMemo(() => {

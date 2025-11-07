@@ -24,7 +24,7 @@ from animals.schemas.public_data import (
     PublicDataSyncResponseOut, PublicDataStatusOut, PublicDataErrorOut,
     PublicDataSyncResultOut
 )
-from datetime import timedelta
+from datetime import datetime
 
 router = Router(tags=["Animals"])
 
@@ -1128,7 +1128,7 @@ async def sync_public_data(
     state: str = Query(None, description="상태 (notice: 공고중, protect: 보호중)"),
     page_no: int = Query(1, description="페이지 번호"),
     num_of_rows: int = Query(1000, description="페이지당 보여줄 개수"),
-    sync_strategy: str = Query("incremental", description="동기화 전략 (incremental: 최근 데이터만, full: 전체 데이터, status_check: 상태 체크만)")
+    sync_strategy: str = Query("incremental", description="동기화 전략 (incremental: 최근 데이터만, full: 전체 데이터, status_check: 상태 체크만, status_sync: 기존 동물 상태 동기화)")
 ):
     """공공데이터 API에서 유기동물 정보를 동기화합니다."""
     try:
@@ -1278,6 +1278,65 @@ async def get_public_data_status(request: HttpRequest):
     except Exception as e:
         print(f"공공데이터 상태 조회 오류: {e}")
         raise HttpError(500, "공공데이터 상태 조회 중 오류가 발생했습니다")
+
+
+@router.post(
+    "/public-data/sync-status",
+    summary="[C] 기존 공공데이터 동물 상태 동기화",
+    description="이미 DB에 있는 공공데이터 동물들의 상태 변경을 감지하고 업데이트합니다.",
+    response={
+        200: dict,
+        401: PublicDataErrorOut,
+        500: PublicDataErrorOut,
+    },
+)
+async def sync_existing_animals_status(
+    request: HttpRequest,
+    sync_type: str = Query("recent", description="동기화 유형 (recent: 최근 동물만, full: 전체 동물)")
+):
+    """기존 공공데이터 동물들의 상태를 동기화합니다."""
+    try:
+        # 헤더 기반 인증 확인 (QStash용)
+        x_api_key = request.headers.get('X-API-Key')
+        expected_api_key = getattr(settings, 'PUBLIC_DATA_SERVICE_KEY', None)
+        
+        if not expected_api_key:
+            raise HttpError(500, "공공데이터 API 키가 설정되지 않았습니다")
+        
+        if not x_api_key or x_api_key != expected_api_key:
+            raise HttpError(401, f"유효하지 않은 API 키입니다")
+        
+        # 서비스 키 확인
+        service_key = getattr(settings, 'PUBLIC_DATA_SERVICE_KEY', None)
+        if not service_key:
+            raise HttpError(500, "공공데이터 서비스 키가 설정되지 않았습니다")
+        
+        # 상태 동기화 서비스 초기화
+        from .status_sync_service import PublicDataStatusSyncService
+        status_sync_service = PublicDataStatusSyncService(service_key)
+        
+        # 동기화 유형에 따른 처리
+        if sync_type == "recent":
+            # 최근 7일간 상태 변경 가능성이 높은 동물들만 체크
+            result = await status_sync_service.sync_recent_status_changes(days_back=7)
+        elif sync_type == "full":
+            # 모든 기존 공공데이터 동물들의 상태 체크
+            result = await status_sync_service.sync_existing_animals_status()
+        else:
+            raise HttpError(400, f"지원하지 않는 동기화 유형입니다: {sync_type}")
+        
+        return 200, {
+            "sync_type": sync_type,
+            "timestamp": datetime.now().isoformat(),
+            "result": result,
+            "success": True
+        }
+        
+    except HttpError:
+        raise
+    except Exception as e:
+        print(f"상태 동기화 오류: {e}")
+        raise HttpError(500, f"상태 동기화 중 오류가 발생했습니다: {str(e)}")
 
 
 @router.get(

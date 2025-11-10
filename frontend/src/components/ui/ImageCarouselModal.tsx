@@ -61,7 +61,7 @@ export function ImageCarouselModal({
   };
 
   const handleTouchEnd: React.TouchEventHandler<HTMLDivElement> = () => {
-    const threshold = 50; // 스와이프 임계값(px)
+    const threshold = 50;
     if (touchDeltaX > threshold) {
       handlePrevious();
     } else if (touchDeltaX < -threshold) {
@@ -112,24 +112,21 @@ export function ImageCarouselModal({
         </div>
       )}
 
-      {/* 이미지 (스와이프 제스처 + 원본 표시 지원) */}
-      <div
-        className="relative w-full h-full flex items-center justify-center px-16 pointer-events-none"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
+      {/* 이미지 */}
+      <div className="relative w-full h-full flex items-center justify-center px-16">
         <div
           className="relative max-w-full max-h-full w-auto h-auto pointer-events-auto"
           onClick={(e) => e.stopPropagation()}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
-          <div className="relative max-w-[100vw] max-h-[90vh] overflow-auto">
+          <div className="relative w-[90vw] h-[80vh] max-w-[100vw] max-h-[90vh] overflow-auto">
             <Image
               src={images[currentIndex]}
               alt={`이미지 ${currentIndex + 1}`}
-              width={1600}
-              height={1600}
-              className="object-none transition-opacity duration-200"
+              fill
+              className="object-contain transition-opacity duration-200"
               unoptimized
             />
           </div>

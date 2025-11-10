@@ -558,7 +558,7 @@ export default function CommunityEditPage({
 
       <div className="px-4 pb-24">
         {/* 제목 입력 */}
-        <div className="mb-6">
+        <div>
           <CustomInput
             label="제목"
             placeholder="제목을 입력하세요."
@@ -571,11 +571,25 @@ export default function CommunityEditPage({
           />
         </div>
 
+        {/* 시스템 태그 드롭다운 (CustomInput) */}
+        {Array.isArray(systemTags) && systemTags.length > 0 && (
+          <div className="mb-6">
+            <CustomInput
+              variant="tagdropdown"
+              placeholder="태그를 선택하세요"
+              value={tags.length > 0 ? `태그 ${tags.length}개 선택됨` : ""}
+              options={systemTags
+                .filter((t) => !tags.includes(t.name))
+                .map((t) => t.name)}
+              onChangeOption={(selected) => addTag(selected)}
+            />
+          </div>
+        )}
         {/* 내용 입력 */}
         <div className="mb-6">
           <h5 className="text-dg mb-2">내용</h5>
           <textarea
-            placeholder="오늘은 어떤 이야기를 나눠볼까요? 사진과 태그를 이용해 자유롭게 작성해보세요! #태그를 사용해보세요"
+            placeholder={`오늘은 어떤 이야기를 나눠볼까요? \n*개인 파양글을 올리실 경우 삭제처리됩니다.`}
             value={content}
             onChange={handleContentChange}
             className="w-full h-32 p-4 border border-lg rounded-md resize-none text-body placeholder:text-gr focus:outline-none focus:border-brand"
@@ -594,21 +608,6 @@ export default function CommunityEditPage({
                   #{tag}
                 </button>
               ))}
-            </div>
-          )}
-
-          {/* 시스템 태그 드롭다운 (CustomInput) */}
-          {Array.isArray(systemTags) && systemTags.length > 0 && (
-            <div className="mt-2">
-              <CustomInput
-                variant="tagdropdown"
-                placeholder="태그를 선택하세요"
-                value={tags.length > 0 ? `태그 ${tags.length}개 선택됨` : ""}
-                options={systemTags
-                  .filter((t) => !tags.includes(t.name))
-                  .map((t) => t.name)}
-                onChangeOption={(selected) => addTag(selected)}
-              />
             </div>
           )}
         </div>
@@ -647,7 +646,7 @@ export default function CommunityEditPage({
 
         {/* 사진/영상 업로드 */}
         <div className="mb-6">
-          <h5 className="text-dg mb-2">사진 / 영상 업로드</h5>
+          <h5 className="text-dg mb-2">사진 업로드</h5>
           <div className="flex gap-3 flex-wrap">
             {/* 업로드 버튼 - 총 5개 미만일 때만 표시 */}
             {existingImageUrls.length + newImageUrls.length < 5 && (

@@ -1,12 +1,15 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ImageCard } from "@/components/ui/ImageCard";
-import { CustomInput } from "@/components/ui/CustomInput";
-import { SearchInput } from "@/components/ui/SearchInput";
-import { CustomModal } from "@/components/ui";
-import { AddButton } from "@/components/ui/AddButton";
-import { BottomSheet } from "@/components/ui/BottomSheet";
+import {
+  ImageCard,
+  BottomSheet,
+  CustomInput,
+  SearchInput,
+  CustomModal,
+  AddButton,
+} from "@/components/ui";
+
 // 고정 품종 목록
 const breedList = [
   "골든 리트리버",
@@ -195,6 +198,11 @@ export default function BasicInfo({
   const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
   const [isFoundLocationDialogOpen, setIsFoundLocationDialogOpen] =
     useState(false);
+  const [baseFoundLocation, setBaseFoundLocation] = useState(
+    data.foundLocation || ""
+  );
+  const [detailAddress, setDetailAddress] = useState("");
+  const [isManualFoundLocation, setIsManualFoundLocation] = useState(false);
 
   // 품종 검색 결과 필터링
   const filteredBreeds = breedList.filter((breed) =>
@@ -215,6 +223,36 @@ export default function BasicInfo({
       setUploadedImageUrls(data.imageUrls);
     }
   }, [data.imageUrls]);
+
+  useEffect(() => {
+    if (isManualFoundLocation) {
+      return;
+    }
+
+    const combinedLocation = [baseFoundLocation, detailAddress]
+      .filter((value) => value && value.trim() !== "")
+      .join(" ");
+
+    if (!data.foundLocation) {
+      if (baseFoundLocation || detailAddress) {
+        setBaseFoundLocation("");
+        setDetailAddress("");
+      }
+      return;
+    }
+
+    if (data.foundLocation !== combinedLocation) {
+      setBaseFoundLocation(data.foundLocation);
+      if (detailAddress) {
+        setDetailAddress("");
+      }
+    }
+  }, [
+    data.foundLocation,
+    baseFoundLocation,
+    detailAddress,
+    isManualFoundLocation,
+  ]);
 
   const handleBreedSearchClick = () => {
     setTempSelectedBreed(data.breed);
@@ -312,20 +350,30 @@ export default function BasicInfo({
     return URL.createObjectURL(file);
   };
 
+  const handleFoundLocationInputChange = (value: string) => {
+    setBaseFoundLocation(value);
+    setDetailAddress("");
+    onChange({ foundLocation: value });
+  };
+
   const handleFoundLocationSearch = () => {
+    setIsManualFoundLocation(false);
     openKakaoAddress((selectedAddress: string) => {
+      setBaseFoundLocation(selectedAddress);
+      setDetailAddress("");
       onChange({ foundLocation: selectedAddress });
     });
   };
 
   const handleDetailAddressChange = (detailAddress: string) => {
-    // 기존 주소가 있으면 합치고, 없으면 상세주소만 저장
-    const currentLocation = data.foundLocation;
-    if (currentLocation && !currentLocation.includes(detailAddress)) {
-      onChange({ foundLocation: `${currentLocation} ${detailAddress}`.trim() });
-    } else {
-      onChange({ foundLocation: detailAddress });
-    }
+    const combinedLocation = detailAddress
+      ? [baseFoundLocation, detailAddress]
+          .filter((value) => value && value.trim() !== "")
+          .join(" ")
+      : baseFoundLocation;
+
+    setDetailAddress(detailAddress);
+    onChange({ foundLocation: combinedLocation });
   };
 
   const showToastMessage = (
@@ -483,27 +531,41 @@ export default function BasicInfo({
           placeholder="예) 갈색, 검은색, 흰색"
           value={data.color}
           onChange={(e) => onChange({ color: e.target.value })}
-          required={true}
+          required={false}
         />
         <div className="flex flex-col gap-2">
           <h5 className="text-dg">발견장소</h5>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col">
             <div
-              onClick={() => setIsFoundLocationDialogOpen(true)}
-              className="cursor-pointer"
+              onClick={() => {
+                if (!isManualFoundLocation) {
+                  setIsFoundLocationDialogOpen(true);
+                }
+              }}
+              className={
+                isManualFoundLocation ? "cursor-text" : "cursor-pointer"
+              }
             >
               <SearchInput
+                key={isManualFoundLocation ? "manual" : "search"}
                 variant="variant2"
                 placeholder="주소를 검색해보세요"
-                value={data.foundLocation}
-                onChange={(e) => onChange({ foundLocation: e.target.value })}
-                onSearch={() => setIsFoundLocationDialogOpen(true)}
+                value={baseFoundLocation}
+                onChange={(e) => handleFoundLocationInputChange(e.target.value)}
+                onSearch={() => {
+                  if (isManualFoundLocation) {
+                    setIsManualFoundLocation(false);
+                  }
+                  setIsFoundLocationDialogOpen(true);
+                }}
+                readOnly={!isManualFoundLocation}
+                autoFocus={isManualFoundLocation}
               />
             </div>
             <CustomInput
               variant="primary"
-              placeholder="직접입력/상세주소를 입력해주세요 (예: 101동 201호, 상가 1층)"
-              value={data.foundLocation}
+              placeholder="상세주소를 입력해주세요 (예: 101동 201호, 상가 1층)"
+              value={detailAddress}
               onChange={(e) => handleDetailAddressChange(e.target.value)}
               id="detailAddress"
             />
@@ -620,13 +682,8 @@ export default function BasicInfo({
         leftButtonText="직접입력"
         rightButtonText="주소찾기"
         onLeftClick={() => {
+          setIsManualFoundLocation(true);
           setIsFoundLocationDialogOpen(false);
-          setTimeout(() => {
-            const el = document.getElementById(
-              "detailAddress"
-            ) as HTMLInputElement | null;
-            el?.focus();
-          }, 0);
         }}
         onRightClick={() => {
           setIsFoundLocationDialogOpen(false);

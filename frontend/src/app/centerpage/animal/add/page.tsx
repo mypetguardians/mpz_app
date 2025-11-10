@@ -7,6 +7,7 @@ import { ArrowLeft } from "@phosphor-icons/react";
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
+import { BottomSheet } from "@/components/ui";
 import BasicInfo from "./_components/BasicInfo";
 import DetailInfo from "./_components/DetailInfo";
 import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
@@ -109,6 +110,7 @@ const initialFormData: FormData = {
 export default function AddAnimal() {
   const router = useRouter();
   const [formData, setFormData] = useState<FormData>(initialFormData);
+  const [showBackConfirmSheet, setShowBackConfirmSheet] = useState(false);
   const createAnimalMutation = useCreateAnimal();
   const uploadImagesMutation = useUploadImages();
   const { data: myCenter } = useGetMyCenter();
@@ -116,7 +118,16 @@ export default function AddAnimal() {
   const isSubscriber = myCenter?.isSubscriber === true;
 
   const handleBack = () => {
-    router.push("/centerpage/aminal");
+    setShowBackConfirmSheet(true);
+  };
+
+  const handleCancelBack = () => {
+    setShowBackConfirmSheet(false);
+  };
+
+  const handleConfirmBack = () => {
+    setShowBackConfirmSheet(false);
+    router.push("/centerpage/animal");
   };
 
   const handleBasicInfoChange = (data: Partial<FormData["basicInfo"]>) => {
@@ -257,7 +268,7 @@ export default function AddAnimal() {
               size="iconM"
               onClick={handleBack}
             />
-            <h4>새로운 아이 업로드</h4>
+            <h4>동물 정보 업로드</h4>
           </div>
         }
         right={<h6 className="text-gr">{/* 공공데이터 매칭 */}</h6>}
@@ -282,6 +293,17 @@ export default function AddAnimal() {
         primaryButtonText="등록하기"
         onApplyButtonClick={handleSubmit}
         applyButtonDisabled={isLoading}
+      />
+      <BottomSheet
+        open={showBackConfirmSheet}
+        onClose={handleCancelBack}
+        variant="primary"
+        title="창을 닫으면 저장되지 않아요!"
+        description="작성한 내용은 저장 및 복구가 불가능해요."
+        leftButtonText="취소"
+        rightButtonText="괜찮아요"
+        onLeftClick={handleCancelBack}
+        onRightClick={handleConfirmBack}
       />
     </Container>
   );

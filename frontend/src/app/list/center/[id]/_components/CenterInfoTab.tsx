@@ -24,7 +24,6 @@ export function CenterInfoTab({
   centerNumber,
   location,
   adoptionProcedure,
-  adoptionGuidelines,
   hasMonitoring,
   hasVolunteer,
   hasFosterCare,
@@ -39,17 +38,18 @@ export function CenterInfoTab({
       : [
           {
             label: "위치",
-            value: "민간센터의 경우 위치정보를 노출하지 않습니다.",
+            value: "관리자를 통해 안내받으실 수 있습니다.",
           },
         ]),
   ].filter((item) => item.value);
 
   const adoptionDetailItems: InfoItem[] = [
     { label: "입양 절차", value: adoptionProcedure || "" },
-    { label: "입양 가이드라인", value: adoptionGuidelines || "" },
     {
       label: "모니터링",
-      value: hasMonitoring ? "사후 모니터링 필수" : "사후 모니터링 안 함",
+      value: hasMonitoring
+        ? "입양 후 모니터링 진행"
+        : "입양 후 모니터링 미진행",
     },
     { label: "봉사", value: hasVolunteer ? "가능" : "불가능" },
     {

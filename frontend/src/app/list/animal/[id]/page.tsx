@@ -566,9 +566,86 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
           location={((): string => {
             if (!center?.location) return center?.region || "";
 
-            // 주소에서 시/군 추출 (예: "서울시 강남구" -> "서울시", "경기도 수원시" -> "수원시")
-            const match = center.location.match(/([가-힣]+(?:시|군))/);
-            return match ? match[1] : center?.region || "";
+            // 행정구역 표기 규칙:
+            // - 서울은 "서울특별시"
+            // - 6대 광역시는 "OO광역시" (부산/대구/인천/광주/대전/울산)
+            // - 그 외는 "도 시" 형태 (예: "경기도 수원시")
+            // - 약어(경기/충남/충북/전남/전북/경남/경북/강원), 세종/제주 예외 처리
+            const loc = center.location.replace(/\s+/g, " ").trim();
+            const firstToken = loc.split(" ")[0] || "";
+
+            // 1) 서울특별시
+            if (/^서울/.test(loc)) {
+              return "서울특별시";
+            }
+
+            // 2) 광역시들
+            const metroMap: Record<string, string> = {
+              부산: "부산광역시",
+              대구: "대구광역시",
+              인천: "인천광역시",
+              광주: "광주광역시",
+              대전: "대전광역시",
+              울산: "울산광역시",
+            };
+            for (const key in metroMap) {
+              if (new RegExp(`^${key}`).test(loc)) {
+                return metroMap[key];
+              }
+            }
+
+            // 3) 세종/제주 특별자치
+            if (/^세종/.test(loc)) {
+              return "세종특별자치시";
+            }
+            if (/^제주/.test(loc)) {
+              return "제주특별자치도";
+            }
+
+            // 4) 도/시 추출 및 약어 보정
+            // 예: "경기도 수원시 영통구" -> "경기도 수원시"
+            const provinceMatch = loc.match(/([가-힣]+도)/);
+            const cityMatch = loc.match(/([가-힣]+시)/);
+            let provinceName = provinceMatch ? provinceMatch[1] : "";
+
+            // 약어 보정: 경기도/충청남도/충청북도/전라남도/전라북도/경상남도/경상북도/강원도
+            const provinceShortMap: Record<string, string> = {
+              경기: "경기도",
+              충남: "충청남도",
+              충북: "충청북도",
+              전남: "전라남도",
+              전북: "전라북도",
+              경남: "경상남도",
+              경북: "경상북도",
+              강원: "강원도",
+            };
+            if (!provinceName && provinceShortMap[firstToken]) {
+              provinceName = provinceShortMap[firstToken];
+            }
+
+            if (provinceName && cityMatch) {
+              return `${provinceName} ${cityMatch[1]}`;
+            }
+
+            // 4) 도 없이 시만 있는 경우: 시만 반환
+            if (cityMatch) {
+              return cityMatch[1];
+            }
+
+            // 5) 군 단위만 있는 경우: (도 + 군) 또는 군만 반환
+            const countyMatch = loc.match(/([가-힣]+군)/);
+            if (countyMatch) {
+              return provinceName
+                ? `${provinceName} ${countyMatch[1]}`
+                : countyMatch[1];
+            }
+
+            // 6) 도만 있는 경우: 도만 반환
+            if (provinceName) {
+              return provinceName;
+            }
+
+            return center?.region || "";
           })()}
         />
       </Container>
@@ -578,7 +655,7 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
           variant="variant3"
           leftButtonText="임시 보호"
           onLeftButtonClick={handleFosterClick}
-          primaryButtonText="입양 신청"
+          primaryButtonText="입양 문의"
           onPrimaryButtonClick={handleAdoptionClick}
           showDivider
           rightIcon1={
@@ -602,7 +679,7 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
       ) : (
         <FixedBottomBar
           variant="variant1"
-          primaryButtonText="입양 신청"
+          primaryButtonText="입양 문의"
           onPrimaryButtonClick={handleAdoptionClick}
           showDivider
           rightIcon1={
@@ -677,7 +754,11 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
         ctaText="카카오톡으로 로그인하기"
         onCtaClick={() => {
           setShowLoginModal(false);
-          router.push("/login");
+          const currentUrl =
+            typeof window !== "undefined"
+              ? window.location.pathname + (window.location.search || "")
+              : `/list/animal/${id}`;
+          router.push(`/login?redirect=${encodeURIComponent(currentUrl)}`);
         }}
         subLinkText="나중에 하기"
         onSubLinkClick={() => setShowLoginModal(false)}
@@ -741,7 +822,7 @@ export default function AnimalDetailPage({ params }: AnimalDetailPageProps) {
         variant="variant1"
         leftButtonText="전화하기"
         onLeftClick={() => setShowAdoptionProcedureModal(false)}
-        rightButtonText="입양 신청하기"
+        rightButtonText="입양문의하기"
         onRightClick={handleAdoptionProcedureConfirm}
       />
     </>

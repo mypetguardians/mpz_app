@@ -30,7 +30,6 @@ export default function SubscriberDetails({
   sociability = 0,
   separationAnxiety = 0,
   healthNotes = [],
-  basicTraining,
   trainerName,
   trainerComment,
   className,
@@ -83,7 +82,7 @@ export default function SubscriberDetails({
 
       {/* 건강 특이사항 */}
       <div className="mb-3">
-        <h5 className="mb-1 text-gr">건강 특이사항</h5>
+        <h5 className="mb-1 text-gr">건강 기록</h5>
         {healthNotes && healthNotes.length > 0 ? (
           <ul className="space-y-1">
             {healthNotes.map((note, index) => (
@@ -101,20 +100,10 @@ export default function SubscriberDetails({
         )}
       </div>
 
-      {/* 기본 훈련 여부 */}
-      <div className="mb-3">
-        <h5 className="mb-1 text-gr">기본 훈련 여부</h5>
-        {basicTraining ? (
-          <p className="text-sm text-gray-700">{basicTraining}</p>
-        ) : (
-          <p className="text-sm text-gray-700">내용이 없습니다.</p>
-        )}
-      </div>
-
       {/* 훈련사 한 마디 */}
       <div className="mb-3">
         <h5 className="mb-1 text-gr">전문가 한 마디</h5>
-       
+
         {trainerComment ? (
           <p className="text-sm leading-relaxed text-gray-700">
             {trainerComment}
@@ -122,7 +111,7 @@ export default function SubscriberDetails({
         ) : (
           <p className="text-sm text-gray-700">내용이 없습니다.</p>
         )}
-         {trainerName && (
+        {trainerName && (
           <p className="mb-2 text-sm text-gray-600">
             <span className="font-medium">훈련사:</span> {maskName(trainerName)}
           </p>

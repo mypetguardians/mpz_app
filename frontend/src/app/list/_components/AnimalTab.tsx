@@ -236,6 +236,12 @@ function AnimalTab() {
     params.delete("protectionStatus");
     params.delete("expertOpinion");
 
+    try {
+      localStorage.removeItem("animalFilters");
+    } catch {
+      // noop
+    }
+
     // 현재 페이지로 이동 (필터만 제거)
     const queryString = params.toString();
     const targetUrl = queryString ? `?${queryString}` : "";
@@ -375,32 +381,30 @@ function AnimalCardWithFavorite({
           pet={transformRawAnimalToPetCard(animal)}
           variant="primary"
           imageSize="full"
-          className="w-full pb-3"
-        />
-
-        {isAuthenticated && (
-          <div
-            className="absolute bottom-2 right-2"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <IconButton
-              icon={({ size, className }) => (
-                <Heart
-                  size={size}
-                  className={cn(
-                    className,
-                    isLiked ? "text-brand" : "text-lg",
-                    isLiked && "fill-current"
+          className="w-full"
+          imageOverlay={
+            isAuthenticated ? (
+              <div onClick={(e) => e.stopPropagation()}>
+                <IconButton
+                  icon={({ size, className }) => (
+                    <Heart
+                      size={size}
+                      className={cn(
+                        className,
+                        isLiked ? "text-brand" : "text-lg",
+                        isLiked && "fill-current"
+                      )}
+                      weight={isLiked ? "fill" : "regular"}
+                    />
                   )}
-                  weight={isLiked ? "fill" : "regular"}
+                  size="iconM"
+                  label="찜"
+                  onClick={() => onLikeToggle(animal.id)}
                 />
-              )}
-              size="iconM"
-              label="찜"
-              onClick={() => onLikeToggle(animal.id)}
-            />
-          </div>
-        )}
+              </div>
+            ) : undefined
+          }
+        />
       </div>
     </div>
   );

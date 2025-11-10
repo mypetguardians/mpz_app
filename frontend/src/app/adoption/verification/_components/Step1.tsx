@@ -100,10 +100,13 @@ export function Step1({ onNext }: StepProps) {
       setStage("otp");
     } catch (error: unknown) {
       console.error("OTP 발급 실패:", error);
-      const errorMessage =
-        (error as { response?: { data?: { message?: string } } })?.response
-          ?.data?.message ||
-        "인증번호 발송에 실패했습니다. 다시 시도해주세요.";
+      let errorMessage = "인증번호 발송에 실패했습니다. 다시 시도해주세요.";
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (typeof data?.message === "string") {
+          errorMessage = data.message;
+        }
+      }
       showErrorToast(errorMessage);
     }
   };
@@ -151,10 +154,13 @@ export function Step1({ onNext }: StepProps) {
       setShowToast(true);
     } catch (error: unknown) {
       console.error("OTP 재전송 실패:", error);
-      const errorMessage =
-        (error as { response?: { data?: { message?: string } } })?.response
-          ?.data?.message ||
-        "인증번호 재전송에 실패했습니다. 다시 시도해주세요.";
+      let errorMessage = "인증번호 재전송에 실패했습니다. 다시 시도해주세요.";
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (typeof data?.message === "string") {
+          errorMessage = data.message;
+        }
+      }
       showErrorToast(errorMessage);
     }
   };

@@ -28,7 +28,7 @@ export default function CenterSettingName() {
 
   // 폼 상태
   const [centerName, setCenterName] = useState("");
-  const [centerNumber, setCenterNumber] = useState("");
+  const [centerPhoneNumber, setCenterPhoneNumber] = useState("");
   const [address, setAddress] = useState("");
   const [addressDetail, setAddressDetail] = useState("");
   const [callAvailableTime, setCallAvailableTime] = useState("");
@@ -54,7 +54,7 @@ export default function CenterSettingName() {
   useEffect(() => {
     if (myCenter) {
       setCenterName(myCenter.name || "");
-      setCenterNumber(myCenter.centerNumber || "");
+      setCenterPhoneNumber(myCenter.phoneNumber || "");
       setAddress(myCenter.location || "");
       setCallAvailableTime(myCenter.callAvailableTime || "");
       setIsPublicAddress(
@@ -107,7 +107,7 @@ export default function CenterSettingName() {
       return;
     }
 
-    if (!centerNumber.trim()) {
+    if (!centerPhoneNumber.trim()) {
       showToastMessage("보호센터 전화번호를 입력해주세요.");
       return;
     }
@@ -185,7 +185,7 @@ export default function CenterSettingName() {
 
       const updateData = {
         name: centerName.trim(),
-        center_number: centerNumber.trim() || undefined,
+        phone_number: centerPhoneNumber.trim() || undefined,
         location: address.trim(),
         call_available_time: callAvailableTime.trim() || undefined,
         is_public: isPublicAddress === "모두에게 공개",
@@ -315,8 +315,8 @@ export default function CenterSettingName() {
           label="보호센터 전화번호"
           placeholder="보호센터 전화번호를 입력해주세요."
           required={true}
-          value={centerNumber}
-          onChange={(e) => setCenterNumber(e.target.value)}
+          value={centerPhoneNumber}
+          onChange={(e) => setCenterPhoneNumber(e.target.value)}
         />
         <div className="flex flex-col gap-3">
           <h5 className="text-dg">

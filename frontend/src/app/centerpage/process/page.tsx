@@ -66,6 +66,12 @@ export default function CenterProcess() {
     setToast({ ...toast, show: false });
   };
 
+  const hasConsent =
+    !!consentsData && Array.isArray(consentsData) && consentsData.length > 0;
+  const hasContractTemplate =
+    !!procedureSettings?.contract_templates &&
+    procedureSettings.contract_templates.length > 0;
+
   // 기존 설정이 있으면 폼에 로드
   useEffect(() => {
     if (procedureSettings) {
@@ -214,9 +220,13 @@ export default function CenterProcess() {
                 className="text-gr"
               />
             )}
-            <Link href="/centerpage/process/create-consent">
-              <AddButton>유의사항 동의서 만들기</AddButton>
-            </Link>
+            {hasConsent ? (
+              <AddButton disabled>유의사항 동의서 만들기</AddButton>
+            ) : (
+              <Link href="/centerpage/process/create-consent">
+                <AddButton>유의사항 동의서 만들기</AddButton>
+              </Link>
+            )}
           </div>
           <div className="w-full flex flex-col gap-3">
             <h5 className="text-dg">입양 계약서</h5>
@@ -253,9 +263,13 @@ export default function CenterProcess() {
                 className="text-gr"
               />
             )}
-            <Link href="/centerpage/process/create-contract">
-              <AddButton>계약서 만들기</AddButton>
-            </Link>
+            {hasContractTemplate ? (
+              <AddButton disabled>계약서 만들기</AddButton>
+            ) : (
+              <Link href="/centerpage/process/create-contract">
+                <AddButton>계약서 만들기</AddButton>
+              </Link>
+            )}
           </div>
         </div>
         <div className="w-full flex flex-col gap-3">

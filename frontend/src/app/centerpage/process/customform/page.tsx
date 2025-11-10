@@ -13,6 +13,7 @@ import { AddButton } from "@/components/ui/AddButton";
 import { CustomInput } from "@/components/ui/CustomInput";
 import { Add } from "@/components/ui/Add";
 import { NotificationToast } from "@/components/ui/NotificationToast";
+import { BottomSheet } from "@/components/ui";
 import { useSelectedQuestionsStore } from "@/lib/stores/selectedQuestionsStore";
 import {
   useGetQuestionForms,
@@ -24,8 +25,18 @@ import {
 
 export default function CenterProcessCustomForm() {
   const router = useRouter();
+  const [showBackConfirmSheet, setShowBackConfirmSheet] = useState(false);
 
   const handleBack = () => {
+    setShowBackConfirmSheet(true);
+  };
+
+  const handleCancelBack = () => {
+    setShowBackConfirmSheet(false);
+  };
+
+  const handleConfirmBack = () => {
+    setShowBackConfirmSheet(false);
     router.back();
   };
 
@@ -392,6 +403,17 @@ export default function CenterProcessCustomForm() {
         <div className="w-full flex items-center justify-center pt-20">
           <p>질문 폼을 불러오는 중...</p>
         </div>
+        <BottomSheet
+          open={showBackConfirmSheet}
+          onClose={handleCancelBack}
+          variant="primary"
+          title="창을 닫으면 저장되지 않아요!"
+          description="작성한 내용은 저장 및 복구가 불가능해요."
+          leftButtonText="취소"
+          rightButtonText="괜찮아요"
+          onLeftClick={handleCancelBack}
+          onRightClick={handleConfirmBack}
+        />
       </Container>
     );
   }
@@ -476,7 +498,7 @@ export default function CenterProcessCustomForm() {
           <Link href="/centerpage/process/customform/preset">
             <AddButton>기존 양식에서 선택하기</AddButton>
           </Link>
-          <AddButton onClick={handleAddQuestion}>새로 만들기</AddButton>
+          <AddButton onClick={handleAddQuestion}>직접 작성하기</AddButton>
         </div>
       </div>
       <FixedBottomBar
@@ -508,6 +530,17 @@ export default function CenterProcessCustomForm() {
           duration={3000}
         />
       )}
+      <BottomSheet
+        open={showBackConfirmSheet}
+        onClose={handleCancelBack}
+        variant="primary"
+        title="창을 닫으면 저장되지 않아요!"
+        description="작성한 내용은 저장 및 복구가 불가능해요."
+        leftButtonText="취소"
+        rightButtonText="괜찮아요"
+        onLeftClick={handleCancelBack}
+        onRightClick={handleConfirmBack}
+      />
     </Container>
   );
 }

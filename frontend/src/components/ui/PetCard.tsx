@@ -27,6 +27,8 @@ interface PetCardProps {
   showUpdatedAt?: boolean;
   disableNavigation?: boolean;
   adoptionStatus?: AdoptionStatus | string;
+  // 이미지 컨테이너 내부에 겹칠 오버레이 (예: 찜 버튼)
+  imageOverlay?: React.ReactNode;
 }
 
 export function PetCard({
@@ -41,6 +43,7 @@ export function PetCard({
   showUpdatedAt = false,
   disableNavigation = false,
   adoptionStatus,
+  imageOverlay,
 }: PetCardProps) {
   const router = useRouter();
 
@@ -320,6 +323,9 @@ export function PetCard({
             fill
             className="object-cover rounded-[10px]"
           />
+          {imageOverlay && (
+            <div className="absolute bottom-2 right-2 z-10">{imageOverlay}</div>
+          )}
         </div>
         <div className="flex items-center mb-[6px] gap-1">
           {(() => {
@@ -407,6 +413,9 @@ export function PetCard({
               <GenderMale className="text-brand" weight="bold" size={16} />
             )}
           </div>
+          {imageOverlay && (
+            <div className="absolute bottom-2 right-2 z-10">{imageOverlay}</div>
+          )}
           {(currentWaitingDays || 0) > 21 && (
             <div className="absolute bottom-0 left-0 w-full bg-bk/50 text-white text-2xl px-2 py-1 rounded-b-[10px]">
               <h6>{currentWaitingDays || 0}일 째 기다리는 중</h6>
@@ -461,6 +470,9 @@ export function PetCard({
             <GenderMale className="text-brand" weight="bold" size={16} />
           )}
         </div>
+        {imageOverlay && (
+          <div className="absolute bottom-2 right-2 z-10">{imageOverlay}</div>
+        )}
         {(currentWaitingDays || 0) > 21 && (
           <div className="absolute bottom-0 left-0 w-full bg-bk/50 text-white text-2xl px-2 py-1 rounded-b-[10px]">
             <h6>{currentWaitingDays || 0}일 째 기다리는 중</h6>

@@ -271,8 +271,6 @@ function AnimalFilterContent() {
   };
 
   const handleReset = () => {
-    console.log("필터 재설정 시작");
-
     // 모든 상태 초기화
     setSelectedBreed("");
     setSelectedWeights([]);

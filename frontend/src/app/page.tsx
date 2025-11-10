@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { Headset } from "@phosphor-icons/react";
 import { Container } from "@/components/common/Container";
 import { NavBar } from "@/components/common/NavBar";
 import { HomeHeader } from "@/app/_components/HomeHeader";
@@ -22,10 +23,12 @@ import {
 } from "@/lib/storage-utils";
 import { useRouter } from "next/navigation";
 import { Banner } from "@/components/ui/Banner";
+import { BigButton } from "@/components/ui/BigButton";
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
+  const kakaoChannelUrl = "http://pf.kakao.com/_mbxbDn/chat";
   const [selectedLocation, setSelectedLocation] = useState<string>(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("homeLocationFilter") || "";
@@ -110,6 +113,12 @@ export default function Home() {
     setShowMatchingNotification(false);
     clearMatchingData();
     router.push("/matching/result");
+  };
+
+  const handleConsultClick = () => {
+    if (typeof window !== "undefined") {
+      window.open(kakaoChannelUrl, "_blank", "noopener,noreferrer");
+    }
   };
 
   // 캐러셀 로직 제거
@@ -199,6 +208,16 @@ export default function Home() {
       <FooterSection />
 
       <NavBar />
+
+      <div className="fixed bottom-20 right-12 z-50">
+        <BigButton
+          variant="primary"
+          className="px-3 shadow-lg w-12 h-12"
+          onClick={handleConsultClick}
+        >
+          <Headset size={18} weight="bold" />
+        </BigButton>
+      </div>
     </Container>
   );
 }

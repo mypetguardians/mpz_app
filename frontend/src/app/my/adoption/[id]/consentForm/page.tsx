@@ -64,10 +64,6 @@ export default function ConsentFormPage({ params }: ConsentFormPageProps) {
     (consent) => consent.id === selectedConsentId
   );
 
-  const handleBack = () => {
-    router.push(`/my/adoption/${id}/request`);
-  };
-
   if (isLoading || isConsentsLoading) {
     return (
       <Container className="min-h-screen">
@@ -78,7 +74,7 @@ export default function ConsentFormPage({ params }: ConsentFormPageProps) {
               <IconButton
                 icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
                 size="iconM"
-                onClick={handleBack}
+                onClick={() => router.back()}
               />
               <h4>동의서</h4>
             </div>
@@ -101,7 +97,7 @@ export default function ConsentFormPage({ params }: ConsentFormPageProps) {
               <IconButton
                 icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
                 size="iconM"
-                onClick={handleBack}
+                onClick={() => router.back()}
               />
               <h4>동의서</h4>
             </div>
@@ -127,7 +123,7 @@ export default function ConsentFormPage({ params }: ConsentFormPageProps) {
               <IconButton
                 icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
                 size="iconM"
-                onClick={handleBack}
+                onClick={() => router.back()}
               />
               <h4>동의서</h4>
             </div>

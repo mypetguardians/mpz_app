@@ -2,7 +2,7 @@
 
 import { ArrowLeft } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
@@ -15,10 +15,12 @@ import {
   useMarkNotificationRead,
   useMarkAllNotificationsRead,
 } from "@/hooks/mutation";
+import { useGetMyCenter } from "@/hooks/query/useGetMyCenter";
+import type { Notification as NotificationType } from "@/types/notifications";
 
 export default function Notification() {
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const {
     data: notificationsData,
     isLoading,
@@ -49,6 +51,197 @@ export default function Notification() {
     socketConnected && socketNotifications.length > 0
       ? socketNotifications
       : allNotifications;
+
+  const isCenterUser =
+    user?.userType === "센터관리자" || user?.userType === "센터최고관리자";
+  const { data: myCenter } = useGetMyCenter({ enabled: isCenterUser });
+
+  const centerIds = useMemo(() => {
+    if (!user) return [];
+
+    const ids = new Set<string>();
+    const pushId = (value: unknown) => {
+      if (value === undefined || value === null) return;
+      if (typeof value === "string" || typeof value === "number") {
+        ids.add(String(value));
+      }
+    };
+
+    const collectFromObject = (value: unknown) => {
+      if (!value || typeof value !== "object") return;
+
+      if ("id" in (value as Record<string, unknown>)) {
+        pushId((value as { id?: unknown }).id);
+      }
+    };
+
+    const userRecord =
+      user && typeof user === "object"
+        ? (user as unknown as Record<string, unknown>)
+        : null;
+
+    if (userRecord) {
+      if ("center" in userRecord) {
+        collectFromObject(userRecord.center);
+      }
+      if ("centerId" in userRecord) {
+        pushId(userRecord.centerId);
+      }
+      if ("center_id" in userRecord) {
+        pushId(userRecord.center_id);
+      }
+      if ("owned_center" in userRecord) {
+        collectFromObject(userRecord.owned_center);
+      }
+      if ("ownedCenter" in userRecord) {
+        collectFromObject(userRecord.ownedCenter);
+      }
+    }
+
+    if (myCenter?.id) {
+      pushId(myCenter.id);
+    }
+
+    if (Array.isArray(user?.centers)) {
+      user.centers.forEach((center) => collectFromObject(center));
+    } else if (user?.centers) {
+      collectFromObject(user.centers);
+    }
+
+    return Array.from(ids);
+  }, [user, myCenter]);
+
+  const filteredNotifications = useMemo(() => {
+    const parseMetadata = (
+      metadata: NotificationType["metadata"]
+    ): Record<string, unknown> | null => {
+      if (!metadata) return null;
+      if (typeof metadata === "string") {
+        try {
+          const parsed = JSON.parse(metadata);
+          return parsed && typeof parsed === "object" ? parsed : null;
+        } catch (error) {
+          console.error("메타데이터 파싱 실패:", error);
+          return null;
+        }
+      }
+      if (typeof metadata === "object" && !Array.isArray(metadata)) {
+        return metadata as Record<string, unknown>;
+      }
+      return null;
+    };
+
+    const collectIds = (value: unknown): string[] => {
+      const result: string[] = [];
+      if (value === null || value === undefined) return result;
+
+      if (typeof value === "string" || typeof value === "number") {
+        result.push(String(value));
+        return result;
+      }
+
+      if (Array.isArray(value)) {
+        value.forEach((item) => {
+          result.push(...collectIds(item));
+        });
+        return result;
+      }
+
+      if (typeof value === "object") {
+        const obj = value as Record<string, unknown>;
+        if ("id" in obj) {
+          result.push(...collectIds(obj.id));
+        }
+      }
+      return result;
+    };
+
+    const collectByKeys = (
+      source: Record<string, unknown>,
+      keys: string[]
+    ): string[] => {
+      return keys.flatMap((key) => collectIds(source[key]));
+    };
+
+    return notifications.filter((notification) => {
+      if (user && notification.user_id && notification.user_id !== user.id) {
+        return false;
+      }
+
+      const metadata = parseMetadata(notification.metadata);
+      if (!metadata) {
+        return true;
+      }
+
+      if (isCenterUser && centerIds.length > 0) {
+        const centerRelatedIds = [
+          ...collectByKeys(metadata, [
+            "center_id",
+            "centerId",
+            "centerID",
+            "animal_center_id",
+            "adoption_center_id",
+            "owner_center_id",
+          ]),
+        ];
+
+        const nestedCenterSources = ["center", "animal", "adoption"];
+        nestedCenterSources.forEach((key) => {
+          const value = metadata[key];
+          if (value && typeof value === "object" && !Array.isArray(value)) {
+            centerRelatedIds.push(
+              ...collectByKeys(value as Record<string, unknown>, [
+                "center_id",
+                "centerId",
+              ])
+            );
+          }
+        });
+
+        if ("related_center_ids" in metadata) {
+          centerRelatedIds.push(
+            ...collectIds(metadata.related_center_ids as unknown)
+          );
+        }
+
+        if (centerRelatedIds.length === 0) {
+          return true;
+        }
+
+        return centerRelatedIds.some((id) => centerIds.includes(id));
+      }
+
+      if (user && !isCenterUser) {
+        const userRelatedIds = [
+          ...collectByKeys(metadata, [
+            "user_id",
+            "userId",
+            "applicant_id",
+            "applicantId",
+            "adoption_user_id",
+            "owner_id",
+            "ownerId",
+            "writer_id",
+            "writerId",
+          ]),
+        ];
+
+        if ("user" in metadata && metadata.user) {
+          userRelatedIds.push(
+            ...collectIds((metadata.user as Record<string, unknown>).id)
+          );
+        }
+
+        if (userRelatedIds.length === 0) {
+          return true;
+        }
+
+        return userRelatedIds.includes(user.id);
+      }
+
+      return true;
+    });
+  }, [notifications, user, isCenterUser, centerIds]);
 
   // 소켓 연결 상태에 따른 데이터 소스 결정
   useEffect(() => {
@@ -116,28 +309,46 @@ export default function Notification() {
     router.back();
   };
 
-  const handleNotificationClick = (notificationId: string, isRead: boolean) => {
-    if (isRead) return;
+  const resolveActionUrl = useCallback(
+    (notification: NotificationType): string | null => {
+      const original = notification.action_url;
+      if (!original) return null;
 
-    // 소켓 연결 시 소켓으로 읽음 처리, 아니면 기존 API 사용
-    if (socketConnected && useSocketData) {
-      socketMarkAsRead(notificationId);
-    } else {
-      markNotificationRead.mutate(notificationId, {
-        onSuccess: () => {
-          console.log("알림이 읽음 처리되었습니다.");
-        },
-        onError: (error) => {
-          console.error("알림 읽음 처리 실패:", error);
-        },
-      });
+      if (isCenterUser && original.startsWith("/adoptions/")) {
+        return "/centerpage/adoptorlist/application?status=신청";
+      }
+
+      return original;
+    },
+    [isCenterUser]
+  );
+
+  const handleNotificationClick = (notification: NotificationType) => {
+    if (!notification.is_read) {
+      if (socketConnected && useSocketData) {
+        socketMarkAsRead(notification.id);
+      } else {
+        markNotificationRead.mutate(notification.id, {
+          onSuccess: () => {
+            console.log("알림이 읽음 처리되었습니다.");
+          },
+          onError: (error) => {
+            console.error("알림 읽음 처리 실패:", error);
+          },
+        });
+      }
+    }
+
+    const actionUrl = resolveActionUrl(notification);
+    if (actionUrl) {
+      router.push(actionUrl);
     }
   };
 
   const handleMarkAllAsRead = () => {
     // 소켓 연결 시 소켓으로 전체 읽음 처리, 아니면 기존 API 사용
     if (socketConnected && useSocketData) {
-      notifications.forEach((notification) => {
+      filteredNotifications.forEach((notification) => {
         if (!notification.is_read) {
           socketMarkAsRead(notification.id);
         }
@@ -290,7 +501,7 @@ export default function Notification() {
         }
       />
       <div className="flex flex-col">
-        {notifications.length === 0 ? (
+        {filteredNotifications.length === 0 ? (
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <p className="text-gray-500">아직 받은 알림이 없어요.</p>
@@ -298,7 +509,7 @@ export default function Notification() {
           </div>
         ) : (
           <>
-            {notifications.map((item) => (
+            {filteredNotifications.map((item) => (
               <NotificationCard
                 key={item.id}
                 variant="primary"
@@ -306,9 +517,7 @@ export default function Notification() {
                 date={item.created_at}
                 type={item.notification_type}
                 isRead={item.is_read}
-                onClick={() =>
-                  handleNotificationClick(item.id.toString(), item.is_read)
-                }
+                onClick={() => handleNotificationClick(item)}
               />
             ))}
 
@@ -320,11 +529,13 @@ export default function Notification() {
             )}
 
             {/* 모든 알림을 불러온 경우 */}
-            {!useSocketData && !hasNextPage && notifications.length > 0 && (
-              <div className="flex items-center justify-center py-8">
-                <p className="text-gray-500">모든 알림을 불러왔습니다.</p>
-              </div>
-            )}
+            {!useSocketData &&
+              !hasNextPage &&
+              filteredNotifications.length > 0 && (
+                <div className="flex items-center justify-center py-8">
+                  <p className="text-gray-500">모든 알림을 불러왔습니다.</p>
+                </div>
+              )}
           </>
         )}
       </div>

@@ -20,22 +20,32 @@ export interface User {
   image?: string;
   userType: string;
   // 센터 정보 (센터관리자인 경우)
-  centers?: {
-    id: string;
-    name: string;
-    centerNumber: string | null;
-    description: string | null;
-    location: string | null;
-    region: string | null;
-    phoneNumber: string | null;
-    verified: boolean;
-    isPublic: boolean;
-    adoptionPrice: number;
-    imageUrl: string | null;
-    isSubscriber: boolean;
-    createdAt: string;
-    updatedAt: string;
-  } | null;
+  centers?:
+    | {
+        id: string;
+        name: string;
+        centerNumber: string | null;
+        description: string | null;
+        location: string | null;
+        region: string | null;
+        phoneNumber: string | null;
+        verified: boolean;
+        isPublic: boolean;
+        adoptionPrice: number;
+        imageUrl: string | null;
+        isSubscriber: boolean;
+        createdAt: string;
+        updatedAt: string;
+      }
+    | Array<{
+        id: string;
+        name?: string;
+      }>
+    | null;
+  center?: { id: string } | null;
+  centerId?: string | null;
+  owned_center?: { id: string } | null;
+  ownedCenter?: { id: string } | null;
   // 매칭 세션 정보
   matchingSession?: {
     id: string;

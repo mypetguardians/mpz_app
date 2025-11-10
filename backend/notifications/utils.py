@@ -321,7 +321,7 @@ async def send_adoption_update_notification(user_id: str, adoption_status: str, 
     # action_url 설정 (입양 신청 상세 페이지로 이동)
     action_url = None
     if adoption_id:
-        action_url = f"/my-adoptions/{adoption_id}"
+        action_url = f"/my/adoption"
     
     await create_and_send_notification(
         user_id=user_id,
@@ -340,7 +340,7 @@ async def send_monitoring_reminder_notification(user_id: str, reminder_type: str
     # action_url 설정 (모니터링 페이지로 이동)
     action_url = None
     if adoption_id:
-        action_url = f"/my-adoptions/{adoption_id}/monitoring"
+        action_url = f"/my/adoption/{adoption_id}/monitoring"
     
     await create_and_send_notification(
         user_id=user_id,
@@ -387,10 +387,13 @@ async def create_notification_for_center_users(center_id: str, notification_type
     
     @sync_to_async
     def create_center_notifications():
-        # 센터의 소유자와 관리자들을 찾기
+        # 센터의 소유자와 해당 센터에 소속된 관리자들을 찾기
         center_users = User.objects.filter(
-            models.Q(owned_center__id=center_id) |  # 센터 소유자
-            models.Q(user_type__in=['센터관리자', '센터최고관리자'])  # 센터 관리자
+            models.Q(owned_center__id=center_id)  # 센터 소유자
+            | models.Q(
+                center__id=center_id,
+                user_type__in=["센터관리자", "센터최고관리자"],
+            )  # 센터 소속 관리자
         ).distinct()
         
         notifications = []
@@ -523,7 +526,7 @@ async def notify_new_adoption_application(adoption_id: str):
     adoption = await get_adoption_info()
     
     message = f"{adoption.user.nickname}님이 {adoption.animal.name}의 입양을 신청했습니다."
-    action_url = f"/adoptions/{adoption.id}"
+    action_url = f"/centerpage/adoptorlist/application?status=신청"
     metadata = {
         'adoption_id': str(adoption.id),
         'animal_id': str(adoption.animal.id),

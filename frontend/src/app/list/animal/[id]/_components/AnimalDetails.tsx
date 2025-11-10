@@ -56,7 +56,7 @@ export default function AnimalDetails({
               {specialNotes && (
                 <tr className="h-8">
                   <td className="text-gr h5 py-1 pr-3 align-top w-24">
-                    상세 특이사항
+                    특이사항
                   </td>
                   <td className="text-sm py-1">
                     <div>{specialNotes}</div>
@@ -66,7 +66,7 @@ export default function AnimalDetails({
             </>
           )}
           <tr className="h-8">
-            <td className="text-gr h5 py-1 pr-3 align-top w-24">특이사항</td>
+            <td className="text-gr h5 py-1 pr-3 align-top w-24">성격</td>
             <td className="text-sm py-1">
               <div>{description}</div>
             </td>

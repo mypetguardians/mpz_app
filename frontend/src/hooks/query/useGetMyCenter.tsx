@@ -6,7 +6,12 @@ import {
   RawCenterResponse,
 } from "@/types/center";
 
-export const useGetMyCenter = () => {
+interface UseGetMyCenterOptions {
+  enabled?: boolean;
+}
+
+export const useGetMyCenter = (options?: UseGetMyCenterOptions) => {
+  const { enabled = true } = options ?? {};
   return useQuery({
     queryKey: ["myCenter"],
     queryFn: async (): Promise<Center> => {
@@ -14,6 +19,7 @@ export const useGetMyCenter = () => {
       const rawData: RawCenterResponse = response.data;
       return transformRawCenterToCenter(rawData);
     },
+    enabled,
   });
 };
 

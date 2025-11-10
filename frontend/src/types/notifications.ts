@@ -8,7 +8,7 @@ export interface Notification {
   is_read: boolean;
   read_at: string | null;
   action_url: string | null;
-  metadata: string | null;
+  metadata: Record<string, unknown> | string | null;
   created_at: string;
   updated_at: string;
 }

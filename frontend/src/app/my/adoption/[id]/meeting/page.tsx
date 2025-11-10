@@ -98,7 +98,7 @@ export default function MeetingPage({
               <IconButton
                 icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
                 size="iconM"
-                onClick={handleBack}
+                onClick={() => router.back()}
               />
               <h4>면담 상세</h4>
             </div>

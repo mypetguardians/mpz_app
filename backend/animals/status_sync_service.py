@@ -264,7 +264,7 @@ class PublicDataStatusSyncService:
             
             # 업데이트된 경우 DB에 저장
             if updated:
-                animal.public_update_time = timezone.now()  # 마지막 업데이트 시간 기록
+                # updated_at은 자동으로 갱신되므로 별도 설정 불필요
                 await sync_to_async(animal.save)()
                 return True
             
@@ -307,7 +307,7 @@ class PublicDataStatusSyncService:
             Animal.objects.filter(
                 is_public_data=True,
                 public_notice_number__isnull=False,
-                public_update_time__gte=timezone.now() - timedelta(days=days_back)
+                updated_at__gte=timezone.now() - timedelta(days=days_back)
             ).values_list('public_notice_number', flat=True)
         )
         

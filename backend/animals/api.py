@@ -1266,7 +1266,7 @@ async def get_public_data_status(request: HttpRequest):
         # 최근 업데이트 시간
         latest_update = await Animal.objects.filter(
             is_public_data=True
-        ).order_by('-public_update_time').values_list('public_update_time', flat=True).afirst()
+        ).order_by('-updated_at').values_list('updated_at', flat=True).afirst()
         
         return 200, PublicDataStatusOut(
             total_public_animals=total_public_animals,

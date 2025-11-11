@@ -17,7 +17,7 @@ import {
   weightOptions,
   ageOptions,
   genderOptions,
-  protectionStatusOptions,
+  animalProtectionStatusOptions,
   //expertOpinionOptions,
   regionOptions,
 } from "@/data/filterOptions";
@@ -308,7 +308,7 @@ function AnimalFilterContent() {
         }
       />
 
-      <div className="flex flex-col w-full gap-6 px-4 py-3 pb-20">
+      <div className="flex flex-col w-full gap-6 px-4 py-3 pb-24">
         {/* 품종 (Breed) */}
         <BreedFilter
           selectedBreed={selectedBreed}
@@ -358,33 +358,35 @@ function AnimalFilterContent() {
         {/* 보호상태 (Protection Status) */}
         <MultiSelectFilter
           title="보호상태"
-          options={protectionStatusOptions}
+          options={animalProtectionStatusOptions}
           selectedValues={selectedProtectionStatus}
           onSelectionChange={handleProtectionStatusChange}
         />
 
         {/* InfoCard - 마지막으로 선택된 보호상태만 표시 */}
-        {lastSelectedProtectionStatus === "입양가능" && (
-          <InfoCard>
-            입양이 가능한 아이들입니다. (보호중, 임시보호, 기증, 공고중 포함)
-          </InfoCard>
+        {lastSelectedProtectionStatus === "보호중" && (
+          <InfoCard>보호소에서 보호 중인 아이에요.</InfoCard>
         )}
-        {lastSelectedProtectionStatus === "무지개" && (
-          <InfoCard>
-            🌈 무지개 다리를 건넌 아이들입니다. (안락사, 자연사 포함)
-          </InfoCard>
+        {lastSelectedProtectionStatus === "임시보호" && (
+          <InfoCard>임시 보호자와 함께 지내는 아이에요.</InfoCard>
+        )}
+        {lastSelectedProtectionStatus === "안락사" && (
+          <InfoCard>안타깝게도 안락사 처리된 아이에요.</InfoCard>
+        )}
+        {lastSelectedProtectionStatus === "자연사" && (
+          <InfoCard>자연스럽게 무지개다리를 건넌 아이에요.</InfoCard>
         )}
         {lastSelectedProtectionStatus === "반환" && (
-          <InfoCard>원래 주인에게 돌아간 아이에요.</InfoCard>
+          <InfoCard>원래 가족에게 다시 돌아간 아이에요.</InfoCard>
+        )}
+        {lastSelectedProtectionStatus === "기증" && (
+          <InfoCard>보호소에 새롭게 들어온 아이에요.</InfoCard>
         )}
         {lastSelectedProtectionStatus === "방사" && (
-          <InfoCard>
-            동물의 생존이나 구조 목적, 예외적 상황에 따라 자연으로 돌려보낸
-            아이에요.
-          </InfoCard>
+          <InfoCard>특별한 사유로 자연으로 돌려보낸 아이에요.</InfoCard>
         )}
         {lastSelectedProtectionStatus === "입양완료" && (
-          <InfoCard>새로운 가족을 만나 입양된 아이에요.</InfoCard>
+          <InfoCard>새로운 가족을 만나 행복하게 지내는 아이에요.</InfoCard>
         )}
         {/* 
         전문가 분석 의견 (Expert Analysis Opinion)

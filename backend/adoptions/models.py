@@ -112,9 +112,9 @@ class AdoptionContract(BaseModel):
     template = models.ForeignKey(AdoptionContractTemplate, on_delete=models.CASCADE, help_text="사용된 템플릿")
     contract_content = models.TextField(help_text="실제 계약서 내용")
     guidelines_content = models.TextField(blank=True, null=True, help_text="입양 유의사항")
-    user_signature_url = models.CharField(max_length=500, blank=True, null=True, help_text="사용자 서명 이미지")
+    user_signature_url = models.TextField(blank=True, null=True, help_text="사용자 서명 데이터")
     user_signed_at = models.DateTimeField(blank=True, null=True, help_text="사용자 서명 시간")
-    center_signature_url = models.CharField(max_length=500, blank=True, null=True, help_text="센터 서명 이미지")
+    center_signature_url = models.TextField(blank=True, null=True, help_text="센터 서명 데이터")
     center_signed_at = models.DateTimeField(blank=True, null=True, help_text="센터 서명 시간")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='대기중', help_text="계약 상태")
     

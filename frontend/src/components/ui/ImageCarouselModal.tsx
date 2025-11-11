@@ -113,23 +113,22 @@ export function ImageCarouselModal({
       )}
 
       {/* 이미지 */}
-      <div className="relative w-full h-full flex items-center justify-center px-16">
+      <div className="relative w-full h-full grid place-items-center px-6 sm:px-16">
         <div
-          className="relative max-w-full max-h-full w-auto h-auto pointer-events-auto"
+          className="pointer-events-auto relative h-full w-full max-h-[90vh] max-w-[90vw]"
           onClick={(e) => e.stopPropagation()}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
-          <div className="relative w-[90vw] h-[80vh] max-w-[100vw] max-h-[90vh] overflow-auto">
-            <Image
-              src={images[currentIndex]}
-              alt={`이미지 ${currentIndex + 1}`}
-              fill
-              className="object-contain transition-opacity duration-200"
-              unoptimized
-            />
-          </div>
+          <Image
+            src={images[currentIndex]}
+            alt={`이미지 ${currentIndex + 1}`}
+            fill
+            className="object-contain object-center transition-opacity duration-200 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+            sizes="(min-width: 1024px) 70vw, 90vw"
+            unoptimized
+          />
         </div>
       </div>
 

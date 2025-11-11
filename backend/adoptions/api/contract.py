@@ -29,13 +29,19 @@ async def sign_contract(request, data: ContractSignIn):
             raise HttpError(403, "일반사용자만 계약서 서명이 가능합니다")
         
         # 계약서 조회 및 권한 확인
-        try:
-            contract = await AdoptionContract.objects.select_related('adoption').aget(
+        contract = await (
+            AdoptionContract.objects.select_related(
+                "adoption__animal__center"
+            )
+            .filter(
                 id=data.contract_id,
                 adoption__user_id=current_user.id,
                 status="대기중"
             )
-        except AdoptionContract.DoesNotExist:
+            .order_by("-created_at")
+            .afirst()
+        )
+        if not contract:
             raise HttpError(404, "서명 가능한 계약서를 찾을 수 없습니다")
         
         # 계약서에 사용자 서명 저장

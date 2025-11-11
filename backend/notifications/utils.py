@@ -555,7 +555,7 @@ async def notify_new_temporary_protection(animal_id: str):
     animal = await get_animal_info()
     
     message = f"{animal.name}이(가) 임시보호로 등록되었습니다."
-    action_url = f"/animals/{animal.id}"
+    action_url = f"/list/animal/{animal.id}"
     metadata = {
         'animal_id': str(animal.id),
         'center_id': str(animal.center.id)
@@ -582,7 +582,7 @@ async def notify_monitoring_delayed_for_center(adoption_id: str, delay_days: int
     adoption = await get_adoption_info()
     
     message = f"{adoption.user.nickname}님의 {adoption.animal.name} 모니터링이 {delay_days}일 지연되었습니다."
-    action_url = f"/adoptions/{adoption.id}/monitoring"
+    action_url = f"/centerpage/adoptorlist/application/{adoption.id}/monitoring"
     metadata = {
         'adoption_id': str(adoption.id),
         'delay_days': delay_days,
@@ -610,7 +610,7 @@ async def notify_monitoring_delayed_for_user(adoption_id: str, delay_days: int):
     adoption = await get_adoption_info()
     
     message = f"{adoption.animal.name}의 모니터링이 {delay_days}일 지연되었습니다. 지금 바로 확인해보세요."
-    action_url = f"/adoptions/my/{adoption.id}/monitoring"
+    action_url = f"/my/adoption/{adoption.id}/monitoring"
     metadata = {
         'adoption_id': str(adoption.id),
         'delay_days': delay_days
@@ -641,7 +641,7 @@ async def notify_new_comment(comment_id: str):
         return
     
     message = f"{comment.user.nickname}님이 '{comment.post.title}'에 댓글을 달았습니다. 지금 바로 확인해보세요."
-    action_url = f"/posts/{comment.post.id}"
+    action_url = f"/community/{post.id}"
     metadata = {
         'comment_id': str(comment.id),
         'post_id': str(comment.post.id),
@@ -673,7 +673,7 @@ async def notify_new_reply(reply_id: str):
         return
     
     message = f"{reply.user.nickname}님이 '{reply.comment.post.title}'의 댓글에 대댓글을 달았습니다. 지금 바로 확인해보세요."
-    action_url = f"/posts/{reply.comment.post.id}"
+    action_url = f"/community/{post.id}"
     metadata = {
         'reply_id': str(reply.id),
         'comment_id': str(reply.comment.id),

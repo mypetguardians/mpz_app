@@ -107,29 +107,21 @@ function AdoptorListTab() {
   const searchQuery = searchParams.get("search") || "";
 
   // useMemo를 사용하여 필터 배열들을 메모이제이션
-  const statusFilter = useMemo(
-    () => searchParams.get("status")?.split(",").filter(Boolean) || [],
-    [searchParams]
-  );
+  const statusFilter = useMemo(() => {
+    const statusParam = searchParams.get("status");
+    if (!statusParam) {
+      return "";
+    }
+
+    const [firstStatus] = statusParam.split(",").filter(Boolean);
+    return firstStatus || "";
+  }, [searchParams]);
 
   // API 상태 필터링을 위한 매개변수
-  const apiStatusFilter = useMemo(() => {
-    if (statusFilter.length === 0) return undefined;
-
-    // UI 상태를 API 상태로 매핑
-    const statusMap: Record<string, string[]> = {
-      "응답 대기 중": ["신청"],
-      "입양 가능": ["미팅", "계약서작성"],
-      "입양 완료": ["입양완료", "모니터링"],
-      거절: ["취소"],
-    };
-
-    const apiStatuses = statusFilter
-      .flatMap((uiStatus) => statusMap[uiStatus] || [])
-      .filter(Boolean);
-
-    return apiStatuses.length > 0 ? apiStatuses.join(",") : undefined;
-  }, [statusFilter]);
+  const apiStatusFilter = useMemo(
+    () => (statusFilter ? statusFilter : undefined),
+    [statusFilter]
+  );
 
   // useGetCenterAdoptions 훅 사용
   const {
@@ -189,7 +181,7 @@ function AdoptorListTab() {
     return (
       <div className="text-center py-8">
         <div className="text-gray-500">
-          {searchQuery || statusFilter.length > 0
+          {searchQuery || !!statusFilter
             ? "검색 결과가 없습니다"
             : "데이터가 없습니다"}
         </div>
@@ -220,7 +212,7 @@ function AdoptorListTab() {
           apiStatus={adoptor.apiStatus}
           animalName={adoptor.animalName}
           animalAdoptionStatus={adoptor.animalAdoptionStatus}
-          animalProtectionStatus={adoptor.animalProtectionStatus}
+          className="border-b border-gray-200 pb-2"
         />
       ))}
     </div>

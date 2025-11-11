@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useState } from "react";
+import React, { use } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "@phosphor-icons/react";
 
@@ -24,7 +24,6 @@ export default function AdoptionWritingPage({
   params,
 }: AdoptionWritingPageProps) {
   const router = useRouter();
-  const [userMemo, setUserMemo] = useState("");
   const { id } = use(params);
 
   // 개별 입양 신청 조회
@@ -47,13 +46,6 @@ export default function AdoptionWritingPage({
     isLoading: animalLoading,
     error: animalError,
   } = useGetAnimalById(adoptionData?.animal_id || "");
-
-  // user_memo 초기값 설정
-  React.useEffect(() => {
-    if (adoptionData?.user_memo !== undefined) {
-      setUserMemo(adoptionData.user_memo || "");
-    }
-  }, [adoptionData?.user_memo]);
 
   const handleBack = () => {
     router.back();
@@ -244,23 +236,6 @@ export default function AdoptionWritingPage({
                   </BigButton>
                 </div>
               </div>
-              
-              {/* User Memo Section */}
-              <div className="mt-4 mb-6">
-                <h3 className="mb-3 text-bk">신청자 메모</h3>
-                <div className="p-4 bg-white rounded-lg">
-                  <textarea
-                    className="w-full p-3 border border-gray-300 rounded-lg resize-none"
-                    rows={4}
-                    placeholder="입양 신청자에 대한 메모를 입력하세요..."
-                    value={userMemo}
-                    onChange={(e) => setUserMemo(e.target.value)}
-                  />
-                  <div className="mt-2 text-xs text-gray-500">
-                    이 메모는 상태 변경 시 함께 저장됩니다.
-                  </div>
-                </div>
-              </div>
             </SectionLine>
 
             <SectionLine>
@@ -303,7 +278,11 @@ export default function AdoptionWritingPage({
                                 {post.user_nickname}
                               </span>
                               <span className="text-xs text-gray-500">
-                                {new Date(post.created_at).toLocaleDateString()}
+                                {post.created_at
+                                  ? new Date(
+                                      post.created_at
+                                    ).toLocaleDateString()
+                                  : "-"}
                               </span>
                             </div>
                             <h4 className="mb-2 font-medium text-gray-900 line-clamp-2">
@@ -312,11 +291,12 @@ export default function AdoptionWritingPage({
                             <p className="text-sm text-gray-600 line-clamp-3">
                               {post.content}
                             </p>
-                            {Array.isArray(post.images) && post.images.length > 0 && (
-                              <div className="mt-3">
-                                <div className="w-16 h-16 bg-gray-200 rounded-lg"></div>
-                              </div>
-                            )}
+                            {Array.isArray(post.images) &&
+                              post.images.length > 0 && (
+                                <div className="mt-3">
+                                  <div className="w-16 h-16 bg-gray-200 rounded-lg"></div>
+                                </div>
+                              )}
                           </div>
                         </div>
                       </div>

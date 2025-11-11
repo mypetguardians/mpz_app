@@ -30,15 +30,10 @@ export default function AdoptionMonitoringPage({
   const router = useRouter();
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showToast, setShowToast] = useState(false);
-  const [userMemo, setUserMemo] = useState("");
   const { id } = use(params);
 
   // 개별 입양 신청 조회
-  const {
-    data: adoptionData,
-    isLoading,
-    error,
-  } = useGetCenterAdoption(id);
+  const { data: adoptionData, isLoading, error } = useGetCenterAdoption(id);
 
   // 입양 모니터링 포스트 조회
   const {
@@ -56,13 +51,6 @@ export default function AdoptionMonitoringPage({
     isLoading: animalLoading,
     error: animalError,
   } = useGetAnimalById(adoptionData?.animal_id || "");
-
-  // user_memo 초기값 설정
-  React.useEffect(() => {
-    if (adoptionData?.user_memo !== undefined) {
-      setUserMemo(adoptionData.user_memo || "");
-    }
-  }, [adoptionData?.user_memo]);
 
   const handleWithdrawConfirm = () => {
     setShowWithdrawModal(false);
@@ -268,23 +256,6 @@ export default function AdoptionMonitoringPage({
                   </table>
                 </div>
               </div>
-              
-              {/* User Memo Section */}
-              <div className="mt-4 mb-6">
-                <h3 className="mb-3 text-bk">신청자 메모</h3>
-                <div className="p-4 bg-white rounded-lg">
-                  <textarea
-                    className="w-full p-3 border border-gray-300 rounded-lg resize-none"
-                    rows={4}
-                    placeholder="입양 신청자에 대한 메모를 입력하세요..."
-                    value={userMemo}
-                    onChange={(e) => setUserMemo(e.target.value)}
-                  />
-                  <div className="mt-2 text-xs text-gray-500">
-                    이 메모는 상태 변경 시 함께 저장됩니다.
-                  </div>
-                </div>
-              </div>
             </SectionLine>
 
             {/* 입양 신청자가 올린 글 */}
@@ -321,16 +292,17 @@ export default function AdoptionMonitoringPage({
                     >
                       <div className="p-4 bg-white border border-gray-200 rounded-lg">
                         <div className="flex items-start gap-3">
-                        
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-2">
                               <span className="text-sm font-medium text-gray-900">
                                 모니터링 글
                               </span>
                               <span className="text-xs text-gray-500">
-                                {post.post_created_at 
-                                  ? new Date(post.post_created_at).toLocaleDateString('ko-KR')
-                                  : '날짜 정보 없음'}
+                                {post.post_created_at
+                                  ? new Date(
+                                      post.post_created_at
+                                    ).toLocaleDateString("ko-KR")
+                                  : "날짜 정보 없음"}
                               </span>
                             </div>
                             <h4 className="mb-2 font-medium text-gray-900 line-clamp-2">

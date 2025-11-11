@@ -228,11 +228,29 @@ async def kakao_login_callback(request, code: str, state: str, redirect_uri: str
     await update_jwt(user.id, access, refresh)
 
     # 상태에 따른 리다이렉트 URL 설정
-    redirect_path = "/"
+    from urllib.parse import unquote
+
+    redirect_candidate = (
+        request.GET.get("redirect")
+        or request.GET.get("redirect_path")
+        or request.GET.get("next")
+        or request.GET.get("redirect_uri")
+    )
+
+    if redirect_candidate:
+        redirect_path = unquote(redirect_candidate)
+    else:
+        redirect_path = "/"
+
+    if redirect_path and not redirect_path.startswith(("http://", "https://")):
+        if not redirect_path.startswith("/"):
+            redirect_path = f"/{redirect_path}"
+        redirect_url = f"{settings.FRONTEND_URL}{redirect_path}"
+    else:
+        redirect_url = redirect_path if redirect_path else settings.FRONTEND_URL
 
     # JWT 토큰을 쿠키에 설정하고 홈으로 리다이렉트
     try:
-        redirect_url = f"{settings.FRONTEND_URL}{redirect_path}"
         response = HttpResponseRedirect(redirect_url)
         response = utils.set_cookie_jwt(response, access, refresh, access_exp, refresh_exp, request=request)
         return response

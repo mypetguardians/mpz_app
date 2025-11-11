@@ -14,11 +14,11 @@ import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Toast } from "@/components/ui/Toast";
 import { SectionLine } from "../../_components/SectionLine";
 import { useGetCenterAdoption, useUpdateAdoptionStatus } from "@/hooks";
-/* import { useGetAdoptionMonitoringPosts } from "@/hooks/query/useGetAdoptionMonitoringPosts"; */
+import { useGetAdoptionMonitoringPosts } from "@/hooks/query/useGetAdoptionMonitoringPosts";
 import { transformRawAnimalToPetCard } from "@/types/animal";
 import { useGetAnimalById } from "@/hooks/query/useGetAnimals";
 // import type { CenterAdoptionData } from "@/types/center-adoption";
-/* import type { AdoptionMonitoringPost } from "@/types/adoption-monitoring"; */
+import type { AdoptionMonitoringPost } from "@/types/adoption-monitoring";
 
 interface AdoptionRequestPageProps {
   params: Promise<{ id: string }>;
@@ -36,18 +36,14 @@ export default function AdoptionRequestPage({
   const { id } = use(params);
 
   // 개별 입양 신청 조회
-  const {
-    data: currentAdoption,
-    isLoading,
-    error,
-  } = useGetCenterAdoption(id);
+  const { data: currentAdoption, isLoading, error } = useGetCenterAdoption(id);
 
   // 입양 모니터링 포스트 조회
-/*   const {
+  const {
     data: monitoringPostsData,
     isLoading: isPostsLoading,
     error: postsError,
-  } = useGetAdoptionMonitoringPosts(id, 1, 10); */
+  } = useGetAdoptionMonitoringPosts(id, 1, 10);
 
   // 동물 정보 가져오기 (입양 데이터에서 animal_id 추출)
   const {
@@ -240,7 +236,7 @@ export default function AdoptionRequestPage({
 
         {/* Main Content */}
         <div className="relative z-10 flex-1 -mt-4 bg-white rounded-t-3xl">
-          <div className="p-4">
+          <div className="p-4 pb-28">
             {/* Main Title */}
             <h2 className="flex justify-center mb-6 itemx-center text-bk">
               센터의 확인을 기다리고 있어요
@@ -258,7 +254,7 @@ export default function AdoptionRequestPage({
               {/* My Information */}
               <div className="mb-6">
                 <h3 className="mb-3 text-bk">입양 신청자 정보</h3>
-                <div className="p-4 bg-white rounded-lg">
+                <div className="bg-white rounded-lg">
                   <table className="w-full">
                     <tbody className="space-y-1">
                       <tr>
@@ -277,7 +273,7 @@ export default function AdoptionRequestPage({
                         </td>
                         <td className="py-1 text-sm">
                           <div className="px-3 py-1 text-gr">
-                            수락해야만 공개돼요
+                            {currentAdoption.user_info.birthDate}
                           </div>
                         </td>
                       </tr>
@@ -287,7 +283,7 @@ export default function AdoptionRequestPage({
                         </td>
                         <td className="py-1 text-sm">
                           <div className="px-3 py-1 text-gr">
-                            수락해야만 공개돼요
+                            {currentAdoption.user_info.gender}
                           </div>
                         </td>
                       </tr>
@@ -317,24 +313,6 @@ export default function AdoptionRequestPage({
                   </table>
                 </div>
               </div>
-              
-              {/* User Memo Section */}
-              <div className="mt-4 mb-6">
-                <h3 className="mb-3 text-bk">신청자 메모</h3>
-                <div className="p-4 bg-white rounded-lg">
-                  <textarea
-                    className="w-full p-3 border border-gray-300 rounded-lg resize-none"
-                    rows={4}
-                    placeholder="입양 신청자에 대한 메모를 입력하세요..."
-                    value={userMemo}
-                    onChange={(e) => setUserMemo(e.target.value)}
-                  />
-                  <div className="mt-2 text-xs text-gray-500">
-                    이 메모는 상태 변경 시 함께 저장됩니다.
-                  </div>
-                </div>
-              </div>
-              
               <div className="flex flex-col items-center gap-2">
                 <BigButton
                   variant="variant5"
@@ -353,7 +331,7 @@ export default function AdoptionRequestPage({
               </div>
             </SectionLine>
 
-       {/*      <SectionLine>
+            <SectionLine>
               <h3 className="mb-3 text-bk">입양 신청자가 올린 글</h3>
               {isPostsLoading ? (
                 <div className="flex flex-col gap-4">
@@ -393,9 +371,11 @@ export default function AdoptionRequestPage({
                                   {post.user_nickname}
                                 </span>
                                 <span className="text-xs text-gray-500">
-                                  {new Date(
-                                    post.created_at
-                                  ).toLocaleDateString()}
+                                  {post.created_at
+                                    ? new Date(
+                                        post.created_at
+                                      ).toLocaleDateString()
+                                    : "-"}
                                 </span>
                               </div>
                               <h4 className="mb-2 font-medium text-gray-900 line-clamp-2">
@@ -404,11 +384,12 @@ export default function AdoptionRequestPage({
                               <p className="text-sm text-gray-600 line-clamp-3">
                                 {post.content}
                               </p>
-                              {Array.isArray(post.images) && post.images.length > 0 && (
-                                <div className="mt-3">
-                                  <div className="w-16 h-16 bg-gray-200 rounded-lg"></div>
-                                </div>
-                              )}
+                              {Array.isArray(post.images) &&
+                                post.images.length > 0 && (
+                                  <div className="mt-3">
+                                    <div className="w-16 h-16 bg-gray-200 rounded-lg"></div>
+                                  </div>
+                                )}
                             </div>
                           </div>
                         </div>
@@ -417,27 +398,7 @@ export default function AdoptionRequestPage({
                   )}
                 </div>
               )}
-            </SectionLine> */}
-
-            {/* Action Buttons */}
-            <div className="flex items-center gap-3">
-              <BigButton
-                variant="primary"
-                onClick={() => setShowRejectModal(true)}
-                className="w-full py-4 bg-white"
-                disabled={updateAdoptionStatus.isPending}
-              >
-                {updateAdoptionStatus.isPending ? "처리 중..." : "거절"}
-              </BigButton>
-              <BigButton
-                variant="primary"
-                onClick={() => setShowAcceptModal(true)}
-                className="w-full py-4"
-                disabled={updateAdoptionStatus.isPending}
-              >
-                {updateAdoptionStatus.isPending ? "처리 중..." : "수락"}
-              </BigButton>
-            </div>
+            </SectionLine>
           </div>
         </div>
 
@@ -474,6 +435,28 @@ export default function AdoptionRequestPage({
           </div>
         )}
       </Container>
+      <div className="fixed bottom-0 left-0 right-0 z-30">
+        <Container className="p-4">
+          <div className="flex items-center gap-3">
+            <BigButton
+              variant="primary"
+              onClick={() => setShowRejectModal(true)}
+              className="w-full py-4 bg-red hover:bg-red/70"
+              disabled={updateAdoptionStatus.isPending}
+            >
+              {updateAdoptionStatus.isPending ? "처리 중..." : "거절"}
+            </BigButton>
+            <BigButton
+              variant="primary"
+              onClick={() => setShowAcceptModal(true)}
+              className="w-full py-4"
+              disabled={updateAdoptionStatus.isPending}
+            >
+              {updateAdoptionStatus.isPending ? "처리 중..." : "수락"}
+            </BigButton>
+          </div>
+        </Container>
+      </div>
     </div>
   );
 }

@@ -6,10 +6,42 @@ import { ArrowLeft } from "@phosphor-icons/react";
 import { TopBar } from "@/components/common/TopBar";
 import { Container } from "@/components/common/Container";
 import { IconButton } from "@/components/ui/IconButton";
-import { PetCard } from "@/components/ui/PetCard";
 import { useGetUserAdoptions } from "@/hooks/query/useGetUserAdoptions";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { UserAdoptionOut } from "@/types/adoption";
+import { AdoptorNotificationCard } from "@/app/centerpage/adoptorlist/_components/AdoptorNotificationCard";
+
+const formatTimeAgo = (dateString?: string) => {
+  if (!dateString) {
+    return "방금 전";
+  }
+
+  const targetDate = new Date(dateString);
+  if (Number.isNaN(targetDate.getTime())) {
+    return "방금 전";
+  }
+
+  const now = new Date();
+  const diffInMinutes = Math.floor(
+    (now.getTime() - targetDate.getTime()) / (1000 * 60)
+  );
+
+  if (diffInMinutes <= 1) {
+    return "방금 전";
+  }
+
+  if (diffInMinutes < 60) {
+    return `${diffInMinutes}분 전`;
+  }
+
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) {
+    return `${diffInHours}시간 전`;
+  }
+
+  const diffInDays = Math.floor(diffInHours / 24);
+  return `${diffInDays}일 전`;
+};
 
 export default function AdoptionPage() {
   const router = useRouter();
@@ -175,75 +207,45 @@ export default function AdoptionPage() {
       <div className="flex flex-col gap-3 px-4 py-4">
         {adoptionsData?.data && adoptionsData.data.length > 0 ? (
           adoptionsData.data.map((adoption: UserAdoptionOut) => {
+            const status = adoption.status as
+              | "신청"
+              | "미팅"
+              | "계약서작성"
+              | "입양완료"
+              | "모니터링"
+              | "취소";
+
+            const handleCardClick = () => {
+              if (status === "신청") {
+                router.push(`/my/adoption/${adoption.id}/request`);
+              } else if (status === "미팅") {
+                router.push(`/my/adoption/${adoption.id}/meeting`);
+              } else if (status === "계약서작성") {
+                router.push(`/my/adoption/${adoption.id}/writing`);
+              } else if (status === "입양완료") {
+                router.push(`/my/adoption/${adoption.id}/complete`);
+              } else if (status === "모니터링") {
+                router.push(`/my/adoption/${adoption.id}/monitoring`);
+              } else if (status === "취소") {
+                router.push(`/my/adoption/${adoption.id}/refuse`);
+              } else {
+                router.push(`/my/adoption/${adoption.id}/request`);
+              }
+            };
+
             return (
-              <div
+              <AdoptorNotificationCard
                 key={adoption.id}
-                className="cursor-pointer"
-                onClick={() => {
-                  // 입양 상태에 따라 해당 스텝 페이지로 이동
-                  const status = adoption.status;
-                  if (status === "신청") {
-                    router.push(`/my/adoption/${adoption.id}/request`);
-                  } else if (status === "미팅") {
-                    router.push(`/my/adoption/${adoption.id}/meeting`);
-                  } else if (status === "계약서작성") {
-                    router.push(`/my/adoption/${adoption.id}/writing`);
-                  } else if (status === "입양완료") {
-                    router.push(`/my/adoption/${adoption.id}/complete`);
-                  } else if (status === "모니터링") {
-                    router.push(`/my/adoption/${adoption.id}/monitoring`);
-                  } else if (status === "취소") {
-                    router.push(`/my/adoption/${adoption.id}/refuse`);
-                  } else {
-                    // 기본값은 request 페이지로
-                    router.push(`/my/adoption/${adoption.id}/request`);
-                  }
-                }}
-              >
-                <PetCard
-                  variant="variant4"
-                  pet={{
-                    id: adoption.animal_id,
-                    name: adoption.animal_name || "이름 없음",
-                    isFemale: adoption.animal_is_female,
-                    breed: adoption.animal_breed || "종 미등록",
-                    protection_status: "보호중",
-                    adoption_status: (() => {
-                      // adoption status를 기준으로 표시할 상태 결정
-                      const adoptionStatus = adoption.status;
-                      switch (adoptionStatus) {
-                        case "신청":
-                          return "입양가능";
-                        case "미팅":
-                          return "입양가능";
-                        case "계약서작성":
-                          return "입양가능";
-                        case "입양완료":
-                          return "입양완료";
-                        case "모니터링":
-                          return "입양완료";
-                        case "취소":
-                          return "입양가능";
-                        default:
-                          return "입양가능";
-                      }
-                    })(),
-                    centerId: adoption.center_id,
-                    animalImages: adoption.animal_image
-                      ? [
-                          {
-                            id: "1",
-                            imageUrl: adoption.animal_image,
-                            orderIndex: 0,
-                          },
-                        ]
-                      : [],
-                    foundLocation: adoption.center_location || "",
-                  }}
-                  adoptionStatus={adoption.status} // adoption status 전달
-                  showLocation={false}
-                />
-              </div>
+                id={adoption.id}
+                userName={adoption.animal_name || "이름 없음"}
+                profileImage={adoption.animal_image || "/img/dummyImg.png"}
+                timeAgo={formatTimeAgo(adoption.updated_at)}
+                status={status}
+                isGrayscale={status === "취소"}
+                apiStatus={status}
+                onClick={handleCardClick}
+                className="border border-gray-200 rounded-lg p-2"
+              />
             );
           })
         ) : (

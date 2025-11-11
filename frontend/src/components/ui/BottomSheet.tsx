@@ -300,16 +300,16 @@ export function BottomSheet<T = string>({
           )}
           <div className="flex gap-3">
             <BigButton
-              variant="primary"
+              variant="variant3"
               onClick={onLeftClick}
-              className="bg-bg text-dg flex-1"
+              className="bg-bg text-dg flex-1 hover:bg-gray-50"
             >
               {leftButtonText}
             </BigButton>
             <BigButton
               variant="primary"
               onClick={onRightClick}
-              className="bg-error flex-1 hover:bg-error"
+              className="bg-error flex-1 hover:bg-error/70"
             >
               {rightButtonText}
             </BigButton>

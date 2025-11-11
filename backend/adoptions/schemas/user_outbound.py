@@ -46,7 +46,7 @@ class QuestionResponseOut(Schema):
 class ContractOut(Schema):
     """계약서 스키마"""
     id: str = Field(..., description="계약서 ID")
-    template_id: str = Field(..., description="템플릿 ID")
+    template_id: Optional[str] = Field(None, description="템플릿 ID")
     contract_content: str = Field(..., description="계약서 내용")
     guidelines_content: Optional[str] = Field(None, description="가이드라인 내용")
     user_signature_url: Optional[str] = Field(None, description="사용자 서명 URL")

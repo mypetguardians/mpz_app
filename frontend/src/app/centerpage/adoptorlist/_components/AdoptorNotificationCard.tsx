@@ -16,7 +16,8 @@ interface AdoptorNotificationCardProps {
   adoption?: CenterAdoptionData; // 입양 데이터 추가
   animalName?: string; // 동물 이름
   animalAdoptionStatus?: string; // 동물 입양 상태
-  animalProtectionStatus?: string; // 동물 보호 상태
+  onClick?: () => void;
+  className?: string;
 }
 
 function AdoptorNotificationCard({
@@ -28,11 +29,17 @@ function AdoptorNotificationCard({
   isGrayscale = false,
   tabType = "adopter",
   apiStatus,
-  animalAdoptionStatus,
+  onClick,
+  className,
 }: AdoptorNotificationCardProps) {
   const router = useRouter();
 
   const handleCardClick = () => {
+    if (onClick) {
+      onClick();
+      return;
+    }
+
     // API 상태에 따른 단계별 이동
     if (apiStatus) {
       switch (apiStatus) {
@@ -82,7 +89,7 @@ function AdoptorNotificationCard({
       case "모니터링":
         return "bg-blue/10 text-blue";
       case "입양완료":
-        return "bg-brand/10 text-brand";
+        return "bg-blue/10 text-blue";
       default:
         return "";
     }
@@ -90,13 +97,16 @@ function AdoptorNotificationCard({
 
   return (
     <div
-      className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 transition-colors rounded-lg"
+      className={cn(
+        "flex items-center gap-3 cursor-pointer hover:bg-gray-50 transition-colors rounded-lg",
+        className
+      )}
       onClick={handleCardClick}
     >
       {/* 프로필 이미지 */}
       <div className="flex-shrink-0">
         <Image
-          src={profileImage}
+          src={profileImage || "/img/dummyImg.png"}
           alt={`${userName}의 프로필`}
           className={cn(
             "w-[74.5px] h-[74.5px] object-cover rounded-md",
@@ -118,16 +128,9 @@ function AdoptorNotificationCard({
           </div>
 
           {/* 상태 태그들 */}
-          <div className="flex-shrink-0 ml-2 flex flex-col gap-1">
-            <Chip className={getStatusColorClass(apiStatus || status)}>
-              {apiStatus || status}
-            </Chip>
-            {animalAdoptionStatus && (
-              <Chip className="bg-blue/10 text-blue text-xs">
-                {animalAdoptionStatus}
-              </Chip>
-            )}
-          </div>
+          <Chip className={getStatusColorClass(apiStatus || status)}>
+            {apiStatus || status}
+          </Chip>
         </div>
       </div>
     </div>

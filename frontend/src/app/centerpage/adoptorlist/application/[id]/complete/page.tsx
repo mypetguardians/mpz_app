@@ -38,11 +38,7 @@ export default function AdoptionCompletePage({
     useWithdrawAdoption();
 
   // 개별 입양 신청 조회
-  const {
-    data: adoptionData,
-    isLoading,
-    error,
-  } = useGetCenterAdoption(id);
+  const { data: adoptionData, isLoading, error } = useGetCenterAdoption(id);
 
   // 입양 모니터링 포스트 조회
   const {
@@ -278,7 +274,7 @@ export default function AdoptionCompletePage({
                   </table>
                 </div>
               </div>
-              
+
               {/* User Memo Section */}
               <div className="mt-4 mb-4">
                 <h3 className="mb-3 text-bk">신청자 메모</h3>
@@ -338,7 +334,11 @@ export default function AdoptionCompletePage({
                                 {post.user_nickname}
                               </span>
                               <span className="text-xs text-gray-500">
-                                {new Date(post.created_at).toLocaleDateString()}
+                                {post.created_at
+                                  ? new Date(
+                                      post.created_at
+                                    ).toLocaleDateString()
+                                  : "-"}
                               </span>
                             </div>
                             <h4 className="mb-2 font-medium text-gray-900 line-clamp-2">
@@ -347,11 +347,12 @@ export default function AdoptionCompletePage({
                             <p className="text-sm text-gray-600 line-clamp-3">
                               {post.content}
                             </p>
-                            {Array.isArray(post.images) && post.images.length > 0 && (
-                              <div className="mt-3">
-                                <div className="w-16 h-16 bg-gray-200 rounded-lg"></div>
-                              </div>
-                            )}
+                            {Array.isArray(post.images) &&
+                              post.images.length > 0 && (
+                                <div className="mt-3">
+                                  <div className="w-16 h-16 bg-gray-200 rounded-lg"></div>
+                                </div>
+                              )}
                           </div>
                         </div>
                       </div>

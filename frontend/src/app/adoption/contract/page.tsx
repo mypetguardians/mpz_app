@@ -164,24 +164,6 @@ function ContractContent() {
             </p>
           </div>
 
-          {/* 서명 완료 상태 표시 */}
-          {(isAlreadySigned || isSigned) && (
-            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <p className="text-green-700 font-medium">서명 완료</p>
-              </div>
-              {isAlreadySigned && adoptionDetail.contract.user_signed_at && (
-                <p className="text-sm text-green-600 mt-1">
-                  서명일:{" "}
-                  {new Date(
-                    adoptionDetail.contract.user_signed_at
-                  ).toLocaleDateString("ko-KR")}
-                </p>
-              )}
-            </div>
-          )}
-
           {/* 계약서 내용 */}
           <div className="mb-6">
             <h3 className="text-bk mb-3">계약서 내용</h3>

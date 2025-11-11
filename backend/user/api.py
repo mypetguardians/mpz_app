@@ -8,8 +8,9 @@ from user.models import Jwt, User
 from user import utils
 from django.conf import settings
 from api.exceptions import CustomAuthorizationError
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from api.security import jwt_auth
+from urllib.parse import unquote
 
 User = get_user_model()
 router = Router(tags=["Users"])
@@ -99,6 +100,37 @@ async def login(request, data: UserLoginIn):
         access=access,
         refresh=refresh,
     )
+
+    redirect_candidate = (
+        getattr(data, "redirect", None)
+        or getattr(data, "redirect_path", None)
+        or getattr(data, "next", None)
+        or request.GET.get("redirect")
+        or request.GET.get("redirect_path")
+        or request.GET.get("next")
+        or request.GET.get("redirect_uri")
+    )
+
+    redirect_path = None
+    if redirect_candidate:
+        redirect_path = unquote(str(redirect_candidate)).strip()
+        if not redirect_path:
+            redirect_path = "/"
+
+    redirect_url = None
+    if redirect_path:
+        if redirect_path.startswith(("http://", "https://")):
+            redirect_url = redirect_path
+        else:
+            if not redirect_path.startswith("/"):
+                redirect_path = f"/{redirect_path}"
+            redirect_url = f"{settings.FRONTEND_URL}{redirect_path}"
+
+    if redirect_url:
+        response = HttpResponseRedirect(redirect_url)
+        return utils.set_cookie_jwt(
+            response, access, refresh, access_exp, refresh_exp, request=request
+        )
 
     # 응답 생성 (프론트엔드와 일치하는 구조)
     response = JsonResponse({"status": user.status})

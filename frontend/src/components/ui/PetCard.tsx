@@ -177,27 +177,27 @@ export function PetCard({
           // 입양 현황에서 사용하는 구체적인 상태들
           case "신청":
             return {
-              text: "신청완료",
-              colorClass: "bg-yellow/10 text-yellow",
+              text: "신청",
+              colorClass: "bg-green/10 text-green",
             };
           case "미팅":
             return {
-              text: "미팅예정",
-              colorClass: "bg-blue/10 text-blue",
+              text: "미팅",
+              colorClass: "bg-green/10 text-green",
             };
           case "계약서작성":
             return {
-              text: "계약진행",
-              colorClass: "bg-purple/10 text-purple",
+              text: "계약서작성",
+              colorClass: "bg-yellow/10 text-yellow",
             };
           case "모니터링":
             return {
               text: "모니터링",
-              colorClass: "bg-green/10 text-green",
+              colorClass: "bg-blue/10 text-blue",
             };
           case "취소":
             return {
-              text: "취소됨",
+              text: "취소",
               colorClass: "bg-gray/10 text-gray",
             };
           case "입양가능":
@@ -370,7 +370,10 @@ export function PetCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center mb-[6px] gap-1 w-full">
             {(() => {
-              const statusInfo = getStatusInfo(protection_status);
+              const statusInfo = getStatusInfo(
+                protection_status,
+                adoptionStatus || adoption_status
+              );
               return (
                 <Chip className={statusInfo.colorClass}>{statusInfo.text}</Chip>
               );
@@ -416,7 +419,7 @@ export function PetCard({
           {imageOverlay && (
             <div className="absolute bottom-2 right-2 z-10">{imageOverlay}</div>
           )}
-          {(currentWaitingDays || 0) > 21 && (
+          {(currentWaitingDays || 0) > 7 && (
             <div className="absolute bottom-0 left-0 w-full bg-bk/50 text-white text-2xl px-2 py-1 rounded-b-[10px]">
               <h6>{currentWaitingDays || 0}일 째 기다리는 중</h6>
             </div>
@@ -473,7 +476,7 @@ export function PetCard({
         {imageOverlay && (
           <div className="absolute bottom-2 right-2 z-10">{imageOverlay}</div>
         )}
-        {(currentWaitingDays || 0) > 21 && (
+        {(currentWaitingDays || 0) > 7 && (
           <div className="absolute bottom-0 left-0 w-full bg-bk/50 text-white text-2xl px-2 py-1 rounded-b-[10px]">
             <h6>{currentWaitingDays || 0}일 째 기다리는 중</h6>
           </div>

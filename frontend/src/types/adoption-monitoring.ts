@@ -1,15 +1,24 @@
+import type { AdoptionStatus } from "./adoption";
+
+export interface AdoptionMonitoringPostImage {
+  id: string;
+  image_url: string;
+  order_index: number;
+  created_at: string;
+}
+
 export interface AdoptionMonitoringPost {
-  images: boolean;
-  content: ReactNode;
-  title: ReactNode;
-  user_nickname: ReactNode;
-  created_at: string | number | Date;
   id: string;
   post_id: string;
+  title: string | null;
+  content: string | null;
+  user_nickname: string;
+  created_at: string | null;
+  images: Array<AdoptionMonitoringPostImage | string>;
   post_title: string | null;
   post_content: string | null;
-  post_created_at: string;
-  monitoring_created_at: string;
+  post_created_at: string | null;
+  monitoring_created_at: string | null;
 }
 
 export interface AdoptionMonitoringPostsResponse {
@@ -17,7 +26,7 @@ export interface AdoptionMonitoringPostsResponse {
   totalCnt: number;
   pageCnt: number;
   curPage: number;
-  nextPage: number;
+  nextPage: number | null;
   previousPage: number | null;
   data: AdoptionMonitoringPost[];
 }
@@ -26,10 +35,6 @@ export interface AdoptionMonitoringPostsResponse {
 
 // 모니터링 상태 enum
 export type MonitoringStatusEnum = "진행중" | "완료" | "지연" | "중단";
-
-import { ReactNode } from "react";
-// 입양 상태 enum (adoption.ts에서 import)
-import type { AdoptionStatus } from "./adoption";
 export type AdoptionStatusEnum = AdoptionStatus;
 
 // 체크 상태 enum

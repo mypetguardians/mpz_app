@@ -23,6 +23,9 @@ class UserUpdateIn(Schema):
 class UserLoginIn(Schema):
     username: str = Field(..., min_length=3, max_length=30, description="사용자 아이디")
     password: str = Field(..., min_length=8, max_length=128, description="비밀번호")
+    redirect: Optional[str] = Field(None, max_length=500, description="로그인 후 리다이렉트 경로")
+    redirect_path: Optional[str] = Field(None, max_length=500, description="로그인 후 리다이렉트 경로")
+    next: Optional[str] = Field(None, max_length=500, description="로그인 후 리다이렉트 경로 (next)")
 
 
 class RefreshTokenIn(Schema):

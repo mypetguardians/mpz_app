@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, Suspense } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft } from "@phosphor-icons/react";
 
 import { Container } from "@/components/common/Container";
@@ -15,31 +15,63 @@ import { AdoptorListTab } from "../_components/AdoptorListTab";
 
 function ApplicationPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const paramsString = searchParams.toString();
   const [searchValue, setSearchValue] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string>("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(paramsString);
+    const statusParam = params.get("status") || "";
+    const searchParam = params.get("search") || "";
+
+    setStatusFilter(statusParam);
+    setSearchValue(searchParam);
+  }, [paramsString]);
 
   const handleSearch = () => {
-    if (searchValue.trim()) {
-      router.push(`/centerpage/adoptorlist/application?search=${searchValue}`);
+    const trimmedSearch = searchValue.trim();
+    const params = new URLSearchParams();
+
+    if (statusFilter) {
+      params.set("status", statusFilter);
     }
+
+    if (trimmedSearch) {
+      params.set("search", trimmedSearch);
+    }
+
+    const queryString = params.toString();
+
+    router.push(
+      `/centerpage/adoptorlist/application${
+        queryString ? `?${queryString}` : ""
+      }`
+    );
   };
 
   const handleStatusFilterClick = (status: string) => {
-    const newStatusFilter = statusFilter.includes(status)
-      ? statusFilter.filter((s) => s !== status)
-      : [...statusFilter, status];
+    const trimmedSearch = searchValue.trim();
+    const isSameStatus = statusFilter === status;
+    const nextStatus = isSameStatus ? "" : status;
 
-    setStatusFilter(newStatusFilter);
+    setStatusFilter(nextStatus);
 
     const params = new URLSearchParams();
-    if (newStatusFilter.length > 0) {
-      params.set("status", newStatusFilter.join(","));
+    if (nextStatus) {
+      params.set("status", nextStatus);
     }
-    if (searchValue.trim()) {
-      params.set("search", searchValue);
+    if (trimmedSearch) {
+      params.set("search", trimmedSearch);
     }
 
-    router.push(`/centerpage/adoptorlist/application?${params.toString()}`);
+    const queryString = params.toString();
+
+    router.push(
+      `/centerpage/adoptorlist/application${
+        queryString ? `?${queryString}` : ""
+      }`
+    );
   };
 
   const handleTabChange = (value: string) => {
@@ -105,9 +137,7 @@ function ApplicationPageContent() {
               <MiniButton
                 key={status}
                 text={status}
-                variant={
-                  statusFilter.includes(status) ? "filterOn" : "filterOff"
-                }
+                variant={statusFilter === status ? "filterOn" : "filterOff"}
                 onClick={() => handleStatusFilterClick(status)}
                 className="flex-shrink-0"
               />

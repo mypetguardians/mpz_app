@@ -23,6 +23,7 @@ export { useGetUserById } from "./query/useGetUserById";
 export { useGetMyProfile } from "./query/useGetMyProfile";
 export { useGetMyCenter, invalidateMyCenter } from "./query/useGetMyCenter";
 export { useGetCenterNotices } from "./query/useGetCenterNotices";
+export { useGetAdoptionMonitoringPosts } from "./query/useGetAdoptionMonitoringPosts";
 export { useCreatePost } from "./mutation/useCreatePost";
 export { useUpdatePost } from "./mutation/useUpdatePost";
 export { useDeletePost } from "./mutation/useDeletePost";

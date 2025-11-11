@@ -169,10 +169,9 @@ async def get_my_adoption_detail(request, adoption_id: str):
         )
         
         # 계약서 정보 조회
-        try:
-            contract = await AdoptionContract.objects.aget(adoption=adoption)
-        except AdoptionContract.DoesNotExist:
-            contract = None
+        contract = await AdoptionContract.objects.filter(
+            adoption=adoption
+        ).order_by("-created_at").afirst()
         
         # 모니터링 포스트 조회
         monitoring_posts = await sync_to_async(list)(
@@ -229,7 +228,7 @@ async def get_my_adoption_detail(request, adoption_id: str):
         if contract:
             contract_data = await sync_to_async(lambda: {
                 "id": str(contract.id),
-                "template_id": str(contract.template.id),
+                "template_id": str(contract.template.id) if contract.template_id else None,
                 "contract_content": contract.contract_content,
                 "guidelines_content": contract.guidelines_content,
                 "user_signature_url": contract.user_signature_url,

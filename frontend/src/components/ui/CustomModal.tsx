@@ -80,7 +80,27 @@ export function CustomModal({
     <div className="flex flex-col items-stretch">
       <button
         type="button"
-        onClick={onCtaClick}
+        onClick={() => {
+          if (onCtaClick) {
+            onCtaClick();
+            return;
+          }
+
+          if (typeof window === "undefined") {
+            return;
+          }
+
+          const next =
+            window.location.pathname +
+            (window.location.search || "") +
+            (window.location.hash || "");
+
+          document.cookie = `redirect_after_login=${encodeURIComponent(
+            next
+          )}; path=/; max-age=600`;
+
+          window.location.href = `/login?redirect=${encodeURIComponent(next)}`;
+        }}
         className="relative w-full bg-[#FEE404] text-black py-3 px-4 rounded-lg flex items-center justify-center gap-2 cursor-pointer"
       >
         <span className="absolute left-0 top-0 bottom-0 w-12 rounded-l-lg flex items-center justify-center">

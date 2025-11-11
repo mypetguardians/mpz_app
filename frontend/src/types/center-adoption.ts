@@ -6,6 +6,8 @@ export const UserInfoSchema = z.object({
   phone: z.string(),
   address: z.string(),
   address_is_public: z.boolean(),
+  birthDate: z.string(),
+  gender: z.string(),
 });
 
 // 동의 사항 스키마

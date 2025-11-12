@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const topbarVariants = cva(
-  "flex items-center w-full px-4 h-[54px] justify-between mx-auto",
+  "flex items-center w-full px-4 h-[54px] justify-between mx-auto fixed top-0 left-0 z-50",
   {
     variants: {
       variant: {
@@ -41,19 +41,19 @@ export function TopBar({
   ...props
 }: TopBarProps) {
   const Comp = asChild ? Slot : "nav";
-  
+
   // 안정적인 className 생성을 위해 메모이제이션
   const outerClassName = React.useMemo(() => {
     return cn(topbarVariants({ variant, className }));
   }, [variant, className]);
-  
+
   const innerClassName = React.useMemo(() => {
     return cn(
       "relative flex items-center w-full max-w-[420px] mx-auto h-[54px]",
       variant === "variant6" ? "bg-transparent" : "bg-wh"
     );
   }, [variant]);
-  
+
   return (
     <Comp className={outerClassName} {...props}>
       <nav className={innerClassName}>

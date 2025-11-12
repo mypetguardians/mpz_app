@@ -44,6 +44,15 @@ export function CenterInfo({
     "success"
   );
 
+  const trimmedLocation = location?.trim() ?? "";
+  const displayLocation = trimmedLocation.length > 0 ? trimmedLocation : "-";
+  const trimmedPhoneNumber = phoneNumber?.trim() ?? "";
+  const displayPhoneNumber =
+    trimmedPhoneNumber.length > 0 ? trimmedPhoneNumber : "-";
+  const trimmedAdoptionProcedure = adoptionProcedure?.trim() ?? "";
+  const displayAdoptionProcedure =
+    trimmedAdoptionProcedure.length > 0 ? trimmedAdoptionProcedure : "-";
+
   // 찜 상태 확인
   const { data: favoriteData, isLoading: isCheckingFavorite } =
     useCheckCenterFavorite(centerId);
@@ -130,33 +139,33 @@ export function CenterInfo({
       {/* Information Fields */}
       <table className="w-full">
         <tbody className="space-y-1">
-          {location ? (
-            <tr>
-              <td className="text-gr h5 py-1 pr-3 align-top w-20">위치</td>
-              <td className="text-sm py-1">
-                <div>{location}</div>
-              </td>
-            </tr>
-          ) : null}
+          <tr>
+            <td className="text-gr h5 py-1 pr-3 align-top w-20">위치</td>
+            <td className="text-sm py-1">
+              <div>{displayLocation}</div>
+            </td>
+          </tr>
           <tr>
             <td className="text-gr h5 py-1 pr-3 align-top w-20">전화번호</td>
             <td className="text-sm py-1">
-              <div>{phoneNumber}</div>
+              <div>{displayPhoneNumber}</div>
             </td>
           </tr>
 
-          {variant === "subscriber" && adoptionProcedure ? (
+          {variant === "subscriber" ? (
             <tr>
               <td className="text-gr h5 py-1 pr-3 align-top w-20">입양 절차</td>
               <td className="text-sm py-1">
-                <div className="leading-relaxed">{adoptionProcedure}</div>
+                <div className="leading-relaxed">
+                  {displayAdoptionProcedure}
+                </div>
               </td>
             </tr>
           ) : (
             <tr>
               <td className="text-gr h5 py-1 pr-3 align-top w-20">입양 절차</td>
               <td className="text-sm py-1">
-                <div className="leading-relaxed">입양 절차 정보 없음</div>
+                <div className="leading-relaxed">-</div>
               </td>
             </tr>
           )}

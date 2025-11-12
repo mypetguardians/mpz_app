@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { X, CaretLeft, CaretRight } from "@phosphor-icons/react";
+import useEmblaCarousel from "embla-carousel-react";
 import { IconButton } from "./IconButton";
 
 interface ImageCarouselModalProps {
@@ -18,13 +19,20 @@ export function ImageCarouselModal({
   open,
   onClose,
 }: ImageCarouselModalProps) {
+  const hasMultipleImages = images.length > 1;
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
-  const [touchStartX, setTouchStartX] = useState<number | null>(null);
-  const [touchDeltaX, setTouchDeltaX] = useState(0);
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    loop: hasMultipleImages,
+    align: "center",
+    skipSnaps: !hasMultipleImages,
+  });
 
   useEffect(() => {
     setCurrentIndex(initialIndex);
-  }, [initialIndex]);
+    if (emblaApi) {
+      emblaApi.scrollTo(initialIndex, true);
+    }
+  }, [initialIndex, emblaApi]);
 
   useEffect(() => {
     if (open) {
@@ -36,40 +44,45 @@ export function ImageCarouselModal({
     }
   }, [open]);
 
+  useEffect(() => {
+    if (!emblaApi) return;
+
+    const handleSelect = () => {
+      setCurrentIndex(emblaApi.selectedScrollSnap());
+    };
+
+    emblaApi.on("select", handleSelect);
+    handleSelect();
+
+    return () => {
+      emblaApi.off("select", handleSelect);
+    };
+  }, [emblaApi]);
+
+  const handlePrevious = useCallback(() => {
+    if (!emblaApi) return;
+    if (hasMultipleImages) {
+      emblaApi.scrollPrev();
+    }
+  }, [emblaApi, hasMultipleImages]);
+
+  const handleNext = useCallback(() => {
+    if (!emblaApi) return;
+    if (hasMultipleImages) {
+      emblaApi.scrollNext();
+    }
+  }, [emblaApi, hasMultipleImages]);
+
+  const handleThumbnailClick = useCallback(
+    (index: number) => {
+      if (!emblaApi) return;
+      setCurrentIndex(index);
+      emblaApi.scrollTo(index);
+    },
+    [emblaApi]
+  );
+
   if (!open) return null;
-
-  const handlePrevious = () => {
-    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1));
-  };
-
-  const handleNext = () => {
-    setCurrentIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0));
-  };
-
-  const handleTouchStart: React.TouchEventHandler<HTMLDivElement> = (e) => {
-    if (e.touches.length === 1) {
-      setTouchStartX(e.touches[0].clientX);
-      setTouchDeltaX(0);
-    }
-  };
-
-  const handleTouchMove: React.TouchEventHandler<HTMLDivElement> = (e) => {
-    if (touchStartX !== null && e.touches.length === 1) {
-      const currentX = e.touches[0].clientX;
-      setTouchDeltaX(currentX - touchStartX);
-    }
-  };
-
-  const handleTouchEnd: React.TouchEventHandler<HTMLDivElement> = () => {
-    const threshold = 50;
-    if (touchDeltaX > threshold) {
-      handlePrevious();
-    } else if (touchDeltaX < -threshold) {
-      handleNext();
-    }
-    setTouchStartX(null);
-    setTouchDeltaX(0);
-  };
 
   return (
     <div
@@ -98,7 +111,7 @@ export function ImageCarouselModal({
       </div>
 
       {/* 이전 버튼 */}
-      {images.length > 1 && (
+      {hasMultipleImages && (
         <div className="absolute left-4 z-[10002]">
           <IconButton
             icon={({ size }) => <CaretLeft size={size} weight="bold" />}
@@ -117,23 +130,30 @@ export function ImageCarouselModal({
         <div
           className="pointer-events-auto relative h-full w-full max-h-[90vh] max-w-[90vw]"
           onClick={(e) => e.stopPropagation()}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
+          ref={emblaRef}
         >
-          <Image
-            src={images[currentIndex]}
-            alt={`이미지 ${currentIndex + 1}`}
-            fill
-            className="object-contain object-center transition-opacity duration-200 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-            sizes="(min-width: 1024px) 70vw, 90vw"
-            unoptimized
-          />
+          <div className="flex h-full w-full">
+            {images.map((image, index) => (
+              <div
+                key={image + index}
+                className="relative flex-[0_0_100%] h-full"
+              >
+                <Image
+                  src={image}
+                  alt={`이미지 ${index + 1}`}
+                  fill
+                  className="object-contain object-center"
+                  sizes="(min-width: 1024px) 70vw, 90vw"
+                  unoptimized
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* 다음 버튼 */}
-      {images.length > 1 && (
+      {hasMultipleImages && (
         <div className="absolute right-4 z-[10002]">
           <IconButton
             icon={({ size }) => <CaretRight size={size} weight="bold" />}
@@ -148,7 +168,7 @@ export function ImageCarouselModal({
       )}
 
       {/* 하단 썸네일 (이미지가 여러 개일 때만) */}
-      {images.length > 1 && (
+      {hasMultipleImages && (
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-[10002] max-w-[90vw]">
           <div className="flex gap-2 overflow-x-auto scrollbar-hide px-4">
             {images.map((img, index) => (
@@ -156,7 +176,7 @@ export function ImageCarouselModal({
                 key={index}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setCurrentIndex(index);
+                  handleThumbnailClick(index);
                 }}
                 className={`relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
                   currentIndex === index

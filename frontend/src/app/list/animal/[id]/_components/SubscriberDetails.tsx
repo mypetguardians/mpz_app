@@ -9,7 +9,6 @@ interface SubscriberDetailsProps {
   sensitivity?: number;
   sociability?: number;
   separationAnxiety?: number;
-  healthNotes?: string[];
   basicTraining?: string;
   trainerName?: string;
   trainerComment?: string;
@@ -29,7 +28,6 @@ export default function SubscriberDetails({
   sensitivity = 0,
   sociability = 0,
   separationAnxiety = 0,
-  healthNotes = [],
   trainerName,
   trainerComment,
   className,
@@ -78,26 +76,6 @@ export default function SubscriberDetails({
             />
           </div>
         </div>
-      </div>
-
-      {/* 건강 특이사항 */}
-      <div className="mb-3">
-        <h5 className="mb-1 text-gr">건강 기록</h5>
-        {healthNotes && healthNotes.length > 0 ? (
-          <ul className="space-y-1">
-            {healthNotes.map((note, index) => (
-              <li
-                key={index}
-                className="flex items-start text-sm text-gray-700"
-              >
-                <span className="mr-2 text-gray-400">•</span>
-                {note}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-sm text-gray-700">내용이 없습니다.</p>
-        )}
       </div>
 
       {/* 훈련사 한 마디 */}

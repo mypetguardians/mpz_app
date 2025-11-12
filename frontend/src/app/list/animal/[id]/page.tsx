@@ -480,9 +480,10 @@ export default function AnimalDetailPage({
           noticeEndDate={animal.notice_edt || ""}
           description={animal.description || ""}
           foundLocation={animal.found_location || ""}
-          center={center?.name || "보호센터 정보 없음"}
+          center={center?.name || "-"}
           isCenterSubscriber={isCenterSubscriber}
           specialNotes={animal.special_notes || undefined}
+          healthNotes={animal.health_notes ? [animal.health_notes] : []}
         />
         <div className="py-3" />
 
@@ -492,7 +493,6 @@ export default function AnimalDetailPage({
             sensitivity={animal.sensitivity || 3}
             sociability={animal.sociability || 3}
             separationAnxiety={animal.separation_anxiety || undefined}
-            healthNotes={animal.health_notes ? [animal.health_notes] : []}
             basicTraining={animal.basic_training?.toString() || undefined}
             trainerName={animal.trainer_name || undefined}
             trainerComment={animal.trainer_comment || undefined}
@@ -539,8 +539,8 @@ export default function AnimalDetailPage({
         <CenterInfo
           variant={isCenterSubscriber ? "subscriber" : "primary"}
           centerId={center?.id || ""}
-          name={center?.name || "보호센터 정보 없음"}
-          phoneNumber={center?.phoneNumber || "연락처 정보 없음"}
+          name={center?.name || "-"}
+          phoneNumber={center?.phoneNumber || "-"}
           adoptionProcedure={
             isCenterSubscriber && center?.adoptionProcedure
               ? center.adoptionProcedure

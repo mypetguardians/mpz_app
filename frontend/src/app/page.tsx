@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { Headset } from "@phosphor-icons/react";
+import NextImage from "next/image";
 import { Container } from "@/components/common/Container";
 import { NavBar } from "@/components/common/NavBar";
 import { HomeHeader } from "@/app/_components/HomeHeader";
@@ -23,7 +23,6 @@ import {
 } from "@/lib/storage-utils";
 import { useRouter } from "next/navigation";
 import { Banner } from "@/components/ui/Banner";
-import { BigButton } from "@/components/ui/BigButton";
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
@@ -209,15 +208,21 @@ export default function Home() {
 
       <NavBar />
 
-      <div className="fixed bottom-20 right-12 z-50">
-        <BigButton
-          variant="primary"
-          className="px-3 shadow-lg w-12 h-12"
-          onClick={handleConsultClick}
-        >
-          <Headset size={18} weight="bold" />
-        </BigButton>
-      </div>
+      <button
+        type="button"
+        onClick={handleConsultClick}
+        className="fixed bottom-20 right-4 z-50 h-16 w-16 rounded-full shadow-lg ring-1 ring-brand overflow-hidden transition-transform hover:scale-105"
+        aria-label="상담 채널로 이동"
+      >
+        <NextImage
+          src="/img/main_chat.png"
+          alt="상담 채널 이동"
+          fill
+          sizes="64px"
+          className="object-cover"
+          priority
+        />
+      </button>
     </Container>
   );
 }

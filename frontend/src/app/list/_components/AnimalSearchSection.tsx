@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CaretDown } from "@phosphor-icons/react";
 
 import { SearchInput } from "@/components/ui/SearchInput";
 import { MiniButton } from "@/components/ui/MiniButton";
 import { PetCard } from "@/components/ui/PetCard";
-import { BottomSheet } from "@/components/ui/BottomSheet";
 import { useGetAnimals } from "@/hooks/query/useGetAnimals";
 
 import { FilterState, getFilterCounts } from "@/lib/filter-utils";
@@ -29,16 +28,14 @@ export function AnimalSearchSection({
   const [searchValue, setSearchValue] = useState("");
   const [isSearching, setIsSearching] = useState(false);
 
-  // 품종 검색 바텀시트 상태
-  const [isBreedSheetOpen, setIsBreedSheetOpen] = useState(false);
-  const [breedSearchTerm, setBreedSearchTerm] = useState("");
-  const [tempSelectedBreed, setTempSelectedBreed] = useState("");
-
   // 검색 결과 가져오기
   const {
     data: searchData,
     isLoading: isSearchLoading,
     error: searchError,
+    fetchNextPage: fetchNextSearchPage,
+    hasNextPage: hasNextSearchPage,
+    isFetchingNextPage: isFetchingNextSearchPage,
   } = useGetAnimals({
     breed: searchValue.trim() || filters.breed || undefined,
     page_size: 20,
@@ -91,62 +88,6 @@ export function AnimalSearchSection({
       }),
   });
 
-  // 고정 품종 목록
-  const breedList = [
-    "꼬똥 드 툴레아",
-    "그레이하운드",
-    "기타",
-    "닥스훈트",
-    "달마시안",
-    "도베르만",
-    "도사",
-    "리트리버",
-    "로트와일러",
-    "말티즈",
-    "믹스",
-    "바셋 하운드",
-    "복서",
-    "불독",
-    "버니즈 마운틴 독",
-    "비글",
-    "비숑 프리제",
-    "빠삐용",
-    "사모예드",
-    "샤페이",
-    "세인트 버나드",
-    "셔틀랜드 쉽독",
-    "셰퍼드",
-    "슈나우저",
-    "스피츠",
-    "시바",
-    "시베리안 허스키",
-    "시츄",
-    "아프간 하운드",
-    "알라스칸 말라뮤트",
-    "올드 잉글리쉬 쉽독",
-    "웰시코기",
-    "이탈리언 그레이하운드",
-    "진돗개",
-    "차우차우",
-    "치와와",
-    "킹 찰스 스파니엘",
-    "코카스파니엘",
-    "콜리",
-    "테리어",
-    "포메라니언",
-    "프렌치 불독",
-    "푸들",
-    "퍼그",
-    "페키니즈",
-    "휘핏",
-    "믹스견",
-  ];
-
-  // 품종 검색 결과 필터링
-  const filteredBreeds = breedList.filter((breed) =>
-    breed.toLowerCase().includes(breedSearchTerm.toLowerCase())
-  );
-
   // 검색 결과가 있는지 확인
   const hasSearchResults = (searchData?.pages?.[0]?.data?.length ?? 0) > 0;
 
@@ -154,13 +95,52 @@ export function AnimalSearchSection({
   const showSearchResults = isSearching; // 텍스트 검색만 검색 결과로 표시
 
   // 검색 상태가 변경될 때마다 부모 컴포넌트에 알림
-  React.useEffect(() => {
+  useEffect(() => {
     onSearchStateChange(showSearchResults);
   }, [showSearchResults, onSearchStateChange]);
 
   // 검색 결과 데이터 추출
   const searchAnimals = searchData?.pages.flatMap((page) => page.data) || [];
   const searchTotal = searchData?.pages[0]?.totalCnt || 0;
+
+  const loadMoreSearchResults = useCallback(() => {
+    if (!showSearchResults) return;
+    if (isFetchingNextSearchPage || !hasNextSearchPage) return;
+    fetchNextSearchPage();
+  }, [
+    fetchNextSearchPage,
+    hasNextSearchPage,
+    isFetchingNextSearchPage,
+    showSearchResults,
+  ]);
+
+  useEffect(() => {
+    if (!showSearchResults) return;
+
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    const handleScroll = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        const scrollTop =
+          window.pageYOffset || document.documentElement.scrollTop;
+        const windowHeight = window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+
+        const isNearBottom = scrollTop + windowHeight >= documentHeight - 600;
+        if (isNearBottom) {
+          loadMoreSearchResults();
+        }
+      }, 100);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      clearTimeout(timeoutId);
+    };
+  }, [loadMoreSearchResults, showSearchResults]);
 
   // 필터 옵션들
   const filterOptions = [
@@ -172,7 +152,7 @@ export function AnimalSearchSection({
     },
     {
       label: "품종",
-      path: "breed-sheet", // 특별한 경로로 바텀시트 열기
+      path: "/list/animal/filter",
       count: filterCounts.breed,
       hasFilters: filterCounts.breed > 0,
     },
@@ -225,26 +205,6 @@ export function AnimalSearchSection({
     onSearchStateChange(false);
   };
 
-  // 품종 검색 바텀시트 핸들러들
-  const handleBreedSearchClick = () => {
-    setTempSelectedBreed(searchValue);
-    setIsBreedSheetOpen(true);
-  };
-
-  const handleBreedApply = (breed: string) => {
-    setSearchValue(breed);
-    setIsBreedSheetOpen(false);
-    setBreedSearchTerm("");
-    if (breed.trim()) {
-      setIsSearching(true);
-      onSearchStateChange(true);
-    }
-  };
-
-  const handleBreedSelect = (breed: string) => {
-    setTempSelectedBreed(breed);
-  };
-
   return (
     <>
       {/* 검색 입력 */}
@@ -270,13 +230,7 @@ export function AnimalSearchSection({
               }`}
               rightIcon={<CaretDown size={12} />}
               variant={option.hasFilters ? "filterOn" : "filterOff"}
-              onClick={() => {
-                if (option.path === "breed-sheet") {
-                  handleBreedSearchClick();
-                } else {
-                  onFilterClick(option.path);
-                }
-              }}
+              onClick={() => onFilterClick(option.path)}
               className="flex-shrink-0"
             />
           ))}
@@ -379,53 +333,12 @@ export function AnimalSearchSection({
                 ))}
             </div>
           )}
+
+          {isFetchingNextSearchPage && (
+            <div className="py-4 text-center text-gray-500">불러오는 중...</div>
+          )}
         </div>
       )}
-
-      {/* 품종 검색 바텀시트 */}
-      <BottomSheet
-        open={isBreedSheetOpen}
-        onClose={() => setIsBreedSheetOpen(false)}
-        variant="selectMenu"
-        showApplyButton={true}
-        applyButtonText="적용하기"
-        onApply={handleBreedApply}
-        selectedValue={tempSelectedBreed}
-      >
-        <div className="flex flex-col gap-4">
-          <SearchInput
-            variant="variant2"
-            placeholder="품종을 검색해보세요"
-            value={breedSearchTerm}
-            onChange={(e) => setBreedSearchTerm(e.target.value)}
-          />
-          <div className="overflow-y-auto max-h-60 scrollbar-hide">
-            {filteredBreeds.length > 0 ? (
-              <div className="space-y-1">
-                {filteredBreeds.map((breed, index) => (
-                  <button
-                    key={index}
-                    className={`w-full text-left p-3 rounded-lg transition-colors hover:bg-gray-50 ${
-                      tempSelectedBreed === breed
-                        ? "bg-blue-50 text-blue-600 border border-blue-200"
-                        : "text-gray-800"
-                    }`}
-                    onClick={() => handleBreedSelect(breed)}
-                  >
-                    {breed}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <p className="py-4 text-center text-gray-500">
-                {breedSearchTerm.trim()
-                  ? "검색 결과가 없습니다."
-                  : "품종을 검색해보세요."}
-              </p>
-            )}
-          </div>
-        </div>
-      </BottomSheet>
     </>
   );
 }

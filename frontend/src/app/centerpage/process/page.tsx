@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { ArrowLeft } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
@@ -24,6 +25,7 @@ import type { Consent } from "@/types";
 
 export default function CenterProcess() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [isMonitoring, setIsMonitoring] = useState("");
   const [period, setPeriod] = useState("");
   const [adoptionProcedure, setAdoptionProcedure] = useState("");
@@ -71,6 +73,13 @@ export default function CenterProcess() {
   const hasContractTemplate =
     !!procedureSettings?.contract_templates &&
     procedureSettings.contract_templates.length > 0;
+  // 계약서가 하나만 있는지 확인
+  const hasExactlyOneContractTemplate =
+    !!procedureSettings?.contract_templates &&
+    procedureSettings.contract_templates.length === 1;
+
+  // 전체 로딩 상태 (설정 로딩 또는 저장 중)
+  const isOverallLoading = isLoadingSettings || isLoading;
 
   // 기존 설정이 있으면 폼에 로드
   useEffect(() => {
@@ -117,6 +126,13 @@ export default function CenterProcess() {
         // 기존 설정이 없으면 생성
         await createSettings.mutateAsync(settingsData);
       }
+
+      // 쿼리 무효화 - 센터 프로시저 설정과 관련된 모든 쿼리 새로고침
+      queryClient.invalidateQueries({
+        queryKey: ["center-procedure-settings"],
+      });
+      queryClient.invalidateQueries({ queryKey: ["consents"] });
+      queryClient.invalidateQueries({ queryKey: ["question-forms"] });
 
       showToast("프로시저 설정이 저장되었습니다.", "success");
       router.push("/centerpage");
@@ -175,7 +191,7 @@ export default function CenterProcess() {
               />
             )}
             <Link href="/centerpage/process/customform">
-              <AddButton>
+              <AddButton disabled={isOverallLoading}>
                 {isLoadingQuestions
                   ? "로딩 중..."
                   : questionFormsData?.questions &&
@@ -224,7 +240,9 @@ export default function CenterProcess() {
               <AddButton disabled>유의사항 동의서 만들기</AddButton>
             ) : (
               <Link href="/centerpage/process/create-consent">
-                <AddButton>유의사항 동의서 만들기</AddButton>
+                <AddButton disabled={isOverallLoading}>
+                  유의사항 동의서 만들기
+                </AddButton>
               </Link>
             )}
           </div>
@@ -237,8 +255,8 @@ export default function CenterProcess() {
                 disabled={true}
                 className="text-gr"
               />
-            ) : procedureSettings?.contract_templates &&
-              procedureSettings.contract_templates.length > 0 ? (
+            ) : hasExactlyOneContractTemplate ? (
+              // 계약서가 정확히 하나일 때만 표시
               <div className="w-full flex flex-col">
                 {procedureSettings.contract_templates.map((template, index) => (
                   <CustomInput
@@ -263,13 +281,14 @@ export default function CenterProcess() {
                 className="text-gr"
               />
             )}
-            {hasContractTemplate ? (
-              <AddButton disabled>계약서 만들기</AddButton>
-            ) : (
+            {/* 계약서가 없거나 하나만 있을 때만 생성 버튼 표시 */}
+            {!hasContractTemplate ? (
               <Link href="/centerpage/process/create-contract">
-                <AddButton>계약서 만들기</AddButton>
+                <AddButton disabled={isOverallLoading}>계약서 만들기</AddButton>
               </Link>
-            )}
+            ) : hasExactlyOneContractTemplate ? (
+              <AddButton disabled>계약서 만들기</AddButton>
+            ) : null}
           </div>
         </div>
         <div className="w-full flex flex-col gap-3">
@@ -281,6 +300,7 @@ export default function CenterProcess() {
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                 setAdoptionProcedure(e.target.value)
               }
+              disabled={isOverallLoading}
               className="flex w-full rounded-md border border-lg px-4 py-3 h5 ring-offset-background placeholder:text-gr placeholder:text-body placeholder:text-top disabled:cursor-not-allowed disabled:opacity-50 resize-none h-[150px] focus:outline-none"
             />
           </div>
@@ -297,6 +317,7 @@ export default function CenterProcess() {
             onChangeOption={setIsMonitoring}
             twoOptions={["모니터링 필수", "모니터링 안 함"]}
             required={true}
+            disabled={isOverallLoading}
           />
           <CustomInput
             variant="bottomsheet"
@@ -319,6 +340,7 @@ export default function CenterProcess() {
             value={period}
             onChangeOption={setPeriod}
             required={true}
+            disabled={isOverallLoading}
           />
           <div className="w-full flex flex-col gap-1">
             <h5 className="text-dg">모니터링 설명</h5>
@@ -328,6 +350,7 @@ export default function CenterProcess() {
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                 setMonitoringDescription(e.target.value)
               }
+              disabled={isOverallLoading}
               className="flex w-full rounded-md border border-lg px-4 py-3 h5 ring-offset-background placeholder:text-gr placeholder:text-body placeholder:text-top disabled:cursor-not-allowed disabled:opacity-50 resize-none h-[100px] focus:outline-none"
             />
           </div>

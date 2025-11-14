@@ -1,15 +1,26 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import type { AxiosError } from "axios";
+import type { AxiosError, AxiosResponse } from "axios";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import instance from "@/lib/axios-instance";
 import { User, AuthContextType, LoginResult } from "@/types/auth";
+
+// AxiosError 타입 가드 함수
+const isAxiosError = (error: unknown): error is AxiosError => {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "isAxiosError" in (error as Record<string, unknown>)
+  );
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -19,11 +30,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Axios 에러 메시지 추출
   const extractAxiosErrorMessage = (error: unknown): string | null => {
     try {
-      const isAxiosError = (e: unknown): e is AxiosError =>
-        typeof e === "object" &&
-        e !== null &&
-        "isAxiosError" in (e as Record<string, unknown>);
-
       const response = isAxiosError(error) ? error.response : undefined;
       const data: unknown = response?.data;
 
@@ -93,42 +99,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return null;
   };
 
-  // 로그인
-  const centerLogin = async (
-    username: string,
-    password: string
-  ): Promise<LoginResult> => {
-    try {
-      const response = await instance.post(
-        "/auth/login",
-        { username, password },
-        { withCredentials: true } // 쿠키 자동 저장
-      );
-
-      if (response.status === 200) {
-        try {
-          await setUserFromToken();
-          return { success: true, message: "로그인에 성공했습니다!" };
-        } catch (error) {
-          console.error("사용자 정보 가져오기 실패:", error);
-          return {
-            success: false,
-            message: "사용자 정보를 가져오는데 실패했습니다.",
-          };
-        }
-      }
-      return { success: false, message: "로그인에 실패했습니다." };
-    } catch (error: unknown) {
-      const detailedMessage = extractAxiosErrorMessage(error);
-      if (detailedMessage) return { success: false, message: detailedMessage };
-      return { success: false, message: "로그인 중 오류가 발생했습니다." };
-    }
-  };
-
   // 현재 유저 가져오기
-  const fetchCurrentUser = async () => {
+  const fetchCurrentUser = async (): Promise<User | null> => {
     try {
-      const response = await instance.get("/auth/me", {
+      setIsLoading(true);
+
+      const response: AxiosResponse = await instance.get("/auth/me", {
         withCredentials: true,
       });
 
@@ -149,45 +125,122 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             matchingSession: userData.matchingSession,
             accounts: userData.accounts,
           };
+
           setUser(user);
           setIsAuthenticated(true);
+          return user;
         } else {
           setUser(null);
           setIsAuthenticated(false);
+          return null;
         }
       } else {
         setUser(null);
         setIsAuthenticated(false);
+        return null;
       }
-    } catch (error) {
-      setUser(null);
-      setIsAuthenticated(false);
-      console.error("현재 유저 가져오기 실패:", error);
+    } catch (error: unknown) {
+      // 401 에러인 경우 명시적으로 로그아웃 처리
+      if (isAxiosError(error) && error.response?.status === 401) {
+        setUser(null);
+        setIsAuthenticated(false);
+      }
+
+      return null;
     } finally {
       setIsLoading(false);
     }
   };
 
+  // 로그인
+  const centerLogin = async (
+    username: string,
+    password: string
+  ): Promise<LoginResult> => {
+    try {
+      setIsLoggingIn(true);
+      const response: AxiosResponse = await instance.post(
+        "/auth/login",
+        { username, password },
+        { withCredentials: true } // 쿠키 자동 저장
+      );
+
+      if (response.status === 200) {
+        try {
+          // 즉시 사용자 정보 갱신
+          const updatedUser = await fetchCurrentUser();
+          if (updatedUser) {
+            return { success: true, message: "로그인에 성공했습니다!" };
+          } else {
+            return {
+              success: false,
+              message:
+                "로그인에는 성공했으나 사용자 정보를 가져오는데 실패했습니다.",
+            };
+          }
+        } catch (error) {
+          console.error("사용자 정보 가져오기 실패:", error);
+          return {
+            success: false,
+            message: "사용자 정보를 가져오는데 실패했습니다.",
+          };
+        }
+      }
+      return { success: false, message: "로그인에 실패했습니다." };
+    } catch (error: unknown) {
+      const detailedMessage = extractAxiosErrorMessage(error);
+      if (detailedMessage) return { success: false, message: detailedMessage };
+      return { success: false, message: "로그인 중 오류가 발생했습니다." };
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  // 초기 로드시 한 번만 사용자 정보 확인
   useEffect(() => {
     fetchCurrentUser();
   }, []);
 
-  // 로그아웃
+  // 로그아웃 - 쿼리 캐시 무효화 포함
   const logout = async () => {
     try {
       await instance.post("/auth/logout", {}, { withCredentials: true });
     } catch (error) {
       console.error("로그아웃 요청 실패:", error);
     } finally {
+      // 1. 상태 초기화
       setUser(null);
       setIsAuthenticated(false);
+
+      // 2. React Query 캐시 무효화 (모든 사용자 관련 쿼리 자동 재실행)
+      // predicate 함수가 항상 boolean을 반환하도록 null 체크 추가
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const firstKey = query.queryKey[0];
+          return (
+            firstKey != null &&
+            typeof firstKey === "string" &&
+            (firstKey.includes("user") ||
+              firstKey.includes("adoptions") ||
+              firstKey.includes("my"))
+          );
+        },
+      });
+
+      // 3. 메인 페이지로 이동
       router.push("/");
+      router.refresh(); // Next.js 캐시 갱신
     }
   };
 
   // 토큰 기반으로 유저 세팅
-  const setUserFromToken = async () => {
-    await fetchCurrentUser();
+  const setUserFromToken = async (): Promise<User | null> => {
+    return await fetchCurrentUser();
+  };
+
+  // 수동으로 사용자 정보 갱신 (필요시)
+  const refreshUser = async (): Promise<User | null> => {
+    return await fetchCurrentUser();
   };
 
   const value: AuthContextType = {
@@ -208,6 +261,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUserFromToken,
     setLoggingIn: setIsLoggingIn,
     centerLogin,
+    refreshUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

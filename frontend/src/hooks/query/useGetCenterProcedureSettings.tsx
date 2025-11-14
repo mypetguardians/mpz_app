@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import instance from "@/lib/axios-instance";
 
 export interface CenterProcedureSettings {
@@ -30,6 +30,33 @@ export function useGetCenterProcedureSettings() {
         "/centers/procedures/settings/"
       );
       return response.data;
+    },
+  });
+}
+
+// 센터 프로시저 설정 무효화 및 새로고침 함수
+export function useInvalidateCenterProcedureSettings() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      // 센터 프로시저 설정 쿼리 무효화
+      await queryClient.invalidateQueries({
+        queryKey: ["center-procedure-settings"],
+      });
+      // 연관된 계약서 템플릿 쿼리도 함께 무효화
+      await queryClient.invalidateQueries({
+        queryKey: ["contract-template"],
+        exact: false,
+      });
+      // 동의서 쿼리도 함께 무효화
+      await queryClient.invalidateQueries({
+        queryKey: ["consents"],
+      });
+    },
+    onSuccess: () => {
+      // 무효화 후 자동으로 새로고침됨
+      console.log("센터 프로시저 설정 쿼리가 무효화되었습니다.");
     },
   });
 }

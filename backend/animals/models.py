@@ -165,3 +165,60 @@ class AnimalMegaphone(BaseModel):
         user_name = self.user.username if self.user else "Unknown User"
         animal_name = self.animal.name if self.animal else "Unknown Animal"
         return f"{user_name} -> {animal_name}"
+
+
+class AdoptionApplication(BaseModel):
+    """입양 신청 모델"""
+    
+    STATUS_CHOICES = [
+        ('pending', '대기중'),
+        ('approved', '승인'),
+        ('rejected', '거절'),
+        ('cancelled', '취소'),
+    ]
+    
+    user = models.ForeignKey('user.User', on_delete=models.CASCADE, help_text="신청자")
+    animal = models.ForeignKey(Animal, on_delete=models.CASCADE, help_text="입양 희망 동물")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', help_text="신청 상태")
+    application_date = models.DateTimeField(auto_now_add=True, help_text="신청일")
+    approval_date = models.DateTimeField(null=True, blank=True, help_text="승인/거절일")
+    reason = models.TextField(blank=True, null=True, help_text="입양 사유")
+    contact_phone = models.CharField(max_length=20, help_text="연락처")
+    contact_email = models.EmailField(help_text="이메일")
+    home_address = models.CharField(max_length=200, help_text="거주지")
+    family_size = models.PositiveIntegerField(default=1, help_text="가족 구성원 수")
+    has_pet_experience = models.BooleanField(default=False, help_text="반려동물 양육 경험")
+    can_visit_center = models.BooleanField(default=True, help_text="센터 방문 가능 여부")
+    
+    # 관리자용 필드
+    admin_notes = models.TextField(blank=True, null=True, help_text="관리자 코멘트")
+    processed_by = models.ForeignKey('user.User', on_delete=models.SET_NULL, null=True, blank=True, 
+                                   related_name='processed_applications', help_text="처리 담당자")
+    
+    class Meta:
+        db_table = 'adoption_applications'
+        verbose_name = '입양 신청'
+        verbose_name_plural = '입양 신청들'
+        unique_together = ['user', 'animal']  # 한 사용자당 동물당 한 번만 신청 가능
+        indexes = [
+            models.Index(fields=['status']),
+            models.Index(fields=['application_date']),
+            models.Index(fields=['animal', 'status']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.animal.name} ({self.get_status_display()})"
+    
+    @property
+    def is_active(self):
+        """활성 신청 여부 (대기중 또는 처리중)"""
+        return self.status in ['pending']
+    
+    @property
+    def processing_days(self):
+        """신청 후 경과일"""
+        from django.utils import timezone
+        if self.application_date:
+            delta = timezone.now().date() - self.application_date.date()
+            return delta.days
+        return 0

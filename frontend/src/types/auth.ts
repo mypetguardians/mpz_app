@@ -64,22 +64,22 @@ export interface LoginResponse {
   status: string;
 }
 
+// 인증 컨텍스트 타입
 export interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   isLoggingIn: boolean;
-  login: (userData: User) => void;
+  login: (user: User) => void;
   logout: () => Promise<void>;
   updateUser: (userData: Partial<User>) => void;
-  setUserFromToken: () => Promise<void>;
-  setLoggingIn: (status: boolean) => void;
-  centerLogin: (
-    username: string,
-    password: string
-  ) => Promise<{ success: boolean; message: string }>;
+  setUserFromToken: () => Promise<User | null>; // 수정: 반환 타입 명시
+  setLoggingIn: React.Dispatch<React.SetStateAction<boolean>>;
+  centerLogin: (username: string, password: string) => Promise<LoginResult>;
+  refreshUser: () => Promise<User | null>; // 추가: 반환 타입 명시
 }
 
+// 로그인 결과 타입
 export interface LoginResult {
   success: boolean;
   message: string;

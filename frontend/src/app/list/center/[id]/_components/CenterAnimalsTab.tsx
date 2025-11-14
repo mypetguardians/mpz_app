@@ -19,7 +19,6 @@ interface CenterAnimalsTabProps {
 interface FilterState {
   breed: string;
   weights: string[];
-  regions: string[];
   ages: string[];
   genders: string[];
   protectionStatus: string[];
@@ -70,7 +69,6 @@ export function CenterAnimalsTab({
     return {
       breed: searchParams.get("breed") || "",
       weights: searchParams.get("weights")?.split(",").filter(Boolean) || [],
-      regions: searchParams.get("regions")?.split(",").filter(Boolean) || [],
       ages: searchParams.get("ages")?.split(",").filter(Boolean) || [],
       genders: searchParams.get("genders")?.split(",").filter(Boolean) || [],
       protectionStatus:
@@ -87,7 +85,6 @@ export function CenterAnimalsTab({
     const state: FilterState = {
       breed: params.get("breed") || "",
       weights: params.get("weights")?.split(",").filter(Boolean) || [],
-      regions: params.get("regions")?.split(",").filter(Boolean) || [],
       ages: params.get("ages")?.split(",").filter(Boolean) || [],
       genders: params.get("genders")?.split(",").filter(Boolean) || [],
       protectionStatus:
@@ -99,7 +96,6 @@ export function CenterAnimalsTab({
     const hasAny =
       state.breed ||
       state.weights.length ||
-      state.regions.length ||
       state.ages.length ||
       state.genders.length ||
       state.protectionStatus.length ||
@@ -122,7 +118,6 @@ export function CenterAnimalsTab({
     const hasAnyParam = [
       "breed",
       "weights",
-      "regions",
       "ages",
       "genders",
       "protectionStatus",
@@ -137,7 +132,6 @@ export function CenterAnimalsTab({
       const params = new URLSearchParams(searchParams.toString());
       if (saved.breed) params.set("breed", saved.breed);
       if (saved.weights.length) params.set("weights", saved.weights.join(","));
-      if (saved.regions.length) params.set("regions", saved.regions.join(","));
       if (saved.ages.length) params.set("ages", saved.ages.join(","));
       if (saved.genders.length) params.set("genders", saved.genders.join(","));
       if (saved.protectionStatus.length)
@@ -170,14 +164,6 @@ export function CenterAnimalsTab({
           if (weightValue === "10kg 이하" && weight > 10) return false;
           if (weightValue === "25kg 이하" && weight > 25) return false;
           if (weightValue === "그 이상" && weight <= 25) return false;
-        }
-      }
-
-      // 지역 필터
-      if (filters.regions.length > 0) {
-        const location = animal.foundLocation;
-        if (location && !filters.regions.includes(location)) {
-          return false;
         }
       }
 
@@ -230,12 +216,6 @@ export function CenterAnimalsTab({
     if (!showFilters || !filters) return [];
 
     return [
-      {
-        label: "지역",
-        path: `/list/center/${centerId}/filter`,
-        count: filters.regions.length,
-        hasFilters: filters.regions.length > 0,
-      },
       {
         label: "품종",
         path: `/list/center/${centerId}/filter`,
@@ -410,7 +390,6 @@ export function CenterAnimalsTab({
     [
       "breed",
       "weights",
-      "regions",
       "ages",
       "genders",
       "protectionStatus",

@@ -1,40 +1,99 @@
 from ninja import Schema, Field
 from typing import Optional, List
+from pydantic import BaseModel
+from datetime import datetime
 
 
+class CenterListItemOut(BaseModel):
+    """센터 목록 아이템"""
+    id: str
+    name: str
+    center_number: Optional[str] = None
+    description: Optional[str] = None
+    location: Optional[str] = None
+    region: Optional[str] = None
+    phone_number: Optional[str] = None
+    image_url: Optional[str] = None
+    verified: bool
+    is_public: bool
+    has_volunteer: bool
+    has_foster_care: bool
+    adoption_price: int
+    is_subscribed: bool
+    owner_name: Optional[str] = None
+    created_at: str
+    updated_at: str
 
-class ContractTemplateOut(Schema):
-    """계약서 템플릿 출력 스키마"""
-    id: str = Field(..., description="계약서 템플릿 ID")
-    center_id: str = Field(..., description="센터 ID")
-    title: str = Field(..., description="계약서 템플릿 제목")
-    description: Optional[str] = Field(None, description="계약서 템플릿 설명")
-    content: str = Field(..., description="계약서 템플릿 내용")
-    is_active: bool = Field(..., description="활성화 상태")
-    created_at: str = Field(..., description="생성일시 (ISO 형식)")
-    updated_at: str = Field(..., description="수정일시 (ISO 형식)")
+class ContractTemplateOut(BaseModel):
+    """계약서 템플릿"""
+    id: str
+    title: str
+    description: Optional[str] = None
+    content: str
+    is_active: bool
+    created_at: Optional[str] = None
 
+class ConsentOut(BaseModel):
+    """동의서"""
+    id: str
+    title: str
+    description: Optional[str] = None
+    content: str
+    is_active: bool
+    created_at: Optional[str] = None
 
-class ConsentOut(Schema):
-    """동의서 출력 스키마"""
-    id: str = Field(..., description="동의서 ID")
-    center_id: str = Field(..., description="센터 ID")
-    title: str = Field(..., description="동의서 제목")
-    description: Optional[str] = Field(None, description="동의서 설명")
-    content: str = Field(..., description="동의서 내용")
-    is_active: bool = Field(..., description="활성화 상태")
-    created_at: str = Field(..., description="생성일시 (ISO 형식)")
-    updated_at: str = Field(..., description="수정일시 (ISO 형식)")
+class QuestionFormOut(BaseModel):
+    """질문 폼"""
+    id: str
+    question: str
+    type: Optional[str] = None
+    options: Optional[dict] = None
+    is_required: bool
+    sequence: int
 
+class CenterOut(BaseModel):
+    """센터 상세 정보"""
+    id: str
+    name: str
+    center_number: Optional[str] = None
+    description: Optional[str] = None
+    location: Optional[str] = None
+    region: Optional[str] = None
+    phone_number: Optional[str] = None
+    adoption_procedure: Optional[str] = None
+    adoption_guidelines: Optional[str] = None
+    has_monitoring: bool
+    monitoring_period_months: int
+    monitoring_interval_days: int
+    monitoring_description: Optional[str] = None
+    verified: bool
+    is_public: bool
+    adoption_price: int
+    image_url: Optional[str] = None
+    is_subscribed: bool
+    has_volunteer: bool
+    has_foster_care: bool
+    show_phone_number: bool
+    show_location: bool
+    call_available_time: Optional[str] = None
+    public_reg_no: Optional[str] = None
+    owner_name: Optional[str] = None
+    owner_type: Optional[str] = None
+    contract_templates: List[ContractTemplateOut] = []
+    consents: List[ConsentOut] = []
+    question_forms: List[QuestionFormOut] = []
+    created_at: str
+    updated_at: str
 
-class SuccessOut(Schema):
-    """성공 응답 스키마"""
-    message: str = Field(..., description="성공 메시지")
+class ErrorOut(BaseModel):
+    """에러 응답"""
+    detail: str
+    code: Optional[str] = None
 
-
-class ErrorOut(Schema):
-    """에러 응답 스키마"""
-    error: str = Field(..., description="에러 메시지")
+class SuccessOut(BaseModel):
+    """성공 응답"""
+    message: str
+    success: bool = True
 
 
 class ProcedureSettingsOut(Schema):
@@ -46,33 +105,6 @@ class ProcedureSettingsOut(Schema):
     adoption_guidelines: Optional[str] = Field(None, description="입양 가이드라인")
     adoption_procedure: Optional[str] = Field(None, description="입양 절차")
     contract_templates: List[ContractTemplateOut] = Field(default_factory=list, description="계약서 템플릿 목록")
-
-
-class CenterOut(Schema):
-    """센터 출력 스키마"""
-    id: str = Field(..., description="센터 ID")
-    user_id: Optional[str] = Field(None, description="센터 관리자 사용자 ID")
-    name: str = Field(..., description="센터명")
-    center_number: Optional[str] = Field(None, description="센터 등록번호")
-    description: Optional[str] = Field(None, description="센터 소개")
-    location: Optional[str] = Field(None, description="센터 위치")
-    region: Optional[str] = Field(None, description="센터 지역")
-    phone_number: Optional[str] = Field(None, description="센터 전화번호")
-    adoption_procedure: Optional[str] = Field(None, description="입양 절차")
-    adoption_guidelines: Optional[str] = Field(None, description="입양 가이드라인")
-    has_monitoring: Optional[bool] = Field(None, description="모니터링 실시 여부")
-    monitoring_period_months: Optional[int] = Field(None, description="모니터링 기간 (개월)")
-    monitoring_interval_days: Optional[int] = Field(None, description="모니터링 간격 (일)")
-    monitoring_description: Optional[str] = Field(None, description="모니터링 설명")
-    verified: Optional[bool] = Field(None, description="인증 상태")
-    adoption_price: Optional[int] = Field(None, description="입양비 (원)")
-    image_url: Optional[str] = Field(None, description="센터 이미지 URL")
-    is_subscribed: Optional[bool] = Field(None, description="구독 여부")
-    has_volunteer: Optional[bool] = Field(None, description="봉사활동 여부")
-    has_foster_care: Optional[bool] = Field(None, description="임시보호 여부")
-    call_available_time: Optional[str] = Field(None, description="통화 가능 시간")
-    created_at: str = Field(..., description="생성일시 (ISO 형식)")
-    updated_at: str = Field(..., description="수정일시 (ISO 형식)")
 
 
 class AnimalImageOut(Schema):
@@ -123,18 +155,6 @@ class CenterAnimalsOut(Schema):
     total_pages: int = Field(..., description="전체 페이지 수")
     has_next: bool = Field(..., description="다음 페이지 존재 여부")
     has_prev: bool = Field(..., description="이전 페이지 존재 여부")
-
-class QuestionFormOut(Schema):
-    """질문 폼 출력 스키마"""
-    id: str = Field(..., description="질문 폼 ID")
-    center_id: str = Field(..., description="센터 ID")
-    question: str = Field(..., description="질문 내용")
-    type: str = Field(..., description="질문 유형 (text, multiple_choice, single_choice, checkbox)")
-    options: Optional[List[str]] = Field(None, description="선택지 목록")
-    is_required: bool = Field(..., description="필수 질문 여부")
-    sequence: int = Field(..., description="질문 순서")
-    created_at: str = Field(..., description="생성일시 (ISO 형식)")
-    updated_at: str = Field(..., description="수정일시 (ISO 형식)")
 
 class QuestionFormListOut(Schema):
     """질문 폼 목록 출력 스키마"""

@@ -1,5 +1,6 @@
 from ninja import Schema, Field
 from typing import Optional, List
+from pydantic import BaseModel
 
 
 class ContractTemplateCreateIn(Schema):
@@ -54,11 +55,15 @@ class ProcedureSettingsUpdateIn(Schema):
     adoption_procedure: Optional[str] = Field(None, max_length=2000, description="입양 절차")
 
 
-class CenterListQueryIn(Schema):
+class CenterListQueryIn(BaseModel):
     """센터 목록 조회 쿼리 스키마"""
-    name: Optional[str] = Field(None, max_length=100, description="센터명 필터링 (부분 검색)")
-    location: Optional[str] = Field(None, max_length=100, description="센터 위치 필터링 (부분 검색)")
-    region: Optional[str] = Field(None, max_length=50, description="센터 지역 필터링")
+    region: Optional[str] = None  # 지역 필터 (서울, 부산 등)
+    verified: Optional[bool] = None  # 인증 여부
+    has_volunteer: Optional[bool] = None  # 봉사활동 여부
+    has_foster_care: Optional[bool] = None  # 임시보호 여부
+    search: Optional[str] = None  # 검색어 (센터명, 위치, 설명)
+    sort_by: Optional[str] = "created_at"  # 정렬 기준 (name, verified, created_at)
+    sort_order: Optional[str] = "desc"  # 정렬 방향 (asc, desc)
 
 
 class CenterUpdateIn(Schema):

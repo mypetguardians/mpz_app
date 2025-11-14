@@ -11,6 +11,7 @@ import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
 import { InfoCard } from "@/components/ui/InfoCard";
 import { FilterState } from "@/lib/filter-utils";
 
+import BreedFilter from "./_components/BreedFilter";
 import MultiSelectFilter from "./_components/MultiSelectFilter";
 import {
   weightOptions,
@@ -29,6 +30,11 @@ function CenterFilterContent() {
     return window.location.pathname.split("/")[3];
   }, []);
 
+  const [selectedBreed, setSelectedBreed] = useState("");
+  const [breedSearchTerm, setBreedSearchTerm] = useState("");
+  const [isBreedSheetOpen, setIsBreedSheetOpen] = useState(false);
+  const [tempSelectedBreed, setTempSelectedBreed] = useState("");
+
   const [selectedWeights, setSelectedWeights] = useState<string[]>([]);
   const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
   const [selectedAges, setSelectedAges] = useState<string[]>([]);
@@ -42,6 +48,7 @@ function CenterFilterContent() {
 
   // URL 파라미터에서 기존 필터 상태 읽기
   useEffect(() => {
+    const breed = searchParams.get("breed") || "";
     const weights =
       searchParams.get("weights")?.split(",").filter(Boolean) || [];
     const regions =
@@ -55,6 +62,7 @@ function CenterFilterContent() {
       searchParams.get("expertOpinion")?.split(",").filter(Boolean) || [];
 
     console.log("URL 파라미터에서 읽은 센터 필터:", {
+      breed,
       weights,
       regions,
       ages,
@@ -65,6 +73,7 @@ function CenterFilterContent() {
 
     // URL에 파라미터가 있으면 URL 우선, 없으면 localStorage 사용
     if (
+      breed ||
       weights.length > 0 ||
       regions.length > 0 ||
       ages.length > 0 ||
@@ -73,6 +82,7 @@ function CenterFilterContent() {
       expertOpinion.length > 0
     ) {
       console.log("URL 파라미터 사용");
+      setSelectedBreed(breed);
       setSelectedWeights(weights);
       setSelectedRegions(regions);
       setSelectedAges(ages);
@@ -86,6 +96,7 @@ function CenterFilterContent() {
         try {
           const parsed = JSON.parse(savedFilters);
           console.log("localStorage에서 복원된 센터 필터:", parsed);
+          setSelectedBreed(parsed.breed || "");
           setSelectedWeights(parsed.weights || []);
           setSelectedRegions(parsed.regions || []);
           setSelectedAges(parsed.ages || []);
@@ -99,6 +110,7 @@ function CenterFilterContent() {
       }
 
       console.log("초기값으로 설정");
+      setSelectedBreed("");
       setSelectedWeights([]);
       setSelectedRegions([]);
       setSelectedAges([]);
@@ -112,6 +124,9 @@ function CenterFilterContent() {
   const updateURL = useCallback(
     (filters: FilterState) => {
       const params = new URLSearchParams(searchParams.toString());
+
+      if (filters.breed) params.set("breed", filters.breed);
+      else params.delete("breed");
 
       if (filters.weights?.length > 0)
         params.set("weights", filters.weights.join(","));
@@ -157,7 +172,7 @@ function CenterFilterContent() {
 
     const timer = setTimeout(() => {
       const filters: FilterState = {
-        breed: "",
+        breed: selectedBreed,
         weights: selectedWeights,
         regions: selectedRegions,
         ages: selectedAges,
@@ -171,6 +186,7 @@ function CenterFilterContent() {
 
     return () => clearTimeout(timer);
   }, [
+    selectedBreed,
     selectedWeights,
     selectedRegions,
     selectedAges,
@@ -187,7 +203,7 @@ function CenterFilterContent() {
 
   const handleApply = () => {
     const filters: FilterState = {
-      breed: "",
+      breed: selectedBreed,
       weights: selectedWeights,
       regions: selectedRegions,
       ages: selectedAges,
@@ -199,6 +215,7 @@ function CenterFilterContent() {
     // URL 파라미터로 필터 상태 저장
     const params = new URLSearchParams();
 
+    if (filters.breed) params.set("breed", filters.breed);
     if (filters.weights.length > 0)
       params.set("weights", filters.weights.join(","));
     if (filters.regions.length > 0)
@@ -224,6 +241,7 @@ function CenterFilterContent() {
 
   const handleReset = () => {
     // 모든 상태 초기화
+    setSelectedBreed("");
     setSelectedWeights([]);
     setSelectedRegions([]);
     setSelectedAges([]);
@@ -260,6 +278,18 @@ function CenterFilterContent() {
         }
       />
       <div className="flex flex-col w-full gap-6 px-4 py-3 pb-24">
+        {/* 품종 (Breed) */}
+        <BreedFilter
+          selectedBreed={selectedBreed}
+          setSelectedBreed={setSelectedBreed}
+          breedSearchTerm={breedSearchTerm}
+          setBreedSearchTerm={setBreedSearchTerm}
+          isBreedSheetOpen={isBreedSheetOpen}
+          setIsBreedSheetOpen={setIsBreedSheetOpen}
+          tempSelectedBreed={tempSelectedBreed}
+          setTempSelectedBreed={setTempSelectedBreed}
+        />
+
         {/* 체중 (Weight) */}
         <MultiSelectFilter
           title="체중"

@@ -6,7 +6,13 @@ from asgiref.sync import sync_to_async
 from typing import List
 from datetime import timedelta
 
-from adoptions.schemas.center_inbound import UpdateAdoptionStatusIn, SendContractIn, CenterAdoptionFilterIn
+from adoptions.schemas.center_inbound import (
+    UpdateAdoptionStatusIn,
+    UpdateAdoptionMemoIn,
+    CenterWithdrawIn,
+    SendContractIn,
+    CenterAdoptionFilterIn,
+)
 from ninja import Query
 from adoptions.schemas.center_outbound import (
     CenterAdoptionOut, SendContractOut,
@@ -220,6 +226,96 @@ async def update_adoption_status(request, adoption_id: str, data: UpdateAdoption
     except Exception as e:
         print(f"Update adoption status error: {e}")
         raise HttpError(500, "입양 신청 상태 변경 중 오류가 발생했습니다")
+
+
+@router.put(
+    "/center-admin/{adoption_id}/memo",
+    summary="[U] 입양 신청 메모 업데이트",
+    description="상태 변경 없이 center_notes / user_memo를 업데이트합니다",
+    response={200: CenterAdoptionOut, 400: dict, 401: dict, 403: dict, 404: dict, 500: dict},
+    auth=jwt_auth,
+)
+async def update_adoption_memo(request, adoption_id: str, data: UpdateAdoptionMemoIn):
+    try:
+        current_user = request.auth
+        # 권한 확인
+        if not await validate_center_permissions(current_user):
+            raise HttpError(403, "센터 관리자만 접근할 수 있습니다")
+        # 센터 조회
+        center = await get_user_center(current_user)
+        # 입양 신청 소유 확인
+        try:
+            adoption = await Adoption.objects.select_related('animal', 'user').aget(
+                id=adoption_id,
+                animal__center=center
+            )
+        except Adoption.DoesNotExist:
+            raise HttpError(404, "입양 신청을 찾을 수 없습니다")
+
+        update_fields = {"updated_at": timezone.now()}
+        if data.center_notes is not None:
+            update_fields["center_notes"] = data.center_notes
+        if data.user_memo is not None:
+            update_fields["user_memo"] = data.user_memo
+
+        if len(update_fields.keys()) == 1:
+            # 메모 필드가 아무것도 전달되지 않은 경우
+            raise HttpError(400, "업데이트할 메모가 없습니다")
+
+        await Adoption.objects.filter(id=adoption_id).aupdate(**update_fields)
+        updated = await Adoption.objects.select_related('animal', 'user').aget(id=adoption_id)
+        return await build_center_adoption_response(updated, center)
+
+    except HttpError:
+        raise
+    except Exception as e:
+        print(f"Update adoption memo error: {e}")
+        raise HttpError(500, "입양 신청 메모 업데이트 중 오류가 발생했습니다")
+
+
+@router.put(
+    "/center-admin/{adoption_id}/withdraw",
+    summary="[U] (센터) 입양 신청 철회 처리",
+    description="센터 관리자가 입양 신청을 철회(취소) 처리합니다. reason을 center_notes로 저장합니다.",
+    response={200: CenterAdoptionOut, 400: dict, 401: dict, 403: dict, 404: dict, 500: dict},
+    auth=jwt_auth,
+)
+async def center_withdraw_adoption(request, adoption_id: str, data: CenterWithdrawIn):
+    try:
+        current_user = request.auth
+        # 권한 확인
+        if not await validate_center_permissions(current_user):
+            raise HttpError(403, "센터 관리자만 접근할 수 있습니다")
+        # 센터 조회
+        center = await get_user_center(current_user)
+        # 입양 신청 소유 확인
+        try:
+            adoption = await Adoption.objects.select_related('animal', 'user').aget(
+                id=adoption_id,
+                animal__center=center
+            )
+        except Adoption.DoesNotExist:
+            raise HttpError(404, "입양 신청을 찾을 수 없습니다")
+
+        # 상태 전이 허용 검증
+        if not validate_status_transition(adoption.status, "취소"):
+            raise HttpError(400, f"{adoption.status}에서 취소로 변경할 수 없습니다")
+
+        update_fields = {
+            "status": "취소",
+            "updated_at": timezone.now(),
+        }
+        if data.reason:
+            update_fields["center_notes"] = data.reason
+
+        await Adoption.objects.filter(id=adoption_id).aupdate(**update_fields)
+        updated = await Adoption.objects.select_related('animal', 'user').aget(id=adoption_id)
+        return await build_center_adoption_response(updated, center)
+    except HttpError:
+        raise
+    except Exception as e:
+        print(f"Center withdraw adoption error: {e}")
+        raise HttpError(500, "입양 신청 철회 처리 중 오류가 발생했습니다")
 
 @router.post(
     "/center-admin/{adoption_id}/send-contract",

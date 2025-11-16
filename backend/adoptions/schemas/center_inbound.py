@@ -8,6 +8,15 @@ class UpdateAdoptionStatusIn(Schema):
     user_memo: Optional[str] = Field(None, description="입양 신청자에 대한 메모")
     meeting_scheduled_at: Optional[str] = Field(None, description="미팅 예정 시간 (ISO 8601)")
 
+class UpdateAdoptionMemoIn(Schema):
+    """입양 신청 메모만 업데이트하는 스키마 (상태 변경 없음)"""
+    center_notes: Optional[str] = Field(None, description="센터 메모")
+    user_memo: Optional[str] = Field(None, description="입양 신청자에 대한 메모")
+
+class CenterWithdrawIn(Schema):
+    """센터 관리자가 입양 신청을 철회(취소) 처리할 때 사용하는 스키마"""
+    reason: Optional[str] = Field(None, description="철회 사유 (센터 메모로 저장)")
+
 class SendContractIn(Schema):
     """계약서 전송 요청 스키마"""
     template_id: str = Field(..., description="계약서 템플릿 ID")

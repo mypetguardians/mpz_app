@@ -1,6 +1,9 @@
-from ninja import Router
+from ninja import Router, Query
 from ninja.errors import HttpError
 from asgiref.sync import sync_to_async
+from django.conf import settings
+import json
+import httpx
 from adoptions.schemas.inbound import (
     AdoptionApplicationIn
 )
@@ -340,11 +343,11 @@ async def submit_adoption_application(request, data: AdoptionApplicationIn):
 @router.delete(
     "/{adoption_id}/withdraw",
     summary="[D] 입양 신청 철회",
-    description="사용자가 입양 신청을 철회합니다",
+    description="사용자가 입양 신청을 철회합니다. reason 쿼리로 철회 사유를 전달할 수 있습니다.",
     response={200: AdoptionWithdrawOut, 401: dict, 403: dict, 404: dict, 500: dict},
     auth=jwt_auth,
 )
-async def withdraw_adoption_application(request, adoption_id: str):
+async def withdraw_adoption_application(request, adoption_id: str, reason: str = Query(default=None, description="철회 사유")):
     """입양 신청을 철회합니다."""
     try:
         current_user = request.auth
@@ -363,9 +366,18 @@ async def withdraw_adoption_application(request, adoption_id: str):
         if adoption.status not in ["신청", "미팅", "계약서작성"]:
             raise HttpError(400, f"현재 상태({adoption.status})에서는 철회할 수 없습니다")
         
+        # 철회 사유 저장 (선택)
+        try:
+            if reason:
+                adoption.user_memo = reason
+                await adoption.asave(update_fields=['user_memo'])
+        except Exception:
+            # 사유 저장 실패는 철회 자체에는 영향 주지 않음
+            pass
+        
         # 입양 신청 상태를 철회로 변경
         adoption.status = "취소"
-        await adoption.asave()
+        await adoption.asave(update_fields=['status'])
         
         return 200, AdoptionWithdrawOut(
             message="입양 신청이 성공적으로 철회되었습니다",
@@ -377,3 +389,151 @@ async def withdraw_adoption_application(request, adoption_id: str):
         raise
     except Exception as e:
         raise HttpError(500, f"입양 신청 철회 중 오류가 발생했습니다: {str(e)}")
+
+
+# -------------------- 왙싸인 연동 (기본 골격) --------------------
+@router.post(
+    "/contracts/wattsign/send",
+    summary="[C] 왙싸인 문서 생성 및 참여자 링크 발급",
+    description="adoptionId 기반으로 계약 정보를 구성해 왙싸인 문서를 생성하고 참여자 서명 URL을 반환합니다.",
+    response={200: dict, 400: dict, 500: dict},
+    auth=jwt_auth,
+)
+async def send_wattsign_contract(request, payload: dict):
+    """
+    프론트에서 adoptionId를 받아 우리 DB로 계약 정보를 조회/구성한 뒤
+    왙싸인 API를 호출해 문서를 생성하고 참여자 서명 URL을 반환합니다.
+    """
+    try:
+        adoption_id = payload.get("adoptionId")
+        if not adoption_id:
+            raise HttpError(400, "adoptionId is required")
+
+        # 필수 설정 확인
+        api_key = getattr(settings, "WATTSIGN_API_KEY", None)
+        if not api_key:
+            raise HttpError(500, "WATTSIGN_API_KEY가 서버 환경에 설정되어 있지 않습니다.")
+
+        try:
+            adoption = await (Adoption.objects
+                              .select_related('user', 'animal', 'animal__center')
+                              .aget(id=adoption_id))
+        except Adoption.DoesNotExist:
+            raise HttpError(404, "입양 신청을 찾을 수 없습니다")
+
+        adopter = adoption.user
+        animal = adoption.animal
+        center = getattr(animal, "center", None)
+
+        if not adopter or not adopter.email:
+            raise HttpError(400, "입양 신청자의 이메일이 없습니다. 이메일이 필요합니다.")
+        if not center:
+            raise HttpError(400, "센터 정보를 찾을 수 없습니다.")
+
+        # 센터 이메일 확보 (모델에 없다면 환경변수의 기본 이메일 사용)
+        center_email = getattr(center, "email", None) or getattr(settings, "DEFAULT_CENTER_EMAIL", None)
+        if not center_email:
+            raise HttpError(400, "센터 이메일이 없습니다. DEFAULT_CENTER_EMAIL 설정이 필요합니다.")
+
+        # 활성 템플릿 조회 (없으면 간단 본문 사용)
+        template = await AdoptionContractTemplate.objects.filter(center=center, is_active=True).afirst()
+        contract_title = getattr(template, "title", None) or f"입양 계약서 - {animal.name}"
+        contract_content = getattr(template, "content", None) or f"{animal.name} 입양 계약서입니다."
+
+        # 프론트에서 넘어온 템플릿 ID 우선 사용, 없으면 서버 기본값 사용
+        provided_template_id = payload.get("templateId")
+        template_id_to_use = provided_template_id or getattr(settings, "WATTSIGN_TEMPLATE_ID", None)
+
+        # 2) 왙싸인 API 호출 - 문서 생성
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        }
+        base_participants = [
+            {
+                "role": "signer",
+                "name": getattr(adopter, "nickname", None) or getattr(adopter, "username", "") or "입양자",
+                "email": adopter.email,
+            },
+            {
+                "role": "counterparty",
+                "name": getattr(center, "name", "센터"),
+                "email": center_email,
+            },
+        ]
+        if template_id_to_use:
+            body = {
+                "title": contract_title,
+                "templateId": template_id_to_use,
+                "participants": base_participants,
+                # "variables": {"animalName": animal.name},
+                # "webhookUrl": getattr(settings, "WATTSIGN_WEBHOOK_URL", None),
+            }
+        else:
+            body = {
+                "title": contract_title,
+                "content": contract_content,
+                "participants": base_participants,
+                # "webhookUrl": getattr(settings, "WATTSIGN_WEBHOOK_URL", None),
+            }
+
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            res = await client.post(
+                "https://api.wattsign.com/v1/documents",
+                headers=headers,
+                json=body,
+            )
+        try:
+            res.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            # 왙싸인 측 에러 메시지 전달
+            try:
+                err_json = res.json()
+            except Exception:
+                err_json = {"message": res.text}
+            raise HttpError(res.status_code, f"왙싸인 문서 생성 실패: {err_json}")
+
+        data = res.json()
+
+        # 3) 응답에서 참여자 서명 URL 추출
+        participants = data.get("participants") or []
+        redirect_url = None
+        for p in participants:
+            if p.get("role") in ("signer", "adopter", "user"):
+                redirect_url = p.get("signUrl") or p.get("sign_url") or None
+                if redirect_url:
+                    break
+        if not redirect_url and participants:
+            redirect_url = participants[0].get("signUrl") or participants[0].get("sign_url") or None
+        if not redirect_url:
+            raise HttpError(502, "왙싸인 서명 링크 생성 실패")
+
+        return {"redirectUrl": redirect_url}
+    except HttpError:
+        raise
+    except Exception as e:
+        raise HttpError(500, f"왙싸인 문서 생성 중 오류가 발생했습니다: {str(e)}")
+
+
+@router.post(
+    "/contracts/wattsign/webhook",
+    summary="[S] 왙싸인 웹훅 수신",
+    description="서명/체결 이벤트를 수신하여 우리 시스템 상태를 갱신합니다.",
+    response={200: dict},
+)
+async def wattsign_webhook(request):
+    try:
+        # TODO: 필요 시 시그니처 검증
+        # 이벤트 페이로드 파싱
+        try:
+            body_unicode = request.body.decode("utf-8")
+            event = json.loads(body_unicode) if body_unicode else {}
+        except Exception:
+            event = {}
+
+        # TODO: event['type'] 등에 따라 Adoption 상태 갱신
+        # 예: 서명 완료 시 "계약서작성" -> "입양완료" 혹은 다음 단계
+        return {"ok": True}
+    except Exception:
+        # 웹훅은 200 응답이 중요하므로 에러를 삼키지 않음
+        return {"ok": False}

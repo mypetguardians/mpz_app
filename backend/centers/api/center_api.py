@@ -24,7 +24,6 @@ def _build_center_response(center):
     """센터 응답 데이터를 구성합니다."""
     return CenterOut(
         id=str(center.id),
-        user_id=str(center.owner.id) if center.owner else None,
         name=center.name,
         center_number=center.center_number,
         description=center.description,
@@ -38,12 +37,17 @@ def _build_center_response(center):
         monitoring_interval_days=center.monitoring_interval_days,
         monitoring_description=center.monitoring_description,
         verified=center.verified,
+        is_public=center.is_public,
         adoption_price=center.adoption_price,
         image_url=center.image_url,
         is_subscribed=center.is_subscribed,
         has_volunteer=center.has_volunteer,
         has_foster_care=center.has_foster_care,
+        show_phone_number=center.show_phone_number,
+        show_location=center.show_location,
         call_available_time=center.call_available_time,
+        public_reg_no=center.public_reg_no,
+        owner_name=center.owner.username if center.owner else None,
         created_at=center.created_at.isoformat(),
         updated_at=center.updated_at.isoformat(),
     )

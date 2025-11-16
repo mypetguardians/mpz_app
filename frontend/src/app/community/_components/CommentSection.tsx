@@ -44,6 +44,15 @@ export function CommentSection({
     Record<string, boolean>
   >({});
 
+  // 모든 댓글의 대댓글을 기본으로 펼침
+  React.useEffect(() => {
+    const initial: Record<string, boolean> = {};
+    comments.forEach((c) => {
+      initial[c.id] = true;
+    });
+    setShowReplies(initial);
+  }, [comments]);
+
   // 모든 사용자 정보를 수집 (댓글과 대댓글에서)
   const allUsers = React.useMemo(() => {
     const userMap = new Map();

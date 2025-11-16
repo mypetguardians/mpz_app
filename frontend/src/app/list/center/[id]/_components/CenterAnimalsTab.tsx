@@ -1,28 +1,20 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { PetCard } from "@/components/ui/PetCard";
 import { MiniButton } from "@/components/ui/MiniButton";
 import { CaretDown } from "@phosphor-icons/react";
 import { useGetAnimals } from "@/hooks/query/useGetAnimals";
 import type { Animal } from "./types";
 import { transformRawAnimalToAnimal } from "@/types/animal";
+import { useCenterFiltersStore } from "@/stores/centerFilters";
 
 interface CenterAnimalsTabProps {
   showFilters?: boolean;
   centerId: string;
   variant?: "simple" | "detailed";
   className?: string;
-}
-
-interface FilterState {
-  breed: string;
-  weights: string[];
-  ages: string[];
-  genders: string[];
-  protectionStatus: string[];
-  expertOpinion: string[];
 }
 
 interface FilterOption {
@@ -39,9 +31,8 @@ export function CenterAnimalsTab({
   className = "",
 }: CenterAnimalsTabProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [filteredAnimals, setFilteredAnimals] = useState<Animal[]>([]);
-  const STORAGE_KEY = useMemo(() => `center_filters_${centerId}`, [centerId]);
+  const { filters, reset } = useCenterFiltersStore();
 
   // 센터 동물 데이터 가져오기
   const {
@@ -62,105 +53,29 @@ export function CenterAnimalsTab({
     );
   }, [animalsData]);
 
-  // URL 파라미터에서 필터 상태 읽기
-  const filters = useMemo((): FilterState | null => {
+  // 필터는 zustand 전역 상태에서 읽음
+  const activeFilters = useMemo(() => {
     if (!showFilters) return null;
+    return filters;
+  }, [filters, showFilters]);
 
-    return {
-      breed: searchParams.get("breed") || "",
-      weights: searchParams.get("weights")?.split(",").filter(Boolean) || [],
-      ages: searchParams.get("ages")?.split(",").filter(Boolean) || [],
-      genders: searchParams.get("genders")?.split(",").filter(Boolean) || [],
-      protectionStatus:
-        searchParams.get("protectionStatus")?.split(",").filter(Boolean) || [],
-      expertOpinion:
-        searchParams.get("expertOpinion")?.split(",").filter(Boolean) || [],
-    };
-  }, [searchParams, showFilters]);
-
-  // 필터 상태를 로컬 스토리지에 저장
-  useEffect(() => {
-    if (!showFilters) return;
-    const params = new URLSearchParams(searchParams.toString());
-    const state: FilterState = {
-      breed: params.get("breed") || "",
-      weights: params.get("weights")?.split(",").filter(Boolean) || [],
-      ages: params.get("ages")?.split(",").filter(Boolean) || [],
-      genders: params.get("genders")?.split(",").filter(Boolean) || [],
-      protectionStatus:
-        params.get("protectionStatus")?.split(",").filter(Boolean) || [],
-      expertOpinion:
-        params.get("expertOpinion")?.split(",").filter(Boolean) || [],
-    };
-    // 하나라도 값이 있으면 저장, 모두 비어있으면 삭제
-    const hasAny =
-      state.breed ||
-      state.weights.length ||
-      state.ages.length ||
-      state.genders.length ||
-      state.protectionStatus.length ||
-      state.expertOpinion.length;
-    try {
-      if (hasAny) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      } else {
-        localStorage.removeItem(STORAGE_KEY);
-      }
-    } catch (error) {
-      console.error(error);
-      // 저장 실패는 무시
-    }
-  }, [searchParams, showFilters, STORAGE_KEY]);
-
-  // 재진입 시(초기 로드) URL에 필터가 없고, 저장된 상태가 있으면 복원
-  useEffect(() => {
-    if (!showFilters) return;
-    const hasAnyParam = [
-      "breed",
-      "weights",
-      "ages",
-      "genders",
-      "protectionStatus",
-      "expertOpinion",
-    ].some((key) => searchParams.get(key));
-    if (hasAnyParam) return;
-
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      const saved: FilterState = JSON.parse(raw);
-      const params = new URLSearchParams(searchParams.toString());
-      if (saved.breed) params.set("breed", saved.breed);
-      if (saved.weights.length) params.set("weights", saved.weights.join(","));
-      if (saved.ages.length) params.set("ages", saved.ages.join(","));
-      if (saved.genders.length) params.set("genders", saved.genders.join(","));
-      if (saved.protectionStatus.length)
-        params.set("protectionStatus", saved.protectionStatus.join(","));
-      if (saved.expertOpinion.length)
-        params.set("expertOpinion", saved.expertOpinion.join(","));
-      params.set("tab", "animals");
-      const query = params.toString();
-      router.replace(`/list/center/${centerId}${query ? `?${query}` : ""}`);
-    } catch (error) {
-      console.error(error);
-    }
-  }, [showFilters, STORAGE_KEY, centerId, router, searchParams]);
+  // URL/로컬스토리지 동기화 제거 (zustand persist 사용)
 
   // 필터링 로직을 별도 함수로 분리
   const applyFilters = useMemo(() => {
-    if (!animals || !filters) return animals || [];
+    if (!animals || !activeFilters) return animals || [];
 
     return animals.filter((animal) => {
       // 품종 필터
-      if (filters.breed && animal.breed !== filters.breed) {
+      if (activeFilters.breed && animal.breed !== activeFilters.breed) {
         return false;
       }
 
       // 체중 필터
-      if (filters.weights.length > 0) {
+      if (activeFilters.weights.length > 0) {
         const weight = animal.weight;
         if (weight) {
-          const weightValue = filters.weights[0];
+          const weightValue = activeFilters.weights[0];
           if (weightValue === "10kg 이하" && weight > 10) return false;
           if (weightValue === "25kg 이하" && weight > 25) return false;
           if (weightValue === "그 이상" && weight <= 25) return false;
@@ -168,10 +83,10 @@ export function CenterAnimalsTab({
       }
 
       // 나이 필터
-      if (filters.ages.length > 0) {
+      if (activeFilters.ages.length > 0) {
         const age = animal.age;
         if (age) {
-          const ageValue = filters.ages[0];
+          const ageValue = activeFilters.ages[0];
           if (ageValue === "2살 이하" && age > 2) return false;
           if (ageValue === "7살 이하" && age > 7) return false;
           if (ageValue === "그 이상" && age <= 7) return false;
@@ -179,24 +94,24 @@ export function CenterAnimalsTab({
       }
 
       // 성별 필터
-      if (filters.genders.length > 0) {
+      if (activeFilters.genders.length > 0) {
         const isFemale = animal.isFemale;
         const gender = isFemale ? "여아" : "남아";
-        if (!filters.genders.includes(gender)) {
+        if (!activeFilters.genders.includes(gender)) {
           return false;
         }
       }
 
       // 보호상태 필터
-      if (filters.protectionStatus.length > 0) {
+      if (activeFilters.protectionStatus.length > 0) {
         const status = animal.status;
-        if (status && !filters.protectionStatus.includes(status)) {
+        if (status && !activeFilters.protectionStatus.includes(status)) {
           return false;
         }
       }
 
       // 전문가 의견 필터
-      if (filters.expertOpinion.length > 0) {
+      if (activeFilters.expertOpinion.length > 0) {
         if (!animal.trainerComment) {
           return false;
         }
@@ -204,7 +119,7 @@ export function CenterAnimalsTab({
 
       return true;
     });
-  }, [animals, filters]);
+  }, [animals, activeFilters]);
 
   // 필터링된 동물 목록 상태 업데이트
   useEffect(() => {
@@ -213,61 +128,45 @@ export function CenterAnimalsTab({
 
   // 필터 옵션들
   const filterOptions = useMemo((): FilterOption[] => {
-    if (!showFilters || !filters) return [];
+    if (!showFilters || !activeFilters) return [];
 
     return [
       {
         label: "품종",
         path: `/list/center/${centerId}/filter`,
-        count: filters.breed ? 1 : 0,
-        hasFilters: !!filters.breed,
+        count: activeFilters.breed ? 1 : 0,
+        hasFilters: !!activeFilters.breed,
       },
       {
         label: "체중",
         path: `/list/center/${centerId}/filter`,
-        count: filters.weights.length,
-        hasFilters: filters.weights.length > 0,
+        count: activeFilters.weights.length,
+        hasFilters: activeFilters.weights.length > 0,
       },
       {
         label: "성별",
         path: `/list/center/${centerId}/filter`,
-        count: filters.genders.length,
-        hasFilters: filters.genders.length > 0,
+        count: activeFilters.genders.length,
+        hasFilters: activeFilters.genders.length > 0,
       },
       {
         label: "나이",
         path: `/list/center/${centerId}/filter`,
-        count: filters.ages.length,
-        hasFilters: filters.ages.length > 0,
+        count: activeFilters.ages.length,
+        hasFilters: activeFilters.ages.length > 0,
       },
       {
         label: "보호상태",
         path: `/list/center/${centerId}/filter`,
-        count: filters.protectionStatus.length,
-        hasFilters: filters.protectionStatus.length > 0,
+        count: activeFilters.protectionStatus.length,
+        hasFilters: activeFilters.protectionStatus.length > 0,
       },
     ];
-  }, [showFilters, filters, centerId]);
+  }, [showFilters, activeFilters, centerId]);
 
   const handleFilterClick = (path: string) => {
-    // 현재 적용 중인 필터 쿼리를 필터 페이지로 전달하여 재진입 시 상태 유지
-    const current = new URLSearchParams(searchParams.toString());
-    const passthroughKeys = [
-      "breed",
-      "weights",
-      "regions",
-      "ages",
-      "genders",
-      "protectionStatus",
-      "expertOpinion",
-    ];
-    const params = new URLSearchParams();
-    passthroughKeys.forEach((key) => {
-      const value = current.get(key);
-      if (value) params.set(key, value);
-    });
-    const query = params.toString();
-    router.push(`${path}${query ? `?${query}` : ""}`);
+    // 전역 상태를 사용하므로 쿼리 전달 불필요
+    router.push(path);
   };
 
   const renderLoadingState = () => (
@@ -386,18 +285,10 @@ export function CenterAnimalsTab({
   }
 
   const handleClearFilters = () => {
-    const params = new URLSearchParams(searchParams.toString());
-    [
-      "breed",
-      "weights",
-      "ages",
-      "genders",
-      "protectionStatus",
-      "expertOpinion",
-    ].forEach((key) => params.delete(key));
-    params.set("tab", "animals");
-    const query = params.toString();
-    router.push(`/list/center/${centerId}${query ? `?${query}` : ""}`);
+    reset();
+    // 탭 유지하며 현재 페이지 새로고침 없이 상태만 반영
+    // 필요 시 animals 탭으로 이동
+    router.push(`/list/center/${centerId}?tab=animals`);
   };
 
   return (

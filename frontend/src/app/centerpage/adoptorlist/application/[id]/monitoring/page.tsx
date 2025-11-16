@@ -180,10 +180,6 @@ export default function AdoptionMonitoringPage({
               <h2 className="mb-2 text-bk">모니터링 현황</h2>
               <div className="flex items-center gap-2 text-sm">
                 <h6 className="text-red">모니터링 진행중</h6>
-                <span className="text-gr">|</span>
-                <h6 className="text-gr">남은 횟수 10회</h6>
-                <span className="text-gr">|</span>
-                <h6 className="text-gr">남은 기간 3개월 1주</h6>
               </div>
             </SectionLine>
             {/* Pet Info */}

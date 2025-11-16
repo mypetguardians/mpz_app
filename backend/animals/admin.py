@@ -23,6 +23,8 @@ class AnimalAdmin(admin.ModelAdmin):
     # 센터별 그룹화
     list_select_related = ['center']
     
+    inlines = []
+
     fieldsets = (
         ('기본 정보', {
             'fields': ('name', 'center', 'announce_number', 'breed', 'age', 
@@ -72,6 +74,9 @@ class AnimalImageInline(admin.TabularInline):
         return "이미지 없음"
     image_url_preview.short_description = '미리보기'
 
+AnimalAdmin.inlines = [AnimalImageInline]
+
+
 @admin.register(AdoptionApplication)
 class AdoptionApplicationAdmin(admin.ModelAdmin):
     """입양 신청 관리자"""
@@ -111,9 +116,6 @@ class AdoptionApplicationAdmin(admin.ModelAdmin):
     )
     
     readonly_fields = ('application_date',)
-    
-    # 인라인 설정
-    inlines = [AnimalImageInline]
     
     def get_readonly_fields(self, request, obj=None):
         """신청자는 상태 변경만 가능하도록"""
@@ -198,5 +200,3 @@ class AnimalWithApplicationsAdmin(AnimalAdmin):
         return 0
     pending_applications_count.short_description = '대기 신청'
 
-# 기본 AnimalAdmin 사용
-admin.site.register(Animal, AnimalAdmin)

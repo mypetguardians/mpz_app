@@ -130,6 +130,8 @@ export default function ApplicationFormPage({
                 )}
               </div>
             </SectionLine>
+
+            {/* ... 나머지 기존 컴포넌트 코드 유지 */}
           </div>
         </div>
       </Container>

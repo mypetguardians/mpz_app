@@ -17,7 +17,7 @@ import { useGetCenterAdoption } from "@/hooks";
 import { useGetAdoptionMonitoringPosts } from "@/hooks/query/useGetAdoptionMonitoringPosts";
 import { transformRawAnimalToPetCard } from "@/types/animal";
 import { useGetAnimalById } from "@/hooks/query/useGetAnimals";
-import { useWithdrawAdoption } from "@/hooks/mutation";
+import { useUpdateAdoptionStatus } from "@/hooks";
 import { MiniButton } from "@/components/ui/MiniButton";
 
 interface AdoptionMonitoringPageProps {
@@ -29,6 +29,7 @@ export default function AdoptionMonitoringPage({
 }: AdoptionMonitoringPageProps) {
   const router = useRouter();
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [withdrawReason, setWithdrawReason] = useState("");
   const [showToast, setShowToast] = useState(false);
   const { id } = use(params);
 
@@ -42,8 +43,8 @@ export default function AdoptionMonitoringPage({
     error: postsError,
   } = useGetAdoptionMonitoringPosts(id, 1, 10);
 
-  const { mutate: withdrawAdoption, isPending: isWithdrawing } =
-    useWithdrawAdoption();
+  const updateStatus = useUpdateAdoptionStatus();
+  const isWithdrawing = updateStatus.isPending;
 
   // 동물 정보 가져오기 (입양 데이터에서 animal_id 추출)
   const {
@@ -55,26 +56,33 @@ export default function AdoptionMonitoringPage({
   const handleWithdrawConfirm = () => {
     setShowWithdrawModal(false);
 
-    // 입양 신청 철회 API 호출
-    withdrawAdoption(id, {
-      onSuccess: (data) => {
-        console.log("철회 완료:", data.message);
-        setShowToast(true);
-        // 3초 후 토스트 숨기기
-        setTimeout(() => {
-          setShowToast(false);
-          router.back();
-        }, 3000);
+    // 센터 철회: 상태를 취소로 변경하며 사유를 center_notes로 전달
+    updateStatus.mutate(
+      {
+        adoptionId: id,
+        status: "취소",
+        center_notes: withdrawReason || "센터에서 철회 처리",
+        user_memo: null,
+        meeting_scheduled_at: null,
       },
-      onError: (error) => {
-        console.error("철회 실패:", error);
-        // 에러 토스트 표시
-        setShowToast(true);
-        setTimeout(() => {
-          setShowToast(false);
-        }, 3000);
-      },
-    });
+      {
+        onSuccess: () => {
+          setShowToast(true);
+          // 3초 후 토스트 숨기기
+          setTimeout(() => {
+            setShowToast(false);
+            router.back();
+          }, 3000);
+        },
+        onError: (error) => {
+          console.error("철회 실패:", error);
+          setShowToast(true);
+          setTimeout(() => {
+            setShowToast(false);
+          }, 3000);
+        },
+      }
+    );
   };
 
   const handleWithdrawClick = () => {
@@ -354,14 +362,20 @@ export default function AdoptionMonitoringPage({
         <BottomSheet
           open={showWithdrawModal}
           onClose={handleWithdrawCancel}
-          variant="primary"
+          variant="variant5"
           title="정말 철회하시겠습니까?"
-          description="Username님의 신중하고 현명한 결정을 존중해요."
-          leftButtonText="아니요"
-          rightButtonText="네, 철회할래요"
-          onLeftClick={handleWithdrawCancel}
-          onRightClick={handleWithdrawConfirm}
-        />
+          description={"철회 사유를 간단히 작성해주세요."}
+          confirmButtonText="철회하기"
+          onConfirm={handleWithdrawConfirm}
+          confirmButtonDisabled={false}
+        >
+          <textarea
+            className="w-full p-3 text-sm bg-white border border-gray-200 rounded-lg min-h-32 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="예: 일정 조율이 어려워졌습니다"
+            value={withdrawReason}
+            onChange={(e) => setWithdrawReason(e.target.value)}
+          />
+        </BottomSheet>
 
         {/* Toast */}
         {showToast && (

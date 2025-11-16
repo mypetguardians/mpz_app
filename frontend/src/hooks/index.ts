@@ -72,6 +72,7 @@ export { useGetCenterAdoptions } from "./query/useGetCenterAdoptions";
 export { useGetCenterAdoption } from "./query/useGetCenterAdoption";
 export { useGetMonitoringStatus } from "./query/useGetMonitoringStatus";
 export { useUpdateAdoptionStatus } from "./mutation/useUpdateAdoptionStatus";
+export { useUpdateAdoptionMemo } from "./mutation/useUpdateAdoptionMemo";
 export { useSendContract } from "./mutation/useSendContract";
 export { useRunManualMonitoringCheck } from "./mutation/useRunManualMonitoringCheck";
 export { useToast } from "./useToast";

@@ -8,19 +8,12 @@ import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
 import { NotificationCardSkeleton } from "@/components/ui";
 import { NotificationCard } from "./_components/NotificationCard";
-import { useCenterNotices, useGetMyCenter } from "@/hooks/query";
+import { useSuperadminNotices } from "@/hooks/query/useSuperadminNotices";
 import { getRelativeTime } from "@/lib/utils";
 
 export default function Notification() {
   const router = useRouter();
-  const { data: myCenter } = useGetMyCenter();
-  const centerId = myCenter?.id;
-
-  const {
-    data: centerNoticesData,
-    error,
-    isLoading,
-  } = useCenterNotices({ centerId: centerId || "", enabled: !!centerId });
+  const { data: superNotices, error, isLoading } = useSuperadminNotices();
 
   const handleBack = () => {
     router.back();
@@ -41,10 +34,7 @@ export default function Notification() {
               size="iconS"
               onClick={handleBack}
             />
-            <h4>
-              공지사항{" "}
-              {centerNoticesData?.total ? `(${centerNoticesData.total}개)` : ""}
-            </h4>
+            <h4>공지사항</h4>
           </div>
         }
       />
@@ -69,15 +59,15 @@ export default function Notification() {
           </div>
         )}
 
-        {centerNoticesData?.notices && centerNoticesData.notices.length > 0 ? (
-          centerNoticesData.notices.map((item) => (
+        {superNotices?.notices && superNotices.notices.length > 0 ? (
+          superNotices.notices.map((item) => (
             <NotificationCard
               key={item.id}
               id={item.id}
               variant="primary"
               message={item.title}
               date={getRelativeTime(item.created_at)}
-              isImportant={item.is_important}
+              isImportant={item.notice_type === "important" || item.is_pinned}
               onClick={() => handleNotificationClick(item.id)}
             />
           ))

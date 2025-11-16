@@ -9,6 +9,8 @@ import { useGetCenterContractTemplates } from "@/hooks/query/useGetCenterContrac
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
+// 왙싸인 리다이렉트로 대체하여 로컬 서명 컴포넌트 의존성 제거
+import axios from "axios";
 
 interface ContractPageProps {
   params: Promise<{ id: string }>;
@@ -26,6 +28,7 @@ export default function ContractPage({ params }: ContractPageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { id } = React.use(params);
+  // 서버에서 생성된 참여자 서명 URL을 받아 열도록 변경
 
   const [contractData, setContractData] = useState<ContractData | null>(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
@@ -83,6 +86,25 @@ export default function ContractPage({ params }: ContractPageProps) {
 
   const handleBack = () => {
     router.push(`/my/adoption/${id}/consentForm`);
+  };
+
+  const handleOpenWattsign = () => {
+    (async () => {
+      try {
+        const res = await axios.post("/api/contracts/wattsign/send", {
+          adoptionId: id,
+        });
+        const { redirectUrl } = res.data || {};
+        if (redirectUrl) {
+          window.open(redirectUrl, "_blank", "noopener,noreferrer");
+        } else {
+          alert("서명 링크 생성에 실패했습니다.");
+        }
+      } catch (e) {
+        console.error(e);
+        alert("왙싸인 연동 중 오류가 발생했습니다.");
+      }
+    })();
   };
 
   if (isAdoptionLoading || isTemplatesLoading) {
@@ -208,6 +230,21 @@ export default function ContractPage({ params }: ContractPageProps) {
                     "계약서 내용이 준비되지 않았습니다."}
                 </div>
               </div>
+            </div>
+
+            {/* Wattsign Redirect */}
+            <div className="mb-6">
+              <h3 className="text-bk mb-3">왙싸인으로 계약서 작성</h3>
+              <button
+                type="button"
+                onClick={handleOpenWattsign}
+                className="w-full py-4 bg-primary text-white rounded-2xl hover:opacity-90 transition-colors"
+              >
+                왙싸인에서 계약서 작성하기
+              </button>
+              <p className="mt-2 text-sm text-gr">
+                버튼을 누르면 새 탭에서 왙싸인이 열립니다.
+              </p>
             </div>
           </div>
         </div>

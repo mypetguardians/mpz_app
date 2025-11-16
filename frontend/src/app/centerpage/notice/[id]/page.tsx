@@ -6,24 +6,18 @@ import { useRouter, useParams } from "next/navigation";
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
-import { useCenterNotices, useGetMyCenter } from "@/hooks/query";
+import { useSuperadminNotice } from "@/hooks/query/useSuperadminNotice";
 import { getRelativeTime } from "@/lib/utils";
 
 export default function Notification() {
   const router = useRouter();
   const params = useParams();
   const noticeId = params.id as string;
-  const { data: myCenter } = useGetMyCenter();
-  const centerId = myCenter?.id;
-
   const {
-    data: centerNoticesData,
+    data: notice,
     isLoading,
     error,
-  } = useCenterNotices({ centerId: centerId || "", enabled: !!centerId });
-
-  // 특정 공지사항 찾기
-  const notice = centerNoticesData?.notices?.find((n) => n.id === noticeId);
+  } = useSuperadminNotice(noticeId, !!noticeId);
 
   const handleBack = () => {
     router.back();

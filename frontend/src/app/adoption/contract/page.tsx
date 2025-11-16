@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, Suspense, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { X } from "@phosphor-icons/react";
@@ -10,9 +10,9 @@ import { IconButton } from "@/components/ui/IconButton";
 import { Container } from "@/components/common/Container";
 import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
 import { BottomSheet } from "@/components/ui/BottomSheet";
+import { SignaturePad, SignaturePadHandle } from "@/components/ui/SignaturePad";
 import { useGetUserAdoptionDetail } from "@/hooks/query/useGetUserAdoptionDetail";
 import { useSignContract } from "@/hooks/mutation/useSignContract";
-import { convertSignatureToBase64 } from "@/lib/utils";
 
 interface ContractData {
   adoptionId: string;
@@ -26,7 +26,8 @@ interface ContractData {
 function ContractContent() {
   const router = useRouter();
   const [openSignSheet, setOpenSignSheet] = useState(false);
-  const [userSignature, setUserSignature] = useState("");
+  const signaturePadRef = useRef<SignaturePadHandle | null>(null);
+  const [signatureData, setSignatureData] = useState<string>("");
   const [isSigned, setIsSigned] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
   const searchParams = useSearchParams();
@@ -70,15 +71,12 @@ function ContractContent() {
   };
 
   const handleSignatureConfirm = async () => {
-    if (!userSignature.trim() || !contractData?.contractId) {
+    if (!signatureData || !contractData?.contractId) {
       return;
     }
 
     try {
       setIsSigning(true);
-
-      // 서명 텍스트를 Base64 이미지로 변환
-      const signatureData = convertSignatureToBase64(userSignature);
 
       // 서명 API 호출
       await signContractMutation.mutateAsync({
@@ -200,30 +198,46 @@ function ContractContent() {
         onClose={() => !isSigning && setOpenSignSheet(false)}
         variant="variant5"
         title="서명하기"
-        description="아래에 서명해주세요"
+        description="아래 서명 패드에 직접 서명해주세요."
         confirmButtonText={isSigning ? "서명 중..." : "확인"}
         onConfirm={handleSignatureConfirm}
-        confirmButtonDisabled={isSigning || !userSignature.trim()}
+        confirmButtonDisabled={isSigning || !signatureData}
       >
-        <div className="p-4">
-          <input
-            type="text"
-            placeholder="서명을 입력하세요"
-            value={userSignature}
-            onChange={(e) => setUserSignature(e.target.value)}
+        <div className="p-4 space-y-4">
+          <SignaturePad
+            ref={signaturePadRef}
+            onEnd={(dataUrl) => setSignatureData(dataUrl ?? "")}
             disabled={isSigning}
-            className="w-full p-3 border border-gray-300 rounded-lg mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
           />
-          <div className="text-center">
-            <p className="text-sm text-gr mb-2">서명 미리보기:</p>
-            <div className="text-[32px] font-extrabold text-gr opacity-60 select-none">
-              {userSignature || "서명"}
-            </div>
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-gr">서명 미리보기</p>
+            <button
+              type="button"
+              onClick={() => {
+                signaturePadRef.current?.clear();
+                setSignatureData("");
+              }}
+              className="text-sm text-gr underline underline-offset-4 disabled:opacity-50"
+              disabled={isSigning}
+            >
+              초기화
+            </button>
           </div>
-
-          {/* 에러 메시지 표시 */}
+          <div className="flex justify-center">
+            {signatureData ? (
+              <img
+                src={signatureData}
+                alt="서명 미리보기"
+                className="max-h-36 object-contain"
+              />
+            ) : (
+              <div className="h-24 w-full rounded-lg border border-dashed border-gray-300 flex items-center justify-center text-sm text-gr">
+                서명을 그리면 여기에 미리 보입니다.
+              </div>
+            )}
+          </div>
           {signContractMutation.isError && (
-            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-sm text-red-600">
                 서명 처리 중 오류가 발생했습니다. 다시 시도해주세요.
               </p>

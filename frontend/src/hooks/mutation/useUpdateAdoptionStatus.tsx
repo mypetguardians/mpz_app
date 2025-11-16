@@ -6,11 +6,11 @@ interface UpdateAdoptionStatusRequest {
   status: "미팅" | "계약서작성" | "입양완료" | "모니터링" | "취소";
   center_notes?: string | null;
   user_memo?: string | null;
-  meeting_scheduled_at?: string | null; // ISO 8601 형식
+  meeting_scheduled_at?: string | null;
 }
 
 interface UpdateAdoptionStatusParams {
-  adoptionId: string; // path parameter
+  adoptionId: string;
   status: UpdateAdoptionStatusRequest["status"];
   center_notes?: string | null;
   user_memo?: string | null;

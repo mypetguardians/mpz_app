@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -8,13 +8,46 @@ import Image from "next/image";
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
 import { BigButton } from "@/components/ui/BigButton";
+import { useGetCenterAdoption } from "@/hooks";
 
-export default function AdoptionRefusePage() {
+interface AdoptionRefusePageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default function AdoptionRefusePage({
+  params,
+}: AdoptionRefusePageProps) {
   const router = useRouter();
+  const { id } = use(params);
+
+  const { data: adoptionData, isLoading, error } = useGetCenterAdoption(id);
 
   const handleGoHome = () => {
     router.push("/");
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-bg">
+        <div className="text-center">
+          <div className="text-gray-500">로딩 중...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !adoptionData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-bg">
+        <div className="text-center">
+          <div className="text-red-500">데이터를 불러올 수 없습니다.</div>
+        </div>
+      </div>
+    );
+  }
+
+  const imageSrc = adoptionData.animal_image || "/img/dummyImg.png";
+  const headerName = adoptionData.animal_name || "입양 신청";
 
   return (
     <Container className="min-h-screen">
@@ -30,15 +63,15 @@ export default function AdoptionRefusePage() {
         <div className="max-w-md w-full">
           <div className="flex flex-col gap-6 items-center justify-center">
             <div className="flex flex-col gap-1 items-center justify-center">
-              <h4 className="text-bk">[센터 이름]</h4>
+              <h4 className="text-bk">{headerName}</h4>
               <h4 className="text-bk text-base">입양 신청이 거절되었어요</h4>
             </div>
 
             {/* Dog Image */}
             <div className="flex items-center justify-center">
-              <div className="w-36 h-36 overflow-hidden">
+              <div className="w-36 h-36 overflow-hidden rounded-lg">
                 <Image
-                  src="/img/dummyImg.png"
+                  src={imageSrc}
                   alt="강아지 이미지"
                   width={128}
                   height={128}

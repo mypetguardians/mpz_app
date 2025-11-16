@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState, use } from "react";
 import { useRouter } from "next/navigation";
 
 import { Container } from "@/components/common/Container";
@@ -10,13 +10,24 @@ import { ArrowLeft } from "@phosphor-icons/react";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { SignaturePad, SignaturePadHandle } from "@/components/ui/SignaturePad";
 import { BigButton } from "@/components/ui/BigButton";
+import { useGetCenterAdoption, useGetCenterProcedureSettings } from "@/hooks";
+import instance from "@/lib/axios-instance";
 
-export default function ConsentFormPage() {
+interface ContractFormPageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default function ConsentFormPage({ params }: ContractFormPageProps) {
   const router = useRouter();
+  const { id } = use(params);
+  const { data: adoptionData, isLoading, error } = useGetCenterAdoption(id);
+  const { data: procedureSettings } = useGetCenterProcedureSettings();
+
   const signaturePadRef = useRef<SignaturePadHandle | null>(null);
   const [openSignatureSheet, setOpenSignatureSheet] = useState(false);
   const [signatureData, setSignatureData] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
+  const [contractContent, setContractContent] = useState<string>("");
 
   const handleBack = () => {
     router.back();
@@ -31,6 +42,59 @@ export default function ConsentFormPage() {
     }, 200);
   };
 
+  // Fallback: 프로시저 설정이 비어 있을 경우 계약서 템플릿 목록에서 활성 템플릿을 직접 조회
+  useEffect(() => {
+    if (contractContent) return;
+    const currentContent =
+      procedureSettings?.contract_templates?.find((t) => t.is_active)
+        ?.content ??
+      procedureSettings?.contract_templates?.[0]?.content ??
+      "";
+    if (currentContent) {
+      setContractContent(currentContent);
+      return;
+    }
+    // 설정에서 못 찾으면 목록 API에서 조회
+    (async () => {
+      try {
+        const res = await instance.get(
+          "/centers/procedures/contract-template/"
+        );
+        const templates: Array<{
+          content: string;
+          is_active: boolean;
+        }> = res.data || [];
+        const active =
+          templates.find((t) => t.is_active)?.content ??
+          templates[0]?.content ??
+          "";
+        if (active) setContractContent(active);
+      } catch {
+        // ignore, 화면에 기본 문구 표시
+      }
+    })();
+  }, [procedureSettings, contractContent]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-bg">
+        <div className="text-center">
+          <div className="text-gray-500">로딩 중...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !adoptionData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-bg">
+        <div className="text-center">
+          <div className="text-red-500">데이터를 불러올 수 없습니다.</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <Container className="min-h-screen pb-28">
@@ -43,7 +107,7 @@ export default function ConsentFormPage() {
                 size="iconM"
                 onClick={handleBack}
               />
-              <h4>동의서 보기</h4>
+              <h4>계약서 작성 · {adoptionData.animal_name}</h4>
             </div>
           }
         />
@@ -81,17 +145,16 @@ export default function ConsentFormPage() {
             )}
           </div>
           <div className="flex flex-col gap-3">
-            <h2 className="text-bk">유의사항 동의서</h2>
+            <h2 className="text-bk">계약서 동의서</h2>
             <p className="body2 text-gr">
               모니터링 전송 요구 및 개인정보 수집/이용
             </p>
-            <p className="body text-dg">
-              보다 건강한 입양절차를 돕기 위해 마이펫가디언즈에서 주기적인
-              모니터링 요청이 있을 수 있습니다. 보다 건강한 입양절차를 돕기 위해
-              마이펫가디언즈에서 주기적인 모니터링 요청이 있을 수 있습니다. 보다
-              건강한 입양절차를 돕기 위해 마이펫가디언즈에서 주기적인 모니터링
-              요청이 있을 수 있습니다. 보다 건강한 입양절차를 돕기 위해
-              마이펫가디언즈에서 주기적인 모니터링 요청이 있을 수 있습니다.
+            <p className="body text-dg whitespace-pre-line">
+              {contractContent ||
+                procedureSettings?.contract_templates?.find((t) => t.is_active)
+                  ?.content ||
+                procedureSettings?.contract_templates?.[0]?.content ||
+                "계약서 내용이 등록되지 않았습니다."}
             </p>
           </div>
         </div>

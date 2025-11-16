@@ -6,18 +6,24 @@ import { ArrowLeft, LockSimple } from "@phosphor-icons/react";
 
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
-import { IconButton } from "@/components/ui/IconButton";
-import { DotProgressBar } from "@/components/ui/DotProgressBar";
-import { PetCard } from "@/components/ui/PetCard";
-import { BigButton } from "@/components/ui/BigButton";
-import { BottomSheet } from "@/components/ui/BottomSheet";
-import { Toast } from "@/components/ui/Toast";
+import {
+  IconButton,
+  DotProgressBar,
+  PetCard,
+  BigButton,
+  BottomSheet,
+  Toast,
+  MiniButton,
+} from "@/components/ui";
 import { SectionLine } from "../../_components/SectionLine";
-import { useGetCenterAdoption, useUpdateAdoptionStatus } from "@/hooks";
+import {
+  useGetCenterAdoption,
+  useUpdateAdoptionStatus,
+  useUpdateAdoptionMemo,
+} from "@/hooks";
 import { useGetAdoptionMonitoringPosts } from "@/hooks/query/useGetAdoptionMonitoringPosts";
 import { transformRawAnimalToPetCard } from "@/types/animal";
 import { useGetAnimalById } from "@/hooks/query/useGetAnimals";
-// import type { CenterAdoptionData } from "@/types/center-adoption";
 import type { AdoptionMonitoringPost } from "@/types/adoption-monitoring";
 
 interface AdoptionRequestPageProps {
@@ -54,6 +60,7 @@ export default function AdoptionRequestPage({
 
   // 입양 상태 업데이트
   const updateAdoptionStatus = useUpdateAdoptionStatus();
+  const updateAdoptionMemo = useUpdateAdoptionMemo();
 
   // user_memo 초기값 설정
   React.useEffect(() => {
@@ -398,6 +405,37 @@ export default function AdoptionRequestPage({
                   )}
                 </div>
               )}
+            </SectionLine>
+            <SectionLine>
+              <h3 className="mb-3 text-bk">내 메모</h3>
+              <textarea
+                className="w-full p-3 text-sm bg-white border border-gray-200 rounded-lg min-h-32 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="이 입양 신청 건에 대한 메모를 작성하세요"
+                value={userMemo}
+                onChange={(e) => setUserMemo(e.target.value)}
+              />
+              <div className="flex justify-end mt-3">
+                <MiniButton
+                  variant="outline"
+                  text="메모 저장"
+                  onClick={async () => {
+                    if (!currentAdoption) return;
+                    try {
+                      await updateAdoptionMemo.mutateAsync({
+                        adoptionId: currentAdoption.id,
+                        user_memo: userMemo,
+                      });
+                      setToastMessage("메모가 저장되었습니다.");
+                      setShowToast(true);
+                      setTimeout(() => setShowToast(false), 2000);
+                    } catch {
+                      setToastMessage("메모 저장 중 오류가 발생했습니다.");
+                      setShowToast(true);
+                      setTimeout(() => setShowToast(false), 2000);
+                    }
+                  }}
+                />
+              </div>
             </SectionLine>
           </div>
         </div>

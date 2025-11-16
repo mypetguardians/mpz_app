@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowsClockwise } from "@phosphor-icons/react";
+import { ArrowLeft } from "@phosphor-icons/react";
 
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
@@ -197,10 +197,6 @@ export default function EditAnimal({
     setFormData((prev) => ({ ...prev, images }));
   };
 
-  const handleReset = () => {
-    setFormData(initialFormData);
-  };
-
   const handleSubmit = async () => {
     // 필수 필드 검증
     const { basicInfo, detailInfo } = formData;
@@ -343,12 +339,9 @@ export default function EditAnimal({
         />
       </div>
       <FixedBottomBar
-        variant="variant2"
-        resetButtonText="재설정"
-        resetButtonLeft={<ArrowsClockwise />}
-        onResetButtonClick={handleReset}
-        applyButtonText="적용하기"
-        onApplyButtonClick={handleSubmit}
+        variant="variant4"
+        primaryButtonText="적용하기"
+        onPrimaryButtonClick={handleSubmit}
         applyButtonDisabled={isLoading}
       />
     </Container>

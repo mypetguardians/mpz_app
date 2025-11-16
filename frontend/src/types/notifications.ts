@@ -37,6 +37,23 @@ export interface CenterNoticesResponse {
   total: number;
 }
 
+export interface SuperadminNotice {
+  id: string;
+  title: string;
+  content: string;
+  notice_type: string;
+  is_published: boolean;
+  is_pinned: boolean;
+  target_users?: Record<string, unknown> | null;
+  view_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SuperadminNoticesResponse {
+  notices: SuperadminNotice[];
+}
+
 // 알림 생성 요청 타입
 export interface CreateNotificationRequest {
   user_id: string;

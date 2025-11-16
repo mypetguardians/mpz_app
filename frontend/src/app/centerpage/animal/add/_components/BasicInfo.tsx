@@ -156,7 +156,6 @@ const breedList = [
   "호카이도",
   "휘핏",
 ];
-import { useUploadAnimalImages } from "@/hooks/mutation/useUploadAnimalImages";
 import { openKakaoAddress } from "@/lib/openKakaoAddress";
 import { NotificationToast } from "@/components/ui/NotificationToast";
 
@@ -195,7 +194,7 @@ export default function BasicInfo({
   const [tempSelectedBreed, setTempSelectedBreed] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [extraFeatures, setExtraFeatures] = useState<string[]>([]);
-  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
+  // 업로드된 이미지 URL 관리는 제출 시 상위에서 처리
   const [isFoundLocationDialogOpen, setIsFoundLocationDialogOpen] =
     useState(false);
   const [baseFoundLocation, setBaseFoundLocation] = useState(
@@ -208,21 +207,14 @@ export default function BasicInfo({
   const filteredBreeds = breedList.filter((breed) =>
     breed.toLowerCase().includes(breedSearchTerm.toLowerCase())
   );
-  const [isUploading, setIsUploading] = useState(false);
+  // 업로드 진행 상태 관리는 제출 시 상위에서 처리
 
   // 토스트 상태
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState<"success" | "error">("success");
 
-  const uploadAnimalImages = useUploadAnimalImages();
-
-  // 기존 이미지 URL이 있을 때 초기화
-  useEffect(() => {
-    if (data.imageUrls && data.imageUrls.length > 0) {
-      setUploadedImageUrls(data.imageUrls);
-    }
-  }, [data.imageUrls]);
+  // 이미지 업로드는 상위에서 처리하므로 이 컴포넌트에서는 별도 효과 없음
 
   useEffect(() => {
     if (isManualFoundLocation) {
@@ -303,34 +295,8 @@ export default function BasicInfo({
         }
       }
 
-      // 이미지 서버에 업로드
-      if (imagesToUpload.length > 0) {
-        setIsUploading(true);
-        try {
-          const result = await uploadAnimalImages.mutateAsync({
-            images: imagesToUpload,
-          });
-
-          const newUrls = [...uploadedImageUrls, ...result.images];
-          setUploadedImageUrls(newUrls);
-          onChange({ imageUrls: newUrls });
-        } catch (error) {
-          console.error("이미지 업로드 실패:", error);
-          showToastMessage(
-            "이미지 업로드에 실패했습니다. 다시 시도해주세요.",
-            "error"
-          );
-
-          // 업로드 실패 시 로컬 이미지도 제거
-          const failedImages = imagesToUpload;
-          const updatedImages = images.filter(
-            (img) => !failedImages.includes(img)
-          );
-          onImagesChange(updatedImages);
-        } finally {
-          setIsUploading(false);
-        }
-      }
+      // 업로드는 제출 시 상위 컴포넌트에서 처리
+      // 이 곳에서는 선택한 파일만 상태로 반영
     }
   };
 
@@ -338,23 +304,24 @@ export default function BasicInfo({
     // 로컬 이미지 제거
     onImagesChange(images.filter((_, i) => i !== index));
 
-    // 업로드된 URL도 제거
-    if (uploadedImageUrls[index]) {
-      const newUrls = uploadedImageUrls.filter((_, i) => i !== index);
-      setUploadedImageUrls(newUrls);
-      onChange({ imageUrls: newUrls });
-    }
+    // 업로드된 URL은 제출 시에만 생성되므로 여기서는 로컬 미리보기만 제거
   };
 
-  const getImagePreview = (file: File): string => {
-    return URL.createObjectURL(file);
-  };
-
-  const handleFoundLocationInputChange = (value: string) => {
-    setBaseFoundLocation(value);
-    setDetailAddress("");
-    onChange({ foundLocation: value });
-  };
+  // 이미지 프리뷰 URL을 캐시하여 입력 변화로 인한 재렌더링 때 깜빡임 방지
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  useEffect(() => {
+    // 기존 URL revoke
+    previewUrls.forEach((url) => URL.revokeObjectURL(url));
+    // 새 URL 생성 (images 변경시에만)
+    const nextUrls = images.map((file) => URL.createObjectURL(file));
+    setPreviewUrls(nextUrls);
+    // 언마운트/갱신 시 정리
+    return () => {
+      nextUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
+    // images만 의존성으로 두어 다른 입력 변경 시 프리뷰 재생성 안 되도록 함
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [images]);
 
   const handleFoundLocationSearch = () => {
     setIsManualFoundLocation(false);
@@ -403,35 +370,20 @@ export default function BasicInfo({
 
         {/* 이미지 업로드 영역 - 최대 5장, 가로 스크롤 */}
         <div className="flex gap-3 px-3 py-3 -mx-3 overflow-x-auto scrollbar-hide">
-          {images.map((image, index) => (
+          {images.map((_, index) => (
             <ImageCard
               key={index}
-              src={getImagePreview(image)}
+              src={previewUrls[index]}
               alt={`이미지 ${index + 1}`}
               onRemove={() => handleRemoveImage(index)}
             />
           ))}
           {images.length < 5 && (
-            <ImageCard
-              variant="add"
-              onClick={isUploading ? undefined : handleAddImage}
-            />
+            <ImageCard variant="add" onClick={handleAddImage} />
           )}
         </div>
 
-        {/* 업로드 상태 표시 */}
-        {isUploading && (
-          <div className="flex items-center gap-2 text-sm text-blue-600">
-            <div className="w-4 h-4 border-b-2 border-blue-600 rounded-full animate-spin"></div>
-            <span>이미지 업로드 중...</span>
-          </div>
-        )}
-
-        {uploadedImageUrls.length > 0 && (
-          <div className="text-sm text-green-600">
-            ✓ {uploadedImageUrls.length}장의 이미지가 업로드되었습니다.
-          </div>
-        )}
+        {/* 업로드 상태/결과 표시는 제출 단계로 이동 */}
 
         <CustomInput
           variant="primary"
@@ -536,35 +488,9 @@ export default function BasicInfo({
         <div className="flex flex-col gap-2">
           <h5 className="text-dg">발견장소</h5>
           <div className="flex flex-col">
-            <div
-              onClick={() => {
-                if (!isManualFoundLocation) {
-                  setIsFoundLocationDialogOpen(true);
-                }
-              }}
-              className={
-                isManualFoundLocation ? "cursor-text" : "cursor-pointer"
-              }
-            >
-              <SearchInput
-                key={isManualFoundLocation ? "manual" : "search"}
-                variant="variant2"
-                placeholder="주소를 검색해보세요"
-                value={baseFoundLocation}
-                onChange={(e) => handleFoundLocationInputChange(e.target.value)}
-                onSearch={() => {
-                  if (isManualFoundLocation) {
-                    setIsManualFoundLocation(false);
-                  }
-                  setIsFoundLocationDialogOpen(true);
-                }}
-                readOnly={!isManualFoundLocation}
-                autoFocus={isManualFoundLocation}
-              />
-            </div>
             <CustomInput
               variant="primary"
-              placeholder="상세주소를 입력해주세요 (예: 101동 201호, 상가 1층)"
+              placeholder="발견장소를 입력해주세요 (예: 101동 201호, 상가 1층)"
               value={detailAddress}
               onChange={(e) => handleDetailAddressChange(e.target.value)}
               id="detailAddress"

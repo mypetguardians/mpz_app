@@ -186,7 +186,7 @@ export function BottomSheet<T = string>({
 
           {/* 콘텐츠 박스 */}
           <div className="px-4 mb-6">
-            <div className="w-full min-h-[180px] rounded-xl bg-bg border border-gray-100 flex items-center justify-center text-center">
+            <div className="w-full min-h-[180px] rounded-xl flex items-center justify-center text-center">
               {children}
             </div>
           </div>

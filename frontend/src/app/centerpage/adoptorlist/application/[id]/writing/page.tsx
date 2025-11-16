@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use } from "react";
+import React, { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "@phosphor-icons/react";
 
@@ -11,7 +11,7 @@ import { DotProgressBar } from "@/components/ui/DotProgressBar";
 import { PetCard } from "@/components/ui/PetCard";
 import { BigButton } from "@/components/ui/BigButton";
 import { SectionLine } from "../../_components/SectionLine";
-import { useGetCenterAdoption } from "@/hooks";
+import { useGetCenterAdoption, useUpdateAdoptionMemo, useToast } from "@/hooks";
 import { useGetAdoptionMonitoringPosts } from "@/hooks/query/useGetAdoptionMonitoringPosts";
 import { transformRawAnimalToPetCard } from "@/types/animal";
 import { useGetAnimalById } from "@/hooks/query/useGetAnimals";
@@ -46,6 +46,36 @@ export default function AdoptionWritingPage({
     isLoading: animalLoading,
     error: animalError,
   } = useGetAnimalById(adoptionData?.animal_id || "");
+
+  // 메모 상태
+  const [memo, setMemo] = useState<string>("");
+  const { mutate: updateMemo, isPending: isSaving } = useUpdateAdoptionMemo();
+  const { showToast } = useToast();
+
+  // 초기값 세팅
+  useEffect(() => {
+    if (adoptionData?.center_notes || adoptionData?.notes) {
+      setMemo(adoptionData.center_notes ?? adoptionData.notes ?? "");
+    }
+  }, [adoptionData?.center_notes, adoptionData?.notes]);
+
+  const handleSaveMemo = () => {
+    if (!adoptionData) return;
+    updateMemo(
+      {
+        adoptionId: adoptionData.id,
+        center_notes: memo,
+      },
+      {
+        onSuccess: () => {
+          showToast("메모가 저장되었습니다.", "success");
+        },
+        onError: () => {
+          showToast("메모 저장 중 오류가 발생했습니다.", "error");
+        },
+      }
+    );
+  };
 
   const handleBack = () => {
     router.back();
@@ -304,6 +334,26 @@ export default function AdoptionWritingPage({
                   ))}
                 </div>
               )}
+            </SectionLine>
+            {/* 메모 입력 영역 */}
+            <SectionLine>
+              <h3 className="mb-3 text-bk">내 메모</h3>
+              <textarea
+                className="w-full p-3 text-sm bg-white border border-gray-200 rounded-lg min-h-32 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="이 입양 신청 건에 대한 메모를 작성하세요"
+                value={memo}
+                onChange={(e) => setMemo(e.target.value)}
+              />
+              <div className="flex justify-end mt-3">
+                <BigButton
+                  variant="variant5"
+                  onClick={handleSaveMemo}
+                  className="px-6 py-3"
+                  disabled={isSaving}
+                >
+                  {isSaving ? "저장 중..." : "메모 저장"}
+                </BigButton>
+              </div>
             </SectionLine>
           </div>
         </div>

@@ -22,8 +22,10 @@ import {
   useUpdateAdoptionStatus,
   useSendContract,
   useGetCenterProcedureSettings,
+  useUpdateAdoptionMemo,
 } from "@/hooks";
 import { transformRawAnimalToPetCard } from "@/types/animal";
+import axios from "axios";
 
 interface AdoptionMeetingPageProps {
   params: Promise<{ id: string }>;
@@ -34,6 +36,7 @@ export default function AdoptionMeetingPage({
 }: AdoptionMeetingPageProps) {
   const router = useRouter();
   const { id } = use(params);
+  // 서버에서 생성된 참여자 서명 URL을 받아 열도록 변경
 
   // 상태
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
@@ -58,11 +61,11 @@ export default function AdoptionMeetingPage({
     isLoading: animalLoading,
     error: animalError,
   } = useGetAnimalById(adoptionData?.animal_id || "");
-  const { data: procedureSettings, isLoading: isLoadingSettings } =
-    useGetCenterProcedureSettings();
+  const { data: procedureSettings } = useGetCenterProcedureSettings();
 
   // 뮤테이션
   const updateStatusMutation = useUpdateAdoptionStatus();
+  const updateMemoMutation = useUpdateAdoptionMemo();
   const sendContractMutation = useSendContract();
 
   // 계약서 템플릿 기본값 설정
@@ -97,18 +100,10 @@ export default function AdoptionMeetingPage({
       router.push(`/centerpage/adoptorlist/application/${id}/consentform`);
   };
 
-  /** ✅ 계약서 전송 플로우 */
   const handleContractSendConfirm = () => {
     if (sendContractMutation.isPending) return;
 
-    if (!selectedTemplateId) {
-      alert(
-        isLoadingSettings
-          ? "계약서 템플릿 정보를 불러오는 중입니다."
-          : "등록된 계약서 템플릿이 없습니다."
-      );
-      return;
-    }
+    // 템플릿이 없더라도 서버에서 content 기반으로 생성 가능하므로 진행
 
     updateStatusMutation.mutate(
       {
@@ -129,6 +124,25 @@ export default function AdoptionMeetingPage({
             },
             {
               onSuccess: () => {
+                // 서버에서 생성된 참여자 링크를 받아서 새 탭으로 오픈
+                (async () => {
+                  try {
+                    const payload: Record<string, string> = { adoptionId: id };
+                    if (selectedTemplateId) {
+                      payload.templateId = selectedTemplateId;
+                    }
+                    const res = await axios.post(
+                      "/api/contracts/wattsign/send",
+                      payload
+                    );
+                    const { redirectUrl } = res.data || {};
+                    if (redirectUrl) {
+                      window.open(redirectUrl, "_blank", "noopener,noreferrer");
+                    }
+                  } catch (e) {
+                    console.error("왙싸인 링크 생성 오류:", e);
+                  }
+                })();
                 setToastMessage("입양자에게 계약서를 전송했습니다.");
                 setShowToast(true);
                 setTimeout(() => {
@@ -241,7 +255,7 @@ export default function AdoptionMeetingPage({
         />
 
         {/* Main Content */}
-        <div className="relative z-10 flex-1 -mt-4 bg-white rounded-t-3xl">
+        <div className="relative z-10 flex-1 -mt-4 bg-white rounded-t-3xl pb-20">
           <div className="p-4">
             <h2 className="flex justify-center mb-6 text-bk">
               미팅이 필요하다면 진행해주세요!
@@ -374,6 +388,45 @@ export default function AdoptionMeetingPage({
                   ))}
                 </div>
               )}
+            </SectionLine>
+            {/* 메모 입력 영역 */}
+            <SectionLine>
+              <h3 className="mb-3 text-bk">내 메모</h3>
+              <textarea
+                className="w-full p-3 text-sm bg-white border border-gray-200 rounded-lg min-h-32 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="이 입양 신청 건에 대한 메모를 작성하세요"
+                value={userMemo}
+                onChange={(e) => setUserMemo(e.target.value)}
+              />
+              <div className="flex justify-end mt-3">
+                <BigButton
+                  variant="variant5"
+                  onClick={() => {
+                    if (!adoptionData) return;
+                    updateMemoMutation.mutate(
+                      {
+                        adoptionId: adoptionData.id,
+                        user_memo: userMemo,
+                      },
+                      {
+                        onSuccess: () => {
+                          setToastMessage("메모가 저장되었습니다.");
+                          setShowToast(true);
+                          setTimeout(() => setShowToast(false), 2000);
+                        },
+                        onError: () => {
+                          setToastMessage("메모 저장 중 오류가 발생했습니다.");
+                          setShowToast(true);
+                          setTimeout(() => setShowToast(false), 2000);
+                        },
+                      }
+                    );
+                  }}
+                  className="px-6 py-3"
+                >
+                  메모 저장
+                </BigButton>
+              </div>
             </SectionLine>
           </div>
         </div>

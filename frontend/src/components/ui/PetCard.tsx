@@ -27,7 +27,6 @@ interface PetCardProps {
   showUpdatedAt?: boolean;
   disableNavigation?: boolean;
   adoptionStatus?: AdoptionStatus | string;
-  // 이미지 컨테이너 내부에 겹칠 오버레이 (예: 찜 버튼)
   imageOverlay?: React.ReactNode;
 }
 
@@ -397,7 +396,7 @@ export function PetCard({
     return (
       <div
         className={cn(
-          "flex flex-col items-start min-w-[146px] pb-3 cursor-pointer",
+          "flex flex-col items-start min-w-[146px] pb-3 cursor-pointer h-full",
           className
         )}
       >
@@ -440,14 +439,23 @@ export function PetCard({
             cn("text-bk truncate flex-1")
           )}
         </div>
-        <h6 className="text-dg">{foundLocation || "위치 정보 없음"}</h6>
-        <MiniButton
-          variant="outline"
-          leftIcon={<Link />}
-          text="입양 신청서"
-          className="w-full mt-[10px]"
-          onClick={handleAdoptionClick}
-        />
+        <h6 className="text-dg min-h-[40px] max-h-[40px] overflow-hidden">
+          {foundLocation || "위치 정보 없음"}
+        </h6>
+        <div
+          className="w-full mt-auto"
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+        >
+          <MiniButton
+            variant="outline"
+            leftIcon={<Link />}
+            text="입양 신청서"
+            className="w-full mt-[10px]"
+            onClick={handleAdoptionClick}
+          />
+        </div>
       </div>
     );
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "@phosphor-icons/react";
 
@@ -13,6 +13,9 @@ import DetailInfo from "./_components/DetailInfo";
 import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
 import { useCreateAnimal, useUploadImages } from "@/hooks/mutation";
 import { useGetMyCenter } from "@/hooks/query/useGetMyCenter";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { NotificationToast } from "@/components/ui/NotificationToast";
+import { useToast } from "@/hooks/useToast";
 
 interface FormData {
   basicInfo: {
@@ -111,11 +114,142 @@ export default function AddAnimal() {
   const router = useRouter();
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [showBackConfirmSheet, setShowBackConfirmSheet] = useState(false);
+  const isBlockingInstalledRef = useRef(false);
+  const popstateHandlerRef = useRef<((e: PopStateEvent) => void) | null>(null);
+  const beforeUnloadHandlerRef = useRef<
+    ((e: BeforeUnloadEvent) => void) | null
+  >(null);
   const createAnimalMutation = useCreateAnimal();
   const uploadImagesMutation = useUploadImages();
   const { data: myCenter } = useGetMyCenter();
-
+  const { toast, showToast, hideToast } = useToast();
+  const { user } = useAuth();
+  const isTrainer = user?.userType === "훈련사";
   const isSubscriber = myCenter?.isSubscriber === true;
+
+  // 폼 수정 여부 감지
+  const isDirty = useMemo(() => {
+    const b = formData.basicInfo;
+    const d = formData.detailInfo;
+    const hasBasic =
+      !!b.name ||
+      !!b.protection_status ||
+      !!b.breed ||
+      !!b.age ||
+      !!b.gender ||
+      !!b.neutering ||
+      !!b.weight ||
+      !!b.foundLocation ||
+      !!b.personality ||
+      !!b.specialNotes ||
+      !!b.healthNotes ||
+      !!b.centerEntryDate ||
+      !!b.color;
+    const hasDetail =
+      d.personality.activity !==
+        initialFormData.detailInfo.personality.activity ||
+      d.personality.sensitivity !==
+        initialFormData.detailInfo.personality.sensitivity ||
+      d.personality.sociability !==
+        initialFormData.detailInfo.personality.sociability ||
+      d.personality.separationAnxiety !==
+        initialFormData.detailInfo.personality.separationAnxiety ||
+      d.sociality.confidence !==
+        initialFormData.detailInfo.sociality.confidence ||
+      d.sociality.independence !==
+        initialFormData.detailInfo.sociality.independence ||
+      d.sociality.physicalContact !==
+        initialFormData.detailInfo.sociality.physicalContact ||
+      d.sociality.handlingAcceptance !==
+        initialFormData.detailInfo.sociality.handlingAcceptance ||
+      d.sociality.strangersAttitude !==
+        initialFormData.detailInfo.sociality.strangersAttitude ||
+      d.sociality.objectsAttitude !==
+        initialFormData.detailInfo.sociality.objectsAttitude ||
+      d.sociality.environmentAttitude !==
+        initialFormData.detailInfo.sociality.environmentAttitude ||
+      d.sociality.dogsAttitude !==
+        initialFormData.detailInfo.sociality.dogsAttitude ||
+      d.separationAnxietyDetail.copingAbility !==
+        initialFormData.detailInfo.separationAnxietyDetail.copingAbility ||
+      d.separationAnxietyDetail.playfulnessLevel !==
+        initialFormData.detailInfo.separationAnxietyDetail.playfulnessLevel ||
+      d.separationAnxietyDetail.walkabilityLevel !==
+        initialFormData.detailInfo.separationAnxietyDetail.walkabilityLevel ||
+      d.separationAnxietyDetail.groomingAcceptanceLevel !==
+        initialFormData.detailInfo.separationAnxietyDetail
+          .groomingAcceptanceLevel ||
+      !!d.trainerComment;
+    const hasImages = formData.images.length > 0;
+    return hasBasic || hasDetail || hasImages;
+  }, [formData]);
+
+  // 브라우저 뒤로가기 제스처/버튼(popstate) 및 새로고침/닫기(beforeunload) 차단
+  useEffect(() => {
+    const installBlockers = () => {
+      if (isBlockingInstalledRef.current) return;
+      // 현재 페이지 상태를 한 단계 쌓아 뒤로가기를 가로챔
+      if (typeof window !== "undefined") {
+        window.history.pushState(null, "", window.location.href);
+      }
+      const onPopState = () => {
+        // 커스텀 바텀시트 노출
+        setShowBackConfirmSheet(true);
+        // 다시 현재 상태를 쌓아 실제 이동을 막음
+        if (typeof window !== "undefined") {
+          window.history.pushState(null, "", window.location.href);
+        }
+      };
+      const onBeforeUnload = (e: BeforeUnloadEvent) => {
+        // 하드 새로고침/창 닫기는 네이티브 확인창만 가능
+        e.preventDefault();
+        e.returnValue = "";
+      };
+      window.addEventListener("popstate", onPopState);
+      window.addEventListener("beforeunload", onBeforeUnload);
+      popstateHandlerRef.current = onPopState;
+      beforeUnloadHandlerRef.current = onBeforeUnload;
+      isBlockingInstalledRef.current = true;
+    };
+
+    const removeBlockers = () => {
+      if (!isBlockingInstalledRef.current) return;
+      if (popstateHandlerRef.current) {
+        window.removeEventListener("popstate", popstateHandlerRef.current);
+        popstateHandlerRef.current = null;
+      }
+      if (beforeUnloadHandlerRef.current) {
+        window.removeEventListener(
+          "beforeunload",
+          beforeUnloadHandlerRef.current
+        );
+        beforeUnloadHandlerRef.current = null;
+      }
+      isBlockingInstalledRef.current = false;
+    };
+
+    if (isDirty) {
+      installBlockers();
+    } else {
+      removeBlockers();
+    }
+
+    return () => {
+      // 언마운트 시 항상 정리
+      if (popstateHandlerRef.current) {
+        window.removeEventListener("popstate", popstateHandlerRef.current);
+        popstateHandlerRef.current = null;
+      }
+      if (beforeUnloadHandlerRef.current) {
+        window.removeEventListener(
+          "beforeunload",
+          beforeUnloadHandlerRef.current
+        );
+        beforeUnloadHandlerRef.current = null;
+      }
+      isBlockingInstalledRef.current = false;
+    };
+  }, [isDirty]);
 
   const handleBack = () => {
     setShowBackConfirmSheet(true);
@@ -127,6 +261,19 @@ export default function AddAnimal() {
 
   const handleConfirmBack = () => {
     setShowBackConfirmSheet(false);
+    // 차단 해제 후 실제로 이동
+    if (popstateHandlerRef.current) {
+      window.removeEventListener("popstate", popstateHandlerRef.current);
+      popstateHandlerRef.current = null;
+    }
+    if (beforeUnloadHandlerRef.current) {
+      window.removeEventListener(
+        "beforeunload",
+        beforeUnloadHandlerRef.current
+      );
+      beforeUnloadHandlerRef.current = null;
+    }
+    isBlockingInstalledRef.current = false;
     router.push("/centerpage/animal");
   };
 
@@ -163,10 +310,9 @@ export default function AddAnimal() {
       !basicInfo.age ||
       !basicInfo.gender ||
       !basicInfo.neutering ||
-      !basicInfo.weight ||
-      !basicInfo.color
+      !basicInfo.weight
     ) {
-      alert("필수 항목을 모두 입력해주세요.");
+      showToast("필수 항목을 모두 입력해주세요.", "error");
       return;
     }
 
@@ -226,31 +372,24 @@ export default function AddAnimal() {
         announcement_date: basicInfo.centerEntryDate || undefined,
         found_location: basicInfo.foundLocation || "",
         personality: basicInfo.personality || "",
-        // 업로드된 이미지 URL들 포함
-        image_urls: basicInfo.imageUrls || [],
       };
 
       const createdAnimal = await createAnimalMutation.mutateAsync(requestData);
 
-      // BasicInfo에서 이미 이미지가 업로드되었으므로 중복 업로드 제거
-      // 만약 로컬 파일이 남아있다면 (업로드되지 않은 이미지) 추가 업로드
-      const unuploadedImages = formData.images.filter(
-        (_, index) => !basicInfo.imageUrls || !basicInfo.imageUrls[index]
-      );
-
-      if (unuploadedImages.length > 0) {
-        console.log(`${unuploadedImages.length}개의 추가 이미지 업로드 중...`);
+      // 이미지 업로드는 제출 시 한 번만 수행
+      const imagesToUpload = formData.images;
+      if (imagesToUpload.length > 0) {
+        console.log(`${imagesToUpload.length}개의 이미지 업로드 중...`);
         await uploadImagesMutation.mutateAsync({
           postId: createdAnimal.id,
-          images: unuploadedImages,
+          images: imagesToUpload,
         });
       }
 
-      console.log("동물 등록 완료, 리스트 페이지로 이동");
       router.push("/centerpage/animal");
     } catch (error) {
       console.error("동물 등록 실패:", error);
-      alert("동물 등록에 실패했습니다. 다시 시도해주세요.");
+      showToast("동물 등록에 실패했습니다. 다시 시도해주세요.", "error");
     }
   };
 
@@ -280,7 +419,7 @@ export default function AddAnimal() {
           images={formData.images}
           onImagesChange={handleImagesChange}
         />
-        {isSubscriber && (
+        {isSubscriber && isTrainer && (
           <DetailInfo
             data={formData.detailInfo}
             onChange={handleDetailInfoChange}
@@ -291,7 +430,7 @@ export default function AddAnimal() {
         variant="variant4"
         onResetButtonClick={handleReset}
         primaryButtonText="등록하기"
-        onApplyButtonClick={handleSubmit}
+        onPrimaryButtonClick={handleSubmit}
         applyButtonDisabled={isLoading}
       />
       <BottomSheet
@@ -305,6 +444,13 @@ export default function AddAnimal() {
         onLeftClick={handleCancelBack}
         onRightClick={handleConfirmBack}
       />
+      {toast.show && (
+        <NotificationToast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
+      )}
     </Container>
   );
 }

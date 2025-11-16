@@ -305,9 +305,9 @@ export default function CenterAnimal() {
         {centerData?.id && (
           <div className="flex flex-col items-start gap-1">
             <p className="text-dg font-body2">총 {totalCount}마리</p>
-            <div className="flex flex-wrap justify-start gap-2">
+            <div className="grid grid-cols-2 gap-3 w-full">
               {allAnimals.map((animal: Animal) => (
-                <div key={animal.id} className="w-[calc(50%-4px)]">
+                <div key={animal.id} className="w-full">
                   <div onClick={(e) => handleAnimalClick(animal, e)}>
                     <PetCard
                       pet={{
@@ -323,7 +323,7 @@ export default function CenterAnimal() {
                       }}
                       variant="edit"
                       imageSize="full"
-                      className="w-full"
+                      className="w-full h-full"
                       onAdoptionClick={() => handleAdoptionClick(animal)}
                     />
                   </div>

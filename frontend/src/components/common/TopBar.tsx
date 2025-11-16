@@ -29,7 +29,7 @@ type TopBarProps = React.HTMLAttributes<HTMLElement> &
     center?: React.ReactNode;
     right?: React.ReactNode;
     asChild?: boolean;
-    title?: string | React.ReactNode; // title prop 추가
+    title?: string | React.ReactNode;
   };
 
 export function TopBar({
@@ -52,7 +52,6 @@ export function TopBar({
   const innerClassName = React.useMemo(() => {
     return cn(
       "relative flex items-center w-full h-[54px] max-w-[420px] mx-auto",
-      // variant6는 투명 배경, 나머지는 흰색 배경
       variant === "variant6" ? "bg-transparent" : "bg-white/95 backdrop-blur-sm"
     );
   }, [variant]);
@@ -82,7 +81,7 @@ export function TopBar({
       </Comp>
 
       {/* 페이지 콘텐츠가 TopBar 아래로 시작하도록 패딩 추가 */}
-      <div className={`pt-[54px]`}>
+      <div className={`pt-[54px] mb-5`}>
         {/* 이 div는 부모 컴포넌트에서 TopBar 아래 콘텐츠를 감싸는 용도로 사용 */}
         {props.children}
       </div>
@@ -90,7 +89,6 @@ export function TopBar({
   );
 }
 
-// TopBar를 사용하는 페이지에서 콘텐츠를 감싸는 헬퍼 컴포넌트
 export function TopBarContainer({
   children,
   className,

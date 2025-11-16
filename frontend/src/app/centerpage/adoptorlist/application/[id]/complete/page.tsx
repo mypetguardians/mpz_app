@@ -20,6 +20,7 @@ import { transformRawAnimalToPetCard } from "@/types/animal";
 import { useGetAnimalById } from "@/hooks/query/useGetAnimals";
 import { useWithdrawAdoption } from "@/hooks/mutation";
 import { MiniButton } from "@/components/ui/MiniButton";
+import { useUpdateAdoptionMemo } from "@/hooks";
 
 interface AdoptionCompletePageProps {
   params: Promise<{ id: string }>;
@@ -36,6 +37,7 @@ export default function AdoptionCompletePage({
 
   const { mutate: withdrawAdoption, isPending: isWithdrawing } =
     useWithdrawAdoption();
+  const updateAdoptionMemo = useUpdateAdoptionMemo();
 
   // 개별 입양 신청 조회
   const { data: adoptionData, isLoading, error } = useGetCenterAdoption(id);
@@ -160,8 +162,7 @@ export default function AdoptionCompletePage({
   };
 
   const handleViewContract = () => {
-    // 계약서 보기 로직 - /my/adoption/complete와 동일하게
-    router.push(`/my/adoption/complete?adoptionId=${id}`);
+    router.push(`/centerpage/adoptorlist/application/${id}/contractform`);
   };
 
   return (
@@ -286,8 +287,21 @@ export default function AdoptionCompletePage({
                     value={userMemo}
                     onChange={(e) => setUserMemo(e.target.value)}
                   />
-                  <div className="mt-2 text-xs text-gray-500">
-                    이 메모는 상태 변경 시 함께 저장됩니다.
+                  <div className="flex items-center justify-end mt-3">
+                    <MiniButton
+                      text="메모 저장"
+                      variant="outline"
+                      onClick={async () => {
+                        try {
+                          await updateAdoptionMemo.mutateAsync({
+                            adoptionId: id,
+                            user_memo: userMemo,
+                          });
+                        } catch {
+                          // silent
+                        }
+                      }}
+                    />
                   </div>
                 </div>
               </div>

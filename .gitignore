@@ -92,3 +92,8 @@ venv.bak/
 .mypy_cache/
 .dmypy.json
 dmypy.json
+ 
+# Android build artifacts / APKs (do not commit)
+MPZ-debug.apk
+*.apk
+frontend/android/app/build/

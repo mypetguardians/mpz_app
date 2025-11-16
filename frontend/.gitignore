@@ -42,3 +42,5 @@ next-env.d.ts
 
 # Include src/lib directory (override parent .gitignore)
 !src/lib/
+
+ *.log

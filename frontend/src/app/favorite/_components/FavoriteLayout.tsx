@@ -3,12 +3,16 @@
 import { usePathname } from "next/navigation";
 import { Bell } from "@phosphor-icons/react";
 import Link from "next/link";
+import { useMemo } from "react";
 
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
 import { TabButton } from "@/components/ui/TabButton";
 import { NavBar } from "@/components/common/NavBar";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { useGetNotifications } from "@/hooks/query/useGetNotifications";
+import { useNotificationSocket } from "@/hooks/useNotificationSocket";
 
 interface FavoriteLayoutProps {
   children: React.ReactNode;
@@ -16,6 +20,18 @@ interface FavoriteLayoutProps {
 
 export function FavoriteLayout({ children }: FavoriteLayoutProps) {
   const pathname = usePathname();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { unreadCount: socketUnreadCount, isConnected } =
+    useNotificationSocket();
+  const { data: notificationsData } = useGetNotifications({
+    enabled: !authLoading && isAuthenticated,
+  });
+  const hasUnreadNotifications = useMemo(() => {
+    if (!isAuthenticated) return false;
+    if (isConnected && socketUnreadCount > 0) return true;
+    const list = notificationsData?.data ?? [];
+    return list.some((n) => n.is_read === false);
+  }, [isAuthenticated, isConnected, socketUnreadCount, notificationsData]);
 
   // 현재 경로에서 활성 탭 결정
   const activeTab = pathname.includes("/center") ? "center" : "animal";
@@ -31,12 +47,26 @@ export function FavoriteLayout({ children }: FavoriteLayoutProps) {
         variant="variant4"
         left={<h4>찜</h4>}
         right={
-          <Link href="/notifications">
-            <IconButton
-              icon={({ size }) => <Bell size={size} weight="bold" />}
-              size="iconM"
-            />
-          </Link>
+          isAuthenticated ? (
+            <Link href="/notifications">
+              <div className="relative">
+                <IconButton
+                  icon={({ size }) => <Bell size={size} weight="bold" />}
+                  size="iconM"
+                />
+                {hasUnreadNotifications && (
+                  <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red rounded-full"></div>
+                )}
+              </div>
+            </Link>
+          ) : (
+            <Link href="/login">
+              <IconButton
+                icon={({ size }) => <Bell size={size} weight="bold" />}
+                size="iconM"
+              />
+            </Link>
+          )
         }
       />
 

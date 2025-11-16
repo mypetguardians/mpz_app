@@ -302,6 +302,9 @@ export default function CenterSettingName() {
           onClick={handleImageClick}
           onRemove={centerImage ? handleImageRemove : undefined}
         />
+        <InfoCard>
+          이미지는 JPG/PNG/WEBP/GIF 형식, 최대 3MB까지 업로드 가능합니다.
+        </InfoCard>
         <CustomInput
           variant="primary"
           label="보호센터 이름"

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Bell, CaretDown } from "@phosphor-icons/react";
 
 import { Container } from "@/components/common/Container";
@@ -12,6 +13,9 @@ import { TabButton } from "@/components/ui/TabButton";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { MiniButton } from "@/components/ui/MiniButton";
 import { FilterState, getFilterCounts } from "@/lib/filter-utils";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { useGetNotifications } from "@/hooks/query/useGetNotifications";
+import { useNotificationSocket } from "@/hooks/useNotificationSocket";
 
 interface ListLayoutProps {
   children: React.ReactNode;
@@ -22,6 +26,18 @@ export function ListLayout({ children }: ListLayoutProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [searchValue, setSearchValue] = useState("");
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { unreadCount: socketUnreadCount, isConnected } =
+    useNotificationSocket();
+  const { data: notificationsData } = useGetNotifications({
+    enabled: !authLoading && isAuthenticated,
+  });
+  const hasUnreadNotifications = useMemo(() => {
+    if (!isAuthenticated) return false;
+    if (isConnected && socketUnreadCount > 0) return true;
+    const list = notificationsData?.data ?? [];
+    return list.some((n) => n.is_read === false);
+  }, [isAuthenticated, isConnected, socketUnreadCount, notificationsData]);
 
   // 현재 경로에서 활성 탭 결정
   const activeTab = pathname.includes("/center") ? "center" : "animal";
@@ -105,10 +121,26 @@ export function ListLayout({ children }: ListLayoutProps) {
         variant="variant4"
         left={<h4>입양</h4>}
         right={
-          <IconButton
-            icon={({ size }) => <Bell size={size} weight="bold" />}
-            size="iconM"
-          />
+          isAuthenticated ? (
+            <Link href="/notifications">
+              <div className="relative">
+                <IconButton
+                  icon={({ size }) => <Bell size={size} weight="bold" />}
+                  size="iconM"
+                />
+                {hasUnreadNotifications && (
+                  <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red rounded-full"></div>
+                )}
+              </div>
+            </Link>
+          ) : (
+            <Link href="/login">
+              <IconButton
+                icon={({ size }) => <Bell size={size} weight="bold" />}
+                size="iconM"
+              />
+            </Link>
+          )
         }
       />
 

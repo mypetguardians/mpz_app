@@ -12542,3 +12542,55 @@ INFO 2025-11-17 00:45:21,408 basehttp 96917 6266892288 "GET /v1/animals/?center_
 INFO 2025-11-17 00:45:23,876 basehttp 96917 6266892288 "GET /v1/animals/?page_size=50&page=1 HTTP/1.1" 200 62094
 INFO 2025-11-17 00:45:26,482 basehttp 96917 6199586816 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
 INFO 2025-11-17 00:45:31,492 basehttp 96917 6250065920 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+INFO 2025-11-17 00:54:34,788 basehttp 11821 6115438592 "GET /v1/centers/me HTTP/1.1" 200 1008
+INFO 2025-11-17 00:54:58,804 basehttp 11821 6149091328 "OPTIONS /v1/cloudflare/upload HTTP/1.1" 200 0
+ERROR 2025-11-17 00:54:59,044 errors 11821 6115438592 Request body exceeded settings.DATA_UPLOAD_MAX_MEMORY_SIZE.
+Traceback (most recent call last):
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/ninja/operation.py", line 119, in run
+    values = self._get_values(request, kw, temporal_response)
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/ninja/operation.py", line 288, in _get_values
+    data = model.resolve(request, self.api, path_params)
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/ninja/params/models.py", line 52, in resolve
+    data = cls.get_request_data(request, api, path_params)
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/ninja/params/models.py", line 130, in get_request_data
+    if request.body:
+       ^^^^^^^^^^^^
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/http/request.py", line 338, in body
+    raise RequestDataTooBig(
+        "Request body exceeded settings.DATA_UPLOAD_MAX_MEMORY_SIZE."
+    )
+django.core.exceptions.RequestDataTooBig: Request body exceeded settings.DATA_UPLOAD_MAX_MEMORY_SIZE.
+ERROR 2025-11-17 00:54:59,053 log 11821 6115438592 Internal Server Error: /v1/cloudflare/upload
+ERROR 2025-11-17 00:54:59,056 basehttp 11821 6115438592 "POST /v1/cloudflare/upload HTTP/1.1" 500 1073
+INFO 2025-11-17 00:58:07,630 basehttp 11821 6149091328 "OPTIONS /v1/cloudflare/upload HTTP/1.1" 200 0
+INFO 2025-11-17 00:58:08,619 basehttp 11821 6115438592 "POST /v1/cloudflare/upload HTTP/1.1" 200 336
+INFO 2025-11-17 00:58:08,627 basehttp 11821 6149091328 "OPTIONS /v1/centers/update HTTP/1.1" 200 0
+INFO 2025-11-17 00:58:09,159 basehttp 11821 6115438592 "PUT /v1/centers/update HTTP/1.1" 200 1008
+INFO 2025-11-17 00:58:09,584 basehttp 11821 6115438592 "GET /v1/centers/me HTTP/1.1" 200 1008
+INFO 2025-11-17 00:58:10,233 basehttp 11821 6132264960 "GET /v1/centers/me HTTP/1.1" 200 1008
+INFO 2025-11-17 00:58:10,679 basehttp 11821 6132264960 "GET /v1/centers/me HTTP/1.1" 200 1008
+INFO 2025-11-17 00:58:35,665 basehttp 11821 6149091328 "OPTIONS /v1/cloudflare/upload HTTP/1.1" 200 0
+ERROR 2025-11-17 00:58:35,889 errors 11821 6132264960 Request body exceeded settings.DATA_UPLOAD_MAX_MEMORY_SIZE.
+Traceback (most recent call last):
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/ninja/operation.py", line 119, in run
+    values = self._get_values(request, kw, temporal_response)
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/ninja/operation.py", line 288, in _get_values
+    data = model.resolve(request, self.api, path_params)
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/ninja/params/models.py", line 52, in resolve
+    data = cls.get_request_data(request, api, path_params)
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/ninja/params/models.py", line 130, in get_request_data
+    if request.body:
+       ^^^^^^^^^^^^
+  File "/Users/jhy20/mpz_fullstack/backend/venv/lib/python3.13/site-packages/django/http/request.py", line 338, in body
+    raise RequestDataTooBig(
+        "Request body exceeded settings.DATA_UPLOAD_MAX_MEMORY_SIZE."
+    )
+django.core.exceptions.RequestDataTooBig: Request body exceeded settings.DATA_UPLOAD_MAX_MEMORY_SIZE.
+ERROR 2025-11-17 00:58:35,892 log 11821 6132264960 Internal Server Error: /v1/cloudflare/upload
+ERROR 2025-11-17 00:58:35,893 basehttp 11821 6132264960 "POST /v1/cloudflare/upload HTTP/1.1" 500 1073
+INFO 2025-11-17 01:03:56,674 basehttp 11821 6115438592 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+INFO 2025-11-17 01:03:58,185 basehttp 11821 6132264960 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+INFO 2025-11-17 01:04:00,741 basehttp 11821 6149091328 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+INFO 2025-11-17 01:04:04,632 basehttp 11821 6165917696 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+INFO 2025-11-17 01:04:09,647 basehttp 11821 6115438592 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0
+INFO 2025-11-17 01:04:14,657 basehttp 11821 6132264960 "GET /socket.io/?EIO=4&transport=websocket HTTP/1.1" 302 0

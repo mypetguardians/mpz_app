@@ -3,7 +3,11 @@
 import Script from "next/script";
 import { useEffect } from "react";
 
-export function KakaoProvider() {
+interface KakaoProviderProps {
+  children: React.ReactNode;
+}
+
+export function KakaoProvider({ children }: KakaoProviderProps) {
   const kakaoKey = "06b1ee860fa3d10d88b67258d93243cf";
 
   useEffect(() => {
@@ -51,29 +55,12 @@ export function KakaoProvider() {
   }, [kakaoKey]);
 
   return (
-    <Script
-      src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.6/kakao.min.js"
-      integrity="sha384-WAtVcQYcmTO/N+C1N+1m6Gp8qxh+3NlnP7X1U7qP6P5dQY/MsRBNTh+e1ahJrkEm"
-      crossOrigin="anonymous"
-      strategy="afterInteractive"
-      onLoad={() => {
-        if (typeof window !== "undefined" && window.Kakao) {
-          try {
-            if (!window.Kakao.isInitialized || !window.Kakao.isInitialized()) {
-              console.log("카카오 JavaScript SDK 초기화 중...");
-              window.Kakao.init(kakaoKey);
-              console.log("카카오 JavaScript SDK 초기화 완료");
-            } else {
-              console.log("카카오 JavaScript SDK가 이미 초기화되어 있습니다.");
-            }
-          } catch (error) {
-            console.error("카카오 JavaScript SDK 초기화 실패:", error);
-          }
-        }
-      }}
-      onError={(e) => {
-        console.error("카카오 JavaScript SDK 로드 실패:", e);
-      }}
-    />
+    <>
+      <Script
+        src="https://developers.kakao.com/sdk/js/kakao.js"
+        strategy="beforeInteractive"
+      />
+      {children}
+    </>
   );
 }

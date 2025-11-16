@@ -80,6 +80,8 @@ class AnimalUpdateIn(Schema):
     admission_date: Optional[date] = Field(None, description="공고일")
     found_location: Optional[str] = Field(None, max_length=200, description="발견 장소")
     personality: Optional[str] = Field(None, max_length=500, description="성격")
+    # 이미지 URL 목록(전체 교체)
+    image_urls: Optional[List[str]] = Field(None, description="동물 이미지 URL 목록 (전체 교체)")
 
 
 class AnimalStatusUpdateIn(Schema):

@@ -300,6 +300,7 @@ export default function AddAnimal() {
   };
 
   const handleSubmit = async () => {
+    if (isLoading) return;
     // 필수 필드 검증
     const { basicInfo, detailInfo } = formData;
 
@@ -317,6 +318,18 @@ export default function AddAnimal() {
     }
 
     try {
+      // 1) 이미지가 있다면 선 업로드 후 URL 수집
+      let uploadedImageUrls: string[] = [];
+      const imagesToUpload = formData.images;
+      if (imagesToUpload.length > 0) {
+        const res = await uploadImagesMutation.mutateAsync({
+          postId: "new", // 서버 미사용, 시그니처 충족용
+          images: imagesToUpload,
+        });
+        uploadedImageUrls = res.images;
+      }
+
+      // 2) 업로드된 이미지 URL을 포함해 동물 생성
       const requestData = {
         name: basicInfo.name,
         is_female: basicInfo.gender === "암컷",
@@ -368,23 +381,14 @@ export default function AddAnimal() {
         health_notes: basicInfo.healthNotes || "",
         basic_training: "",
         trainer_comment: detailInfo.trainerComment || "",
+        image_urls: uploadedImageUrls,
         announce_number: "",
         announcement_date: basicInfo.centerEntryDate || undefined,
         found_location: basicInfo.foundLocation || "",
         personality: basicInfo.personality || "",
       };
 
-      const createdAnimal = await createAnimalMutation.mutateAsync(requestData);
-
-      // 이미지 업로드는 제출 시 한 번만 수행
-      const imagesToUpload = formData.images;
-      if (imagesToUpload.length > 0) {
-        console.log(`${imagesToUpload.length}개의 이미지 업로드 중...`);
-        await uploadImagesMutation.mutateAsync({
-          postId: createdAnimal.id,
-          images: imagesToUpload,
-        });
-      }
+      await createAnimalMutation.mutateAsync(requestData);
 
       router.push("/centerpage/animal");
     } catch (error) {
@@ -429,7 +433,7 @@ export default function AddAnimal() {
       <FixedBottomBar
         variant="variant4"
         onResetButtonClick={handleReset}
-        primaryButtonText="등록하기"
+        primaryButtonText={isLoading ? "등록중 ..." : "등록하기"}
         onPrimaryButtonClick={handleSubmit}
         applyButtonDisabled={isLoading}
       />

@@ -155,6 +155,37 @@ async def create_animal(request: HttpRequest, data: AnimalCreateIn):
             
             animal_images = await create_animal_images()
         
+        # 관련 이미지 조회는 동기 ORM이므로 비동기에서 안전하게 래핑
+        @sync_to_async
+        def get_animal_images_for_response():
+            return list(
+                animal.animalimage_set.all()
+                .order_by('sequence')
+                .values('id', 'image_url', 'is_primary', 'sequence')
+            )
+
+        animal_images_data = await get_animal_images_for_response()
+
+        # 관련 이미지 조회는 동기 ORM이므로 비동기에서 안전하게 래핑
+        @sync_to_async
+        def get_animal_images_for_response_update():
+            return list(
+                animal.animalimage_set.all()
+                .order_by('sequence')
+                .values('id', 'image_url', 'is_primary', 'sequence')
+            )
+        animal_images_data = await get_animal_images_for_response_update()
+
+        # 관련 이미지 조회는 동기 ORM이므로 비동기에서 안전하게 래핑
+        @sync_to_async
+        def _get_images_after_update():
+            return list(
+                animal.animalimage_set.all()
+                .order_by('sequence')
+                .values('id', 'image_url', 'is_primary', 'sequence')
+            )
+        animal_images_data = await _get_images_after_update()
+
         # 응답 데이터 변환
         response_data = AnimalOut(
             id=str(animal.id),
@@ -676,8 +707,11 @@ async def update_animal(request: HttpRequest, animal_id: str, data: AnimalUpdate
             update_data["breed"] = data.breed
         if data.description is not None:
             update_data["description"] = data.description
-        if data.status is not None:
-            update_data["status"] = data.status
+        # 보호/입양 상태는 별도 필드로 매핑
+        if data.protection_status is not None:
+            update_data["protection_status"] = data.protection_status
+        if data.adoption_status is not None:
+            update_data["adoption_status"] = data.adoption_status
         if data.activity_level is not None:
             update_data["activity_level"] = data.activity_level
         if data.sensitivity is not None:
@@ -707,7 +741,46 @@ async def update_animal(request: HttpRequest, animal_id: str, data: AnimalUpdate
         for field, value in update_data.items():
             setattr(animal, field, value)
         await sync_to_async(animal.save)()
-        
+        # 이미지가 전달된 경우 전체 교체
+        if data.image_urls is not None:
+            @sync_to_async
+            def replace_images():
+                # 기존 이미지 삭제 후 새로 생성
+                AnimalImage.objects.filter(animal=animal).delete()
+                created = []
+                for idx, image_url in enumerate(data.image_urls or []):
+                    url = (image_url or "").strip()
+                    if not url:
+                        continue
+                    img = AnimalImage.objects.create(
+                        animal=animal,
+                        image_url=url,
+                        is_primary=(idx == 0),
+                        sequence=idx,
+                    )
+                    created.append({
+                        "id": str(img.id),
+                        "image_url": img.image_url,
+                        "is_primary": img.is_primary,
+                        "sequence": img.sequence,
+                    })
+                return created
+            # 실행 및 최신 이미지 데이터 확보
+            animal_images_data = await replace_images()
+        else:
+            animal_images_data = None
+
+        # 이미지 목록은 동기 ORM → 비동기 안전하게 조회
+        if animal_images_data is None:
+            @sync_to_async
+            def _fetch_images_for_update_response():
+                return list(
+                    animal.animalimage_set.all()
+                    .order_by('sequence')
+                    .values('id', 'image_url', 'is_primary', 'sequence')
+                )
+            animal_images_data = await _fetch_images_for_update_response()
+
         # 응답 데이터 변환
         response_data = AnimalOut(
             id=str(animal.id),
@@ -727,24 +800,30 @@ async def update_animal(request: HttpRequest, animal_id: str, data: AnimalUpdate
             separation_anxiety=animal.separation_anxiety,
             special_notes=animal.special_needs,
             health_notes=animal.health_notes,
-            basic_training=animal.basic_training,
             trainer_comment=animal.trainer_comment,
             announce_number=animal.announce_number,
+            display_notice_number=animal.display_notice_number,
             found_location=animal.found_location,
             admission_date=animal.admission_date.isoformat() if animal.admission_date else None,
             personality=animal.personality,
+            megaphone_count=animal.megaphone_count,
+            is_megaphoned=False,
             center_id=str(animal.center_id),
             animal_images=[
                 {
-                    "id": str(img.id),
-                    "image_url": img.image_url,
-                    "is_primary": img.is_primary,
-                    "sequence": img.sequence
+                    "id": str(img["id"]),
+                    "image_url": img["image_url"],
+                    "is_primary": img["is_primary"],
+                    "sequence": img["sequence"],
                 }
-                for img in animal.animalimage_set.all().order_by('sequence')
+                for img in animal_images_data
             ],
             created_at=animal.created_at.isoformat(),
             updated_at=animal.updated_at.isoformat(),
+            # 공공데이터 관련 필드
+            is_public_data=animal.is_public_data,
+            public_notice_number=animal.public_notice_number,
+            comment=animal.comment,
         )
         
         return response_data

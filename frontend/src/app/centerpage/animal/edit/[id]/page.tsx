@@ -209,14 +209,26 @@ export default function EditAnimal({
       !basicInfo.age ||
       !basicInfo.gender ||
       !basicInfo.neutering ||
-      !basicInfo.weight ||
-      !basicInfo.color
+      !basicInfo.weight
     ) {
       alert("필수 항목을 모두 입력해주세요.");
       return;
     }
 
     try {
+      let uploadedImageUrls: string[] | undefined = undefined;
+      if (formData.images.length > 0) {
+        const urls: string[] = [];
+        for (const file of formData.images) {
+          const res = await uploadImagesMutation.mutateAsync({
+            postId: "update",
+            images: [file],
+          });
+          urls.push(...res.images);
+        }
+        uploadedImageUrls = urls;
+      }
+
       const requestData = {
         id: resolvedParams.id, // 수정할 동물의 ID
         name: basicInfo.name,
@@ -261,16 +273,11 @@ export default function EditAnimal({
         admission_date: basicInfo.centerEntryDate || null,
         found_location: basicInfo.foundLocation || "",
         personality: basicInfo.personality || "",
+        // 이미지 URL을 전달하면 백엔드에서 전체 교체
+        ...(uploadedImageUrls ? { image_urls: uploadedImageUrls } : {}),
       };
 
-      const updatedAnimal = await updateAnimalMutation.mutateAsync(requestData);
-
-      if (formData.images.length > 0) {
-        await uploadImagesMutation.mutateAsync({
-          postId: updatedAnimal.id,
-          images: formData.images,
-        });
-      }
+      await updateAnimalMutation.mutateAsync(requestData);
 
       router.push("/centerpage/animal");
     } catch (error) {

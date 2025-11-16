@@ -431,22 +431,16 @@ export default function CommunityPage() {
           variant="primary"
         />
       </div>
-      {/* 상단 고정 배너 */}
-      <div className="mx-4">
-        <Banner variant="sub" />
-      </div>
       <div
         className="flex-1 mx-4 overflow-y-auto scrollbar-hide"
         key={activeTab}
       >
         {isLoading ? (
           // 로딩 중일 때 스켈레톤 표시
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             {[...Array(5)].map((_, index) => (
               <div key={index}>
-                {(index === 0 || (index + 1) % 3 === 0) && (
-                  <Banner variant="sub" />
-                )}
+                {(index + 1) % 3 === 0 && <Banner variant="sub" />}
                 <div className="pt-4">
                   <CommunityCardSkeleton />
                 </div>
@@ -463,11 +457,10 @@ export default function CommunityPage() {
         ) : (
           <div className="cursor-pointer">
             {filteredPosts.map((post, index) => (
-              <CommunityCardWithComments
-                key={`${post.id}-${index}`}
-                post={post}
-                index={index}
-              />
+              <div key={`${post.id}-${index}`}>
+                <CommunityCardWithComments post={post} index={index} />
+                {(index + 1) % 3 === 0 && <Banner variant="sub" />}
+              </div>
             ))}
           </div>
         )}

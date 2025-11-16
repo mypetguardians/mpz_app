@@ -141,15 +141,6 @@ export default function AdoptionMonitoringPage({
               <h3 className="text-bk mb-1">모니터링 현황</h3>
               <div className="flex items-center gap-2">
                 <h6 className="text-gr">
-                  남은횟수{" "}
-                  {calculateRemainingMonitoringChecks(
-                    adoption.monitoring_total_checks || 0,
-                    adoption.monitoring_completed_checks || 0
-                  )}
-                  회
-                </h6>
-                <h6 className="text-gr">|</h6>
-                <h6 className="text-gr">
                   남은 기간{" "}
                   {adoption.monitoring_end_date
                     ? calculateRemainingMonitoringPeriod(

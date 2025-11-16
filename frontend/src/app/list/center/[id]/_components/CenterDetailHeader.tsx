@@ -66,20 +66,13 @@ export function CenterDetailHeader({
 
   // 뒤로가기 핸들러
   const handleBackClick = () => {
-    const storedParams = sessionStorage.getItem("centerListSearchParams");
-    console.log("CenterDetailHeader back click - storedParams:", storedParams); // 디버깅 로그
-
-    if (storedParams && storedParams !== "") {
-      // 센터 리스트에서 왔을 경우 검색 쿼리 유지
-      const redirectUrl = `/list/center${storedParams}`;
-      console.log("Redirecting to:", redirectUrl); // 리다이렉트 URL 확인
-      sessionStorage.removeItem("centerListSearchParams"); // 사용 후 제거
-      router.push(redirectUrl);
-    } else {
-      console.log("No stored params, using router.back()"); // 기본 뒤로가기 로그
-      // 그 외 경우 기본 뒤로가기
-      router.back();
+    if (typeof window !== "undefined" && window.history) {
+      if (window.history.length > 2) {
+        window.history.go(-2);
+        return;
+      }
     }
+    router.back();
   };
 
   // 카카오톡 공유 함수

@@ -11,7 +11,12 @@ import { DotProgressBar } from "@/components/ui/DotProgressBar";
 import { PetCard } from "@/components/ui/PetCard";
 import { BigButton } from "@/components/ui/BigButton";
 import { SectionLine } from "../../_components/SectionLine";
-import { useGetCenterAdoption, useUpdateAdoptionMemo, useToast } from "@/hooks";
+import {
+  useGetCenterAdoption,
+  useUpdateAdoptionMemo,
+  useUpdateAdoptionStatus,
+  useToast,
+} from "@/hooks";
 import { useGetAdoptionMonitoringPosts } from "@/hooks/query/useGetAdoptionMonitoringPosts";
 import { transformRawAnimalToPetCard } from "@/types/animal";
 import { useGetAnimalById } from "@/hooks/query/useGetAnimals";
@@ -51,6 +56,8 @@ export default function AdoptionWritingPage({
   const [memo, setMemo] = useState<string>("");
   const { mutate: updateMemo, isPending: isSaving } = useUpdateAdoptionMemo();
   const { showToast } = useToast();
+  const { mutate: updateStatus, isPending: isUpdating } =
+    useUpdateAdoptionStatus();
 
   // 초기값 세팅
   useEffect(() => {
@@ -79,6 +86,25 @@ export default function AdoptionWritingPage({
 
   const handleBack = () => {
     router.back();
+  };
+
+  const handleCompleteAdoption = () => {
+    if (!adoptionData) return;
+    updateStatus(
+      {
+        adoptionId: adoptionData.id,
+        status: "입양완료",
+      },
+      {
+        onSuccess: () => {
+          showToast("입양 상태가 '입양완료'로 변경되었습니다.", "success");
+          router.refresh();
+        },
+        onError: () => {
+          showToast("상태 변경 중 오류가 발생했습니다.", "error");
+        },
+      }
+    );
   };
 
   // 로딩 상태 처리
@@ -358,6 +384,22 @@ export default function AdoptionWritingPage({
           </div>
         </div>
       </Container>
+      {/* 하단 고정 액션 바 */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur px-4 py-3 border-t border-gray-200">
+        <div className="max-w-[480px] mx-auto">
+          <BigButton
+            className="w-full"
+            onClick={handleCompleteAdoption}
+            disabled={isUpdating || adoptionData?.status === "입양완료"}
+          >
+            {adoptionData?.status === "입양완료"
+              ? "이미 입양완료 상태입니다"
+              : isUpdating
+              ? "변경 중..."
+              : "입양완료로 변경"}
+          </BigButton>
+        </div>
+      </div>
     </div>
   );
 }

@@ -3,7 +3,7 @@ from ninja.errors import HttpError
 from django.http import HttpRequest
 from asgiref.sync import sync_to_async
 from typing import List
-from centers.models import Center, AdoptionConsent
+from centers.models import Center, AdoptionConsent, PresetConsent
 from centers.schemas.inbound import (
     ConsentCreateIn,
     ConsentUpdateIn,
@@ -58,11 +58,12 @@ async def get_consents(request: HttpRequest):
                 except AttributeError:
                     raise HttpError(400, "등록된 센터가 없습니다")
             
-            # 해당 센터의 모든 동의서 조회
-            consents = AdoptionConsent.objects.filter(center=user_center).order_by('-created_at')
+            # 해당 센터의 동의서 + 공용 프리셋 동의서 함께 조회
+            center_consents = AdoptionConsent.objects.filter(center=user_center).order_by('-created_at')
+            preset_consents = PresetConsent.objects.filter(is_active=True).order_by('-created_at')
             
             # 응답 데이터 변환
-            return [
+            center_payload = [
                 ConsentOut(
                     id=str(consent.id),
                     center_id=str(consent.center.id),
@@ -73,8 +74,22 @@ async def get_consents(request: HttpRequest):
                     created_at=consent.created_at.isoformat(),
                     updated_at=consent.updated_at.isoformat(),
                 )
-                for consent in consents
+                for consent in center_consents
             ]
+            preset_payload = [
+                ConsentOut(
+                    id=str(consent.id),
+                    center_id="",  # 공용
+                    title=consent.title,
+                    description=consent.description,
+                    content=consent.content,
+                    is_active=consent.is_active,
+                    created_at=consent.created_at.isoformat(),
+                    updated_at=consent.updated_at.isoformat(),
+                )
+                for consent in preset_consents
+            ]
+            return center_payload + preset_payload
         
         return await get_consents_list()
         

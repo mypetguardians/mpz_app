@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.db import models
-from centers.models import Center, AdoptionContractTemplate, QuestionForm, PresetQuestion
+from centers.models import Center, AdoptionContractTemplate, AdoptionConsent, QuestionForm, PresetQuestion, PresetContractTemplate, PresetConsent
 
 
 @admin.register(Center)
@@ -73,6 +73,72 @@ class AdoptionContractTemplateAdmin(admin.ModelAdmin):
             'fields': ('center', 'title', 'description', 'is_active')
         }),
         ('계약서 내용', {
+            'fields': ('content',)
+        }),
+        ('시간 정보', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(AdoptionConsent)
+class AdoptionConsentAdmin(admin.ModelAdmin):
+    list_display = ['title', 'center', 'is_active', 'created_at']
+    list_filter = ['is_active', 'center']
+    search_fields = ['title', 'center__name']
+    list_editable = ['is_active']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('기본 정보', {
+            'fields': ('center', 'title', 'description', 'is_active')
+        }),
+        ('동의서 내용', {
+            'fields': ('content',)
+        }),
+        ('시간 정보', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(PresetContractTemplate)
+class PresetContractTemplateAdmin(admin.ModelAdmin):
+    list_display = ['title', 'is_active', 'created_at']
+    list_filter = ['is_active']
+    search_fields = ['title']
+    list_editable = ['is_active']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('기본 정보', {
+            'fields': ('title', 'description', 'is_active')
+        }),
+        ('계약서 내용', {
+            'fields': ('content',)
+        }),
+        ('시간 정보', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(PresetConsent)
+class PresetConsentAdmin(admin.ModelAdmin):
+    list_display = ['title', 'is_active', 'created_at']
+    list_filter = ['is_active']
+    search_fields = ['title']
+    list_editable = ['is_active']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('기본 정보', {
+            'fields': ('title', 'description', 'is_active')
+        }),
+        ('동의서 내용', {
             'fields': ('content',)
         }),
         ('시간 정보', {

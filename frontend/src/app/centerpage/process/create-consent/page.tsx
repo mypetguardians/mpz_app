@@ -12,6 +12,7 @@ import { BigButton } from "@/components/ui/BigButton";
 import { InfoCard } from "@/components/ui/InfoCard";
 import { NotificationToast } from "@/components/ui/NotificationToast";
 import { useCreateConsent } from "@/hooks";
+import instance from "@/lib/axios-instance";
 
 export default function CenterProcessCreateConsent() {
   const router = useRouter();
@@ -71,6 +72,49 @@ export default function CenterProcessCreateConsent() {
     }
   };
 
+  const handleLoadTemplate = async () => {
+    try {
+      // 내 센터의 동의서 목록 조회
+      const res = await instance.get<
+        Array<{
+          id: string;
+          title: string;
+          description?: string;
+          content: string;
+          is_active: boolean;
+          created_at: string;
+        }>
+      >("/centers/procedures/consent/");
+      const consents = res.data || [];
+      if (consents.length === 0) {
+        setToast({
+          show: true,
+          message: "불러올 동의서 템플릿이 없습니다.",
+          type: "error",
+        });
+        return;
+      }
+      // 활성 우선, 없으면 가장 최근
+      const active = consents.find((c) => c.is_active);
+      const picked = active ?? consents[0];
+      setTitle(picked.title || "");
+      setDescription(picked.description || "");
+      setContent(picked.content || "");
+      setToast({
+        show: true,
+        message: "템플릿을 불러왔습니다.",
+        type: "success",
+      });
+    } catch (e) {
+      console.error(e);
+      setToast({
+        show: true,
+        message: "템플릿 불러오기에 실패했습니다.",
+        type: "error",
+      });
+    }
+  };
+
   return (
     <Container className="min-h-screen relative">
       <TopBar
@@ -83,6 +127,17 @@ export default function CenterProcessCreateConsent() {
               onClick={handleBack}
             />
             <h4>유의사항 동의서 만들기</h4>
+          </div>
+        }
+        right={
+          <div className="flex items-center gap-2 pr-2">
+            <button
+              type="button"
+              onClick={handleLoadTemplate}
+              className="text-sm text-brand underline underline-offset-4"
+            >
+              템플릿 불러오기
+            </button>
           </div>
         }
       />

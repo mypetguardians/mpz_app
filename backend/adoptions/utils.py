@@ -107,10 +107,11 @@ async def build_center_adoption_response(adoption: Adoption, center: Center) -> 
 def validate_status_transition(current_status: str, new_status: str) -> bool:
     """상태 변경 유효성 검사"""
     valid_transitions = {
-        "신청": ["미팅", "취소"],
+        # 요구사항: 센터에서 바로 계약서 전송 가능하도록 '신청' -> '계약서작성' 허용
+        "신청": ["미팅", "계약서작성", "취소"],
         "미팅": ["계약서작성", "취소"],
-        # 기존: 계약서작성 → 입양완료(자동). 요구사항에 따라 모니터링으로 직접 전환 허용
-        "계약서작성": ["취소", "모니터링"],
+        # 계약 진행 후 완료 처리도 허용: '계약서작성' -> '입양완료' 추가
+        "계약서작성": ["입양완료", "취소", "모니터링"],
         "입양완료": ["모니터링", "취소"],
         "모니터링": ["취소"],
     }

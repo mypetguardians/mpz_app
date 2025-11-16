@@ -211,7 +211,7 @@ export const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(
       <div
         ref={containerRef}
         className={cn(
-          "relative w-full h-48 rounded-2xl border border-gray-200 bg-gray-50 overflow-hidden",
+          "relative w-full h-[200px] rounded-2xl border border-gray-200 bg-lg overflow-hidden",
           disabled && "opacity-60 cursor-not-allowed",
           className
         )}

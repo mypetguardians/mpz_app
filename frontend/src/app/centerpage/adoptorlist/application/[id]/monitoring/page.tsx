@@ -19,6 +19,7 @@ import { transformRawAnimalToPetCard } from "@/types/animal";
 import { useGetAnimalById } from "@/hooks/query/useGetAnimals";
 import { useUpdateAdoptionStatus } from "@/hooks";
 import { MiniButton } from "@/components/ui/MiniButton";
+import instance from "@/lib/axios-instance";
 
 interface AdoptionMonitoringPageProps {
   params: Promise<{ id: string }>;
@@ -31,6 +32,11 @@ export default function AdoptionMonitoringPage({
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [withdrawReason, setWithdrawReason] = useState("");
   const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [openMonitoringSheet, setOpenMonitoringSheet] = useState(false);
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
+  const [isSavingMonitoring, setIsSavingMonitoring] = useState(false);
   const { id } = use(params);
 
   // 개별 입양 신청 조회
@@ -94,6 +100,73 @@ export default function AdoptionMonitoringPage({
   };
   const handleBack = () => {
     router.back();
+  };
+  const handleStartMonitoring = () => {
+    if (adoptionData?.status !== "입양완료") {
+      setToastMessage("먼저 입양완료로 상태를 변경해주세요.");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 2000);
+      return;
+    }
+    // 모니터링 기간 설정 모달 오픈
+    setOpenMonitoringSheet(true);
+  };
+
+  const handleConfirmMonitoringSettings = async () => {
+    try {
+      // 유효성 검사
+      if (!startDate || !endDate) {
+        setToastMessage("시작일과 종료일을 입력해주세요.");
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 2000);
+        return;
+      }
+      if (new Date(startDate) > new Date(endDate)) {
+        setToastMessage("종료일은 시작일 이후여야 합니다.");
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 2000);
+        return;
+      }
+
+      setIsSavingMonitoring(true);
+      // 센터 모니터링 사용 활성화만 수행(기간 값은 메모로 전달)
+      await instance.put("/centers/procedures/settings/", {
+        has_monitoring: true,
+      });
+      setOpenMonitoringSheet(false);
+
+      const periodNote = `모니터링 기간: ${startDate} ~ ${endDate}`;
+      // 상태를 모니터링으로 변경 + 기간을 센터 메모로 남김
+      updateStatus.mutate(
+        {
+          adoptionId: id,
+          status: "모니터링",
+          center_notes: periodNote,
+        },
+        {
+          onSuccess: () => {
+            setToastMessage("모니터링이 시작되었습니다.");
+            setShowToast(true);
+            setTimeout(() => {
+              setShowToast(false);
+              router.refresh();
+            }, 1500);
+          },
+          onError: () => {
+            setToastMessage("상태 변경 중 오류가 발생했습니다.");
+            setShowToast(true);
+            setTimeout(() => setShowToast(false), 2000);
+          },
+        }
+      );
+    } catch (error) {
+      console.error("모니터링 설정 저장 중 오류가 발생했습니다:", error);
+      setToastMessage("모니터링 설정 저장 중 오류가 발생했습니다.");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 2000);
+    } finally {
+      setIsSavingMonitoring(false);
+    }
   };
 
   // 로딩 상태 처리
@@ -327,6 +400,15 @@ export default function AdoptionMonitoringPage({
             <div className="flex flex-col items-center gap-2 mt-6">
               <BigButton
                 variant="variant5"
+                onClick={handleStartMonitoring}
+                className="w-full py-4"
+              >
+                {adoptionData?.status === "모니터링"
+                  ? "모니터링 진행중"
+                  : "모니터링 시작하기"}
+              </BigButton>
+              <BigButton
+                variant="variant5"
                 onClick={() =>
                   router.push(
                     `/centerpage/adoptorlist/application/${id}/applicationForm`
@@ -346,6 +428,17 @@ export default function AdoptionMonitoringPage({
                 className="w-full py-4"
               >
                 동의서 보기
+              </BigButton>
+              <BigButton
+                variant="variant5"
+                onClick={() =>
+                  router.push(
+                    `/centerpage/adoptorlist/application/${id}/contractform`
+                  )
+                }
+                className="w-full py-4"
+              >
+                계약서 보기
               </BigButton>
               <MiniButton
                 text={isWithdrawing ? "철회 중..." : "입양 신청 철회하기"}
@@ -380,9 +473,47 @@ export default function AdoptionMonitoringPage({
         {/* Toast */}
         {showToast && (
           <div className="fixed bottom-4 left-4 right-4 z-[10000]">
-            <Toast>입양 신청이 철회되었습니다.</Toast>
+            <Toast>{toastMessage || "처리가 완료되었습니다."}</Toast>
           </div>
         )}
+
+        {/* Monitoring Settings BottomSheet */}
+        <BottomSheet
+          open={openMonitoringSheet}
+          onClose={() => !isSavingMonitoring && setOpenMonitoringSheet(false)}
+          variant="variant5"
+          title="모니터링 기간 설정"
+          description="시작일과 종료일을 선택하세요."
+          confirmButtonText={isSavingMonitoring ? "저장 중..." : "확인"}
+          onConfirm={handleConfirmMonitoringSettings}
+          confirmButtonDisabled={
+            isSavingMonitoring ||
+            !startDate ||
+            !endDate ||
+            new Date(startDate) > new Date(endDate)
+          }
+        >
+          <div className="p-4 space-y-4">
+            <div>
+              <label className="block mb-2 text-sm text-gr">시작일</label>
+              <input
+                type="date"
+                className="w-full p-3 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block mb-2 text-sm text-gr">종료일</label>
+              <input
+                type="date"
+                className="w-full p-3 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
+          </div>
+        </BottomSheet>
       </Container>
     </div>
   );

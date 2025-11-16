@@ -34,21 +34,9 @@ class RecentCheckOut(Schema):
 
 
 class MonitoringStatusOut(Schema):
-    """모니터링 상태 정보"""
-    adoption_id: str
-    status: str
-    monitoring_status: Optional[str] = None
+    """모니터링 기간 정보만 반환"""
     monitoring_started_at: Optional[str] = None
     monitoring_end_date: Optional[str] = None
-    next_check_date: Optional[str] = None
-    days_until_next_deadline: Optional[int] = None
-    days_until_monitoring_end: Optional[int] = None
-    completed_checks: int = 0
-    total_checks: int = 0
-    total_monitoring_posts: int = 0
-    monitoring_progress: MonitoringProgressOut
-    center_config: CenterConfigOut
-    recent_checks: List[RecentCheckOut] = []
 
 
 class MonitoringCheckOut(Schema):

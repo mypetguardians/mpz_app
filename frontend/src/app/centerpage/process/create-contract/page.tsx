@@ -11,6 +11,7 @@ import { CustomInput } from "@/components/ui/CustomInput";
 import { BigButton } from "@/components/ui/BigButton";
 import { NotificationToast } from "@/components/ui/NotificationToast";
 import { useCreateContractTemplate } from "@/hooks";
+import instance from "@/lib/axios-instance";
 
 export default function CenterProcessCreateContract() {
   const router = useRouter();
@@ -70,6 +71,49 @@ export default function CenterProcessCreateContract() {
     }
   };
 
+  const handleLoadTemplate = async () => {
+    try {
+      // 내 센터의 계약서 템플릿 목록 조회
+      const res = await instance.get<
+        Array<{
+          id: string;
+          title: string;
+          description?: string;
+          content: string;
+          is_active: boolean;
+          created_at: string;
+        }>
+      >("/centers/procedures/contract-template/");
+      const templates = res.data || [];
+      if (templates.length === 0) {
+        setToast({
+          show: true,
+          message: "불러올 계약서 템플릿이 없습니다.",
+          type: "error",
+        });
+        return;
+      }
+      // 활성 템플릿 우선, 없으면 가장 최근 항목
+      const active = templates.find((t) => t.is_active);
+      const picked = active ?? templates[0];
+      setTitle(picked.title || "");
+      setDescription(picked.description || "");
+      setContent(picked.content || "");
+      setToast({
+        show: true,
+        message: "템플릿을 불러왔습니다.",
+        type: "success",
+      });
+    } catch (e) {
+      console.error(e);
+      setToast({
+        show: true,
+        message: "템플릿 불러오기에 실패했습니다.",
+        type: "error",
+      });
+    }
+  };
+
   return (
     <Container className="min-h-screen relative">
       <TopBar
@@ -82,6 +126,17 @@ export default function CenterProcessCreateContract() {
               onClick={handleBack}
             />
             <h4>계약서 만들기</h4>
+          </div>
+        }
+        right={
+          <div className="flex items-center gap-2 pr-2">
+            <button
+              type="button"
+              onClick={handleLoadTemplate}
+              className="text-sm text-brand underline underline-offset-4"
+            >
+              템플릿 불러오기
+            </button>
           </div>
         }
       />

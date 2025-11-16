@@ -3,7 +3,7 @@ from ninja.errors import HttpError
 from django.http import HttpRequest
 from asgiref.sync import sync_to_async
 from typing import List
-from centers.models import Center, AdoptionContractTemplate
+from centers.models import Center, AdoptionContractTemplate, PresetContractTemplate
 from centers.schemas.inbound import (
     ContractTemplateCreateIn,
     ContractTemplateUpdateIn,
@@ -58,11 +58,12 @@ async def get_contract_templates(request: HttpRequest):
                 except AttributeError:
                     raise HttpError(400, "등록된 센터가 없습니다")
             
-            # 해당 센터의 모든 템플릿 조회
-            templates = AdoptionContractTemplate.objects.filter(center=user_center).order_by('-created_at')
+            # 해당 센터의 템플릿 + 공용 프리셋 템플릿을 함께 조회
+            center_templates = AdoptionContractTemplate.objects.filter(center=user_center).order_by('-created_at')
+            preset_templates = PresetContractTemplate.objects.filter(is_active=True).order_by('-created_at')
             
             # 응답 데이터 변환
-            return [
+            center_payload = [
                 ContractTemplateOut(
                     id=str(template.id),
                     center_id=str(template.center.id),
@@ -73,8 +74,22 @@ async def get_contract_templates(request: HttpRequest):
                     created_at=template.created_at.isoformat(),
                     updated_at=template.updated_at.isoformat(),
                 )
-                for template in templates
+                for template in center_templates
             ]
+            preset_payload = [
+                ContractTemplateOut(
+                    id=str(template.id),
+                    center_id="",  # 공용
+                    title=template.title,
+                    description=template.description,
+                    content=template.content,
+                    is_active=template.is_active,
+                    created_at=template.created_at.isoformat(),
+                    updated_at=template.updated_at.isoformat(),
+                )
+                for template in preset_templates
+            ]
+            return center_payload + preset_payload
         
         return await get_templates()
         

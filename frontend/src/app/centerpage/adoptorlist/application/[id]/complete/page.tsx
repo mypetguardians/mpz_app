@@ -21,6 +21,8 @@ import { useGetAnimalById } from "@/hooks/query/useGetAnimals";
 import { useWithdrawAdoption } from "@/hooks/mutation";
 import { MiniButton } from "@/components/ui/MiniButton";
 import { useUpdateAdoptionMemo } from "@/hooks";
+import { useUpdateAdoptionStatus } from "@/hooks";
+import { Input } from "@/components/ui/CustomInput";
 
 interface AdoptionCompletePageProps {
   params: Promise<{ id: string }>;
@@ -33,11 +35,17 @@ export default function AdoptionCompletePage({
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [userMemo, setUserMemo] = useState("");
+  const [toastMessage, setToastMessage] = useState("");
   const { id } = use(params);
 
   const { mutate: withdrawAdoption, isPending: isWithdrawing } =
     useWithdrawAdoption();
   const updateAdoptionMemo = useUpdateAdoptionMemo();
+  const updateStatus = useUpdateAdoptionStatus();
+  const isStartingMonitoring = updateStatus.isPending;
+  const [showMonitoringModal, setShowMonitoringModal] = useState(false);
+  const [monitoringStartDate, setMonitoringStartDate] = useState("");
+  const [monitoringEndDate, setMonitoringEndDate] = useState("");
 
   // 개별 입양 신청 조회
   const { data: adoptionData, isLoading, error } = useGetCenterAdoption(id);
@@ -132,6 +140,7 @@ export default function AdoptionCompletePage({
     withdrawAdoption(id, {
       onSuccess: (data) => {
         console.log("철회 완료:", data.message);
+        setToastMessage("입양 신청이 철회되었습니다.");
         setShowToast(true);
         // 3초 후 토스트 숨기기
         setTimeout(() => {
@@ -141,7 +150,7 @@ export default function AdoptionCompletePage({
       },
       onError: (error) => {
         console.error("철회 실패:", error);
-        // 에러 토스트 표시
+        setToastMessage("철회 중 오류가 발생했습니다.");
         setShowToast(true);
         setTimeout(() => {
           setShowToast(false);
@@ -163,6 +172,18 @@ export default function AdoptionCompletePage({
 
   const handleViewContract = () => {
     router.push(`/centerpage/adoptorlist/application/${id}/contractform`);
+  };
+  const handleStartMonitoring = () => {
+    if (adoptionData?.status !== "입양완료") {
+      setToastMessage("먼저 입양완료로 상태를 변경해주세요.");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 2000);
+      return;
+    }
+    // 기간 설정 모달 열기
+    setMonitoringStartDate("");
+    setMonitoringEndDate("");
+    setShowMonitoringModal(true);
   };
 
   return (
@@ -195,10 +216,19 @@ export default function AdoptionCompletePage({
             <DotProgressBar currentStep={4} className="mb-6" />
             <BigButton
               variant="variant5"
-              onClick={handleViewContract}
+              onClick={handleStartMonitoring}
               className="w-full py-4 mb-3"
+              disabled={
+                isWithdrawing ||
+                isStartingMonitoring ||
+                adoptionData?.status !== "입양완료"
+              }
             >
-              계약서 보기
+              {adoptionData?.status === "모니터링"
+                ? "모니터링 진행중"
+                : isStartingMonitoring
+                ? "시작 중..."
+                : "모니터링 시작하기"}
             </BigButton>
             {/* Info Card */}
             <InfoCard className="mb-6">
@@ -380,6 +410,13 @@ export default function AdoptionCompletePage({
             <div className="flex flex-col items-center gap-2 mt-6">
               <BigButton
                 variant="variant5"
+                onClick={handleViewContract}
+                className="w-full py-4"
+              >
+                계약서 보기
+              </BigButton>
+              <BigButton
+                variant="variant5"
                 onClick={() =>
                   router.push(
                     `/centerpage/adoptorlist/application/${id}/applicationForm`
@@ -424,10 +461,80 @@ export default function AdoptionCompletePage({
           onRightClick={handleWithdrawConfirm}
         />
 
+        {/* Monitoring Start Modal */}
+        <BottomSheet
+          open={showMonitoringModal}
+          onClose={() => setShowMonitoringModal(false)}
+          variant="variant5"
+          title="모니터링 시작"
+          description={
+            "모니터링 기간을 설정해주세요. 시작일과 종료일을 선택할 수 있어요."
+          }
+          confirmButtonText={isStartingMonitoring ? "저장 중..." : "저장하기"}
+          onConfirm={() => {
+            if (!monitoringStartDate || !monitoringEndDate) return;
+            if (new Date(monitoringStartDate) > new Date(monitoringEndDate)) {
+              setToastMessage("시작일이 종료일보다 늦을 수 없어요.");
+              setShowToast(true);
+              setTimeout(() => setShowToast(false), 2000);
+              return;
+            }
+            updateStatus.mutate(
+              {
+                adoptionId: id,
+                status: "모니터링",
+              },
+              {
+                onSuccess: () => {
+                  setShowMonitoringModal(false);
+                  setToastMessage("모니터링이 시작되었습니다.");
+                  setShowToast(true);
+                  setTimeout(() => {
+                    setShowToast(false);
+                    router.refresh();
+                  }, 1500);
+                },
+                onError: () => {
+                  setToastMessage("상태 변경 중 오류가 발생했습니다.");
+                  setShowToast(true);
+                  setTimeout(() => setShowToast(false), 2000);
+                },
+              }
+            );
+          }}
+          confirmButtonDisabled={
+            !monitoringStartDate ||
+            !monitoringEndDate ||
+            new Date(monitoringStartDate) > new Date(monitoringEndDate) ||
+            isStartingMonitoring
+          }
+        >
+          <div className="w-full flex flex-col gap-3">
+            <Input
+              label="시작일"
+              required
+              type="date"
+              value={monitoringStartDate}
+              onChange={(e) =>
+                setMonitoringStartDate((e.target as HTMLInputElement).value)
+              }
+            />
+            <Input
+              label="종료일"
+              required
+              type="date"
+              value={monitoringEndDate}
+              onChange={(e) =>
+                setMonitoringEndDate((e.target as HTMLInputElement).value)
+              }
+            />
+          </div>
+        </BottomSheet>
+
         {/* Toast */}
         {showToast && (
           <div className="fixed bottom-4 left-4 right-4 z-[10000]">
-            <Toast>입양 신청이 철회되었습니다.</Toast>
+            <Toast>{toastMessage || "처리가 완료되었습니다."}</Toast>
           </div>
         )}
       </Container>

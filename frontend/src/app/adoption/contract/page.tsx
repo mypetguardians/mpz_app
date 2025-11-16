@@ -64,9 +64,13 @@ function ContractContent() {
     : null;
 
   const handleNext = () => {
-    if (isSigned) {
+    if (isSigned || isAlreadySigned) {
       // 서명 완료 후 입양 상세 페이지로 이동
-      router.push(`/my/adoption/${adoptionId}`);
+      if (adoptionId) {
+        router.push(`/my/adoption/${adoptionId}/writing`);
+      } else {
+        router.push(`/my/adoption`);
+      }
     }
   };
 
@@ -141,7 +145,7 @@ function ContractContent() {
 
   return (
     <>
-      <Container className="min-h-screen">
+      <Container className="min-h-screen pb-20">
         <TopBar
           variant="variant6"
           right={
@@ -190,7 +194,11 @@ function ContractContent() {
             setOpenSignSheet(true);
           }
         }}
-        primaryButtonDisabled={isSigning || signContractMutation.isPending}
+        primaryButtonDisabled={
+          isAlreadySigned || isSigned
+            ? false
+            : isSigning || signContractMutation.isPending
+        }
       />
 
       <BottomSheet
@@ -228,7 +236,7 @@ function ContractContent() {
               <img
                 src={signatureData}
                 alt="서명 미리보기"
-                className="max-h-36 object-contain"
+                className="max-h-36 max-w-full h-auto object-contain"
               />
             ) : (
               <div className="h-24 w-full rounded-lg border border-dashed border-gray-300 flex items-center justify-center text-sm text-gr">

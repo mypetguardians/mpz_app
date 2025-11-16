@@ -370,6 +370,14 @@ export default function BasicInfo({
 
         {/* 이미지 업로드 영역 - 최대 5장, 가로 스크롤 */}
         <div className="flex gap-3 px-3 py-3 -mx-3 overflow-x-auto scrollbar-hide">
+          {(data.imageUrls?.length ?? 0) > 0 &&
+            data.imageUrls!.map((url, index) => (
+              <ImageCard
+                key={`existing-${index}`}
+                src={url}
+                alt={`기존 이미지 ${index + 1}`}
+              />
+            ))}
           {images.map((_, index) => (
             <ImageCard
               key={index}

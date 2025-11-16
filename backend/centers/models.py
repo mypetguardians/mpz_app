@@ -161,3 +161,37 @@ class PresetQuestion(BaseModel):
     
     def __str__(self):
         return f"{self.get_category_display()} - {self.question[:50]}"
+
+
+class PresetContractTemplate(BaseModel):
+    """센터 구분 없이 공용으로 쓰는 기본 계약서 템플릿"""
+    title = models.CharField(max_length=200, help_text="계약서 제목")
+    description = models.TextField(blank=True, null=True, help_text="계약서 설명/목적")
+    content = models.TextField(help_text="계약서 본문 내용")
+    is_active = models.BooleanField(default=True, help_text="활성화 여부")
+    
+    class Meta:
+        db_table = 'preset_contract_templates'
+        verbose_name = '기본 계약서 템플릿'
+        verbose_name_plural = '기본 계약서 템플릿들'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return self.title
+
+
+class PresetConsent(BaseModel):
+    """센터 구분 없이 공용으로 쓰는 기본 동의서"""
+    title = models.CharField(max_length=200, help_text="동의서 제목")
+    description = models.TextField(blank=True, null=True, help_text="동의서 설명/목적")
+    content = models.TextField(help_text="동의서 본문 내용")
+    is_active = models.BooleanField(default=True, help_text="활성화 여부")
+    
+    class Meta:
+        db_table = 'preset_consents'
+        verbose_name = '기본 동의서'
+        verbose_name_plural = '기본 동의서들'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return self.title

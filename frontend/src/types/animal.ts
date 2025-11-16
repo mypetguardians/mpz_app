@@ -107,6 +107,7 @@ export interface RawAnimalResponse {
   name: string;
   is_female: boolean;
   age: number;
+  neutering?: boolean | null;
   weight: number | null;
   color: string | null;
   breed: string | null;

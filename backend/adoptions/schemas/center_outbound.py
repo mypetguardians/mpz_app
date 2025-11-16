@@ -65,21 +65,9 @@ class SendContractOut(Schema):
     contract_id: str = Field(..., description="생성된 계약서 ID")
 
 class MonitoringStatusOut(Schema):
-    """모니터링 상태 응답 스키마"""
-    adoption_id: str = Field(..., description="입양 신청 ID")
-    status: str = Field(..., description="입양 상태")
-    monitoring_status: Optional[str] = Field(None, description="모니터링 상태")
-    monitoring_started_at: Optional[str] = Field(None, description="모니터링 시작 시간")
-    monitoring_end_date: Optional[str] = Field(None, description="모니터링 종료 예정일")
-    next_check_date: Optional[str] = Field(None, description="다음 체크 예정일")
-    days_until_next_deadline: Optional[int] = Field(None, description="다음 체크까지 남은 일수")
-    days_until_monitoring_end: Optional[int] = Field(None, description="모니터링 종료까지 남은 일수")
-    completed_checks: int = Field(..., description="완료된 체크 수")
-    total_checks: int = Field(..., description="전체 체크 수")
-    total_monitoring_posts: int = Field(..., description="모니터링 포스트 수")
-    monitoring_progress: dict = Field(..., description="모니터링 진행률")
-    center_config: dict = Field(..., description="센터 모니터링 설정")
-    recent_checks: List[dict] = Field(default=[], description="최근 체크 히스토리")
+    """모니터링 기간만을 반환"""
+    monitoring_started_at: Optional[str] = Field(None, description="모니터링 시작일")
+    monitoring_end_date: Optional[str] = Field(None, description="모니터링 종료일")
 
 class ManualMonitoringCheckOut(Schema):
     """수동 모니터링 체크 응답 스키마"""

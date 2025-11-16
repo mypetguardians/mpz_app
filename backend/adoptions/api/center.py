@@ -23,7 +23,7 @@ from adoptions.utils import (
     get_user_center, build_center_adoption_response, 
     validate_status_transition, validate_center_permissions
 )
-from centers.models import AdoptionContractTemplate
+from centers.models import AdoptionContractTemplate, AdoptionConsent
 from api.security import jwt_auth
 
 router = Router(tags=["Center_Adoption"])
@@ -156,9 +156,8 @@ async def update_adoption_status(request, adoption_id: str, data: UpdateAdoption
         if not validate_status_transition(adoption.status, data.status):
             raise HttpError(400, f"{adoption.status}에서 {data.status}로 변경할 수 없습니다")
         
-        # 모니터링으로 변경하는 경우 센터에서 모니터링을 설정했는지 확인
-        if data.status == "모니터링" and not getattr(center, 'has_monitoring', False):
-            raise HttpError(400, "모니터링을 설정하지 않았어요.")
+        # 모니터링으로 변경하는 경우에도 센터 설정이 없어도 허용
+        # (프론트에서 기간만 수집하며, 센터 설정 없이도 자유 모니터링 허용 정책)
         
         # 업데이트할 데이터 준비
         update_fields = {
@@ -176,10 +175,8 @@ async def update_adoption_status(request, adoption_id: str, data: UpdateAdoption
             update_fields["adoption_completed_at"] = timezone.now()
         
         if data.status == "모니터링":
-            # 모니터링 초기화 (TODO: 실제 모니터링 초기화 로직 구현 필요)
+            # 모니터링 시작일만 기록 (체크 주기/다음 일정은 설정하지 않음)
             update_fields["monitoring_started_at"] = timezone.now()
-            # 모니터링 체크 일정 설정 (예: 30일마다)
-            update_fields["monitoring_next_check_at"] = timezone.now() + timedelta(days=30)
         
         # DB 업데이트
         await Adoption.objects.filter(id=adoption_id).aupdate(**update_fields)
@@ -335,31 +332,89 @@ async def send_contract(request, adoption_id: str, data: SendContractIn):
         # 사용자의 센터 정보 조회
         center = await get_user_center(current_user)
         
-        # 입양 신청 확인 (계약서작성 상태여야 함)
+        # 입양 신청 확인 (상태 무관하게 조회 후 필요 시 상태 전환)
         try:
-            adoption = await Adoption.objects.select_related('animal').aget(
+            adoption = await Adoption.objects.select_related('animal', 'user').aget(
                 id=adoption_id,
                 animal__center=center,
-                status="계약서작성"
             )
         except Adoption.DoesNotExist:
-            raise HttpError(404, "계약서 작성 단계의 입양 신청을 찾을 수 없습니다")
+            raise HttpError(404, "입양 신청을 찾을 수 없습니다")
+        
+        # 상태가 '계약서작성'이 아니면 자동 전환
+        if adoption.status != "계약서작성":
+            # 상태 전이 허용 여부 검증을 느슨하게 하거나, 최소 '미팅' 이상에서만 전환 허용
+            # 필요 시 validate_status_transition 사용 가능
+            await Adoption.objects.filter(id=adoption_id).aupdate(
+                status="계약서작성",
+                updated_at=timezone.now()
+            )
         
         # 계약서 템플릿 조회
-        try:
-            template = await AdoptionContractTemplate.objects.aget(id=data.template_id)
-        except AdoptionContractTemplate.DoesNotExist:
-            raise HttpError(404, "계약서 템플릿을 찾을 수 없습니다")
+        template = None
+        provided_template_id = (data.template_id or "").strip() if data.template_id is not None else ""
+        if not provided_template_id:
+            # 템플릿 미지정 시: 센터의 활성 템플릿이 1개뿐이면 자동 선택
+            active_qs = AdoptionContractTemplate.objects.filter(center=center, is_active=True)
+            active_count = await active_qs.acount()
+            if active_count == 0:
+                # 기본 계약서 템플릿 자동 생성
+                template = await AdoptionContractTemplate.objects.acreate(
+                    center=center,
+                    title="기본 입양 계약서",
+                    description="센터 기본 계약서 템플릿",
+                    content=(
+                        "입양 계약서\n\n"
+                        "1. 입양인은 반려동물의 평생 보호 의무를 성실히 이행합니다.\n"
+                        "2. 입양인은 동물보호법 및 관련 법규를 준수합니다.\n"
+                        "3. 입양인은 센터의 모니터링 및 관리 요청에 협조합니다.\n"
+                        "4. 기타 세부 사항은 센터의 내부 방침에 따릅니다.\n"
+                    ),
+                    is_active=True,
+                )
+                active_count = 1
+            if active_count > 1:
+                raise HttpError(400, "계약서 템플릿을 선택해주세요")
+            if template is None:
+                template = await active_qs.order_by("-created_at").afirst()
+        else:
+            # 지정된 템플릿 ID로 조회 + 소유 센터 일치 검증
+            try:
+                template = await AdoptionContractTemplate.objects.aget(id=provided_template_id, center=center)
+            except AdoptionContractTemplate.DoesNotExist:
+                raise HttpError(404, "계약서 템플릿을 찾을 수 없습니다")
+        
+        # 템플릿 센터 일치 검증 (선택: 템플릿이 해당 센터 소유인지)
+        # if template.center_id != center.id:
+        #     raise HttpError(403, "해당 센터의 템플릿이 아니에요.")
         
         # 계약서 내용 생성 (템플릿 + 커스텀 내용)
         contract_content = data.custom_content or template.content
         
         # 계약서 생성
+        # 동의서(Consent) 가져오기: 없으면 기본 동의서 자동 생성
+        consent = await AdoptionConsent.objects.filter(center=center, is_active=True).order_by("-created_at").afirst()
+        if consent is None:
+            consent = await AdoptionConsent.objects.acreate(
+                center=center,
+                title="기본 입양 동의서",
+                description="센터 기본 입양 동의서",
+                content=(
+                    "입양 유의사항\n\n"
+                    "- 반려동물의 건강, 안전에 유의해주세요.\n"
+                    "- 주소/연락처 변경 시 센터에 즉시 알려주세요.\n"
+                    "- 문제 발생 시 즉시 센터에 연락해주세요.\n"
+                ),
+                is_active=True,
+            )
+        consent_content = data.custom_content or template.content
+        guidelines_content = getattr(center, 'adoption_guidelines', '') or consent.content
+
         contract = await AdoptionContract.objects.acreate(
             adoption=adoption,
             template=template,
             contract_content=contract_content,
-            guidelines_content=getattr(center, 'adoption_guidelines', ''),
+            guidelines_content=guidelines_content,
             status="대기중"
         )
         
@@ -423,26 +478,10 @@ async def get_monitoring_status(request, adoption_id: str):
         except Adoption.DoesNotExist:
             raise HttpError(404, "입양 신청을 찾을 수 없습니다")
         
-        # 모니터링 상태 조회 (TODO: 실제 모니터링 상태 조회 로직 구현 필요)
-        # 현재는 기본 정보만 반환
+        # 모니터링 기간 정보만 반환
         monitoring_status = MonitoringStatusOut(
-            adoption_id=str(adoption.id),
-            status=adoption.status,
-            monitoring_status="진행중" if adoption.status == "모니터링" else None,
             monitoring_started_at=adoption.monitoring_started_at.isoformat() if adoption.monitoring_started_at else None,
-            monitoring_end_date=None,  # TODO: 모니터링 종료일 계산
-            next_check_date=adoption.monitoring_next_check_at.isoformat() if adoption.monitoring_next_check_at else None,
-            days_until_next_deadline=None,  # TODO: 다음 체크까지 남은 일수 계산
-            days_until_monitoring_end=None,  # TODO: 모니터링 종료까지 남은 일수 계산
-            completed_checks=0,  # TODO: 완료된 체크 수 계산
-            total_checks=0,  # TODO: 전체 체크 수 계산
-            total_monitoring_posts=0,  # TODO: 모니터링 포스트 수 계산
-            monitoring_progress={"percentage": 0, "description": "모니터링 진행률"},
-            center_config={
-                "monitoring_period_months": getattr(center, 'monitoring_period_months', 6),
-                "monitoring_interval_days": getattr(center, 'monitoring_interval_days', 30)
-            },
-            recent_checks=[]  # TODO: 최근 체크 히스토리 조회
+            monitoring_end_date=None,  # 종료일 계산/저장은 현재 정책상 미설정
         )
         
         return monitoring_status

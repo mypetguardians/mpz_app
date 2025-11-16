@@ -29,6 +29,7 @@ interface FormData {
     healthNotes: string;
     centerEntryDate: string;
     color: string;
+    imageUrls?: string[]; // 기존 업로드 이미지 URL들
   };
   detailInfo: {
     personality: {
@@ -74,6 +75,7 @@ const initialFormData: FormData = {
     healthNotes: "",
     centerEntryDate: "",
     color: "",
+    imageUrls: [],
   },
   detailInfo: {
     personality: {
@@ -133,7 +135,12 @@ export default function EditAnimal({
           breed: animalData.breed || "",
           age: animalData.age?.toString() || "",
           gender: animalData.is_female ? "암컷" : "수컷",
-          neutering: "", // 이 정보는 API 응답에 없으므로 기본값 설정
+          neutering:
+            typeof animalData.neutering === "boolean"
+              ? animalData.neutering
+                ? "했어요"
+                : "안했어요"
+              : "",
           weight: animalData.weight?.toString() || "",
           foundLocation: animalData.found_location || "",
           personality: animalData.personality || "",
@@ -141,6 +148,8 @@ export default function EditAnimal({
           healthNotes: animalData.health_notes || "",
           centerEntryDate: animalData.admission_date || "",
           color: animalData.color || "",
+          imageUrls:
+            animalData.animal_images?.map((img) => img.image_url) || [],
         },
         detailInfo: {
           personality: {

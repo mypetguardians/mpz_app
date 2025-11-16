@@ -4,7 +4,6 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 from .models import Animal, AnimalImage, AnimalMegaphone, AdoptionApplication
 
-@admin.register(Animal)
 class AnimalAdmin(admin.ModelAdmin):
     """동물 관리자"""
     
@@ -75,6 +74,12 @@ class AnimalImageInline(admin.TabularInline):
     image_url_preview.short_description = '미리보기'
 
 AnimalAdmin.inlines = [AnimalImageInline]
+
+# Animal 모델 등록(중복 등록 방지)
+try:
+    admin.site.register(Animal, AnimalAdmin)
+except admin.sites.AlreadyRegistered:
+    pass
 
 
 @admin.register(AdoptionApplication)

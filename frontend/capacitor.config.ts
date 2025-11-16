@@ -1,12 +1,13 @@
-import { CapacitorConfig } from '@capacitor/cli';
+import { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: 'com.mpz.app',
-  appName: 'MPZ App',
-  webDir: '.next',  // Next.js 빌드 디렉토리
+  appId: "com.mpz.app",
+  appName: "MPZ App",
+  webDir: ".next", // Next.js 빌드 디렉토리
+  // 배포 환경: 외부 호스트(mpz.kr)로 접속
   server: {
-    url: 'http://localhost:3000',  // 개발 서버 URL
-    cleartext: true
+    url: "https://mpz.kr",
+    cleartext: false,
   },
   plugins: {
     SplashScreen: {
@@ -18,8 +19,8 @@ const config: CapacitorConfig = {
       androidSpinnerStyle: "large",
       iosSpinnerStyle: "small",
       webSpinnerStyle: "horizontal",
-    }
-  }
+    },
+  },
 };
 
 export default config;

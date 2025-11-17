@@ -81,7 +81,7 @@ export function TopBar({
       </Comp>
 
       {/* 페이지 콘텐츠가 TopBar 아래로 시작하도록 패딩 추가 */}
-      <div className={`pt-[54px] mb-5`}>
+      <div className={`pt-[54px]`}>
         {/* 이 div는 부모 컴포넌트에서 TopBar 아래 콘텐츠를 감싸는 용도로 사용 */}
         {props.children}
       </div>

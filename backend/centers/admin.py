@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.db import models
+from django import forms
 from centers.models import Center, AdoptionContractTemplate, AdoptionConsent, QuestionForm, PresetQuestion, PresetContractTemplate, PresetConsent
 
 
@@ -139,13 +140,18 @@ class PresetConsentAdmin(admin.ModelAdmin):
             'fields': ('title', 'description', 'is_active')
         }),
         ('동의서 내용', {
-            'fields': ('content',)
+            'fields': ('content',),
+            'description': '각 항목 사이에 Enter를 눌러 줄바꿈을 넣을 수 있습니다.'
         }),
         ('시간 정보', {
             'fields': ('created_at', 'updated_at'),
             'classes': ('collapse',)
         }),
     )
+    
+    formfield_overrides = {
+        models.TextField: {'widget': forms.Textarea(attrs={'rows': 20, 'style': 'font-family: monospace; white-space: pre-wrap;'})},
+    }
 
 
 @admin.register(PresetQuestion)

@@ -9,11 +9,14 @@ const getComments = async (postId: string): Promise<GetCommentsResponse> => {
   return response.data;
 };
 
-export const useGetComments = (postId: string) => {
+export const useGetComments = (
+  postId: string,
+  options?: { enabled?: boolean }
+) => {
   return useQuery({
     queryKey: ["comments", postId],
     queryFn: () => getComments(postId),
-    enabled: !!postId,
+    enabled: options?.enabled !== undefined ? options.enabled : !!postId,
     staleTime: 3 * 60 * 1000, // 3분
     gcTime: 10 * 60 * 1000, // 10분
   });

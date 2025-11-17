@@ -15,6 +15,7 @@ class UserUpdateIn(Schema):
     nickname: Optional[str] = Field(None, max_length=50, description="닉네임 (1-50자)")
     name: Optional[str] = Field(None, max_length=100, description="실명")
     phone_number: Optional[str] = Field(None, max_length=20, description="전화번호")
+    is_phone_verified: Optional[bool] = Field(None, description="전화번호 인증 여부")
     image: Optional[str] = Field(None, max_length=500, description="프로필 이미지 URL")
     birth: Optional[str] = Field(None, max_length=10, description="생년월일 (YYYY-MM-DD)")
     address: Optional[str] = Field(None, description="주소")

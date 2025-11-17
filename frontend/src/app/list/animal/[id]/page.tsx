@@ -41,7 +41,7 @@ import { NotificationToast } from "@/components/ui/NotificationToast";
 import { CustomModal } from "@/components/ui/CustomModal";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { ImageCarouselModal } from "@/components/ui/ImageCarouselModal";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 interface AnimalDetailPageProps {
   params: Promise<{
@@ -53,6 +53,7 @@ export default function AnimalDetailPage({
   params,
 }: AnimalDetailPageProps): ReactElement {
   const router = useRouter();
+  const pathname = usePathname();
   const { id } = use(params);
   const { isAuthenticated, user } = useAuth();
   const { isLoaded, isInitialized } = useKakaoSDK();
@@ -401,6 +402,35 @@ export default function AnimalDetailPage({
     }
   }, [animal?.is_megaphoned, animal]);
 
+  // 이전 경로 추적 (adoption/verification 제외)
+  useEffect(() => {
+    if (typeof window !== "undefined" && pathname) {
+      // adoption/verification 경로가 아닌 경우에만 저장
+      if (!pathname.startsWith("/adoption/verification/")) {
+        sessionStorage.setItem("lastNonVerificationPath", pathname);
+      }
+    }
+  }, [pathname]);
+
+  // 뒤로가기 핸들러 (adoption/verification 제외)
+  const handleBack = () => {
+    if (typeof window !== "undefined") {
+      const lastPath = sessionStorage.getItem("lastNonVerificationPath");
+
+      // 저장된 경로가 있고, 현재 경로와 다르며, adoption/verification이 아니면 해당 경로로 이동
+      if (
+        lastPath &&
+        lastPath !== pathname &&
+        !lastPath.startsWith("/adoption/verification/")
+      ) {
+        router.push(lastPath);
+      } else {
+        // 저장된 경로가 없거나 adoption/verification인 경우 동물 목록으로 이동
+        router.push("/list/animal");
+      }
+    }
+  };
+
   // 거리 기반 관련 동물 데이터 가져오기
   const { data: relatedAnimalsData, isLoading: relatedAnimalsLoading } =
     useGetRelatedAnimalsByDistance(animal?.id);
@@ -442,7 +472,7 @@ export default function AnimalDetailPage({
             <IconButton
               icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
               size="iconM"
-              onClick={() => router.back()}
+              onClick={handleBack}
             />
           }
           center={<h4>자세히 보기</h4>}

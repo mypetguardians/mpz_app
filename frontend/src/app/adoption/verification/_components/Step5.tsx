@@ -52,25 +52,21 @@ export function Step5({ onNext }: StepProps) {
     }));
   };
 
-  // 모든 필수 질문이 답변되었는지 확인 (질문이 없으면 통과)
-  const isAllRequiredAnswered = React.useMemo(() => {
+  // 모든 질문이 답변되었는지 확인 (질문이 없으면 통과)
+  const isAllQuestionsAnswered = React.useMemo(() => {
     const questions = questionsData?.questions;
     if (!questions) return false; // 아직 로딩되지 않음
     if (questions.length === 0) return true; // 질문이 없으면 바로 진행 가능
 
-    const requiredQuestions = questions.filter(
-      (q: CenterProcedureQuestion) => q.is_required
-    );
-    if (requiredQuestions.length === 0) return true;
-
-    return requiredQuestions.every(
+    // 모든 질문에 답변이 입력되었는지 확인
+    return questions.every(
       (q: CenterProcedureQuestion) => (answers[q.id] || "").trim().length > 0
     );
   }, [questionsData, answers]);
 
   const handleNext = () => {
-    if (!isAllRequiredAnswered) {
-      showErrorToast("모든 필수 질문에 답변해주세요.");
+    if (!isAllQuestionsAnswered) {
+      showErrorToast("모든 질문에 답변해주세요.");
       return;
     }
     try {
@@ -163,7 +159,7 @@ export function Step5({ onNext }: StepProps) {
         variant="variant1"
         primaryButtonText="확인"
         onPrimaryButtonClick={handleNext}
-        primaryButtonDisabled={!isAllRequiredAnswered}
+        primaryButtonDisabled={!isAllQuestionsAnswered}
       />
 
       {showToast && (

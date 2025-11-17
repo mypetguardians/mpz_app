@@ -102,6 +102,7 @@ export default function VeriticationPage() {
       />
       <TopBar
         variant="variant6"
+        className="mt-4"
         left={
           currentStep > 1 && !isDirectAccess ? (
             <IconButton

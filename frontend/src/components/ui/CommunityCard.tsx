@@ -15,11 +15,17 @@ const FallbackImage = ({
   alt,
   className,
   fill,
+  priority = false,
+  loading = "lazy",
+  sizes,
 }: {
   src: string;
   alt: string;
   className?: string;
   fill?: boolean;
+  priority?: boolean;
+  loading?: "lazy" | "eager";
+  sizes?: string;
 }) => {
   const [hasError, setHasError] = useState(false);
 
@@ -33,13 +39,25 @@ const FallbackImage = ({
     );
   }
 
+  // sizes에서 작은 이미지인지 확인 (100px 이하)
+  const isSmallImage =
+    sizes && /^\d+px$/.test(sizes.trim()) && parseInt(sizes) <= 200;
+
   return (
     <Image
       src={src}
       alt={alt}
       className={className}
       {...(fill ? { fill: true } : {})}
-      unoptimized
+      priority={priority}
+      loading={loading}
+      sizes={
+        sizes || "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+      }
+      // 작은 이미지는 quality를 더 낮춰서 파일 크기 최적화
+      quality={isSmallImage ? 60 : priority ? 80 : 70}
+      placeholder="blur"
+      blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWEREiMxUf/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
       onError={() => setHasError(true)}
     />
   );
@@ -62,6 +80,7 @@ interface CommunityCardProps {
   currentUserId?: string;
   onEditPost?: (postId: string) => void;
   onDeletePost?: (postId: string) => void;
+  priority?: boolean; // 첫 화면에 보이는 이미지에 priority 적용
 }
 
 export function CommunityCard({
@@ -72,6 +91,7 @@ export function CommunityCard({
   //currentUserId,
   onEditPost,
   onDeletePost,
+  priority = false,
 }: CommunityCardProps) {
   const [isActionSheetOpen, setIsActionSheetOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -166,6 +186,9 @@ export function CommunityCard({
           // URL이 유효한지 확인
           if (!url || url.trim() === "") return null;
 
+          // 첫 번째 이미지만 priority 적용
+          const isPriority = priority && i === 0;
+
           return (
             <div
               key={i}
@@ -182,6 +205,9 @@ export function CommunityCard({
                 alt={`feed-img-${i}`}
                 className="object-cover"
                 fill
+                priority={isPriority}
+                loading={isPriority ? "eager" : "lazy"}
+                sizes={`${size}px`}
               />
             </div>
           );
@@ -200,6 +226,9 @@ export function CommunityCard({
               alt={title}
               className="object-cover"
               fill
+              priority={priority}
+              loading={priority ? "eager" : "lazy"}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 420px"
             />
           </div>
         )}
@@ -361,6 +390,9 @@ export function CommunityCard({
               alt={title}
               className="object-cover"
               fill
+              priority={priority}
+              loading="lazy"
+              sizes="112px"
             />
           </div>
         </div>

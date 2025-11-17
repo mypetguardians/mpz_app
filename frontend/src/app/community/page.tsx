@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 
 import { Banner } from "@/components/ui/Banner";
@@ -170,14 +170,59 @@ export default function CommunityPage() {
     return list ?? [];
   }, [postsData]);
 
+  // Lazy loading을 위한 Intersection Observer 훅
+  const useLazyLoad = (enabled: boolean = true) => {
+    const [isVisible, setIsVisible] = useState(!enabled);
+    const ref = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+      if (!enabled || isVisible) return;
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting) {
+            setIsVisible(true);
+            observer.disconnect();
+          }
+        },
+        {
+          rootMargin: "300px", // 뷰포트 300px 전에 미리 로드 (스크롤 경험 개선)
+          threshold: 0.01,
+        }
+      );
+
+      const currentRef = ref.current;
+      if (currentRef) {
+        observer.observe(currentRef);
+      }
+
+      return () => {
+        if (currentRef) {
+          observer.unobserve(currentRef);
+        }
+        observer.disconnect();
+      };
+    }, [enabled, isVisible]);
+
+    return { ref, isVisible };
+  };
+
   // 댓글 수를 포함한 CommunityCard 컴포넌트
   const CommunityCardWithComments = ({
     post,
+    priority = false,
+    index,
   }: {
     post: Post;
     index: number;
+    priority?: boolean;
   }) => {
-    const { data: commentsData } = useGetComments(post.id);
+    // 첫 3개 게시글은 즉시 로드, 나머지는 lazy load (초기 로딩 속도 개선)
+    const shouldLazyLoad = index >= 3;
+    const { ref, isVisible } = useLazyLoad(shouldLazyLoad);
+    const { data: commentsData } = useGetComments(post.id, {
+      enabled: !shouldLazyLoad || isVisible, // lazy load인 경우 visible일 때만 댓글 로드
+    });
 
     // 실제 댓글 수 계산 (메인 댓글 + 대댓글)
     const actualCommentCount = useMemo(() => {
@@ -198,8 +243,19 @@ export default function CommunityPage() {
       comment_count: actualCommentCount,
     };
 
+    // Lazy loading: 화면에 보이지 않으면 스켈레톤 표시
+    if (shouldLazyLoad && !isVisible) {
+      return (
+        <div key={post.id} ref={ref} className="pt-4">
+          <div className="animate-pulse">
+            <div className="h-32 bg-gray-200 rounded-lg"></div>
+          </div>
+        </div>
+      );
+    }
+
     return (
-      <div key={post.id}>
+      <div key={post.id} ref={ref}>
         <div className="pt-4">
           <a href={`/community/${post.id}`} className="block">
             <CommunityCard
@@ -217,6 +273,7 @@ export default function CommunityPage() {
               currentUserId={currentUserId}
               onEditPost={handleEditPost}
               onDeletePost={handleDeletePost}
+              priority={priority}
             />
           </a>
         </div>
@@ -460,12 +517,22 @@ export default function CommunityPage() {
           </div>
         ) : (
           <div className="cursor-pointer">
-            {filteredPosts.map((post, index) => (
-              <div key={`${post.id}-${index}`}>
-                <CommunityCardWithComments post={post} index={index} />
-                {(index + 1) % 3 === 0 && <Banner variant="sub" />}
-              </div>
-            ))}
+            {filteredPosts.map((post, index) => {
+              // 첫 3개 게시글의 이미지에 priority 적용 (첫 화면에 보이는 게시글)
+              // priority는 첫 번째 게시글의 첫 번째 이미지에만 적용하여 초기 로딩 최적화
+              const isPriority = index === 0;
+
+              return (
+                <div key={`${post.id}-${index}`}>
+                  <CommunityCardWithComments
+                    post={post}
+                    index={index}
+                    priority={isPriority}
+                  />
+                  {(index + 1) % 3 === 0 && <Banner variant="sub" />}
+                </div>
+              );
+            })}
           </div>
         )}
         <div className="h-20" />

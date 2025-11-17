@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 
 import { Container } from "@/components/common/Container";
 import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
@@ -164,9 +165,64 @@ export function Step6({ onNext }: StepProps) {
             router.push("/my/adoption");
           }, 2000);
         },
-        onError: (error) => {
+        onError: (error: unknown) => {
           console.error("입양 신청 실패:", error);
-          showErrorToast("입양 신청에 실패했습니다. 다시 시도해주세요.");
+
+          // 구체적인 에러 메시지 추출
+          let errorMessage = "입양 신청에 실패했습니다. 다시 시도해주세요.";
+
+          if (axios.isAxiosError(error)) {
+            const responseData = error.response?.data as
+              | { detail?: string; message?: string; error?: string }
+              | undefined;
+
+            // detail, message, error 순서로 확인
+            if (
+              typeof responseData?.detail === "string" &&
+              responseData.detail.trim()
+            ) {
+              errorMessage = responseData.detail.trim();
+            } else if (
+              typeof responseData?.message === "string" &&
+              responseData.message.trim()
+            ) {
+              errorMessage = responseData.message.trim();
+            } else if (
+              typeof responseData?.error === "string" &&
+              responseData.error.trim()
+            ) {
+              errorMessage = responseData.error.trim();
+            } else if (error.response?.status) {
+              // 상태 코드에 따른 기본 메시지
+              switch (error.response.status) {
+                case 400:
+                  errorMessage = "입력한 정보를 확인해주세요.";
+                  break;
+                case 401:
+                  errorMessage = "로그인이 필요합니다.";
+                  break;
+                case 403:
+                  errorMessage = "입양 신청 권한이 없습니다.";
+                  break;
+                case 404:
+                  errorMessage = "해당 동물 정보를 찾을 수 없습니다.";
+                  break;
+                case 409:
+                  errorMessage = "이미 입양 신청이 진행 중입니다.";
+                  break;
+                case 500:
+                  errorMessage =
+                    "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+                  break;
+                default:
+                  errorMessage = `입양 신청에 실패했습니다. (오류 코드: ${error.response.status})`;
+              }
+            }
+          } else if (error instanceof Error) {
+            errorMessage = error.message || errorMessage;
+          }
+
+          showErrorToast(errorMessage);
         },
       });
     } catch (error) {

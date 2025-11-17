@@ -9,6 +9,7 @@ import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
 import { NotificationToast } from "@/components/ui/NotificationToast";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useAdoptionVerificationStore } from "@/lib/stores";
+import { useUpdateProfile } from "@/hooks/mutation/useUpdateProfile";
 
 export interface StepProps {
   onNext: () => void;
@@ -46,12 +47,13 @@ export function Step1({ onNext }: StepProps) {
     "error"
   );
 
-  const { user } = useAuth();
+  const { user, updateUser, setUserFromToken } = useAuth();
   const {
     data: storeData,
     updateField,
     setStepData,
   } = useAdoptionVerificationStore(user?.id);
+  const updateProfileMutation = useUpdateProfile();
 
   React.useEffect(() => {
     if (storeData?.phone) {
@@ -153,6 +155,32 @@ export function Step1({ onNext }: StepProps) {
         sessionStorage.setItem("verification.phone", phone); // 포맷된 번호 유지
         updateField("phone", phone);
         updateField("isPhoneVerified", true);
+
+        // 서버에 핸드폰 번호 업데이트
+        if (user) {
+          try {
+            await updateProfileMutation.mutateAsync({
+              phone_number: phoneDigits,
+              is_phone_verified: true,
+            });
+
+            // AuthProvider의 사용자 정보도 업데이트
+            updateUser({
+              phoneNumber: phone,
+            });
+
+            // 서버에서 최신 사용자 정보를 다시 가져오기
+            try {
+              await setUserFromToken();
+            } catch (error) {
+              console.error("사용자 정보 새로고침 실패:", error);
+            }
+          } catch (error) {
+            console.error("프로필 업데이트 실패:", error);
+            // 프로필 업데이트 실패해도 인증은 완료된 것으로 처리
+          }
+        }
+
         onNext();
       } else {
         showErrorToast("인증번호가 올바르지 않습니다. 다시 확인해주세요.");

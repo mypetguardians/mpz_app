@@ -5,6 +5,7 @@ interface UpdateProfileRequest {
   name?: string;
   nickname?: string;
   phone_number?: string;
+  is_phone_verified?: boolean;
   birth?: string;
   address?: string;
   address_is_public?: boolean;

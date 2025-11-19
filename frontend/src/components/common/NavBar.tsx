@@ -97,7 +97,6 @@ function NavBar() {
       className="fixed bottom-0 left-0 z-50 w-full bg-transparent pb-safe"
       style={{
         pointerEvents: "auto",
-        paddingBottom: "env(safe-area-inset-bottom, 0px)",
       }}
     >
       <Container className="border-t bg-wh border-lg rounded-t-xl">

@@ -111,7 +111,7 @@ export default function RootLayout({
               <SocketProvider>
                 <KakaoMapScript />
                 <DaumPostcodeScript />
-                {children}
+                <div className="pt-6">{children}</div>
               </SocketProvider>
             </KakaoProvider>
           </AuthProvider>

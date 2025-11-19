@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const topbarVariants = cva(
-  "fixed left-1/2 -translate-x-1/2 top-8 z-50 w-full max-w-[420px] h-[54px] px-4",
+  "fixed left-1/2 -translate-x-1/2 top-5 z-50 w-full max-w-[420px] h-[54px] px-4 bg-wh",
   {
     variants: {
       variant: {
@@ -61,6 +61,11 @@ export function TopBar({
 
   return (
     <>
+      {/* top-5로 내려간 만큼 상단 영역을 흰색으로 덮어 자연스럽게 보이도록 처리 */}
+      <div
+        aria-hidden
+        className="fixed left-1/2 -translate-x-1/2 top-0 z-[45] w-full max-w-[420px] h-5 bg-white"
+      />
       {/* TopBar 자체 */}
       <Comp className={outerClassName} {...props}>
         <nav className={innerClassName}>

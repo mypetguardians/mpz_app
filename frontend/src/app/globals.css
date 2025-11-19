@@ -99,11 +99,6 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-  /* Safe area insets - iOS는 env() 사용, Android는 fallback 값 사용 */
-  --safe-area-inset-top: env(safe-area-inset-top, 44px);
-  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
-  /* 안드로이드 WebView 호환성을 위한 직접 값 */
-  --android-status-bar-height: 44px;
 }
 
 * {
@@ -112,19 +107,15 @@
 }
 
 html {
-  /* 안드로이드/iOS 상단 여백 (상태바 영역) */
-  padding-top: env(safe-area-inset-top, 44px);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
-  /* 안드로이드/iOS 상단 여백 (상태바 영역) */
-  padding-top: env(safe-area-inset-top, 44px);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+
   min-height: 100vh;
   box-sizing: border-box;
+  margin-top: 20px;
 }
 
 /* 안드로이드 WebView 호환성: env() 미지원 시 직접 값 사용 */

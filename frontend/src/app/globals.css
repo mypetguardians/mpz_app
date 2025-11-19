@@ -131,19 +131,6 @@ body {
   }
 }
 
-/* 모바일 환경에서 추가 보장 */
-@media (max-width: 768px) {
-  html {
-    padding-top: max(env(safe-area-inset-top, 44px), 44px);
-    padding-bottom: max(env(safe-area-inset-bottom, 0px), 0px);
-  }
-
-  body {
-    padding-top: max(env(safe-area-inset-top, 44px), 44px);
-    padding-bottom: max(env(safe-area-inset-bottom, 0px), 0px);
-  }
-}
-
 html,
 body {
   font-family: "Pretendard", "Inter", "system-ui", "sans-serif";

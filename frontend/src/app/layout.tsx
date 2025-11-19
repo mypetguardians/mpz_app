@@ -15,6 +15,7 @@ export const viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
     { media: "(prefers-color-scheme: dark)", color: "#000000" },
@@ -58,7 +59,7 @@ export const metadata: Metadata = {
       "전국 유기동물 보호센터 정보와 입양 절차를 한눈에 확인하기! 반려동물 입양 플랫폼",
     images: [
       {
-        url: "/og-image.jpg",
+        url: "/op-image.svg",
         width: 1200,
         height: 630,
         alt: "마펫쯔 - 반려동물 입양 플랫폼",
@@ -92,8 +93,7 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: "/favicon.ico",
-    shortcut: "/favicon-16x16.png",
-    apple: "/apple-touch-icon.png",
+    shortcut: "/favicon.ico",
   },
 };
 

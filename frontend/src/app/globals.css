@@ -112,7 +112,6 @@
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
-  /* 안드로이드/iOS 상단 여백 (상태바 영역) */
   padding-top: var(--safe-area-inset-top);
 }
 

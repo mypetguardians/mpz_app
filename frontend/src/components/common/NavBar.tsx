@@ -19,13 +19,13 @@ export function NavbarBtn({
   onClick,
 }: NavbarBtnProps) {
   const iconWithColor = React.cloneElement(icon, {
-    className: cn("w-5 h-5 transition-colors", active ? "text-dg" : "text-lg"),
+    className: cn("w-4 h-4 transition-colors", active ? "text-dg" : "text-lg"),
   });
 
   return (
     <div
       className={cn(
-        "flex flex-col gap-0.5 items-center justify-center w-full h-14 cursor-pointer",
+        "flex flex-col gap-0.5 items-center justify-center w-full h-20 cursor-pointer pb-4",
         active ? "text-dg" : "text-lg"
       )}
       onClick={onClick}
@@ -78,7 +78,6 @@ function NavBar() {
         break;
       case "list":
         url = "/list/animal";
-    /*     if (isCenter) url = "/list/center"; */
         break;
       case "commmunity":
         url = "/community";
@@ -96,9 +95,9 @@ function NavBar() {
   return (
     <nav
       className="fixed bottom-0 left-0 z-50 w-full bg-transparent pb-safe"
-      style={{ 
+      style={{
         pointerEvents: "auto",
-        paddingBottom: "env(safe-area-inset-bottom, 0px)"
+        paddingBottom: "env(safe-area-inset-bottom, 0px)",
       }}
     >
       <Container className="border-t bg-wh border-lg rounded-t-xl">

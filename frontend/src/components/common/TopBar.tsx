@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const topbarVariants = cva(
-  "fixed left-1/2 -translate-x-1/2 top-0 z-50 w-full max-w-[420px] h-[54px] px-4",
+  "fixed left-1/2 -translate-x-1/2 top-10 z-50 w-full max-w-[420px] h-[54px] px-4",
   {
     variants: {
       variant: {

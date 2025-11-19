@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: "MPZ App",
   webDir: ".next",
   server: {
-    url: "https://localhost:3000",
+    url: "https://mpz.kr",
     cleartext: false,
   },
   plugins: {

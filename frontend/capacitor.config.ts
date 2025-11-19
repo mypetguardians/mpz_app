@@ -3,8 +3,7 @@ import { CapacitorConfig } from "@capacitor/cli";
 const config: CapacitorConfig = {
   appId: "com.mpz.app",
   appName: "MPZ App",
-  webDir: ".next", // Next.js 빌드 디렉토리
-  // 배포 환경: 외부 호스트(mpz.kr)로 접속
+  webDir: ".next",
   server: {
     url: "https://mpz.kr",
     cleartext: false,

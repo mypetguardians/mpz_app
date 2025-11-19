@@ -61,14 +61,16 @@ export const useGetCenters = (
       return undefined;
     },
     initialPageParam: 1,
-    staleTime: 3 * 60 * 1000, // 3분
-    gcTime: 10 * 60 * 1000, // 10분
+    staleTime: 5 * 60 * 1000, // 5분
+    gcTime: 30 * 60 * 1000, // 30분
     retry: 1,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    placeholderData: (previousData) => previousData,
   });
 };
 
-// 기존 호환성을 위한 레거시 훅 (사용하지 않는 것을 권장)
 export const useGetCentersLegacy = () => {
   return useQuery({
     queryKey: ["centers-legacy"],
@@ -76,10 +78,13 @@ export const useGetCentersLegacy = () => {
       const response = await instance.get("/centers");
       return response.data;
     },
-    staleTime: 3 * 60 * 1000, // 3분
-    gcTime: 10 * 60 * 1000, // 10분
+    staleTime: 5 * 60 * 1000, // 5분
+    gcTime: 30 * 60 * 1000, // 30분
     retry: 1,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    placeholderData: (previousData) => previousData,
     enabled: true,
   });
 };
@@ -98,9 +103,12 @@ export const useGetCenterById = (centerId?: string) => {
       return transformRawCenterToCenter(rawData);
     },
     staleTime: 5 * 60 * 1000, // 5분
-    gcTime: 10 * 60 * 1000, // 10분
+    gcTime: 30 * 60 * 1000, // 30분
     retry: 1,
     refetchOnWindowFocus: false,
-    enabled: !!centerId, // centerId가 있을 때만 실행
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    placeholderData: (previousData) => previousData,
+    enabled: !!centerId,
   });
 };

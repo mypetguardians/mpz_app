@@ -66,6 +66,20 @@ export function CenterDetailHeader({
 
   // 뒤로가기 핸들러
   const handleBackClick = () => {
+    if (typeof window === "undefined") {
+      router.back();
+      return;
+    }
+
+    const storedParams = sessionStorage.getItem("centerListSearchParams");
+    const fallbackPath = "/list/center";
+
+    // 이전 히스토리가 리스트 페이지가 아니면 저장된 검색 파라미터 기반으로 이동
+    if (storedParams !== null) {
+      router.push(`${fallbackPath}${storedParams}`);
+      return;
+    }
+
     router.back();
   };
 

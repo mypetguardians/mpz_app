@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   ImageCard,
   BottomSheet,
@@ -9,155 +9,11 @@ import {
   CustomModal,
   AddButton,
 } from "@/components/ui";
+import { pickImages } from "@/lib/image-picker";
 
-// 고정 품종 목록
-const breedList = [
-  "골든 리트리버",
-  "그레이트 덴",
-  "그레이하운드",
-  "꼬똥 드 툴레아",
-  "네오폴리탄 마스티프",
-  "노르위전 엘크하운드",
-  "노리치 테리어",
-  "노바 스코샤 덕 톨링 리트리버",
-  "노퍽 테리어",
-  "뉴펀들랜드",
-  "닥스훈트",
-  "달마시안",
-  "댄디 딘몬트 테리어",
-  "도고 아르헨티노",
-  "도베르만",
-  "도사",
-  "디어하운드",
-  "라사 압소",
-  "라지 먼스터랜더",
-  "래브라도 리트리버",
-  "러프 콜리",
-  "레온베르거",
-  "레이크랜드 테리어",
-  "로디지안 리즈백",
-  "로트와일러",
-  "리틀 라이언 독",
-  "마스티프",
-  "말티즈",
-  "맨체스터 테리어",
-  "미니어쳐 불 테리어",
-  "미니어쳐 핀셔",
-  "믹스",
-  "바센지",
-  "바셋 하운드",
-  "바이마라너",
-  "버니즈 마운틴 독",
-  "베들링턴 테리어",
-  "벨지안 셰퍼드",
-  "보더 콜리",
-  "보르조이",
-  "보스턴 테리어",
-  "복서",
-  "부비에 데 플랑드르",
-  "불 테리어",
-  "불독",
-  "불마스티프",
-  "브뤼셀 그리폰",
-  "브리타니 스파니엘",
-  "블랙 앤 탄 쿤 하운드",
-  "블러드하운드",
-  "비글",
-  "비숑 프리제",
-  "비어디드 콜리",
-  "비즐라",
-  "빠삐용",
-  "쁘띠 바셋 그리폰 벤딘",
-  "사모예드",
-  "살루키",
-  "샤페이",
-  "세인트 버나드",
-  "센트럴 아시아 셰퍼드독",
-  "셔틀랜드 쉽독",
-  "셰퍼드",
-  "슈나우저",
-  "스무스 콜리",
-  "스무스 폭스 테리어",
-  "스카이 테리어",
-  "스코티쉬 테리어",
-  "스탠다드 푸들",
-  "스피츠",
-  "시바",
-  "시베리안 허스키",
-  "시츄",
-  "시코쿠",
-  "실리햄 테리어",
-  "아메리칸 스태포드셔 테리어",
-  "아메리칸 아키타",
-  "아이리쉬 레드 세터",
-  "아이리쉬 레드 앤 화이트 세터",
-  "아이리쉬 울프하운드",
-  "아이리쉬 워터 스파니엘",
-  "아이리쉬소프트 코티드 휘튼 테리어",
-  "아자와크",
-  "아키타",
-  "아펜핀셔",
-  "아프간 하운드",
-  "알라스칸 말라뮤트",
-  "에어데일 테리어",
-  "오스트레일리언 셰퍼드",
-  "오스트레일리언 캐틀 독",
-  "올드 잉글리쉬 쉽독",
-  "와이어 폭스 테리어",
-  "요크셔 테리어",
-  "웨스트 시베리안 라이카",
-  "웨스티(웨스트 하일랜드 화이트 테리어)",
-  "웰시 테리어",
-  "웰시코기",
-  "이스트 시베리안 라이카",
-  "이탈리언 그레이하운드",
-  "잉글리쉬 세터",
-  "잉글리쉬 스프링거 스파니엘",
-  "잉글리쉬 포인터",
-  "자이언트 슈나우저",
-  "잭 러셀 테리어",
-  "저먼 숏 헤어드 포인팅 독",
-  "저먼 와이어 헤어드 포인팅 독",
-  "저먼 헌팅 테리어",
-  "제패니즈 친",
-  "진돗개",
-  "차우차우",
-  "차이니즈 크레스티드 독",
-  "체코슬로바키안 울프독",
-  "치와와",
-  "캐벌리어 킹 찰스 스파니엘",
-  "케리 블루 테리어",
-  "케언 테리어",
-  "케인 코르소 이탈리아노",
-  "코몬도르",
-  "코카스파니엘",
-  "코카시안 셰퍼드독",
-  "키슈",
-  "키스혼드",
-  "킹 찰스 스파니엘",
-  "타이 리지백 독",
-  "타이완 독",
-  "티베탄 마스티프",
-  "티베탄 테리어",
-  "파라오 하운드",
-  "파슨 러셀 테리어",
-  "퍼그",
-  "페키니즈",
-  "포르투기즈 워터 독",
-  "포메라니언",
-  "푸들",
-  "풀리",
-  "프레사 까나리오",
-  "프렌치 불독",
-  "플랫 코티드 리트리버",
-  "피레니언 마운틴 독",
-  "필라 브라질레이로",
-  "해리어",
-  "호카이도",
-  "휘핏",
-];
 import { openKakaoAddress } from "@/lib/openKakaoAddress";
 import { NotificationToast } from "@/components/ui/NotificationToast";
+import { breedList } from "@/data/breedList";
 
 interface BasicInfoData {
   name: string;
@@ -192,7 +48,6 @@ export default function BasicInfo({
   const [isBreedSheetOpen, setIsBreedSheetOpen] = useState(false);
   const [breedSearchTerm, setBreedSearchTerm] = useState("");
   const [tempSelectedBreed, setTempSelectedBreed] = useState("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [extraFeatures, setExtraFeatures] = useState<string[]>([]);
   // 업로드된 이미지 URL 관리는 제출 시 상위에서 처리
   const [isFoundLocationDialogOpen, setIsFoundLocationDialogOpen] =
@@ -261,42 +116,36 @@ export default function BasicInfo({
     setBreedSearchTerm("");
   };
 
-  const handleAddImage = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
+  const handleAddImage = async () => {
+    try {
+      const remainingSlots = 5 - images.length;
 
-  const handleImageSelect = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const files = event.target.files;
-    if (files && files.length > 0) {
-      const newImages = Array.from(files);
-      const totalImages = images.length + newImages.length;
+      if (remainingSlots <= 0) {
+        showToastMessage("최대 5장까지만 업로드할 수 있습니다.", "error");
+        return;
+      }
 
-      let imagesToUpload: File[] = [];
+      const files = await pickImages({
+        multiple: true,
+        maxCount: remainingSlots,
+      });
 
-      if (totalImages <= 5) {
-        imagesToUpload = newImages;
-        onImagesChange([...images, ...newImages]);
-      } else {
-        const remainingSlots = 5 - images.length;
-        if (remainingSlots > 0) {
-          imagesToUpload = newImages.slice(0, remainingSlots);
-          onImagesChange([...images, ...imagesToUpload]);
+      if (files.length > 0) {
+        const totalImages = images.length + files.length;
+
+        if (totalImages <= 5) {
+          onImagesChange([...images, ...files]);
+        } else {
+          const filesToAdd = files.slice(0, remainingSlots);
+          onImagesChange([...images, ...filesToAdd]);
           showToastMessage(
             `최대 5장까지만 업로드할 수 있습니다. ${remainingSlots}장만 추가되었습니다.`,
             "error"
           );
-        } else {
-          showToastMessage("최대 5장까지만 업로드할 수 있습니다.", "error");
-          return;
         }
       }
-
-      // 업로드는 제출 시 상위 컴포넌트에서 처리
-      // 이 곳에서는 선택한 파일만 상태로 반영
+    } catch (error) {
+      console.error("이미지 선택 실패:", error);
     }
   };
 
@@ -357,16 +206,6 @@ export default function BasicInfo({
     <>
       <div className="flex flex-col w-full gap-4 px-4 pb-4">
         <h4 className="text-left">기본 정보</h4>
-
-        {/* 숨겨진 파일 입력 */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          accept="image/jpeg,image/jpg,image/png,image/webp,image/gif,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.gif,.heic,.heif"
-          onChange={handleImageSelect}
-          className="hidden"
-        />
 
         {/* 이미지 업로드 영역 - 최대 5장, 가로 스크롤 */}
         <div className="flex gap-3 px-3 py-3 -mx-3 overflow-x-auto scrollbar-hide">

@@ -1,7 +1,6 @@
 import React from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "../providers/AuthProvider";
-import { Container } from "./Container";
 import { HouseSimple, Dog, Chats, Heart, User } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
@@ -94,12 +93,12 @@ function NavBar() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 z-50 w-full bg-transparent pb-safe"
+      className="fixed bottom-0 left-0 right-0 z-50 w-full bg-transparent"
       style={{
         pointerEvents: "auto",
       }}
     >
-      <Container className="border-t bg-wh border-lg rounded-t-xl">
+      <div className="max-w-[420px] mx-auto w-full bg-wh border-t border-lg rounded-t-xl">
         <div className="flex justify-between px-2">
           <NavbarBtn
             icon={<HouseSimple weight="bold" />}
@@ -132,7 +131,7 @@ function NavBar() {
             onClick={() => handleTabClick("my")}
           />
         </div>
-      </Container>
+      </div>
     </nav>
   );
 }

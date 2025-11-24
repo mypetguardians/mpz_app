@@ -106,9 +106,6 @@
   outline-color: hsl(var(--ring) / 0.5);
 }
 
-html {
-}
-
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
@@ -119,7 +116,7 @@ body {
 }
 
 /* 안드로이드 WebView 호환성: env() 미지원 시 직접 값 사용 */
-@supports not (padding-top: env(safe-area-inset-top)) {
+/* @supports not (padding-top: env(safe-area-inset-top)) {
   html {
     padding-top: 44px;
     padding-bottom: 0px;
@@ -129,7 +126,7 @@ body {
     padding-top: 44px;
     padding-bottom: 0px;
   }
-}
+} */
 
 html,
 body {

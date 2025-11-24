@@ -73,22 +73,23 @@ export function FixedBottomBar({
   ...props
 }: FixedBottomBarProps) {
   const paddingClasses = {
-    sm: "px-4 py-3",
-    md: "px-6 py-4",
-    lg: "px-8 py-6",
+    sm: { x: "px-4", y: "pt-3", bottom: "pb-3" },
+    md: { x: "px-6", y: "pt-4", bottom: "pb-4" },
+    lg: { x: "px-8", y: "pt-6", bottom: "pb-6" },
   };
 
   return (
     <Container
       className={cn(
         "fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200",
-        paddingClasses[padding],
-        showSafeArea && "pb-safe",
+        paddingClasses[padding].x,
+        paddingClasses[padding].y,
+        showSafeArea && paddingClasses[padding].bottom,
         className
       )}
       {...props}
     >
-      {children && <div className="mb-4">{children}</div>}
+      {children && <div className="my-4">{children}</div>}
 
       {variant === "variant1" ? (
         <div className="flex items-center gap-3">

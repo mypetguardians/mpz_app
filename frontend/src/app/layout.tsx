@@ -6,6 +6,7 @@ import { KakaoProvider } from "@/components/providers/KakaoProvider";
 import { SocketProvider } from "@/components/providers/SocketProvider";
 import KakaoMapScript from "@/components/common/KakaoMapScript";
 import DaumPostcodeScript from "@/components/common/DaumPostcodeScript";
+import { AppUrlHandler } from "@/components/common/AppUrlHandler";
 import "./globals.css";
 
 // 시스템 폰트 사용
@@ -92,8 +93,8 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
+    icon: "/img/op-image.svg",
+    shortcut: "/img/op-image.svg",
   },
 };
 
@@ -109,6 +110,7 @@ export default function RootLayout({
           <AuthProvider>
             <KakaoProvider>
               <SocketProvider>
+                <AppUrlHandler />
                 <KakaoMapScript />
                 <DaumPostcodeScript />
                 <div className="pt-6">{children}</div>

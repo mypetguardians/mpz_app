@@ -222,6 +222,8 @@ export const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(
           ref={canvasRef}
           className="absolute inset-0"
           aria-label="서명 입력 영역"
+          width={400}
+          height={100}
         />
         {isEmpty && (
           <div className="absolute inset-0 flex items-center justify-center text-gr text-sm pointer-events-none select-none">

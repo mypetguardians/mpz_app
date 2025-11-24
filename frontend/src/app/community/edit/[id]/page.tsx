@@ -27,6 +27,7 @@ import {
 import { useGetSystemTags } from "@/hooks";
 import type { PetCardAnimal, RawAnimalResponse } from "@/types/animal";
 import type { UserAdoptionOut } from "@/types/adoption";
+import { pickImages } from "@/lib/image-picker";
 
 // PetCardAnimal을 확장한 타입 (adoptionId 포함)
 type ExtendedPetCardAnimal = PetCardAnimal & { adoptionId?: string };
@@ -289,60 +290,56 @@ export default function CommunityEditPage({
   const isFetchingNextPage = false;
   const fetchNextPage = () => {};
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files) {
-      const allowedFormats = [
-        "image/jpeg",
-        "image/jpg",
-        "image/png",
-        "image/webp",
-        "image/gif",
-      ];
-      const maxSize = 10 * 1024 * 1024; // 10MB
+  const handleImageUpload = async (files: File[]) => {
+    if (files.length === 0) return;
 
-      // 현재 총 이미지 개수(기존 + 새 이미지)
-      const currentCount = existingImageUrls.length + newImageUrls.length;
-      const remainingSlots = 5 - currentCount;
-      if (remainingSlots <= 0) {
-        alert("이미지는 최대 5개까지 업로드할 수 있습니다.");
-        event.target.value = "";
-        return;
-      }
+    const allowedFormats = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+    ];
+    const maxSize = 10 * 1024 * 1024; // 10MB
 
-      const allSelected = Array.from(files);
-      if (allSelected.length > remainingSlots) {
-        alert(
-          `이미지는 최대 5개까지 선택할 수 있습니다. 남은 슬롯이 ${remainingSlots}개뿐이므로 ${remainingSlots}개만 선택됩니다.`
-        );
-      }
-
-      const selectedLimited = allSelected.slice(0, remainingSlots);
-
-      const newFiles = selectedLimited.filter((file) => {
-        // 포맷 체크
-        if (!allowedFormats.includes(file.type)) {
-          alert(
-            `${file.name}은(는) 지원하지 않는 형식입니다. (JPG, PNG, WEBP, GIF만 가능)`
-          );
-          return false;
-        }
-        // 파일 크기 체크
-        if (file.size > maxSize) {
-          alert(`${file.name}의 크기가 너무 큽니다. (최대 10MB)`);
-          return false;
-        }
-        return true;
-      });
-
-      if (newFiles.length > 0) {
-        const newUrls = newFiles.map((file) => URL.createObjectURL(file));
-        setUploadedFiles((prev) => [...prev, ...newFiles]);
-        setNewImageUrls((prev) => [...prev, ...newUrls]);
-      }
+    // 현재 총 이미지 개수(기존 + 새 이미지)
+    const currentCount = existingImageUrls.length + newImageUrls.length;
+    const remainingSlots = 5 - currentCount;
+    if (remainingSlots <= 0) {
+      alert("이미지는 최대 5개까지 업로드할 수 있습니다.");
+      return;
     }
-    // input 값 초기화 (같은 파일 다시 선택 가능하도록)
-    event.target.value = "";
+
+    const allSelected = files;
+    if (allSelected.length > remainingSlots) {
+      alert(
+        `이미지는 최대 5개까지 선택할 수 있습니다. 남은 슬롯이 ${remainingSlots}개뿐이므로 ${remainingSlots}개만 선택됩니다.`
+      );
+    }
+
+    const selectedLimited = allSelected.slice(0, remainingSlots);
+
+    const newFiles = selectedLimited.filter((file) => {
+      // 포맷 체크
+      if (!allowedFormats.includes(file.type)) {
+        alert(
+          `${file.name}은(는) 지원하지 않는 형식입니다. (JPG, PNG, WEBP, GIF만 가능)`
+        );
+        return false;
+      }
+      // 파일 크기 체크
+      if (file.size > maxSize) {
+        alert(`${file.name}의 크기가 너무 큽니다. (최대 10MB)`);
+        return false;
+      }
+      return true;
+    });
+
+    if (newFiles.length > 0) {
+      const newUrls = newFiles.map((file) => URL.createObjectURL(file));
+      setUploadedFiles((prev) => [...prev, ...newFiles]);
+      setNewImageUrls((prev) => [...prev, ...newUrls]);
+    }
   };
 
   const removeExistingImage = (index: number) => {
@@ -650,20 +647,33 @@ export default function CommunityEditPage({
           <div className="flex gap-3 flex-wrap">
             {/* 업로드 버튼 - 총 5개 미만일 때만 표시 */}
             {existingImageUrls.length + newImageUrls.length < 5 && (
-              <label>
-                <ImageCard
-                  variant="add"
-                  onClick={() => {}}
-                  className="w-20 h-20"
-                />
-                <input
-                  type="file"
-                  multiple
-                  accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                />
-              </label>
+              <ImageCard
+                variant="add"
+                onClick={async () => {
+                  try {
+                    const currentCount =
+                      existingImageUrls.length + newImageUrls.length;
+                    const remainingSlots = 5 - currentCount;
+
+                    if (remainingSlots <= 0) {
+                      alert("이미지는 최대 5개까지 업로드할 수 있습니다.");
+                      return;
+                    }
+
+                    const files = await pickImages({
+                      multiple: true,
+                      maxCount: remainingSlots,
+                    });
+
+                    if (files.length > 0) {
+                      handleImageUpload(files);
+                    }
+                  } catch (error) {
+                    console.error("이미지 선택 실패:", error);
+                  }
+                }}
+                className="w-20 h-20"
+              />
             )}
 
             {/* 기존 이미지들 */}

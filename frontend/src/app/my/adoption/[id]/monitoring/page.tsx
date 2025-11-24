@@ -10,16 +10,12 @@ import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
 import { DotProgressBar } from "@/components/ui/DotProgressBar";
-import { InfoCard } from "@/components/ui/InfoCard";
 import { CenterInfo } from "@/components/ui/CenterInfo";
 import { PetCard } from "@/components/ui/PetCard";
 import { BigButton } from "@/components/ui/BigButton";
 import { SectionLine } from "../../_components/SectionLine";
-import {
-  calculateRemainingMonitoringPeriod,
-  calculateRemainingMonitoringChecks,
-  calculateDaysUntilNextMonitoring,
-} from "@/lib/utils";
+import { calculateRemainingMonitoringPeriod } from "@/lib/utils";
+import { useGetCenterById } from "@/hooks/query/useGetCenters";
 
 export default function AdoptionMonitoringPage({
   params,
@@ -37,6 +33,9 @@ export default function AdoptionMonitoringPage({
   } = useGetUserAdoptionDetail({
     adoptionId: id,
   });
+  const centerId = adoptionDetail?.adoption?.center_id;
+  const { data: center, isLoading: isCenterLoading } =
+    useGetCenterById(centerId);
 
   const handleBack = () => {
     router.push("/my/adoption");
@@ -91,6 +90,35 @@ export default function AdoptionMonitoringPage({
   }
 
   const { adoption } = adoptionDetail;
+  const calculateDerivedMonitoringEndDate = () => {
+    if (adoption.monitoring_end_date) {
+      return adoption.monitoring_end_date;
+    }
+    if (!adoption.monitoring_started_at || !center?.monitoringPeriodMonths) {
+      return null;
+    }
+    const startDate = new Date(adoption.monitoring_started_at);
+    const derivedEndDate = new Date(startDate);
+    derivedEndDate.setMonth(
+      derivedEndDate.getMonth() + center.monitoringPeriodMonths
+    );
+    return derivedEndDate.toISOString();
+  };
+
+  const remainingMonitoringPeriod = (() => {
+    const endDate = calculateDerivedMonitoringEndDate();
+    if (!endDate) {
+      return "정보 없음";
+    }
+    return calculateRemainingMonitoringPeriod(endDate);
+  })();
+
+  const centerLocation =
+    center?.location || adoption.center_location || "위치 정보 없음";
+  const centerPhone = isCenterLoading
+    ? "로딩 중..."
+    : center?.phoneNumber || center?.centerNumber || "전화번호 정보 없음";
+  const centerImage = center?.imageUrl ?? adoption.center_image_url;
 
   return (
     <div className="min-h-screen bg-bg">
@@ -122,32 +150,11 @@ export default function AdoptionMonitoringPage({
 
             {/* Progress Bar */}
             <DotProgressBar currentStep={5} className="mb-6" />
-
-            {/* Info Card */}
-            <InfoCard className="mb-6">
-              {adoption.monitoring_next_check_at
-                ? `${calculateDaysUntilNextMonitoring(
-                    adoption.monitoring_next_check_at
-                  )}일 후`
-                : "곧"}{" "}
-              모니터링 기간이 돌아와요, 앞으로{" "}
-              {calculateRemainingMonitoringChecks(
-                adoption.monitoring_total_checks || 0,
-                adoption.monitoring_completed_checks || 0
-              )}
-              회 남았어요.
-            </InfoCard>
             <div className="mb-6">
               <h3 className="text-bk mb-1">모니터링 현황</h3>
               <div className="flex items-center gap-2">
                 <h6 className="text-gr">
-                  남은 기간{" "}
-                  {adoption.monitoring_end_date
-                    ? calculateRemainingMonitoringPeriod(
-                        adoption.monitoring_end_date
-                      )
-                    : "정보 없음"}{" "}
-                  남았어요
+                  남은 기간 : {remainingMonitoringPeriod} 남았어요
                 </h6>
               </div>
             </div>
@@ -157,9 +164,9 @@ export default function AdoptionMonitoringPage({
                 variant="primary"
                 centerId={adoption.center_id}
                 name={adoption.center_name}
-                location={adoption.center_location || "위치 정보 없음"}
-                phoneNumber="000-000-0000"
-                imageUrl={adoption.center_image_url}
+                location={centerLocation}
+                phoneNumber={centerPhone}
+                imageUrl={centerImage}
                 className="mb-6"
               />
             </SectionLine>

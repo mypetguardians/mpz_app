@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Bell } from "@phosphor-icons/react";
 
@@ -13,10 +13,12 @@ import { TabButton } from "@/components/ui/TabButton";
 import { AnimalSearchSection } from "./AnimalSearchSection";
 import { CenterSearchSection } from "./CenterSearchSection";
 
-import { FilterState, getFilterCounts } from "@/lib/filter-utils";
+import { getFilterCounts } from "@/lib/filter-utils";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useGetNotifications } from "@/hooks/query/useGetNotifications";
 import { useNotificationSocket } from "@/hooks/useNotificationSocket";
+import { useAnimalFiltersStore } from "@/stores/animalFilters";
+import { AnimalFilterOverlay } from "@/app/list/animal/filter/AnimalFilterOverlay";
 
 interface ListLayoutProps {
   children: React.ReactNode;
@@ -24,8 +26,6 @@ interface ListLayoutProps {
 
 export function ListLayout({ children }: ListLayoutProps) {
   const pathname = usePathname();
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { unreadCount: socketUnreadCount, isConnected } =
     useNotificationSocket();
@@ -41,6 +41,7 @@ export function ListLayout({ children }: ListLayoutProps) {
 
   // 검색 상태 관리
   const [isSearching, setIsSearching] = useState(false);
+  const { filters } = useAnimalFiltersStore();
 
   // 현재 경로에서 활성 탭 결정
   const activeTab = pathname.includes("/center") ? "center" : "animal";
@@ -50,27 +51,7 @@ export function ListLayout({ children }: ListLayoutProps) {
     { label: "보호센터 찾기", value: "center", href: "/list/center" },
   ];
 
-  // URL 파라미터에서 필터 상태 읽기 (동물 탭에서만 사용)
-  const getFiltersFromURL = (): FilterState => {
-    return {
-      breed: searchParams.get("breed") || "",
-      weights: searchParams.get("weights")?.split(",").filter(Boolean) || [],
-      regions: searchParams.get("regions")?.split(",").filter(Boolean) || [],
-      ages: searchParams.get("ages")?.split(",").filter(Boolean) || [],
-      genders: searchParams.get("genders")?.split(",").filter(Boolean) || [],
-      protectionStatus:
-        searchParams.get("protectionStatus")?.split(",").filter(Boolean) || [],
-      expertOpinion:
-        searchParams.get("expertOpinion")?.split(",").filter(Boolean) || [],
-    };
-  };
-
-  const filters = getFiltersFromURL();
-  const filterCounts = getFilterCounts(filters);
-
-  const handleFilterClick = (path: string) => {
-    router.push(path);
-  };
+  const filterCounts = useMemo(() => getFilterCounts(filters), [filters]);
 
   // 검색 상태 변경 핸들러
   const handleSearchStateChange = (searching: boolean) => {
@@ -121,7 +102,6 @@ export function ListLayout({ children }: ListLayoutProps) {
         <AnimalSearchSection
           filters={filters}
           filterCounts={filterCounts}
-          onFilterClick={handleFilterClick}
           onSearchStateChange={handleSearchStateChange}
         />
       ) : (
@@ -130,6 +110,7 @@ export function ListLayout({ children }: ListLayoutProps) {
 
       {/* 검색 중이 아닐 때만 기존 리스트 표시 */}
       {!isSearching && children}
+      {activeTab === "animal" && <AnimalFilterOverlay />}
       <NavBar />
     </Container>
   );

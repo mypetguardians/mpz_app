@@ -512,7 +512,10 @@ export function PetCard({
               <Chip className={statusInfo.colorClass}>{statusInfo.text}</Chip>
             );
           })()}
-          {createHeadingElement(breed || "종 미등록", cn("text-bk truncate"))}
+          {createHeadingElement(
+            breed || "종 미등록",
+            cn("text-bk truncate flex-1")
+          )}
         </div>
         {headerAction && (
           <div className="ml-2 flex-shrink-0">{headerAction}</div>

@@ -23,6 +23,7 @@ import {
 } from "@/lib/storage-utils";
 import { useRouter } from "next/navigation";
 import { Banner } from "@/components/ui/Banner";
+import { BottomSheet } from "@/components/ui/BottomSheet";
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
@@ -37,6 +38,7 @@ export default function Home() {
   // 메인 배너는 공통 로직 컴포넌트로 대체
   const [showMatchingNotification, setShowMatchingNotification] =
     useState(false);
+  const [showConsultModal, setShowConsultModal] = useState(false);
   //const { aiMatchingResult, setAIMatchingResult } = useMatchingStepStore();
   const { isLoading: bannerLoading } = useGetBanners({ type: "main" });
 
@@ -115,6 +117,11 @@ export default function Home() {
   };
 
   const handleConsultClick = () => {
+    setShowConsultModal(true);
+  };
+
+  const handleConfirmConsult = () => {
+    setShowConsultModal(false);
     if (typeof window !== "undefined") {
       window.open(kakaoChannelUrl, "_blank", "noopener,noreferrer");
     }
@@ -211,7 +218,7 @@ export default function Home() {
       <button
         type="button"
         onClick={handleConsultClick}
-        className="fixed bottom-20 right-4 z-50 h-16 w-16 rounded-full shadow-lg overflow-hidden transition-transform hover:scale-105"
+        className="fixed bottom-24 right-4 z-50 h-16 w-16 rounded-full shadow-lg overflow-hidden transition-transform hover:scale-105"
         aria-label="상담 채널로 이동"
       >
         <NextImage
@@ -223,6 +230,18 @@ export default function Home() {
           priority
         />
       </button>
+
+      <BottomSheet
+        open={showConsultModal}
+        onClose={() => setShowConsultModal(false)}
+        variant="primary"
+        title="상담 채널로 이동하시겠어요?"
+        description="카카오톡 채널로 이동합니다."
+        leftButtonText="취소"
+        rightButtonText="이동하기"
+        onLeftClick={() => setShowConsultModal(false)}
+        onRightClick={handleConfirmConsult}
+      />
     </Container>
   );
 }

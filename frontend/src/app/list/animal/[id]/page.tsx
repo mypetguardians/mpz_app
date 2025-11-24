@@ -414,21 +414,7 @@ export default function AnimalDetailPage({
 
   // 뒤로가기 핸들러 (adoption/verification 제외)
   const handleBack = () => {
-    if (typeof window !== "undefined") {
-      const lastPath = sessionStorage.getItem("lastNonVerificationPath");
-
-      // 저장된 경로가 있고, 현재 경로와 다르며, adoption/verification이 아니면 해당 경로로 이동
-      if (
-        lastPath &&
-        lastPath !== pathname &&
-        !lastPath.startsWith("/adoption/verification/")
-      ) {
-        router.push(lastPath);
-      } else {
-        // 저장된 경로가 없거나 adoption/verification인 경우 동물 목록으로 이동
-        router.push("/list/animal");
-      }
-    }
+    router.back();
   };
 
   // 거리 기반 관련 동물 데이터 가져오기

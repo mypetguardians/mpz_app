@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { CommunityCard } from "@/components/ui/CommunityCard";
 import { MiniButton } from "@/components/ui/MiniButton";
 import { useGetPublicPosts } from "@/hooks/query/useGetPublicPosts";
@@ -192,11 +193,13 @@ export default function RelatedPosts({
           <div className="flex flex-col gap-2.5">
             {displayPosts.map((post) => (
               <div key={post.id} className="flex-shrink-1 w-full">
-                <CommunityCard
-                  item={post as Post}
-                  users={[]}
-                  variant="primary"
-                />
+                <Link href={`/community/${post.id}`} className="block">
+                  <CommunityCard
+                    item={post as Post}
+                    users={[]}
+                    variant="primary"
+                  />
+                </Link>
               </div>
             ))}
           </div>
@@ -211,7 +214,7 @@ export default function RelatedPosts({
           게시물을 불러오는데 실패했습니다. 다시 시도해 주세요.
         </div>
       )}
-      {displayPosts.length > 0 && hasMore && (
+      {displayPosts.length >= 4 && hasMore && (
         <MiniButton
           text={isFetchingNext ? "불러오는 중..." : "더보기"}
           variant="filterOff"

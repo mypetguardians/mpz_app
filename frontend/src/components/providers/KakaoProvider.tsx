@@ -58,7 +58,7 @@ export function KakaoProvider({ children }: KakaoProviderProps) {
     <>
       <Script
         src="https://developers.kakao.com/sdk/js/kakao.js"
-        strategy="beforeInteractive"
+        strategy="afterInteractive"
       />
       {children}
     </>

@@ -33,6 +33,22 @@ export function CenterSearchSection({
   const [localIsSearching, setLocalIsSearching] = useState(false);
   const [likedCenters, setLikedCenters] = useState<Set<string>>(new Set());
 
+  // 초기 검색 상태 복원
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const storedValue = sessionStorage.getItem("centerListSearchValue") ?? "";
+    const storedIsSearching =
+      sessionStorage.getItem("centerListIsSearching") === "true";
+
+    if (storedValue) {
+      setSearchValue(storedValue);
+    }
+    if (storedIsSearching && storedValue) {
+      setLocalIsSearching(true);
+      onSearchStateChange(true);
+    }
+  }, [onSearchStateChange]);
+
   // 바텀시트 제거: 직접 입력 검색으로 변경
 
   // URL에서 region 파라미터 읽기
@@ -131,6 +147,11 @@ export function CenterSearchSection({
     if (searchValue.trim()) {
       setLocalIsSearching(true);
       onSearchStateChange(true);
+
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("centerListSearchValue", searchValue.trim());
+        sessionStorage.setItem("centerListIsSearching", "true");
+      }
     }
   };
 
@@ -138,6 +159,11 @@ export function CenterSearchSection({
     setSearchValue("");
     setLocalIsSearching(false);
     onSearchStateChange(false);
+
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("centerListSearchValue");
+      sessionStorage.removeItem("centerListIsSearching");
+    }
   };
 
   const handleLikeToggle = (centerId: string) => {

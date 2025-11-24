@@ -43,10 +43,13 @@ export const useGetAnimals = (params?: GetAnimalsParams) => {
       return undefined;
     },
     initialPageParam: 1,
-    staleTime: 3 * 60 * 1000, // 3분
-    gcTime: 10 * 60 * 1000, // 10분
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
     retry: 1,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    placeholderData: (previousData) => previousData,
   });
 };
 
@@ -56,8 +59,12 @@ export const useGetBreeds = () => {
     queryFn: async () => {
       return instance.get("/breeds/");
     },
-    staleTime: 5 * 60 * 1000, // 5분
-    gcTime: 10 * 60 * 1000, // 10분
+    staleTime: 10 * 60 * 1000, // 10분
+    gcTime: 30 * 60 * 1000, // 30분
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    placeholderData: (previousData) => previousData,
   });
 };
 
@@ -71,8 +78,12 @@ export const useGetAnimalById = (animalId: string | null) => {
       return response.data;
     },
     enabled: !!animalId,
-    staleTime: 3 * 60 * 1000, // 3분
-    gcTime: 10 * 60 * 1000, // 10분
+    staleTime: 5 * 60 * 1000, // 5분
+    gcTime: 30 * 60 * 1000, // 30분
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    placeholderData: (previousData) => previousData,
   });
 };
 
@@ -98,9 +109,12 @@ export const useGetRelatedAnimalsByDistance = (
       return response.data;
     },
     staleTime: 5 * 60 * 1000, // 5분
-    gcTime: 10 * 60 * 1000, // 10분
+    gcTime: 30 * 60 * 1000, // 30분
     retry: 1,
     refetchOnWindowFocus: false,
-    enabled: !!animalId, // animalId가 있을 때만 실행
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    placeholderData: (previousData) => previousData,
+    enabled: !!animalId,
   });
 };

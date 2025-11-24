@@ -16,6 +16,7 @@ import { useCheckAnimalFavorite } from "@/hooks/query/useCheckAnimalFavorite";
 import { IconButton } from "@/components/ui/IconButton";
 import { Heart } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
+import { useAnimalFiltersStore } from "@/stores/animalFilters";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -29,23 +30,7 @@ function AnimalTab() {
     {}
   );
 
-  // URL 파라미터에서 필터 상태 읽기
-  const filters = useMemo(() => {
-    const result = {
-      breed: searchParams.get("breed") || "",
-      weights: searchParams.get("weights")?.split(",").filter(Boolean) || [],
-      regions: searchParams.get("regions")?.split(",").filter(Boolean) || [],
-      ages: searchParams.get("ages")?.split(",").filter(Boolean) || [],
-      genders: searchParams.get("genders")?.split(",").filter(Boolean) || [],
-      protectionStatus:
-        searchParams.get("protectionStatus")?.split(",").filter(Boolean) || [],
-      expertOpinion:
-        searchParams.get("expertOpinion")?.split(",").filter(Boolean) || [],
-    };
-
-    console.log("필터 상태:", result);
-    return result;
-  }, [searchParams]);
+  const { filters, reset: resetAnimalFilters } = useAnimalFiltersStore();
 
   // 필터 파라미터를 API 요청에 맞게 변환
   const apiParams = useMemo(() => {
@@ -227,28 +212,8 @@ function AnimalTab() {
 
   // 필터 초기화 함수
   const handleClearFilters = useCallback(() => {
-    const params = new URLSearchParams(searchParams.toString());
-
-    // 모든 필터 파라미터 제거
-    params.delete("breed");
-    params.delete("weights");
-    params.delete("regions");
-    params.delete("ages");
-    params.delete("genders");
-    params.delete("protectionStatus");
-    params.delete("expertOpinion");
-
-    try {
-      localStorage.removeItem("animalFilters");
-    } catch {
-      // noop
-    }
-
-    // 현재 페이지로 이동 (필터만 제거)
-    const queryString = params.toString();
-    const targetUrl = queryString ? `?${queryString}` : "";
-    router.push(`/list/animal${targetUrl}`, { scroll: false });
-  }, [searchParams, router]);
+    resetAnimalFilters();
+  }, [resetAnimalFilters]);
 
   // 현재 적용된 필터가 있는지 확인
   const hasActiveFilters = useMemo(() => {

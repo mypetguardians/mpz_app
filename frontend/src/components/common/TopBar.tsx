@@ -5,16 +5,16 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const topbarVariants = cva(
-  "fixed left-1/2 -translate-x-1/2 top-0 z-50 w-full max-w-[420px] h-[54px] px-4",
+  "fixed left-1/2 -translate-x-1/2 top-5 z-50 w-full max-w-[420px] h-[54px] px-4 bg-wh",
   {
     variants: {
       variant: {
-        primary: "bg-white/95 backdrop-blur-sm border-b border-gray-200",
-        customer: "bg-white/95 backdrop-blur-sm border-b border-gray-200",
-        variant4: "bg-white/95 backdrop-blur-sm border-b border-gray-200",
-        variant5: "bg-white/95 backdrop-blur-sm border-b border-gray-200",
+        primary: "bg-white/95 backdrop-blur-sm",
+        customer: "bg-white/95 backdrop-blur-sm",
+        variant4: "bg-white/95 backdrop-blur-sm",
+        variant5: "bg-white/95 backdrop-blur-sm",
         variant6: "bg-transparent border-none",
-        variant8: "bg-white/95 backdrop-blur-sm border-b border-gray-200",
+        variant8: "bg-white/95 backdrop-blur-sm",
       },
     },
     defaultVariants: {
@@ -61,6 +61,11 @@ export function TopBar({
 
   return (
     <>
+      {/* top-5로 내려간 만큼 상단 영역을 흰색으로 덮어 자연스럽게 보이도록 처리 */}
+      <div
+        aria-hidden
+        className="fixed left-1/2 -translate-x-1/2 top-0 z-[45] w-full max-w-[420px] h-5 bg-white"
+      />
       {/* TopBar 자체 */}
       <Comp className={outerClassName} {...props}>
         <nav className={innerClassName}>
@@ -81,10 +86,7 @@ export function TopBar({
       </Comp>
 
       {/* 페이지 콘텐츠가 TopBar 아래로 시작하도록 패딩 추가 */}
-      <div className={`pt-[54px]`}>
-        {/* 이 div는 부모 컴포넌트에서 TopBar 아래 콘텐츠를 감싸는 용도로 사용 */}
-        {props.children}
-      </div>
+      <div className={`pt-[28px]`}>{props.children}</div>
     </>
   );
 }

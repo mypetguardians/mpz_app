@@ -7,7 +7,6 @@ import {
 } from "@/types/posts";
 import { transformRawPostToPost, ApiPostDetailResponse } from "./posts/utils";
 
-// 센터권한자용 게시글 목록 조회
 const getCenterPosts = async (
   params?: GetPostsParams
 ): Promise<ApiPostsResponse> => {
@@ -17,7 +16,6 @@ const getCenterPosts = async (
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
         if (key === "tags" && Array.isArray(value)) {
-          // tags 배열을 개별 파라미터로 변환
           value.forEach((tag) => searchParams.append("tags", tag));
         } else {
           searchParams.append(key, value.toString());
@@ -33,7 +31,6 @@ const getCenterPosts = async (
   return response.data;
 };
 
-// 센터권한자용 게시글 상세조회
 const getCenterPostDetail = async (
   postId: string
 ): Promise<PostDetailResponse> => {
@@ -46,7 +43,6 @@ const getCenterPostDetail = async (
   };
 };
 
-// 센터권한자용 게시글 목록 조회 훅
 interface UseGetCenterPostsOptions {
   enabled?: boolean;
 }
@@ -63,7 +59,7 @@ export const useGetCenterPosts = (
 
       return {
         data: transformedPosts,
-        posts: transformedPosts, // 기존 호환성을 위해 posts도 유지
+        posts: transformedPosts,
         pagination: {
           count: data.count,
           totalCnt: data.totalCnt,
@@ -75,14 +71,16 @@ export const useGetCenterPosts = (
       };
     },
     enabled: options?.enabled !== undefined ? options.enabled : true,
-    staleTime: 0,
-    gcTime: 10 * 60 * 1000, // 10분
-    retry: false, // 미인증 시 재시도하지 않음
-    refetchOnWindowFocus: true,
+    staleTime: 3 * 60 * 1000, // 3분
+    gcTime: 30 * 60 * 1000, // 30분
+    retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    placeholderData: (previousData) => previousData,
   });
 };
 
-// 센터권한자용 게시글 상세조회 훅
 interface UseGetCenterPostDetailOptions {
   enabled?: boolean;
 }
@@ -96,9 +94,12 @@ export const useGetCenterPostDetail = (
     queryFn: () => getCenterPostDetail(postId),
     enabled:
       options?.enabled !== undefined ? options.enabled && !!postId : !!postId,
-    staleTime: 0, // 항상 최신 데이터 요청
-    gcTime: 10 * 60 * 1000, // 10분
-    refetchOnWindowFocus: true,
-    retry: false, // 미인증 시 재시도하지 않음
+    staleTime: 3 * 60 * 1000, // 3분
+    gcTime: 30 * 60 * 1000, // 30분
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    placeholderData: (previousData) => previousData,
+    retry: false,
   });
 };

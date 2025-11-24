@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, Suspense, useRef } from "react";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { X } from "@phosphor-icons/react";
@@ -141,7 +142,10 @@ function ContractContent() {
   }
 
   // 이미 서명된 경우 확인
-  const isAlreadySigned = adoptionDetail.contract.user_signed_at !== null;
+  const hasServerSignature =
+    Boolean(adoptionDetail.contract.user_signed_at) &&
+    Boolean(adoptionDetail.contract.user_signature_url);
+  const isAlreadySigned = hasServerSignature;
 
   return (
     <>
@@ -170,7 +174,7 @@ function ContractContent() {
           <div className="mb-6">
             <h3 className="text-bk mb-3">계약서 내용</h3>
             <div>
-              <p className="body text-dg whitespace-pre-wrap">
+              <p className="body text-dg whitespace-pre-wrap break-words max-w-[420px]">
                 {contractData.contractContent}
               </p>
             </div>
@@ -233,9 +237,11 @@ function ContractContent() {
           </div>
           <div className="flex justify-center">
             {signatureData ? (
-              <img
+              <Image
                 src={signatureData}
                 alt="서명 미리보기"
+                width={400}
+                height={100}
                 className="max-h-36 max-w-full h-auto object-contain"
               />
             ) : (

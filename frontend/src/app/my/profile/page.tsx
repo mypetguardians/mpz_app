@@ -14,6 +14,7 @@ import { useUpdateProfile } from "@/hooks/mutation/useUpdateProfile";
 import { useUploadSingleImage } from "@/hooks/mutation/useUploadSingleImage";
 import { ImageCard } from "@/components/ui/ImageCard";
 import { Toast } from "@/components/ui/Toast";
+import { pickImages } from "@/lib/image-picker";
 
 export default function ProfileEditPage() {
   const router = useRouter();
@@ -218,26 +219,26 @@ export default function ProfileEditPage() {
               </p>
               <div className="flex items-center space-x-4">
                 <div className="relative">
-                  <label>
-                    <ImageCard
-                      src={profileImage || undefined}
-                      alt="프로필 이미지"
-                      variant={profileImage ? "primary" : "add"}
-                      onClick={() => {}}
-                      className="w-20 h-20"
-                    />
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const files = e.target.files;
-                        if (files) {
-                          handleImageUpload(Array.from(files));
+                  <ImageCard
+                    src={profileImage || undefined}
+                    alt="프로필 이미지"
+                    variant={profileImage ? "primary" : "add"}
+                    onClick={async () => {
+                      try {
+                        const files = await pickImages({
+                          multiple: false,
+                          maxCount: 1,
+                        });
+
+                        if (files.length > 0) {
+                          handleImageUpload(files);
                         }
-                      }}
-                      className="hidden"
-                    />
-                  </label>
+                      } catch (error) {
+                        console.error("이미지 선택 실패:", error);
+                      }
+                    }}
+                    className="w-20 h-20"
+                  />
                 </div>
               </div>
             </div>

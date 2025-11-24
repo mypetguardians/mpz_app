@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { Capacitor } from "@capacitor/core";
 
 interface KakaoButtonProps {
   onClick?: () => void;
@@ -25,7 +26,15 @@ export function KakaoButton({
 
       // 클라이언트 사이드에서 카카오 인증 URL 구성
       const clientId = "e87b92ff4188fc038238a9a22eb0bf35";
-      const redirectUri = "https://api.mpz.kr/v1/kakao/login/callback";
+
+      // 앱 환경인지 확인
+      const isNative = Capacitor.isNativePlatform();
+
+      // 앱 환경이면 커스텀 URL 스킴 사용, 웹이면 기존 URL 사용
+      const redirectUri = isNative
+        ? "mpz://oauth/kakao/callback"
+        : "https://api.mpz.kr/v1/kakao/login/callback";
+
       if (!clientId) {
         console.error("카카오 클라이언트 ID가 설정되지 않았습니다.");
         setIsLoading(false);
@@ -39,6 +48,7 @@ export function KakaoButton({
       )}&response_type=code&state=${state}`;
 
       console.log("카카오 인증 URL:", kakaoAuthUrl);
+      console.log("플랫폼:", isNative ? "네이티브 앱" : "웹");
 
       // 카카오 인증 페이지로 리다이렉트
       window.location.href = kakaoAuthUrl;

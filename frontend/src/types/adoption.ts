@@ -16,7 +16,7 @@ export interface UserAdoptionOut {
   center_id: string;
   center_name: string;
   center_location: string;
-  center_centerNumber: string;
+  center_number: string;
   center_image_url?: string | null;
   status: string;
   notes: string;
@@ -47,6 +47,7 @@ export interface UserAdoptionDetailOut {
   center_id: string;
   center_name: string;
   center_location: string | null;
+  center_number: string | null;
   center_image_url?: string | null;
   status: "신청" | "미팅" | "계약서작성" | "입양완료" | "모니터링" | "취소";
   notes: string | null;
@@ -127,7 +128,7 @@ export interface AdoptionData {
   animal_status: string;
   center_id: string;
   center_name: string;
-  center_phoneNumber: string;
+  center_number: string;
   center_location: string;
   status: string;
   notes: string;
@@ -169,7 +170,7 @@ export interface AdoptionDetailApiResponse {
     centerId: string;
     centerName: string;
     centerLocation: string | null;
-    centerPhoneNumber: string | null;
+    centerNumber: string | null;
     status: string;
     notes: string | null;
     centerNotes: string | null;

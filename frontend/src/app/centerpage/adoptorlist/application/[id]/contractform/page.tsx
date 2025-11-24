@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
-
+import Image from "next/image";
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
@@ -106,10 +106,12 @@ export default function ConsentFormPage({ params }: ContractFormPageProps) {
             <h2 className="text-bk">입양자 서명</h2>
             <div className="h-[200px] rounded-2xl border border-gray-200 flex items-center justify-center text-gr">
               {signatureData ? (
-                <img
+                <Image
                   src={signatureData}
                   alt="입양자 서명"
                   className="max-h-[160px] object-contain"
+                  width={400}
+                  height={100}
                 />
               ) : (
                 <span className="text-sm">서명 데이터가 없습니다.</span>

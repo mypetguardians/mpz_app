@@ -64,10 +64,13 @@ export const useGetPublicPosts = (params?: GetPostsParams) => {
   return useQuery({
     queryKey: ["public-posts", params],
     queryFn: () => getPublicPosts(params),
-    staleTime: 0,
-    gcTime: 10 * 60 * 1000,
+    staleTime: 3 * 60 * 1000, // 3분
+    gcTime: 30 * 60 * 1000, // 30분
     retry: 1,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    placeholderData: (previousData) => previousData,
   });
 };
 
@@ -76,8 +79,11 @@ export const useGetPublicPostDetail = (postId: string) => {
     queryKey: ["public-posts", postId],
     queryFn: () => getPublicPostDetail(postId),
     enabled: !!postId,
-    staleTime: 0, // 항상 최신 데이터 요청
-    gcTime: 10 * 60 * 1000, // 10분
-    refetchOnWindowFocus: true,
+    staleTime: 3 * 60 * 1000, // 3분
+    gcTime: 30 * 60 * 1000, // 30분
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    placeholderData: (previousData) => previousData,
   });
 };

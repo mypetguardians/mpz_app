@@ -1,7 +1,6 @@
 import React from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "../providers/AuthProvider";
-import { Container } from "./Container";
 import { HouseSimple, Dog, Chats, Heart, User } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
@@ -19,13 +18,13 @@ export function NavbarBtn({
   onClick,
 }: NavbarBtnProps) {
   const iconWithColor = React.cloneElement(icon, {
-    className: cn("w-5 h-5 transition-colors", active ? "text-dg" : "text-lg"),
+    className: cn("w-4 h-4 transition-colors", active ? "text-dg" : "text-lg"),
   });
 
   return (
     <div
       className={cn(
-        "flex flex-col gap-0.5 items-center justify-center w-full h-14 cursor-pointer",
+        "flex flex-col gap-0.5 items-center justify-center w-full h-20 cursor-pointer pb-4",
         active ? "text-dg" : "text-lg"
       )}
       onClick={onClick}
@@ -78,7 +77,6 @@ function NavBar() {
         break;
       case "list":
         url = "/list/animal";
-    /*     if (isCenter) url = "/list/center"; */
         break;
       case "commmunity":
         url = "/community";
@@ -95,10 +93,12 @@ function NavBar() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 z-50 w-full bg-transparent "
-      style={{ pointerEvents: "auto" }}
+      className="fixed bottom-0 left-0 right-0 z-50 w-full bg-transparent"
+      style={{
+        pointerEvents: "auto",
+      }}
     >
-      <Container className="border-t bg-wh border-lg rounded-t-xl">
+      <div className="max-w-[420px] mx-auto w-full bg-wh border-t border-lg rounded-t-xl">
         <div className="flex justify-between px-2">
           <NavbarBtn
             icon={<HouseSimple weight="bold" />}
@@ -131,7 +131,7 @@ function NavBar() {
             onClick={() => handleTabClick("my")}
           />
         </div>
-      </Container>
+      </div>
     </nav>
   );
 }

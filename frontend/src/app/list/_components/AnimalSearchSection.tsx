@@ -10,23 +10,23 @@ import { PetCard } from "@/components/ui/PetCard";
 import { useGetAnimals } from "@/hooks/query/useGetAnimals";
 
 import { FilterState, getFilterCounts } from "@/lib/filter-utils";
+import { useAnimalFilterOverlayStore } from "@/stores/animalFilterOverlay";
 
 interface AnimalSearchSectionProps {
   filters: FilterState;
   filterCounts: ReturnType<typeof getFilterCounts>;
-  onFilterClick: (path: string) => void;
   onSearchStateChange: (isSearching: boolean) => void;
 }
 
 export function AnimalSearchSection({
   filters,
   filterCounts,
-  onFilterClick,
   onSearchStateChange,
 }: AnimalSearchSectionProps) {
   const router = useRouter();
   const [searchValue, setSearchValue] = useState("");
   const [isSearching, setIsSearching] = useState(false);
+  const { open: openFilterOverlay } = useAnimalFilterOverlayStore();
 
   // 검색 결과 가져오기
   const {
@@ -146,43 +146,36 @@ export function AnimalSearchSection({
   const filterOptions = [
     {
       label: "지역",
-      path: "/list/animal/filter",
       count: filterCounts.regions,
       hasFilters: filterCounts.regions > 0,
     },
     {
       label: "품종",
-      path: "/list/animal/filter",
       count: filterCounts.breed,
       hasFilters: filterCounts.breed > 0,
     },
     {
       label: "체중",
-      path: "/list/animal/filter",
       count: filterCounts.weights,
       hasFilters: filterCounts.weights > 0,
     },
     {
       label: "성별",
-      path: "/list/animal/filter",
       count: filterCounts.genders,
       hasFilters: filterCounts.genders > 0,
     },
     {
       label: "나이",
-      path: "/list/animal/filter",
       count: filterCounts.ages,
       hasFilters: filterCounts.ages > 0,
     },
     {
       label: "보호상태",
-      path: "/list/animal/filter",
       count: filterCounts.protectionStatus,
       hasFilters: filterCounts.protectionStatus > 0,
     },
     {
       label: "전문가 분석",
-      path: "/list/animal/filter",
       count: filterCounts.expertOpinion,
       hasFilters: filterCounts.expertOpinion > 0,
     },
@@ -230,7 +223,7 @@ export function AnimalSearchSection({
               }`}
               rightIcon={<CaretDown size={12} />}
               variant={option.hasFilters ? "filterOn" : "filterOff"}
-              onClick={() => onFilterClick(option.path)}
+              onClick={openFilterOverlay}
               className="flex-shrink-0"
             />
           ))}

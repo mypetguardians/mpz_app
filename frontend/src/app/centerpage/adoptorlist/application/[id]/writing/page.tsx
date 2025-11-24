@@ -171,7 +171,7 @@ export default function AdoptionWritingPage({
 
   return (
     <div className="min-h-screen bg-bg">
-      <Container className="min-h-screen">
+      <Container className="min-h-screen pb-16">
         {/* TopBar */}
         <TopBar
           variant="variant4"
@@ -268,6 +268,19 @@ export default function AdoptionWritingPage({
                   </table>
                 </div>
                 <div className="flex flex-col items-center gap-2 mt-6">
+                  {adoptionData?.status === "입양완료" && (
+                    <BigButton
+                      variant="variant5"
+                      className="w-full py-4"
+                      onClick={() =>
+                        router.push(
+                          `/centerpage/adoptorlist/application/${id}/contractform`
+                        )
+                      }
+                    >
+                      계약서 보기
+                    </BigButton>
+                  )}
                   <BigButton
                     variant="variant5"
                     onClick={() =>
@@ -383,10 +396,7 @@ export default function AdoptionWritingPage({
             </SectionLine>
           </div>
         </div>
-      </Container>
-      {/* 하단 고정 액션 바 */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur px-4 py-3 border-t border-gray-200">
-        <div className="max-w-[480px] mx-auto">
+        <div className="fixed bottom-0 left-0 right-0 z-50 max-w-[420px] mx-auto bg-white/90 backdrop-blur px-4 py-3 border-t border-gray-200">
           <BigButton
             className="w-full"
             onClick={handleCompleteAdoption}
@@ -399,7 +409,7 @@ export default function AdoptionWritingPage({
               : "입양완료로 변경"}
           </BigButton>
         </div>
-      </div>
+      </Container>
     </div>
   );
 }

@@ -127,10 +127,10 @@ export default function MyPage() {
   ];
 
   return (
-    <Container className="min-h-screen">
+    <Container className="min-h-screen flex flex-col">
       {/* TopBar */}
       <TopBar left={<h2 className="text-bk">센터 관리자</h2>} />
-      <div className="w-full flex flex-col gap-2 pb-[72px] min-h-[100px]">
+      <div className="w-full flex flex-col gap-2 pb-[72px] min-h-[100px] flex-1">
         <div className="w-full px-4">
           <div className="w-full flex py-3 items-center justify-between h-20">
             <div className="flex items-center gap-3">

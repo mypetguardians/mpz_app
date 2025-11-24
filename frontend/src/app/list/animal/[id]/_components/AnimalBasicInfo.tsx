@@ -138,8 +138,10 @@ export default function AnimalBasicInfo({
           src={currentImageUrl}
           alt={`${name} - 이미지 ${currentImageIndex}`}
           fill
+          sizes="100vw"
           className="object-cover cursor-pointer transition-opacity duration-200"
           unoptimized={currentImageUrl.includes("openapi.animal.go.kr")}
+          priority
           onClick={() => onImageClick?.(validImageUrls, currentImageIndex)}
           onError={(e) => {
             console.warn("이미지 로딩 실패:", currentImageUrl);

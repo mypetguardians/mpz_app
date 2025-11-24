@@ -99,7 +99,7 @@ export const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(
       };
     }, [resizeCanvas]);
 
-    const getRelativePosition = (event: PointerEvent) => {
+    const getRelativePosition = useCallback((event: PointerEvent) => {
       const canvas = canvasRef.current;
       if (!canvas) return { x: 0, y: 0 };
       const rect = canvas.getBoundingClientRect();
@@ -107,50 +107,59 @@ export const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(
         x: event.clientX - rect.left,
         y: event.clientY - rect.top,
       };
-    };
+    }, []);
 
-    const handlePointerDown = (event: PointerEvent) => {
-      if (disabled) return;
-      const context = getContext();
-      if (!context) return;
+    const handlePointerDown = useCallback(
+      (event: PointerEvent) => {
+        if (disabled) return;
+        const context = getContext();
+        if (!context) return;
 
-      isDrawingRef.current = true;
-      hasSignatureRef.current = true;
-      setIsEmpty(false);
+        isDrawingRef.current = true;
+        hasSignatureRef.current = true;
+        setIsEmpty(false);
 
-      context.beginPath();
-      const { x, y } = getRelativePosition(event);
-      context.moveTo(x, y);
-      canvasRef.current?.setPointerCapture(event.pointerId);
-    };
+        context.beginPath();
+        const { x, y } = getRelativePosition(event);
+        context.moveTo(x, y);
+        canvasRef.current?.setPointerCapture(event.pointerId);
+      },
+      [disabled, getContext, getRelativePosition]
+    );
 
-    const handlePointerMove = (event: PointerEvent) => {
-      if (!isDrawingRef.current || disabled) return;
-      const context = getContext();
-      if (!context) return;
+    const handlePointerMove = useCallback(
+      (event: PointerEvent) => {
+        if (!isDrawingRef.current || disabled) return;
+        const context = getContext();
+        if (!context) return;
 
-      const { x, y } = getRelativePosition(event);
-      context.lineTo(x, y);
-      context.stroke();
-    };
+        const { x, y } = getRelativePosition(event);
+        context.lineTo(x, y);
+        context.stroke();
+      },
+      [disabled, getContext, getRelativePosition]
+    );
 
-    const endDrawing = (event: PointerEvent) => {
-      if (!isDrawingRef.current) return;
-      isDrawingRef.current = false;
-      const canvas = canvasRef.current;
-      const context = getContext();
-      if (!canvas || !context) return;
+    const endDrawing = useCallback(
+      (event: PointerEvent) => {
+        if (!isDrawingRef.current) return;
+        isDrawingRef.current = false;
+        const canvas = canvasRef.current;
+        const context = getContext();
+        if (!canvas || !context) return;
 
-      context.closePath();
-      canvas.releasePointerCapture(event.pointerId);
+        context.closePath();
+        canvas.releasePointerCapture(event.pointerId);
 
-      if (onEnd) {
-        const dataUrl = hasSignatureRef.current
-          ? canvas.toDataURL("image/png")
-          : null;
-        onEnd(dataUrl);
-      }
-    };
+        if (onEnd) {
+          const dataUrl = hasSignatureRef.current
+            ? canvas.toDataURL("image/png")
+            : null;
+          onEnd(dataUrl);
+        }
+      },
+      [getContext, onEnd]
+    );
 
     useEffect(() => {
       const canvas = canvasRef.current;
@@ -222,6 +231,8 @@ export const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(
           ref={canvasRef}
           className="absolute inset-0"
           aria-label="서명 입력 영역"
+          width={400}
+          height={100}
         />
         {isEmpty && (
           <div className="absolute inset-0 flex items-center justify-center text-gr text-sm pointer-events-none select-none">

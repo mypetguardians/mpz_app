@@ -33,6 +33,7 @@ import { useToast } from "@/hooks/useToast";
 import { NotificationToast } from "@/components/ui/NotificationToast";
 import type { PetCardAnimal } from "@/types/animal";
 import type { UserAdoptionOut } from "@/types/adoption";
+import { pickImages } from "@/lib/image-picker";
 
 // PetCardAnimal을 확장한 타입 (adoptionId 포함)
 type ExtendedPetCardAnimal = PetCardAnimal & { adoptionId?: string };
@@ -504,37 +505,32 @@ export default function CommunityUploadPage() {
           <div className="flex flex-wrap gap-3">
             {/* 업로드 버튼 */}
             {uploadedImageUrls.length < 5 && (
-              <label>
-                <ImageCard
-                  variant="add"
-                  onClick={() => {}}
-                  className="w-20 h-20"
-                />
-                <input
-                  type="file"
-                  multiple
-                  accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
-                  onChange={(e) => {
-                    const files = e.target.files;
-                    if (files) {
-                      // 현재 개수 확인
-                      const currentCount = uploadedFiles.length;
-                      const remainingSlots = 5 - currentCount;
+              <ImageCard
+                variant="add"
+                onClick={async () => {
+                  try {
+                    const currentCount = uploadedFiles.length;
+                    const remainingSlots = 5 - currentCount;
 
-                      if (remainingSlots <= 0) {
-                        alert("이미지는 최대 5개까지 업로드할 수 있습니다.");
-                        e.target.value = "";
-                        return;
-                      }
-
-                      handleImageUpload(Array.from(files));
+                    if (remainingSlots <= 0) {
+                      alert("이미지는 최대 5개까지 업로드할 수 있습니다.");
+                      return;
                     }
-                    // input 값 초기화 (같은 파일 다시 선택 가능하도록)
-                    e.target.value = "";
-                  }}
-                  className="hidden"
-                />
-              </label>
+
+                    const files = await pickImages({
+                      multiple: true,
+                      maxCount: remainingSlots,
+                    });
+
+                    if (files.length > 0) {
+                      handleImageUpload(files);
+                    }
+                  } catch (error) {
+                    console.error("이미지 선택 실패:", error);
+                  }
+                }}
+                className="w-20 h-20"
+              />
             )}
 
             {/* 업로드된 이미지들 */}

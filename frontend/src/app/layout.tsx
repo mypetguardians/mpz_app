@@ -6,6 +6,7 @@ import { KakaoProvider } from "@/components/providers/KakaoProvider";
 import { SocketProvider } from "@/components/providers/SocketProvider";
 import KakaoMapScript from "@/components/common/KakaoMapScript";
 import DaumPostcodeScript from "@/components/common/DaumPostcodeScript";
+import { AppUrlHandler } from "@/components/common/AppUrlHandler";
 import "./globals.css";
 
 // 시스템 폰트 사용
@@ -15,6 +16,7 @@ export const viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
     { media: "(prefers-color-scheme: dark)", color: "#000000" },
@@ -58,7 +60,7 @@ export const metadata: Metadata = {
       "전국 유기동물 보호센터 정보와 입양 절차를 한눈에 확인하기! 반려동물 입양 플랫폼",
     images: [
       {
-        url: "/og-image.jpg",
+        url: "/op-image.svg",
         width: 1200,
         height: 630,
         alt: "마펫쯔 - 반려동물 입양 플랫폼",
@@ -91,9 +93,8 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon-16x16.png",
-    apple: "/apple-touch-icon.png",
+    icon: "/img/op-image.svg",
+    shortcut: "/img/op-image.svg",
   },
 };
 
@@ -109,9 +110,10 @@ export default function RootLayout({
           <AuthProvider>
             <KakaoProvider>
               <SocketProvider>
+                <AppUrlHandler />
                 <KakaoMapScript />
                 <DaumPostcodeScript />
-                {children}
+                <div className="pt-6">{children}</div>
               </SocketProvider>
             </KakaoProvider>
           </AuthProvider>

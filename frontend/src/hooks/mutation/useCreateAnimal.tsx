@@ -4,6 +4,7 @@ import instance from "@/lib/axios-instance";
 interface CreateAnimalData {
   name: string; // required, 1-50 characters
   is_female: boolean; // required
+  neutering?: boolean | null; // 중성화 여부
   age?: number | null; // 0-300 months
   weight?: number | null; // 0.01-999.99 kg
   color?: string | null;
@@ -45,6 +46,7 @@ interface CreateAnimalResponse {
   id: string;
   name: string;
   is_female: boolean;
+  neutering: boolean;
   age: number | null;
   weight: number | null;
   color: string | null;

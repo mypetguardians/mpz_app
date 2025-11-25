@@ -3,6 +3,7 @@ export interface Animal {
   id: string;
   name: string;
   isFemale: boolean;
+  neutering?: boolean | null;
   age: number;
   weight: number | null;
   color: string | null;
@@ -227,6 +228,7 @@ export function transformRawAnimalToAnimal(raw: RawAnimalResponse): Animal {
     id: raw.id,
     name: raw.name,
     isFemale: raw.is_female,
+    neutering: raw.neutering,
     age: raw.age,
     weight: raw.weight,
     color: raw.color,

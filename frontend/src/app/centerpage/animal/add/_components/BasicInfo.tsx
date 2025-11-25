@@ -117,23 +117,23 @@ export default function BasicInfo({
   };
 
   const handleAddImage = async () => {
+    const existingCount = data.imageUrls?.length ?? 0;
+    const remainingSlots = 5 - (existingCount + images.length);
+
+    if (remainingSlots <= 0) {
+      showToastMessage("최대 5장까지만 업로드할 수 있습니다.", "error");
+      return;
+    }
     try {
-      const remainingSlots = 5 - images.length;
-
-      if (remainingSlots <= 0) {
-        showToastMessage("최대 5장까지만 업로드할 수 있습니다.", "error");
-        return;
-      }
-
       const files = await pickImages({
         multiple: true,
         maxCount: remainingSlots,
       });
 
       if (files.length > 0) {
-        const totalImages = images.length + files.length;
+        const newTotal = existingCount + images.length + files.length;
 
-        if (totalImages <= 5) {
+        if (newTotal <= 5) {
           onImagesChange([...images, ...files]);
         } else {
           const filesToAdd = files.slice(0, remainingSlots);
@@ -154,6 +154,14 @@ export default function BasicInfo({
     onImagesChange(images.filter((_, i) => i !== index));
 
     // 업로드된 URL은 제출 시에만 생성되므로 여기서는 로컬 미리보기만 제거
+  };
+
+  const handleRemoveExistingImage = (index: number) => {
+    if (!data.imageUrls) {
+      return;
+    }
+    const next = data.imageUrls.filter((_, i) => i !== index);
+    onChange({ imageUrls: next });
   };
 
   // 이미지 프리뷰 URL을 캐시하여 입력 변화로 인한 재렌더링 때 깜빡임 방지
@@ -209,14 +217,14 @@ export default function BasicInfo({
 
         {/* 이미지 업로드 영역 - 최대 5장, 가로 스크롤 */}
         <div className="flex gap-3 px-3 py-3 -mx-3 overflow-x-auto scrollbar-hide">
-          {(data.imageUrls?.length ?? 0) > 0 &&
-            data.imageUrls!.map((url, index) => (
-              <ImageCard
-                key={`existing-${index}`}
-                src={url}
-                alt={`기존 이미지 ${index + 1}`}
-              />
-            ))}
+          {data.imageUrls?.map((url, index) => (
+            <ImageCard
+              key={`existing-${index}`}
+              src={url}
+              alt={`기존 이미지 ${index + 1}`}
+              onRemove={() => handleRemoveExistingImage(index)}
+            />
+          ))}
           {images.map((_, index) => (
             <ImageCard
               key={index}

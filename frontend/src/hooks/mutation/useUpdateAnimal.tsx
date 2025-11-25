@@ -1,10 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import instance from "@/lib/axios-instance";
 
-interface UpdateAnimalData {
+export interface UpdateAnimalData {
   id: string; // required - path parameter
   name?: string | null; // 동물 이름
   is_female?: boolean | null; // 암컷 여부
+  neutering?: boolean | null; // 중성화 여부
   age?: number | null; // 나이 (개월 단위, 0-300개월)
   weight?: number | string | null; // 체중 (kg, 0.01-999.99kg)
   color?: string | null; // 색상
@@ -37,12 +38,14 @@ interface UpdateAnimalData {
   admission_date?: string | null; // 공고일 (YYYY-MM-DD 형식)
   found_location?: string | null; // 발견 장소
   personality?: string | null; // 성격
+  image_urls?: string[]; // 전체 이미지 URL (교체)
 }
 
 interface UpdateAnimalResponse {
   id: string;
   name: string;
   is_female: boolean;
+  neutering: boolean;
   age: number;
   weight: number | null;
   color: string | null;

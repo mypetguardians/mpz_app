@@ -88,6 +88,7 @@ async def create_animal(request: HttpRequest, data: AnimalCreateIn):
             "center_id": center_id,
             "name": data.name,
             "is_female": data.is_female,
+            "neutering": data.neutering if data.neutering is not None else False,
             "age": data.age,
             "weight": data.weight,
             "breed": data.breed,
@@ -191,6 +192,7 @@ async def create_animal(request: HttpRequest, data: AnimalCreateIn):
             id=str(animal.id),
             name=animal.name,
             is_female=animal.is_female,
+            neutering=animal.neutering,
             age=animal.age,
             weight=animal.weight,
 
@@ -428,6 +430,7 @@ async def get_animals(
                 id=str(animal.id),
                 name=animal.name,
                 is_female=animal.is_female,
+                neutering=animal.neutering,
                 age=animal.age,
                 weight=animal.weight,
                 breed=animal.breed,
@@ -578,6 +581,7 @@ async def get_animal_by_id(request: HttpRequest, animal_id: str):
             id=str(animal.id),
             name=animal.name,
             is_female=animal.is_female,
+            neutering=animal.neutering,
             age=animal.age,
             weight=animal.weight,
             color=None,  # Animal 모델에 없는 필드
@@ -698,6 +702,8 @@ async def update_animal(request: HttpRequest, animal_id: str, data: AnimalUpdate
             update_data["name"] = data.name
         if data.is_female is not None:
             update_data["is_female"] = data.is_female
+        if data.neutering is not None:
+            update_data["neutering"] = data.neutering
         if data.age is not None:
             update_data["age"] = data.age
         if data.weight is not None:
@@ -786,6 +792,7 @@ async def update_animal(request: HttpRequest, animal_id: str, data: AnimalUpdate
             id=str(animal.id),
             name=animal.name,
             is_female=animal.is_female,
+            neutering=animal.neutering,
             age=animal.age,
             weight=animal.weight,
 
@@ -1133,6 +1140,7 @@ async def get_related_animals_by_distance(
                 id=str(related_animal.id),
                 name=related_animal.name,
                 is_female=related_animal.is_female,
+                neutering=related_animal.neutering,
                 age=related_animal.age,
                 weight=related_animal.weight,
                 color=None,  # Animal 모델에 없는 필드

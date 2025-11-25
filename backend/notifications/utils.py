@@ -525,7 +525,7 @@ async def notify_new_adoption_application(adoption_id: str):
     
     adoption = await get_adoption_info()
     
-    message = f"{adoption.user.nickname}님이 {adoption.animal.name}의 입양을 신청했습니다."
+    message = f"{adoption.user.nickname}님이 {adoption.animal.breed} {adoption.animal.name}의 입양을 신청했습니다."
     action_url = f"/centerpage/adoptorlist/application"
     metadata = {
         'adoption_id': str(adoption.id),

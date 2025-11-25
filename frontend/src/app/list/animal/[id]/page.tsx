@@ -610,7 +610,6 @@ export default function AnimalDetailPage({
             }
 
             // 4) 도/시 추출 및 약어 보정
-            // 예: "경기도 수원시 영통구" -> "경기도 수원시"
             const provinceMatch = loc.match(/([가-힣]+도)/);
             const cityMatch = loc.match(/([가-힣]+시)/);
             let provinceName = provinceMatch ? provinceMatch[1] : "";

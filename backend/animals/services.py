@@ -1,12 +1,19 @@
 import httpx
+import mimetypes
+import os
 import xml.etree.ElementTree as ET
 from datetime import datetime, date
-from typing import List, Dict, Optional
-from urllib.parse import urlencode
+from typing import List, Dict, Optional, Tuple
+from urllib.parse import urlencode, urlparse
+from uuid import uuid4
+
+from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.utils import timezone
-from .models import Animal, AnimalImage
+
+from cloudflare.services import R2Client
 from centers.models import Center
+from .models import Animal, AnimalImage
 from .schemas.public_data import PublicDataAnimalOut
 
 
@@ -17,6 +24,8 @@ class PublicDataService:
     
     def __init__(self, service_key: str):
         self.service_key = service_key
+        self._r2_client: Optional[R2Client] = None
+        self._r2_disabled = False
     
     async def fetch_abandoned_animals(
         self,
@@ -498,32 +507,114 @@ class PublicDataService:
         }
         return adoption_mapping.get(public_status, '입양가능')
     
+    def _get_r2_client(self) -> Optional[R2Client]:
+        """R2 클라이언트를 지연 생성"""
+        if self._r2_disabled:
+            return None
+        if self._r2_client is None:
+            try:
+                self._r2_client = R2Client()
+            except Exception as exc:
+                print(f"⚠️ R2 클라이언트 초기화 실패: {exc}")
+                self._r2_disabled = True
+                return None
+        return self._r2_client
+    
+    def _sanitize_storage_prefix(self, value: str) -> str:
+        if not value:
+            return "unknown"
+        sanitized = "".join(ch if ch.isalnum() else "-" for ch in value)
+        sanitized = sanitized.strip("-")
+        return sanitized or "unknown"
+    
+    def _guess_extension(self, image_url: str, content_type: Optional[str]) -> str:
+        if content_type:
+            mime = content_type.split(";")[0].strip().lower()
+            ext = mimetypes.guess_extension(mime)
+            if ext:
+                return ".jpg" if ext == ".jpe" else ext
+        parsed = urlparse(image_url)
+        _, ext = os.path.splitext(parsed.path)
+        if ext:
+            return ext
+        return ".jpg"
+    
+    def _build_public_image_key(self, prefix: str, extension: str) -> str:
+        safe_prefix = self._sanitize_storage_prefix(prefix or "unknown")
+        return f"public-data/animals/{safe_prefix}/{uuid4().hex}{extension}"
+    
+    async def _download_image_bytes(
+        self, client: httpx.AsyncClient, image_url: str
+    ) -> Tuple[Optional[bytes], Optional[str]]:
+        try:
+            response = await client.get(image_url, timeout=20)
+            response.raise_for_status()
+            return response.content, response.headers.get("Content-Type")
+        except Exception as exc:
+            print(f"⚠️ 공공데이터 이미지 다운로드 실패 ({image_url}): {exc}")
+            return None, None
+    
+    async def _upload_image_to_r2(
+        self,
+        image_bytes: Optional[bytes],
+        content_type: Optional[str],
+        storage_prefix: str,
+        original_url: str,
+    ) -> Optional[str]:
+        if not image_bytes:
+            return None
+        r2_client = self._get_r2_client()
+        if not r2_client:
+            return None
+        normalized_ct = (content_type or "image/jpeg").split(";")[0].strip() or "image/jpeg"
+        extension = self._guess_extension(original_url, normalized_ct)
+        key = self._build_public_image_key(storage_prefix, extension)
+        try:
+            result = await sync_to_async(r2_client.upload_file)(
+                key=key,
+                data=image_bytes,
+                content_type=normalized_ct,
+            )
+            return result.get("url")
+        except Exception as exc:
+            print(f"⚠️ R2 업로드 실패 ({original_url}): {exc}")
+            return None
+    
     async def _process_animal_images(self, animal: Animal, animal_data: PublicDataAnimalOut):
         """동물 이미지 처리 - filename과 popfile 모두 처리"""
-        # 기존 이미지 삭제
-        from asgiref.sync import sync_to_async
         await sync_to_async(AnimalImage.objects.filter(animal=animal).delete)()
         
-        # 새 이미지 추가
         images = []
         sequence = 0
+        storage_prefix = animal.public_notice_number or str(animal.id)
+        image_sources = [animal_data.popfile1, animal_data.popfile2]
         
-        # popfile1, popfile2 처리 (공공데이터 이미지)
-        for image_url in [animal_data.popfile1, animal_data.popfile2]:
-            if image_url and image_url.strip():
+        async with httpx.AsyncClient(timeout=20) as client:
+            for image_url in image_sources:
+                url = (image_url or "").strip()
+                if not url:
+                    continue
+                
+                image_bytes, content_type = await self._download_image_bytes(client, url)
+                uploaded_url = await self._upload_image_to_r2(
+                    image_bytes=image_bytes,
+                    content_type=content_type,
+                    storage_prefix=storage_prefix,
+                    original_url=url,
+                )
+                
+                final_url = uploaded_url or url
+                
                 images.append(AnimalImage(
                     animal=animal,
-                    image_url=image_url.strip(),
-                    is_primary=(sequence == 0),  # 첫 번째 이미지를 대표 이미지로
+                    image_url=final_url,
+                    is_primary=(sequence == 0),
                     sequence=sequence
                 ))
                 sequence += 1
         
-        # filename 처리 (추가 이미지가 있는 경우)
-        # 공공데이터 API에서 filename 필드가 제공되는 경우를 대비
-        
         if images:
             await sync_to_async(AnimalImage.objects.bulk_create)(images)
-            print(f"동물 이미지 처리 완료: {animal.public_notice_number} - {len(images)}개 이미지")
+            print(f"동물 이미지 처리 완료: {animal.public_notice_number} - {len(images)}개 이미지 (R2 변환 여부: {'Y' if any(img.image_url.startswith('https://') for img in images) else 'N'})")
         else:
             print(f"동물 이미지 없음: {animal.public_notice_number}")

@@ -372,17 +372,12 @@ export default function CommunityUploadPage() {
         is_all_access: publicType === "public",
       };
 
-      console.log("전송할 포스트 데이터:", postData);
-      console.log("태그 배열:", tags);
-
       createPost(postData, {
-        onSuccess: (postData) => {
-          console.log("포스트 생성 성공:", postData);
+        onSuccess: () => {
           setShowSaveModal(false);
           router.push("/community");
         },
         onError: (error) => {
-          console.error("포스트 생성 실패:", error);
           console.error("에러 상세:", error.message);
         },
       });

@@ -173,6 +173,7 @@ async def update_center_settings(request: HttpRequest, data: CenterUpdateIn):
                 'image_url': data.image_url,
                 'has_volunteer': data.has_volunteer,
                 'has_foster_care': data.has_foster_care,
+                'call_available_time': data.call_available_time,
             }
             
             # None이 아니고 빈 문자열이 아닌 값만 업데이트 (단, image_url은 빈 문자열도 허용)

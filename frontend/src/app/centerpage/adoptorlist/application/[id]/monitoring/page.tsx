@@ -13,7 +13,7 @@ import { BigButton } from "@/components/ui/BigButton";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Toast } from "@/components/ui/Toast";
 import { SectionLine } from "../../_components/SectionLine";
-import { useGetCenterAdoption } from "@/hooks";
+import { useGetCenterAdoption, useGetMyCenter } from "@/hooks";
 import { useGetAdoptionMonitoringPosts } from "@/hooks/query/useGetAdoptionMonitoringPosts";
 import { transformRawAnimalToPetCard } from "@/types/animal";
 import { useGetAnimalById } from "@/hooks/query/useGetAnimals";
@@ -59,6 +59,12 @@ export default function AdoptionMonitoringPage({
     error: animalError,
   } = useGetAnimalById(adoptionData?.animal_id || "");
 
+  const {
+    data: centerData,
+    isLoading: centerLoading,
+    error: centerError,
+  } = useGetMyCenter();
+
   const handleWithdrawConfirm = () => {
     setShowWithdrawModal(false);
 
@@ -101,17 +107,6 @@ export default function AdoptionMonitoringPage({
   const handleBack = () => {
     router.back();
   };
-  const handleStartMonitoring = () => {
-    if (adoptionData?.status !== "입양완료") {
-      setToastMessage("먼저 입양완료로 상태를 변경해주세요.");
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 2000);
-      return;
-    }
-    // 모니터링 기간 설정 모달 오픈
-    setOpenMonitoringSheet(true);
-  };
-
   const handleConfirmMonitoringSettings = async () => {
     try {
       // 유효성 검사
@@ -260,7 +255,15 @@ export default function AdoptionMonitoringPage({
             <SectionLine>
               <h2 className="mb-2 text-bk">모니터링 현황</h2>
               <div className="flex items-center gap-2 text-sm">
-                <h6 className="text-red">모니터링 진행중</h6>
+                <h6 className="text-red">
+                  {centerLoading
+                    ? "로딩 중..."
+                    : centerError
+                    ? "센터 정보를 불러올 수 없습니다"
+                    : centerData?.monitoringPeriodMonths
+                    ? `${centerData.monitoringPeriodMonths}개월 모니터링`
+                    : "모니터링 기간 정보 없음"}
+                </h6>
               </div>
             </SectionLine>
             {/* Pet Info */}
@@ -398,15 +401,6 @@ export default function AdoptionMonitoringPage({
             </SectionLine>
 
             <div className="flex flex-col items-center gap-2 mt-6">
-              <BigButton
-                variant="variant5"
-                onClick={handleStartMonitoring}
-                className="w-full py-4"
-              >
-                {adoptionData?.status === "모니터링"
-                  ? "모니터링 진행중"
-                  : "모니터링 시작하기"}
-              </BigButton>
               <BigButton
                 variant="variant5"
                 onClick={() =>

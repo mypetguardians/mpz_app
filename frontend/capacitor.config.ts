@@ -6,7 +6,7 @@ const config: CapacitorConfig = {
   webDir: ".next",
   server: {
     url: "https://mpz.kr",
-    cleartext: false,
+    cleartext: true, // TODO: 프로덕션 환경에서는 false로 변경
   },
   plugins: {
     SplashScreen: {

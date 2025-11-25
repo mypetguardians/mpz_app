@@ -111,7 +111,6 @@ export default function ApplicationFormPage({
         <div className="flex-1 bg-white rounded-t-3xl -mt-4 relative z-10">
           <div className="p-4">
             <SectionLine>
-              <h3 className="text-bk mb-6">입양 신청서</h3>
               <div className="flex flex-col gap-3">
                 {centerQuestions?.questions &&
                 centerQuestions.questions.length > 0 ? (

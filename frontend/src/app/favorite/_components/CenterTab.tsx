@@ -4,11 +4,15 @@ import { useState, useEffect, useCallback } from "react";
 import { CenterCard } from "@/components/ui/CenterCard";
 import { useGetCenterFavorites, useToggleCenterFavorite } from "@/hooks";
 import { CenterCardSkeleton } from "@/components/ui/CenterCardSkeleton";
+import type { CenterFavorite } from "@/types/favorites";
 
 const ITEMS_PER_PAGE = 10;
 
 function CenterTab() {
   const [page, setPage] = useState(1);
+  const [centers, setCenters] = useState<CenterFavorite[]>([]);
+  const [hasMore, setHasMore] = useState(false);
+  const [total, setTotal] = useState(0);
   const [localFavorites, setLocalFavorites] = useState<Record<string, boolean>>(
     {}
   );
@@ -21,9 +25,25 @@ function CenterTab() {
 
   const toggleCenterFavorite = useToggleCenterFavorite();
 
-  const centers = favoritesData?.centers || [];
-  const hasMore = favoritesData?.hasNext || false;
-  const total = favoritesData?.total || 0;
+  // 페이지 응답이 도착할 때마다 로컬 리스트와 메타데이터 갱신
+  useEffect(() => {
+    if (!favoritesData) return;
+
+    setHasMore(favoritesData.hasNext);
+    setTotal(favoritesData.total);
+
+    setCenters((prev) => {
+      if (page === 1) {
+        return favoritesData.centers;
+      }
+
+      const merged = new Map(prev.map((center) => [center.id, center]));
+      favoritesData.centers.forEach((center) => {
+        merged.set(center.id, center);
+      });
+      return Array.from(merged.values());
+    });
+  }, [favoritesData, page]);
 
   // 찜하기 토글 처리
   const handleLikeToggle = (centerId: string) => {

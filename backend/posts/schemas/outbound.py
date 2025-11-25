@@ -27,7 +27,7 @@ class PostOut(Schema):
     animal_id: Optional[str] = Field(None, description="관련 동물 ID")
     content_tags: Optional[dict] = Field(None, description="콘텐츠 태그")
     like_count: int = Field(0, description="좋아요 수")
-    comment_count: int = Field(0, description="댓글 수")
+    comment_count: int = Field(0, description="댓글+대댓글 수")
     is_liked: bool = Field(False, description="현재 사용자의 좋아요 여부")
     is_all_access: bool = Field(True, description="전체 공개 여부")
     created_at: datetime = Field(..., description="생성 시간")

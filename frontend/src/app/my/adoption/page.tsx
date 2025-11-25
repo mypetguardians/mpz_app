@@ -94,7 +94,7 @@ export default function AdoptionPage() {
               <IconButton
                 icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
                 size="iconM"
-                onClick={() => router.push("/my")}
+                onClick={() => router.back()}
               />
               <h4>내 입양 현황</h4>
             </div>

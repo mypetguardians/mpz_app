@@ -183,7 +183,7 @@ function AdoptorListTab() {
         <div className="text-gray-500">
           {searchQuery || !!statusFilter
             ? "검색 결과가 없습니다"
-            : "데이터가 없습니다"}
+            : "임시보호 신청이 없습니다"}
         </div>
       </div>
     );

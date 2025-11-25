@@ -230,6 +230,7 @@ export interface UpdateCenterSettingsResponse {
   image_url: string | null;
   created_at: string;
   updated_at: string;
+  call_available_time?: string;
 }
 
 // 센터별 절차 질문 관련 타입들

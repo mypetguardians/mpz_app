@@ -239,7 +239,7 @@ export default function AdoptionMonitoringPage({
                           전화번호
                         </td>
                         <td className="text-sm py-1">
-                          <div className="py-1 px-3">전화번호 정보 없음</div>
+                          {user?.phoneNumber || "전화번호 정보 없음"}
                         </td>
                       </tr>
                     </tbody>

@@ -29,8 +29,9 @@ def _build_post_response(post, tags=None, images=None, user_nickname=None, user_
     """포스트 응답 데이터 구성"""
     # comment_count가 제공되지 않으면 동적으로 계산
     if comment_count is None:
-        from comments.models import Comment
-        comment_count = Comment.objects.filter(post=post).count()
+        comment_total = Comment.objects.filter(post=post).count()
+        reply_total = Reply.objects.filter(comment__post=post).count()
+        comment_count = comment_total + reply_total
     
     return {
         "id": str(post.id),
@@ -431,10 +432,12 @@ async def get_center_posts(request: HttpRequest, user_id: str = Query(None), tag
                     images_by_post[image.post_id] = []
                 images_by_post[image.post_id].append(image)
             
-            # 댓글 수를 한 번에 조회
+            # 댓글/대댓글 수를 한 번에 조회
             from django.db.models import Count
             comment_counts = Comment.objects.filter(post_id__in=post_ids).values('post_id').annotate(count=Count('id'))
+            reply_counts = Reply.objects.filter(comment__post_id__in=post_ids).values('comment__post_id').annotate(count=Count('id'))
             comment_count_by_post = {item['post_id']: item['count'] for item in comment_counts}
+            reply_count_by_post = {item['comment__post_id']: item['count'] for item in reply_counts}
             
             # 사용자 좋아요 상태 확인
             user_likes = set()
@@ -448,7 +451,9 @@ async def get_center_posts(request: HttpRequest, user_id: str = Query(None), tag
             for post in posts:
                 post_tags = tags_by_post.get(post.id, [])
                 images = images_by_post.get(post.id, [])
-                comment_count = comment_count_by_post.get(post.id, 0)
+                comment_total = comment_count_by_post.get(post.id, 0)
+                reply_total = reply_count_by_post.get(post.id, 0)
+                comment_count = comment_total + reply_total
                 
                 post_data = _build_post_response(
                     post,

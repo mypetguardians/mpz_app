@@ -70,7 +70,7 @@ function ContractContent() {
       if (adoptionId) {
         router.push(`/my/adoption/${adoptionId}/writing`);
       } else {
-        router.push(`/my/adoption`);
+        router.back();
       }
     }
   };

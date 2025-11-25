@@ -174,11 +174,11 @@ export function AnimalSearchSection({
       count: filterCounts.protectionStatus,
       hasFilters: filterCounts.protectionStatus > 0,
     },
-    {
-      label: "전문가 분석",
-      count: filterCounts.expertOpinion,
-      hasFilters: filterCounts.expertOpinion > 0,
-    },
+    // {
+    //   label: "전문가 분석",
+    //   count: filterCounts.expertOpinion,
+    //   hasFilters: filterCounts.expertOpinion > 0,
+    // },
   ];
 
   const handleSearch = () => {

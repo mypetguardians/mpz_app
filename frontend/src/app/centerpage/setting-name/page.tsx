@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, type ChangeEvent } from "react";
 import { ArrowLeft } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
@@ -38,6 +38,8 @@ export default function CenterSettingName() {
   const [adoptionPrice, setAdoptionPrice] = useState("");
   const [centerImage, setCenterImage] = useState<string>("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isFormInitialized, setIsFormInitialized] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // 토스트 상태
   const [showToast, setShowToast] = useState(false);
@@ -52,22 +54,23 @@ export default function CenterSettingName() {
 
   // 센터 정보가 로드되면 폼에 미리 채우기
   useEffect(() => {
-    if (myCenter) {
-      setCenterName(myCenter.name || "");
-      setCenterPhoneNumber(myCenter.phoneNumber || "");
-      setAddress(myCenter.location || "");
-      setCallAvailableTime(myCenter.callAvailableTime || "");
-      setIsPublicAddress(
-        myCenter.isPublic ? "모두에게 공개" : "입양자에게만 공개"
-      );
-      setAdoptionPrice(
-        myCenter.adoptionPrice ? myCenter.adoptionPrice.toLocaleString() : ""
-      );
-      setCenterImage(myCenter.imageUrl || "");
-      setIsTemporaryAdoption(myCenter.hasFosterCare ? "가능" : "불가능");
-      setIsVolunteering(myCenter.hasVolunteer ? "가능" : "불가능");
-    }
-  }, [myCenter]);
+    if (!myCenter || isFormInitialized) return;
+
+    setCenterName(myCenter.name || "");
+    setCenterPhoneNumber(myCenter.phoneNumber || "");
+    setAddress(myCenter.location || "");
+    setCallAvailableTime(myCenter.callAvailableTime || "");
+    setIsPublicAddress(
+      myCenter.isPublic ? "모두에게 공개" : "입양자에게만 공개"
+    );
+    setAdoptionPrice(
+      myCenter.adoptionPrice ? myCenter.adoptionPrice.toLocaleString() : ""
+    );
+    setCenterImage(myCenter.imageUrl || "");
+    setIsTemporaryAdoption(myCenter.hasFosterCare ? "가능" : "불가능");
+    setIsVolunteering(myCenter.hasVolunteer ? "가능" : "불가능");
+    setIsFormInitialized(true);
+  }, [myCenter, isFormInitialized]);
 
   const handleBack = () => {
     router.back();
@@ -81,16 +84,16 @@ export default function CenterSettingName() {
   };
 
   const handleImageClick = () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*";
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        handleImageSelect(file);
-      }
-    };
-    input.click();
+    fileInputRef.current?.click();
+  };
+
+  const handleFileInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      handleImageSelect(file);
+    }
+    // 동일 파일 재선택 가능하도록 초기화
+    event.target.value = "";
   };
 
   const handleImageRemove = () => {
@@ -187,12 +190,12 @@ export default function CenterSettingName() {
         name: centerName.trim(),
         phone_number: centerPhoneNumber.trim() || undefined,
         location: address.trim(),
-        call_available_time: callAvailableTime.trim() || undefined,
+        call_available_time: callAvailableTime.trim(),
         is_public: isPublicAddress === "모두에게 공개",
         adoption_price: adoptionPriceNumber,
         has_foster_care: isTemporaryAdoption === "가능",
         has_volunteer: isVolunteering === "가능",
-        ...(shouldUpdateImage && { image_url: imageUrl }), // 이미지가 변경된 경우에만 포함
+        ...(shouldUpdateImage && { image_url: imageUrl }),
       };
 
       await updateCenterSettings.mutateAsync(updateData);
@@ -295,6 +298,13 @@ export default function CenterSettingName() {
         }
       />
       <div className="w-full flex flex-col pb-3 px-4 gap-4 min-h-[100px]">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileInputChange}
+        />
         <ImageCard
           variant={centerImage ? "primary" : "add"}
           src={centerImage}

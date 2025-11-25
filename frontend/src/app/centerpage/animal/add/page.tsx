@@ -333,6 +333,7 @@ export default function AddAnimal() {
       const requestData = {
         name: basicInfo.name,
         is_female: basicInfo.gender === "암컷",
+        neutering: basicInfo.neutering === "했어요",
         age: parseInt(basicInfo.age),
         weight: parseFloat(basicInfo.weight),
         color: basicInfo.color,

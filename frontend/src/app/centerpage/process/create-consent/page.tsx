@@ -116,7 +116,7 @@ export default function CenterProcessCreateConsent() {
   };
 
   return (
-    <Container className="min-h-screen relative">
+    <Container className="min-h-screen">
       <TopBar
         variant="variant4"
         left={

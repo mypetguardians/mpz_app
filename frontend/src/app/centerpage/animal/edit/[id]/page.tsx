@@ -11,6 +11,7 @@ import BasicInfo from "../../add/_components/BasicInfo";
 import DetailInfo from "../../add/_components/DetailInfo";
 import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
 import { useUpdateAnimal, useUploadImages } from "@/hooks/mutation";
+import type { UpdateAnimalData } from "@/hooks/mutation/useUpdateAnimal";
 import { useGetAnimalById } from "@/hooks/query/useGetAnimals";
 
 interface FormData {
@@ -146,7 +147,9 @@ export default function EditAnimal({
           personality: animalData.personality || "",
           specialNotes: animalData.special_notes || "",
           healthNotes: animalData.health_notes || "",
-          centerEntryDate: animalData.admission_date || "",
+          centerEntryDate: animalData.admission_date
+            ? animalData.admission_date.split("T")[0]
+            : "",
           color: animalData.color || "",
           imageUrls:
             animalData.animal_images?.map((img) => img.image_url) || [],
@@ -238,10 +241,16 @@ export default function EditAnimal({
         uploadedImageUrls = urls;
       }
 
-      const requestData = {
+      const combinedImageUrls = [
+        ...(basicInfo.imageUrls ?? []),
+        ...(uploadedImageUrls ?? []),
+      ];
+
+      const requestData: UpdateAnimalData = {
         id: resolvedParams.id, // 수정할 동물의 ID
         name: basicInfo.name,
         is_female: basicInfo.gender === "암컷",
+        neutering: basicInfo.neutering === "했어요",
         age: parseInt(basicInfo.age),
         weight: parseFloat(basicInfo.weight),
         color: basicInfo.color,
@@ -282,8 +291,9 @@ export default function EditAnimal({
         admission_date: basicInfo.centerEntryDate || null,
         found_location: basicInfo.foundLocation || "",
         personality: basicInfo.personality || "",
-        // 이미지 URL을 전달하면 백엔드에서 전체 교체
-        ...(uploadedImageUrls ? { image_urls: uploadedImageUrls } : {}),
+        ...(combinedImageUrls.length > 0
+          ? { image_urls: combinedImageUrls }
+          : {}),
       };
 
       await updateAnimalMutation.mutateAsync(requestData);

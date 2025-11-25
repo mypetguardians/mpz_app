@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import Image from "next/image";
 import { Chip } from "@/components/ui/Chip";
 import {
@@ -36,10 +36,23 @@ export default function AnimalBasicInfo({
   onImageClick,
 }: AnimalBasicInfoProps) {
   // 유효한 이미지 URL만 필터링하고 중복 제거
-  const validImageUrls = Array.from(
-    new Set(imageUrls.filter((url) => url && url.trim() !== ""))
+  const validImageUrls = useMemo(
+    () =>
+      Array.from(new Set(imageUrls.filter((url) => url && url.trim() !== ""))),
+    [imageUrls]
   );
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    if (validImageUrls.length === 0) {
+      setCurrentImageIndex(0);
+      return;
+    }
+
+    if (currentImageIndex > validImageUrls.length - 1) {
+      setCurrentImageIndex(0);
+    }
+  }, [validImageUrls, currentImageIndex]);
 
   // 상태 정보 반환 (표시할 텍스트와 색상)
   const getStatusInfo = (
@@ -135,13 +148,14 @@ export default function AnimalBasicInfo({
       {/* 이미지 섹션 */}
       <div className="relative w-full aspect-square bg-white overflow-hidden">
         <Image
+          key={currentImageUrl}
           src={currentImageUrl}
           alt={`${name} - 이미지 ${currentImageIndex}`}
           fill
           sizes="100vw"
           className="object-cover cursor-pointer transition-opacity duration-200"
           unoptimized={currentImageUrl.includes("openapi.animal.go.kr")}
-          priority
+          priority={currentImageIndex === 0}
           onClick={() => onImageClick?.(validImageUrls, currentImageIndex)}
           onError={(e) => {
             console.warn("이미지 로딩 실패:", currentImageUrl);

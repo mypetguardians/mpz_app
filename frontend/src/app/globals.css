@@ -279,13 +279,13 @@ body {
 }
 
 /* Safe area 유틸리티 클래스 */
-.pt-safe {
+/* .pt-safe {
   padding-top: var(--safe-area-inset-top);
 }
 
 .pb-safe {
   padding-bottom: var(--safe-area-inset-bottom);
-}
+} */
 
 .mt-safe {
   margin-top: var(--safe-area-inset-top);

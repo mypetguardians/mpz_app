@@ -37,8 +37,8 @@ function LogInInner() {
   }, [isAuthenticated, router, searchParams]);
 
   return (
-    <Container className="min-h-screen flex flex-col justify-between px-4">
-      <div className="flex flex-col gap-1 items-center mt-[90px]">
+    <Container className="h-screen flex flex-col justify-between px-4 overflow-hidden py-6">
+      <div className="flex flex-col gap-1 items-center mt-8">
         <div className="w-[167px] h-[89px] flex items-center justify-center">
           <Link href="/">
             <Image
@@ -54,7 +54,7 @@ function LogInInner() {
         <h4 className="text-dg">컴팩트한 유기동물 입양</h4>
       </div>
 
-      <div className="flex justify-center">
+      <div className="flex justify-center flex-shrink-0">
         <div className="w-[198px] h-[162px] flex items-center justify-center">
           <Image
             src="/illust/login.svg"
@@ -66,7 +66,7 @@ function LogInInner() {
           />
         </div>
       </div>
-      <div className="flex flex-col gap-4 pb-6">
+      <div className="flex flex-col gap-4 pb-0">
         <KakaoButton className="mx-auto" />
         <Link
           href="/login/center"

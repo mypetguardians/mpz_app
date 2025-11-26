@@ -21,6 +21,9 @@ export function ImageCarouselModal({
 }: ImageCarouselModalProps) {
   const hasMultipleImages = images.length > 1;
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(
+    null
+  );
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: hasMultipleImages,
     align: "center",
@@ -128,26 +131,55 @@ export function ImageCarouselModal({
       )}
 
       {/* 이미지 */}
-      <div className="relative w-full h-full grid place-items-center px-6 sm:px-16">
+      <div className="relative w-full h-full grid place-items-center px-6 sm:px-16 py-20">
         <div
-          className="pointer-events-auto relative h-full w-full max-h-[90vh] max-w-[90vw] touch-pan-x"
+          className="pointer-events-auto relative max-h-[70vh] max-w-[85vw] w-full touch-pan-x"
           ref={emblaRef}
           style={{ touchAction: "pan-x pinch-zoom" }}
+          onMouseDown={(e) => {
+            setDragStart({ x: e.clientX, y: e.clientY });
+          }}
+          onMouseUp={(e) => {
+            if (dragStart) {
+              const deltaX = Math.abs(e.clientX - dragStart.x);
+              const deltaY = Math.abs(e.clientY - dragStart.y);
+              // 드래그가 아닌 단순 클릭인 경우 (5px 이내 이동)
+              if (deltaX < 5 && deltaY < 5) {
+                onClose();
+              }
+              setDragStart(null);
+            }
+          }}
+          onTouchStart={(e) => {
+            const touch = e.touches[0];
+            setDragStart({ x: touch.clientX, y: touch.clientY });
+          }}
+          onTouchEnd={(e) => {
+            if (dragStart) {
+              const touch = e.changedTouches[0];
+              const deltaX = Math.abs(touch.clientX - dragStart.x);
+              const deltaY = Math.abs(touch.clientY - dragStart.y);
+              // 드래그가 아닌 단순 탭인 경우 (10px 이내 이동)
+              if (deltaX < 10 && deltaY < 10) {
+                onClose();
+              }
+              setDragStart(null);
+            }
+          }}
         >
           <div className="flex h-full w-full">
             {images.map((image, index) => (
               <div
                 key={image + index}
-                className="relative flex-[0_0_100%] h-full touch-pan-x"
-                style={{ touchAction: "pan-x pinch-zoom" }}
-                onClick={(e) => e.stopPropagation()}
+                className="relative flex-[0_0_100%] w-full aspect-auto touch-pan-x"
+                style={{ touchAction: "pan-x pinch-zoom", minHeight: "200px" }}
               >
                 <Image
                   src={image}
                   alt={`이미지 ${index + 1}`}
                   fill
                   className="object-contain object-center select-none"
-                  sizes="(min-width: 1024px) 70vw, 90vw"
+                  sizes="(min-width: 1024px) 70vw, 85vw"
                   unoptimized
                   draggable={false}
                 />

@@ -26,7 +26,7 @@ export function SafeAreaLayout({ children }: SafeAreaLayoutProps) {
   }, []);
 
   return (
-    <div className="flex h-screen-safe flex-col pt-safe-top pb-safe-bottom px-safe-left px-safe-right">
+    <div className="flex min-h-screen flex-col px-safe-left px-safe-right">
       {children}
     </div>
   );

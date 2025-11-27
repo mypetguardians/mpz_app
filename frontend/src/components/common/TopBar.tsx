@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const topbarVariants = cva(
-  "fixed left-1/2 -translate-x-1/2 top-5 z-50 w-full max-w-[420px] h-[54px] px-4 bg-wh",
+  "fixed left-1/2 -translate-x-1/2 top-0 z-50 w-full max-w-[420px] min-h-[54px] px-4 bg-wh pt-safe-top",
   {
     variants: {
       variant: {
@@ -61,12 +61,6 @@ export function TopBar({
 
   return (
     <>
-      {/* top-5로 내려간 만큼 상단 영역을 흰색으로 덮어 자연스럽게 보이도록 처리 */}
-      <div
-        aria-hidden
-        className={`${className} left-1/2 -translate-x-1/2 top-0 z-[45] w-full max-w-[420px] h-5 bg-white`}
-      />
-      {/* TopBar 자체 */}
       <Comp className={outerClassName} {...props}>
         <nav className={innerClassName}>
           {/* 전체 레이아웃: justify-between으로 좌우 분배 */}
@@ -84,9 +78,13 @@ export function TopBar({
           </div>
         </nav>
       </Comp>
-
-      {/* 페이지 콘텐츠가 TopBar 아래로 시작하도록 패딩 추가 */}
-      <div className={`pt-[28px]`}>{props.children}</div>
+      {/* 안전 영역 + TopBar 높이만큼 공간 확보 */}
+      <div
+        aria-hidden
+        className="w-full"
+        style={{ height: "calc(var(--safe-area-top) + 54px)" }}
+      />
+      {props.children}
     </>
   );
 }

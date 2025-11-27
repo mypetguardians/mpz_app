@@ -1,6 +1,10 @@
 import { CapacitorConfig } from "@capacitor/cli";
 
-const serverUrl = process.env.CAPACITOR_SERVER_URL ?? "https://mpz.kr";
+const defaultServerUrl =
+  process.env.NODE_ENV === "development"
+    ? "http://10.0.2.2:3000"
+    : "https://mpz.kr";
+const serverUrl = process.env.CAPACITOR_SERVER_URL ?? defaultServerUrl;
 const serverUsesHttp = serverUrl.startsWith("http://");
 
 const config: CapacitorConfig = {

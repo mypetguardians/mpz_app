@@ -10,6 +10,7 @@ import { CenterCardSkeleton } from "@/components/ui/CenterCardSkeleton";
 import { useGetCenters } from "@/hooks/query";
 import type { Center } from "@/types/center";
 import { transformRawCenterToCenter } from "@/types/center";
+import { isRegionKeyword } from "@/lib/region-utils";
 
 interface CenterSearchSectionProps {
   onSearchStateChange: (isSearching: boolean) => void;
@@ -53,30 +54,10 @@ export function CenterSearchSection({
 
   // URL에서 region 파라미터 읽기
   const regionFromUrl = searchParams.get("region");
-  const regionList: string[] = [
-    "서울",
-    "부산",
-    "대구",
-    "인천",
-    "광주",
-    "대전",
-    "울산",
-    "세종",
-    "경기",
-    "강원",
-    "충북",
-    "충남",
-    "전북",
-    "전남",
-    "경북",
-    "경남",
-    "제주",
-  ];
-  // 입력값이 지역명인지 판별하여 OR 유사 동작: 지역이면 region, 아니면 name으로 검색
-  const normalized = searchValue.trim().toLowerCase();
-  const isRegionKeyword = regionList
-    .map((r) => r.toLowerCase())
-    .includes(normalized);
+  
+  // 입력값이 지역명인지 판별 (두 글자와 전체 이름 모두 체크)
+  const normalized = searchValue.trim();
+  const isRegionKeywordCheck = isRegionKeyword(normalized);
 
   const {
     data: searchData,
@@ -86,8 +67,8 @@ export function CenterSearchSection({
     hasNextPage: hasNextRegionPage,
     isFetchingNextPage: isFetchingNextRegionPage,
   } = useGetCenters({
-    region: isRegionKeyword ? searchValue.trim() : regionFromUrl || undefined,
-    name: !isRegionKeyword ? searchValue.trim() || undefined : undefined,
+    region: isRegionKeywordCheck ? searchValue.trim() : regionFromUrl || undefined,
+    name: !isRegionKeywordCheck ? searchValue.trim() || undefined : undefined,
   });
 
   // 검색 결과가 있는지 확인 - 텍스트 검색과 지역 검색 결과를 모두 고려

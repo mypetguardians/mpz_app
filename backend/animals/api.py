@@ -337,7 +337,10 @@ async def get_animals(
         if filters.breed:
             queryset = queryset.filter(breed__icontains=filters.breed)
         if filters.region:
-            queryset = queryset.filter(center__region=filters.region)
+            # 지역별 필터링 (두 글자와 전체 이름 모두 지원)
+            from centers.utils import get_region_search_variants
+            region_variants = get_region_search_variants(filters.region)
+            queryset = queryset.filter(center__region__in=region_variants)
         
         # 시/군 필터링
         if filters.city:

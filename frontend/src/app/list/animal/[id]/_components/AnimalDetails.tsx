@@ -23,8 +23,6 @@ export default function AnimalDetails({
   specialNotes,
   healthNotes = [],
 }: AnimalDetailsProps) {
-  console.log(noticeStartDate, noticeEndDate);
-
   return (
     <div className="bg-white rounded-lg mx-4">
       <table className="w-full text-sm">
@@ -54,29 +52,23 @@ export default function AnimalDetails({
             </>
           )}
           {isCenterSubscriber && (
-            <>
-              {specialNotes && (
-                <tr className="h-8">
-                  <td className="text-gr h5 py-1 pr-3 align-top w-24">
-                    특이사항
-                  </td>
-                  <td className="text-sm py-1">
-                    <div>{specialNotes}</div>
-                  </td>
-                </tr>
-              )}
-            </>
+            <tr className="h-8">
+              <td className="text-gr h5 py-1 pr-3 align-top w-24">특이사항</td>
+              <td className="text-sm py-1">
+                <div>{specialNotes ? specialNotes : "-"}</div>
+              </td>
+            </tr>
           )}
           <tr className="h-8">
             <td className="text-gr h5 py-1 pr-3 align-top w-24">성격</td>
             <td className="text-sm py-1">
-              <div>{description}</div>
+              <div>{description ? description : "-"}</div>
             </td>
           </tr>
           <tr className="h-8">
             <td className="text-gr h5 py-1 pr-3 align-top w-24">발견장소</td>
             <td className="text-sm py-1">
-              <div>{foundLocation}</div>
+              <div>{foundLocation ? foundLocation : "-"}</div>
             </td>
           </tr>
           <tr className="h-8 align-top">
@@ -91,7 +83,7 @@ export default function AnimalDetails({
                   ))}
                 </ul>
               ) : (
-                <div className="text-gray-700">내용이 없습니다.</div>
+                <div className="text-gray-700">-</div>
               )}
             </td>
           </tr>
@@ -99,7 +91,7 @@ export default function AnimalDetails({
             <tr className="h-8">
               <td className="text-gr h5 py-1 pr-3 align-top w-24">관할기관</td>
               <td className="text-sm py-1">
-                <div>{center}</div>
+                <div>{center ? center : "-"}</div>
               </td>
             </tr>
           )}

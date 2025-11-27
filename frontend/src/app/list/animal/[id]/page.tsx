@@ -514,7 +514,7 @@ export default function AnimalDetailPage({
             trainerComment={animal.trainer_comment || undefined}
           />
         )}
-
+        <div className="py-3" />
         <RelatedPosts
           currentPet={{
             ...animal,

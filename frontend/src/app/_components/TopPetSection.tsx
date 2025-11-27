@@ -8,7 +8,12 @@ import { RawAnimalResponse, transformRawAnimalToPetCard } from "@/types/animal";
 import { PetCardVariant } from "@/types/petcard";
 import { useGeolocation } from "@/hooks/useGeolocaiton";
 import { getLocationBasedRegion, isValidLocation } from "@/lib/location-utils";
-import { useEffect, useState } from "react";
+import {
+  getFullLocationName,
+  getShortLocationName,
+  isLocationMatch,
+} from "@/lib/region-utils";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 interface PetSectionProps {
@@ -51,16 +56,41 @@ export function TopPetSection({
     requestLocation,
   } = useGeolocation();
   const [userLocation, setUserLocation] = useState<string>("");
+  const hasAutoAppliedLocation = useRef(false);
+
+  // selectedLocation이 변경되면 자동 적용 플래그 업데이트
+  useEffect(() => {
+    if (selectedLocation) {
+      hasAutoAppliedLocation.current = true;
+    }
+  }, [selectedLocation]);
 
   useEffect(() => {
     if (latitude && longitude && isValidLocation(latitude, longitude)) {
       const region = getLocationBasedRegion(latitude, longitude);
       setUserLocation(region);
+
       if (selectedLocation === "내 주변") {
+        onLocationSelect?.(region);
+      } else if (
+        !selectedLocation &&
+        !locationLoading &&
+        !locationError &&
+        !hasAutoAppliedLocation.current
+      ) {
+        // 초기 로딩 시 위치 정보가 있고 선택된 지역이 없으면 자동으로 내 주변 필터 적용 (한 번만)
+        hasAutoAppliedLocation.current = true;
         onLocationSelect?.(region);
       }
     }
-  }, [latitude, longitude, selectedLocation, onLocationSelect]);
+  }, [
+    latitude,
+    longitude,
+    selectedLocation,
+    locationLoading,
+    locationError,
+    onLocationSelect,
+  ]);
 
   // "내 주변" 버튼 클릭 시 위치정보 요청
   const handleNearbyClick = () => {
@@ -185,39 +215,57 @@ export function TopPetSection({
             onClick={handleNearbyClick}
             disabled={locationLoading}
           />
-          {locations.map((loc) => (
-            <MiniButton
-              key={loc}
-              text={loc}
-              variant={selectedLocation === loc ? "filterOn" : "filterOff"}
-              onClick={() => {
-                if (selectedLocation === loc) {
-                  onLocationSelect?.("");
-                } else {
-                  onLocationSelect?.(loc);
-                }
-              }}
-            />
-          ))}
+          {locations.map((loc) => {
+            const displayName = getShortLocationName(loc);
+            const fullName = getFullLocationName(loc);
+            const isSelected = selectedLocation
+              ? isLocationMatch(selectedLocation, loc) ||
+                isLocationMatch(selectedLocation, fullName)
+              : false;
+
+            return (
+              <MiniButton
+                key={loc}
+                text={displayName}
+                variant={isSelected ? "filterOn" : "filterOff"}
+                onClick={() => {
+                  if (isSelected) {
+                    onLocationSelect?.("");
+                  } else {
+                    // 전체 이름으로 전달
+                    onLocationSelect?.(fullName);
+                  }
+                }}
+              />
+            );
+          })}
         </div>
       )}
 
       {/* 동물 카드 목록 */}
-      <div className="flex gap-3 overflow-x-auto scrollbar-hide flex-nowrap -mx-4 px-4">
-        {isLoading
-          ? // 스켈레톤 로딩 상태
-            [...Array(10)].map((_, index) => (
-              <PetCardSkeleton key={index} variant="primary" />
-            ))
-          : // 실제 데이터 표시
-            displayAnimals.map((animal) => (
-              <PetCard
-                key={animal.id}
-                pet={transformRawAnimalToPetCard(animal)}
-                variant="primary"
-              />
-            ))}
-      </div>
+      {isLoading ? (
+        <div className="flex gap-3 overflow-x-auto scrollbar-hide flex-nowrap -mx-4 px-4">
+          {[...Array(10)].map((_, index) => (
+            <PetCardSkeleton key={index} variant="primary" />
+          ))}
+        </div>
+      ) : displayAnimals.length > 0 ? (
+        <div className="flex gap-3 overflow-x-auto scrollbar-hide flex-nowrap -mx-4 px-4">
+          {displayAnimals.map((animal) => (
+            <PetCard
+              key={animal.id}
+              pet={transformRawAnimalToPetCard(animal)}
+              variant="primary"
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-sm text-gr">
+            해당 지역에 보호중인 동물이 없습니다.
+          </div>
+        </div>
+      )}
     </MainSection>
   );
 }

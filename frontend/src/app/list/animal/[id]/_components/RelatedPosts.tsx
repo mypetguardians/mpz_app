@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { CommunityCard } from "@/components/ui/CommunityCard";
-import { MiniButton } from "@/components/ui/MiniButton";
+import { MiniButton, NotificationToast } from "@/components/ui";
 import { useGetPublicPosts } from "@/hooks/query/useGetPublicPosts";
 import { useGetCenterPosts } from "@/hooks/query/useGetCenterPosts";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -30,7 +30,12 @@ const extractPosts = (
     return [];
   }
 
-  return data.data;
+  // ApiPostsResponse와 CenterPostsData 모두 data 속성을 가지고 있음
+  if ("data" in data && Array.isArray(data.data)) {
+    return data.data;
+  }
+
+  return [];
 };
 
 const extractNextPage = (
@@ -59,12 +64,17 @@ export default function RelatedPosts({
   title = "이 아이에 대해 더 알고싶다면",
 }: RelatedPostsProps) {
   const { isAuthenticated, user, isLoading: authLoading } = useAuth();
-  const PAGE_SIZE = 5;
+  const PAGE_SIZE = 3;
   const [page, setPage] = React.useState(1);
   const [accumulatedPosts, setAccumulatedPosts] = React.useState<
     Array<ApiPostResponse | Post>
   >([]);
   const [nextPage, setNextPage] = React.useState<number | null>(null);
+  const [toast, setToast] = React.useState<{
+    show: boolean;
+    message: string;
+    type: "success" | "error";
+  }>({ show: false, message: "", type: "error" });
 
   // 센터 사용자 체크
   const isCenterUser =
@@ -109,27 +119,40 @@ export default function RelatedPosts({
     setNextPage(null);
   }, [currentPet.id, isCenterUser]);
 
-  // 실제로 현재 동물과 연관된 게시물만 필터링
+  // API에서 이미 animalId로 필터링된 데이터를 받아오므로 그대로 사용
   const filteredPosts = React.useMemo(() => {
+    if (!postsData) {
+      return [];
+    }
+
     const relatedPosts = extractPosts(postsData);
 
-    return relatedPosts.filter(
-      (post) => post.animal_id === currentPet.id
-    ) as Array<ApiPostResponse | Post>;
-  }, [postsData, currentPet.id]);
+    if (!relatedPosts || relatedPosts.length === 0) {
+      return [];
+    }
+
+    // API에서 이미 animal_id로 필터링된 데이터이므로 그대로 사용
+    return relatedPosts as Array<ApiPostResponse | Post>;
+  }, [postsData]);
 
   React.useEffect(() => {
     if (!postsData) {
       return;
     }
 
-    setNextPage(extractNextPage(postsData));
+    const nextPageValue = extractNextPage(postsData);
+    setNextPage(nextPageValue);
+  }, [postsData]);
 
+  // filteredPosts가 변경될 때마다 accumulatedPosts 업데이트
+  React.useEffect(() => {
     setAccumulatedPosts((prev) => {
       if (page === 1) {
+        // 첫 페이지인 경우 filteredPosts로 완전히 교체
         return filteredPosts;
       }
 
+      // 이후 페이지인 경우 기존 게시물에 추가
       const mergedPosts = [...prev];
       const existingIds = new Set(prev.map((post) => post.id));
 
@@ -141,7 +164,7 @@ export default function RelatedPosts({
 
       return mergedPosts;
     });
-  }, [filteredPosts, page, postsData]);
+  }, [filteredPosts, page]);
 
   const displayPosts = accumulatedPosts;
   const hasMore = nextPage !== null;
@@ -165,6 +188,17 @@ export default function RelatedPosts({
     setPage(nextPage);
   }, [hasMore, isFetchingNext, nextPage, page, refetch]);
 
+  // 에러 발생 시 토스트 표시
+  React.useEffect(() => {
+    if (error) {
+      setToast({
+        show: true,
+        message: "게시물을 불러오는데 실패했습니다. 다시 시도해 주세요.",
+        type: "error",
+      });
+    }
+  }, [error]);
+
   if (isInitialLoading) {
     return (
       <div className="mx-4 my-3">
@@ -176,12 +210,21 @@ export default function RelatedPosts({
 
   if (error && displayPosts.length === 0) {
     return (
-      <div className="mx-4 my-3">
-        <h2 className="text-bk mb-4">{title}</h2>
-        <div className="text-center py-4 text-red-500">
-          게시물을 불러오는데 실패했습니다
+      <>
+        <div className="mx-4 my-3">
+          <h2 className="text-bk mb-4">{title}</h2>
+          <div className="text-center py-4 text-red-500">
+            게시물을 불러오는데 실패했습니다
+          </div>
         </div>
-      </div>
+        {toast.show && (
+          <NotificationToast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast({ ...toast, show: false })}
+          />
+        )}
+      </>
     );
   }
 
@@ -209,18 +252,22 @@ export default function RelatedPosts({
           </div>
         )}
       </div>
-      {Boolean(error) && displayPosts.length > 0 && (
-        <div className="text-center text-sm text-red-500">
-          게시물을 불러오는데 실패했습니다. 다시 시도해 주세요.
-        </div>
-      )}
-      {displayPosts.length >= 4 && hasMore && (
+      {displayPosts.length >= 3 && hasMore && (
         <MiniButton
           text={isFetchingNext ? "불러오는 중..." : "더보기"}
           variant="filterOff"
           className="py-4 w-full"
           disabled={isFetchingNext}
           onClick={handleLoadMore}
+        />
+      )}
+
+      {/* Toast 알림 */}
+      {toast.show && (
+        <NotificationToast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast({ ...toast, show: false })}
         />
       )}
     </div>

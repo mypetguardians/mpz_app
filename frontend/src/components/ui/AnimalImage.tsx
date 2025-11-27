@@ -23,7 +23,7 @@ export default function AnimalImage({
   alt,
   containerClassName,
   imageClassName,
-  emptyText = "이미지 없음",
+  emptyText = "이미지 로딩 실패",
   onLoad,
   onError,
   ...imageProps
@@ -42,7 +42,7 @@ export default function AnimalImage({
           containerClassName
         )}
       >
-        <span className="text-sm">{emptyText}</span>
+        <span className="text-xs">{emptyText}</span>
       </div>
     );
   }

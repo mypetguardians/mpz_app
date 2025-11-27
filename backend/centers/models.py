@@ -14,6 +14,7 @@ class Center(BaseModel):
     ]
     
     REGION_CHOICES = [
+        # 두 글자 형식 (기존 호환성)
         ('서울', '서울'),
         ('부산', '부산'),
         ('대구', '대구'),
@@ -31,6 +32,27 @@ class Center(BaseModel):
         ('경북', '경북'),
         ('경남', '경남'),
         ('제주', '제주'),
+        # 전체 이름 형식 (공공데이터 호환)
+        ('서울특별시', '서울특별시'),
+        ('부산광역시', '부산광역시'),
+        ('대구광역시', '대구광역시'),
+        ('인천광역시', '인천광역시'),
+        ('광주광역시', '광주광역시'),
+        ('대전광역시', '대전광역시'),
+        ('울산광역시', '울산광역시'),
+        ('세종특별자치시', '세종특별자치시'),
+        ('세종특별시', '세종특별시'),
+        ('경기도', '경기도'),
+        ('강원도', '강원도'),
+        ('강원특별자치도', '강원특별자치도'),
+        ('충청북도', '충청북도'),
+        ('충청남도', '충청남도'),
+        ('전라북도', '전라북도'),
+        ('전북특별자치도', '전북특별자치도'),
+        ('전라남도', '전라남도'),
+        ('경상북도', '경상북도'),
+        ('경상남도', '경상남도'),
+        ('제주특별자치도', '제주특별자치도'),
     ]
     
     # 센터 소유자/대표자 (1:1 관계 - 센터 최고관리자)
@@ -39,7 +61,7 @@ class Center(BaseModel):
     center_number = models.CharField(max_length=20, blank=True, null=True, help_text="보호소 번호")
     description = models.TextField(blank=True, null=True, help_text="센터 설명")
     location = models.CharField(max_length=200, blank=True, null=True, help_text="위치")
-    region = models.CharField(max_length=10, choices=REGION_CHOICES, blank=True, null=True, help_text="지역")
+    region = models.CharField(max_length=20, choices=REGION_CHOICES, blank=True, null=True, help_text="지역")
     phone_number = models.CharField(max_length=20, blank=True, null=True, help_text="전화번호")
     adoption_procedure = models.TextField(blank=True, null=True, help_text="입양 절차")
     adoption_guidelines = models.TextField(blank=True, null=True, help_text="입양 유의사항")

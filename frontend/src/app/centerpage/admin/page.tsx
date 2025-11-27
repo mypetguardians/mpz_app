@@ -6,6 +6,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { MiniButton } from "@/components/ui/MiniButton";
 import { Container } from "@/components/common/Container";
 import { NotificationToast } from "@/components/ui/NotificationToast";
+import { BottomSheet } from "@/components/ui/BottomSheet";
 import { useGetCenterAdmins } from "@/hooks/query/useGetCenterAdmins";
 import { useDeleteCenterAdmin } from "@/hooks/mutation/useDeleteCenterAdmin";
 import { useRouter } from "next/navigation";
@@ -25,6 +26,8 @@ export default function AdminPage() {
     message: "",
     type: "success",
   });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   const handleBack = () => {
     window.history.back();
@@ -34,23 +37,37 @@ export default function AdminPage() {
     router.push("/centerpage/admin/create");
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm("정말로 이 관리자를 삭제하시겠습니까?")) {
-      try {
-        await deleteCenterAdminMutation.mutateAsync(id);
-        setToast({
-          show: true,
-          message: "관리자가 성공적으로 삭제되었습니다.",
-          type: "success",
-        });
-      } catch (error) {
-        console.error("관리자 삭제 실패:", error);
-        setToast({
-          show: true,
-          message: "관리자 삭제에 실패했습니다.",
-          type: "error",
-        });
-      }
+  const handleDeleteClick = (id: string) => {
+    setDeleteTargetId(id);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
+    setDeleteTargetId(null);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTargetId) return;
+
+    try {
+      await deleteCenterAdminMutation.mutateAsync(deleteTargetId);
+      setShowDeleteModal(false);
+      setDeleteTargetId(null);
+      setToast({
+        show: true,
+        message: "관리자가 성공적으로 삭제되었습니다.",
+        type: "success",
+      });
+    } catch (error) {
+      console.error("관리자 삭제 실패:", error);
+      setShowDeleteModal(false);
+      setDeleteTargetId(null);
+      setToast({
+        show: true,
+        message: "관리자 삭제에 실패했습니다.",
+        type: "error",
+      });
     }
   };
 
@@ -148,7 +165,7 @@ export default function AdminPage() {
                 <IconButton
                   icon={Trash}
                   size="iconS"
-                  onClick={() => handleDelete(admin.id)}
+                  onClick={() => handleDeleteClick(admin.id)}
                   label="삭제"
                   className="mt-1"
                   disabled={deleteCenterAdminMutation.isPending}
@@ -158,6 +175,19 @@ export default function AdminPage() {
           )}
         </div>
       </div>
+
+      {/* 삭제 확인 바텀시트 */}
+      <BottomSheet
+        open={showDeleteModal}
+        onClose={handleDeleteCancel}
+        variant="primary"
+        title="정말로 이 관리자를 삭제하시겠습니까?"
+        description="삭제된 관리자는 되돌릴 수 없어요."
+        leftButtonText="아니요"
+        rightButtonText="네, 삭제할래요"
+        onLeftClick={handleDeleteCancel}
+        onRightClick={handleDeleteConfirm}
+      />
 
       {/* Toast 컴포넌트 */}
       {toast.show && (

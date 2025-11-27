@@ -6,6 +6,7 @@ from asgiref.sync import sync_to_async
 from typing import List, Optional
 from datetime import datetime
 from .models import Center, AdoptionContractTemplate, AdoptionConsent, QuestionForm
+from .utils import get_region_search_variants
 from .schemas.inbound import CenterListQueryIn
 from .schemas.outbound import (
     CenterOut, CenterListItemOut, SuccessOut, ErrorOut,
@@ -36,7 +37,9 @@ async def get_centers(
         
         # 필터 적용
         if filters.region:
-            queryset = queryset.filter(region=filters.region)
+            # 지역별 필터링 (두 글자와 전체 이름 모두 지원)
+            region_variants = get_region_search_variants(filters.region)
+            queryset = queryset.filter(region__in=region_variants)
         
         if filters.verified is not None:
             queryset = queryset.filter(verified=filters.verified)

@@ -9,6 +9,7 @@ import { Container } from "@/components/common/Container";
 import { BigButton } from "@/components/ui/BigButton";
 import { CustomInput } from "@/components/ui/CustomInput";
 import { IconButton } from "@/components/ui/IconButton";
+import { NotificationToast } from "@/components/ui/NotificationToast";
 import { useCreateCenterAdmin } from "@/hooks/mutation/useCreateCenterAdmin";
 
 export default function CreateCenterAdminPage() {
@@ -19,32 +20,57 @@ export default function CreateCenterAdminPage() {
   const [nickname, setNickname] = useState("");
   const [phone_number, setPhoneNumber] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [toast, setToast] = useState<{
+    show: boolean;
+    message: string;
+    type: "success" | "error";
+  }>({ show: false, message: "", type: "success" });
 
   const createCenterAdmin = useCreateCenterAdmin();
 
   const handleSave = async () => {
     if (!username.trim() || !password.trim() || !nickname.trim()) {
-      alert("필수 필드를 입력해주세요.");
+      setToast({
+        show: true,
+        message: "필수 필드를 입력해주세요.",
+        type: "error",
+      });
       return;
     }
 
     if (username.length < 3 || username.length > 30) {
-      alert("아이디는 3-30자 사이여야 합니다.");
+      setToast({
+        show: true,
+        message: "아이디는 3-30자 사이여야 합니다.",
+        type: "error",
+      });
       return;
     }
 
     if (password.length < 8) {
-      alert("비밀번호는 최소 8자 이상이어야 합니다.");
+      setToast({
+        show: true,
+        message: "비밀번호는 최소 8자 이상이어야 합니다.",
+        type: "error",
+      });
       return;
     }
 
     if (nickname.length < 1 || nickname.length > 50) {
-      alert("닉네임은 1-50자 사이여야 합니다.");
+      setToast({
+        show: true,
+        message: "닉네임은 1-50자 사이여야 합니다.",
+        type: "error",
+      });
       return;
     }
 
     if (phone_number.length > 20) {
-      alert("전화번호는 20자 이하여야 합니다.");
+      setToast({
+        show: true,
+        message: "전화번호는 20자 이하여야 합니다.",
+        type: "error",
+      });
       return;
     }
 
@@ -64,15 +90,23 @@ export default function CreateCenterAdminPage() {
 
       await createCenterAdmin.mutateAsync(payload);
 
-      alert("센터 관리자가 성공적으로 생성되었습니다.");
-      router.push("/centerpage/admin");
+      setToast({
+        show: true,
+        message: "센터 관리자가 성공적으로 생성되었습니다.",
+        type: "success",
+      });
+
+      // 성공 메시지를 보여준 후 페이지 이동
+      setTimeout(() => {
+        router.push("/centerpage/admin");
+      }, 1500);
     } catch (error) {
       console.error("센터 관리자 생성 실패:", error);
-      alert(
-        error instanceof Error
-          ? error.message
-          : "센터 관리자 생성에 실패했습니다."
-      );
+      setToast({
+        show: true,
+        message: "센터 관리자 생성에 실패했습니다.",
+        type: "error",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -136,7 +170,7 @@ export default function CreateCenterAdminPage() {
               label="닉네임"
               placeholder="닉네임을 입력해주세요. (1-50자)"
               value={nickname}
-              required={false}
+              required={true}
               onChange={(e) => setNickname(e.target.value)}
             />
 
@@ -165,6 +199,15 @@ export default function CreateCenterAdminPage() {
           </BigButton>
         </div>
       </div>
+
+      {/* Toast 알림 */}
+      {toast.show && (
+        <NotificationToast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast({ ...toast, show: false })}
+        />
+      )}
     </>
   );
 }

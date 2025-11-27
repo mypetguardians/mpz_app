@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+from urllib.parse import urlparse
 from decouple import config
 from pathlib import Path
 import sys
@@ -60,7 +61,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # third party
     "corsheaders",
-    "channels",  # Django Channels 추가
+    "channels",
     # local apps
     "common",
     "user",
@@ -99,8 +100,16 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = []
 ENV_CORS_ALLOWED_ORIGINS = config("CORS_ALLOWED_ORIGINS", cast=str, default="")
 for origin in ENV_CORS_ALLOWED_ORIGINS.split(","):
-    if origin.strip():  # 빈 문자열 체크
-        CORS_ALLOWED_ORIGINS.append(origin.strip().lower())
+    raw_origin = origin.strip()
+    if not raw_origin:
+        continue
+    parsed = urlparse(raw_origin.lower())
+    if parsed.scheme and parsed.netloc:
+        normalized_origin = f"{parsed.scheme}://{parsed.netloc}"
+    else:
+        normalized_origin = raw_origin
+    if normalized_origin not in CORS_ALLOWED_ORIGINS:
+        CORS_ALLOWED_ORIGINS.append(normalized_origin)
 
 # cors & csrf
 SESSION_COOKIE_SECURE = True

@@ -14725,3 +14725,20 @@ INFO 2025-11-27 17:13:44,585 basehttp 66709 6256832512 "GET /static/admin/img/ic
 INFO 2025-11-27 17:13:44,586 basehttp 66709 6240006144 "GET /static/admin/img/icon-changelink.svg HTTP/1.1" 200 380
 WARNING 2025-11-27 17:13:44,600 log 66709 6273658880 Not Found: /.well-known/appspecific/com.chrome.devtools.json
 WARNING 2025-11-27 17:13:44,601 basehttp 66709 6273658880 "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 31402
+INFO 2025-11-28 03:50:36,488 basehttp 94790 6173306880 "GET / HTTP/1.1" 200 16
+WARNING 2025-11-28 03:50:37,800 log 94790 6173306880 Not Found: /favicon.ico/
+WARNING 2025-11-28 03:50:37,800 basehttp 94790 6173306880 "GET /favicon.ico/ HTTP/1.1" 404 2632
+INFO 2025-11-28 03:50:39,796 basehttp 94790 6173306880 "GET /admin/ HTTP/1.1" 200 29132
+INFO 2025-11-28 03:50:39,836 basehttp 94790 6190133248 "GET /static/admin/css/dark_mode.css HTTP/1.1" 304 0
+INFO 2025-11-28 03:50:39,837 basehttp 94790 6173306880 "GET /static/admin/css/base.css HTTP/1.1" 304 0
+INFO 2025-11-28 03:50:39,841 basehttp 94790 6206959616 "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 304 0
+INFO 2025-11-28 03:50:39,845 basehttp 94790 6223785984 "GET /static/admin/css/responsive.css HTTP/1.1" 304 0
+INFO 2025-11-28 03:50:39,852 basehttp 94790 6206959616 "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 304 0
+INFO 2025-11-28 03:50:39,854 basehttp 94790 6240612352 "GET /static/admin/css/dashboard.css HTTP/1.1" 304 0
+INFO 2025-11-28 03:50:39,857 basehttp 94790 6257438720 "GET /static/admin/js/theme.js HTTP/1.1" 304 0
+INFO 2025-11-28 03:50:39,861 basehttp 94790 6257438720 "GET /static/admin/img/icon-addlink.svg HTTP/1.1" 304 0
+INFO 2025-11-28 03:50:39,861 basehttp 94790 6240612352 "GET /static/admin/img/icon-changelink.svg HTTP/1.1" 304 0
+INFO 2025-11-28 03:50:39,861 basehttp 94790 6206959616 "GET /static/admin/img/icon-viewlink.svg HTTP/1.1" 304 0
+INFO 2025-11-28 03:50:43,966 basehttp 94790 6206959616 "GET /docs HTTP/1.1" 301 0
+INFO 2025-11-28 03:50:44,948 basehttp 94790 6240612352 "GET /docs/ HTTP/1.1" 200 810
+INFO 2025-11-28 03:50:46,545 basehttp 94790 6240612352 "GET /openapi.json HTTP/1.1" 200 300461

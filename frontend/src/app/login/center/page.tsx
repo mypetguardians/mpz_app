@@ -116,7 +116,7 @@ function CenterLogInInner() {
   };
 
   return (
-    <Container className="min-h-screen flex flex-col justify-between px-4">
+    <Container className="min-h-screen flex flex-col justify-between px-4 py-12">
       <div className="flex flex-col gap-1 items-center mt-[90px]">
         <div className="w-[167px] h-[89px] flex items-center justify-center">
           <Link href="/">
@@ -211,7 +211,7 @@ function CenterLogInInner() {
           {toastMessage}
         </Toast>
       )}
-      </Container>
+    </Container>
   );
 }
 

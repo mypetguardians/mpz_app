@@ -84,7 +84,7 @@ def _build_image_response(image):
     },
 )
 @paginate
-async def get_all_public_posts(request: HttpRequest, user_id: str = Query(None), tags: list[str] = Query(None), is_all_access: bool = Query(None), sort_by: str = Query("latest")):
+async def get_all_public_posts(request: HttpRequest, user_id: str = Query(None), tags: list[str] = Query(None), is_all_access: bool = Query(None), sort_by: str = Query("latest"), animal_id: str = Query(None)):
     """전체 공개 게시글 목록을 조회합니다."""
     try:
         @sync_to_async
@@ -94,6 +94,10 @@ async def get_all_public_posts(request: HttpRequest, user_id: str = Query(None),
             # 필터링 적용
             if user_id:
                 posts_query = posts_query.filter(user_id=user_id)
+            
+            # animal_id 필터링 적용
+            if animal_id:
+                posts_query = posts_query.filter(animal_id=animal_id)
             
             # 시스템 태그 필터링 적용 - PostTag 모델 기반
             if tags:
@@ -356,7 +360,7 @@ async def get_all_public_post_detail(request: HttpRequest, post_id: str):
     auth=jwt_auth,
 )
 @paginate
-async def get_center_posts(request: HttpRequest, user_id: str = Query(None), tags: list[str] = Query(None), is_all_access: bool = Query(None), sort_by: str = Query("latest")):
+async def get_center_posts(request: HttpRequest, user_id: str = Query(None), tags: list[str] = Query(None), is_all_access: bool = Query(None), sort_by: str = Query("latest"), animal_id: str = Query(None)):
     """센터 권한자, 입양 완료 이력이 있는 사용자, 본인 게시글 목록을 조회합니다."""
     try:
         current_user = request.auth
@@ -388,6 +392,10 @@ async def get_center_posts(request: HttpRequest, user_id: str = Query(None), tag
             # 필터링 적용
             if user_id:
                 posts_query = posts_query.filter(user_id=user_id)
+            
+            # animal_id 필터링 적용
+            if animal_id:
+                posts_query = posts_query.filter(animal_id=animal_id)
             
             # is_all_access 필터 적용
             if is_all_access is not None:

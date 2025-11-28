@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ArrowLeft } from "@phosphor-icons/react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -25,6 +25,7 @@ import type { Consent } from "@/types";
 
 export default function CenterProcess() {
   const router = useRouter();
+  const pathname = usePathname();
   const queryClient = useQueryClient();
   const [isMonitoring, setIsMonitoring] = useState("");
   const [period, setPeriod] = useState("");
@@ -32,6 +33,7 @@ export default function CenterProcess() {
   const [adoptionGuidelines, setAdoptionGuidelines] = useState("");
   const [monitoringDescription, setMonitoringDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const prevPathnameRef = useRef<string | null>(null);
 
   // 토스트 상태
   const [toast, setToast] = useState<{
@@ -80,6 +82,40 @@ export default function CenterProcess() {
 
   // 전체 로딩 상태 (설정 로딩 또는 저장 중)
   const isOverallLoading = isLoadingSettings || isLoading;
+
+  // 페이지가 보일 때(다른 페이지에서 돌아왔을 때) 쿼리 무효화
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      // 페이지가 보일 때만 쿼리 무효화
+      if (document.visibilityState === "visible") {
+        queryClient.invalidateQueries({
+          queryKey: ["center-procedure-settings"],
+        });
+        queryClient.invalidateQueries({ queryKey: ["consents"] });
+        queryClient.invalidateQueries({ queryKey: ["question-forms"] });
+      }
+    };
+
+    // 경로가 변경되었을 때도 쿼리 무효화 (다른 페이지에서 돌아왔을 때)
+    if (
+      pathname === "/centerpage/process" &&
+      prevPathnameRef.current !== pathname
+    ) {
+      queryClient.invalidateQueries({
+        queryKey: ["center-procedure-settings"],
+      });
+      queryClient.invalidateQueries({ queryKey: ["consents"] });
+      queryClient.invalidateQueries({ queryKey: ["question-forms"] });
+    }
+    prevPathnameRef.current = pathname;
+
+    // visibilitychange 이벤트 리스너 추가
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [pathname, queryClient]);
 
   // 기존 설정이 있으면 폼에 로드
   useEffect(() => {

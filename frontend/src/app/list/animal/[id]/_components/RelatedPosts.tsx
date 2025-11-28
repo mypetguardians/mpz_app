@@ -119,7 +119,6 @@ export default function RelatedPosts({
     setNextPage(null);
   }, [currentPet.id, isCenterUser]);
 
-  // API에서 이미 animalId로 필터링된 데이터를 받아오므로 그대로 사용
   const filteredPosts = React.useMemo(() => {
     if (!postsData) {
       return [];
@@ -131,9 +130,14 @@ export default function RelatedPosts({
       return [];
     }
 
-    // API에서 이미 animal_id로 필터링된 데이터이므로 그대로 사용
-    return relatedPosts as Array<ApiPostResponse | Post>;
-  }, [postsData]);
+    // animal_id가 일치하는 게시물만 필터링 (null이 아닌 경우만)
+    const filtered = relatedPosts.filter((post) => {
+      const postAnimalId = (post as ApiPostResponse | Post).animal_id;
+      return postAnimalId !== null && postAnimalId === currentPet.id;
+    });
+
+    return filtered as Array<ApiPostResponse | Post>;
+  }, [postsData, currentPet.id]);
 
   React.useEffect(() => {
     if (!postsData) {

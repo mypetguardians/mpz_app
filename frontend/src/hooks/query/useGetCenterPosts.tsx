@@ -17,6 +17,10 @@ const getCenterPosts = async (
       if (value !== undefined) {
         if (key === "tags" && Array.isArray(value)) {
           value.forEach((tag) => searchParams.append("tags", tag));
+        } else if (key === "animalId") {
+          searchParams.append("animal_id", value.toString());
+        } else if (key === "adoptionId") {
+          searchParams.append("adoption_id", value.toString());
         } else {
           searchParams.append(key, value.toString());
         }

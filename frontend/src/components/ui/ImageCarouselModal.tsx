@@ -185,7 +185,7 @@ export function ImageCarouselModal({
               <div
                 key={image + index}
                 className="relative flex-[0_0_100%] w-full aspect-auto touch-pan-x"
-                style={{ touchAction: "pan-x pinch-zoom", minHeight: "280px" }}
+                style={{ touchAction: "pan-x pinch-zoom", minHeight: "320px" }}
               >
                 {!imageLoaded[index] && (
                   <div className="absolute inset-0 flex items-center justify-center bg-white/5">

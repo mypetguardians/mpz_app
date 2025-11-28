@@ -37,6 +37,10 @@ export function useCreateContractTemplate() {
       queryClient.invalidateQueries({
         queryKey: ["contract-templates"],
       });
+      // 센터 프로시저 설정도 무효화 (계약서 템플릿이 포함되어 있음)
+      queryClient.invalidateQueries({
+        queryKey: ["center-procedure-settings"],
+      });
     },
   });
 }

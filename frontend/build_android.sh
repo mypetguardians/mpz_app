@@ -6,21 +6,21 @@ echo "🚀 Android 패키징 시작 (Capacitor + Next.js)..."
 FRONTEND_DIR="/Users/jhy20/mpz_fullstack/frontend"
 ANDROID_DIR="$FRONTEND_DIR/android"
 APK_DEBUG_PATH="$ANDROID_DIR/app/build/outputs/apk/debug/app-debug.apk"
-AAB_RELEASE_PATH="$ANDROID_DIR/app/build/outputs/bundle/release/app-release.aab"
+# AAB_RELEASE_PATH="$ANDROID_DIR/app/build/outputs/bundle/release/app-release.aab"
 
 cd "$FRONTEND_DIR"
 
-echo "📦 의존성 설치 (npm ci 우선, 실패 시 npm install)"
-if command -v npm >/dev/null 2>&1; then
-	if npm ci >/dev/null 2>&1; then
-		echo "✅ npm ci 완료"
-	else
-		echo "⚠️ npm ci 실패, npm install 시도"
+# 의존성 설치 (node_modules가 없을 때만)
+if [ ! -d "node_modules" ]; then
+	echo "📦 의존성 설치 (node_modules 없음)"
+	if command -v npm >/dev/null 2>&1; then
 		npm install
+	else
+		echo "❌ npm 을 찾을 수 없습니다. Node.js/npm 설치 후 다시 시도하세요."
+		exit 1
 	fi
 else
-	echo "❌ npm 을 찾을 수 없습니다. Node.js/npm 설치 후 다시 시도하세요."
-	exit 1
+	echo "⏭️  의존성 설치 스킵 (node_modules 존재)"
 fi
 
 echo "🧱 Next.js 프로덕션 빌드 (next build)"
@@ -103,18 +103,18 @@ else
 	exit 1
 fi
 
-echo ""
-echo "🔐 릴리스 번들(AAB) 빌드 시도 (서명 설정 필요할 수 있음)"
-echo "   - 릴리스 서명 설정 전: ./gradlew bundleRelease 실행 시 실패할 수 있습니다."
-echo "   - 서명 키 설정 방법: android/app/keystore 및 signingConfigs 설정 필요"
-./gradlew bundleRelease || true
-
-if [ -f "$AAB_RELEASE_PATH" ]; then
-	echo "✅ 릴리스 AAB 빌드 성공: $AAB_RELEASE_PATH"
-	du -h "$AAB_RELEASE_PATH" | awk '{print "📊 파일 크기:", $1}'
-else
-	echo "ℹ️ 릴리스 AAB를 찾을 수 없습니다. 서명 설정 후 다시 시도하세요."
-fi
+# echo ""
+# echo "🔐 릴리스 번들(AAB) 빌드 시도 (서명 설정 필요할 수 있음)"
+# echo "   - 릴리스 서명 설정 전: ./gradlew bundleRelease 실행 시 실패할 수 있습니다."
+# echo "   - 서명 키 설정 방법: android/app/keystore 및 signingConfigs 설정 필요"
+# ./gradlew bundleRelease || true
+#
+# if [ -f "$AAB_RELEASE_PATH" ]; then
+# 	echo "✅ 릴리스 AAB 빌드 성공: $AAB_RELEASE_PATH"
+# 	du -h "$AAB_RELEASE_PATH" | awk '{print "📊 파일 크기:", $1}'
+# else
+# 	echo "ℹ️ 릴리스 AAB를 찾을 수 없습니다. 서명 설정 후 다시 시도하세요."
+# fi
 
 echo ""
 echo "📲 기기 설치 안내 (디버그 APK):"

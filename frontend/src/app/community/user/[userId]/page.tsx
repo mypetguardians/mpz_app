@@ -3,11 +3,15 @@
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import { ArrowLeft, ShareNetwork, User } from "@phosphor-icons/react";
+import { useEffect, useState, useRef } from "react";
 
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
 import { CommunityCard } from "@/components/ui/CommunityCard";
 import { IconButton } from "@/components/ui/IconButton";
+import { CustomModal } from "@/components/ui/CustomModal";
+import { Toast } from "@/components/ui/Toast";
+import { useKakaoSDK } from "@/hooks/useKakaoSDK";
 
 import type { Post } from "@/types/posts";
 import { useGetPublicPosts } from "@/hooks";
@@ -15,15 +19,145 @@ import { useGetPublicPosts } from "@/hooks";
 export default function UserProfilePage() {
   const params = useParams();
   const userId = params.userId as string;
+  const { isLoaded, isInitialized } = useKakaoSDK();
+  const [page, setPage] = useState(1);
+  const [accumulatedPosts, setAccumulatedPosts] = useState<Post[]>([]);
+  const [nextPage, setNextPage] = useState<number | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const observerTarget = useRef<HTMLDivElement>(null);
 
   const {
     data: postsData,
     isLoading: isPostsLoading,
+    isFetching,
     error: postsError,
-  } = useGetPublicPosts({ user_id: userId });
+  } = useGetPublicPosts({
+    user_id: userId,
+    page,
+    page_size: 10,
+  });
 
-  // 로딩 상태 처리
-  if (isPostsLoading) {
+  // 페이지 변경 시 데이터 누적
+  useEffect(() => {
+    if (!postsData) return;
+
+    const newPosts = postsData.data || [];
+    const hasNextPage = postsData.nextPage !== null && postsData.nextPage > 0;
+
+    setNextPage(hasNextPage ? postsData.nextPage : null);
+
+    setAccumulatedPosts((prev) => {
+      if (page === 1) {
+        return newPosts as Post[];
+      }
+
+      const existingIds = new Set(prev.map((post) => post.id));
+      const uniqueNewPosts = newPosts.filter(
+        (post) => !existingIds.has(post.id)
+      ) as Post[];
+
+      return [...prev, ...uniqueNewPosts];
+    });
+  }, [postsData, page]);
+
+  // userId 변경 시 초기화
+  useEffect(() => {
+    setPage(1);
+    setAccumulatedPosts([]);
+    setNextPage(null);
+  }, [userId]);
+
+  // 무한 스크롤 감지
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          nextPage !== null &&
+          !isFetching &&
+          !isPostsLoading
+        ) {
+          setPage(nextPage);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentTarget = observerTarget.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
+    };
+  }, [nextPage, isFetching, isPostsLoading]);
+
+  // 공유 관련 함수들
+  const handleKakaoShare = () => {
+    if (!isLoaded || !isInitialized) {
+      setShowToast(true);
+      setToastMessage(
+        "카카오톡을 사용할 수 없습니다. 잠시 후 다시 시도해주세요."
+      );
+      setShowShareModal(false);
+      return;
+    }
+
+    if (
+      typeof window !== "undefined" &&
+      window.Kakao &&
+      window.Kakao.Share &&
+      window.Kakao.Share.sendScrap
+    ) {
+      try {
+        const userProfileUrl = window.location.href;
+        window.Kakao.Share.sendScrap({ requestUrl: userProfileUrl });
+        setShowShareModal(false);
+      } catch (error) {
+        console.error("카카오톡 공유 실패:", error);
+        setShowToast(true);
+        setToastMessage("카카오톡 공유에 실패했습니다.");
+        setShowShareModal(false);
+      }
+    } else {
+      setShowToast(true);
+      setToastMessage("카카오톡과 연결되어 있지 않습니다.");
+      setShowShareModal(false);
+    }
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setShowToast(true);
+      setToastMessage("링크가 복사되었습니다!");
+      setShowShareModal(false);
+    } catch (error) {
+      console.error("링크 복사 실패:", error);
+      setShowToast(true);
+      setToastMessage("링크 복사에 실패했습니다.");
+    }
+  };
+
+  // 토스트 자동 숨김
+  useEffect(() => {
+    if (showToast) {
+      const timer = setTimeout(() => {
+        setShowToast(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showToast]);
+
+  // 초기 로딩 상태 처리
+  const isInitialLoading = isPostsLoading && accumulatedPosts.length === 0;
+
+  if (isInitialLoading) {
     return (
       <Container className="min-h-screen bg-white">
         <TopBar
@@ -70,13 +204,12 @@ export default function UserProfilePage() {
     );
   }
 
-  const userPosts = postsData?.data || [];
+  const userPosts = accumulatedPosts;
 
   return (
     <Container className="min-h-screen bg-white">
       <TopBar
         variant="variant5"
-        className="border-b border-lg"
         left={
           <div className="flex items-center gap-2">
             <IconButton
@@ -98,6 +231,7 @@ export default function UserProfilePage() {
           <IconButton
             icon={({ size }) => <ShareNetwork size={size} weight="bold" />}
             size="iconM"
+            onClick={() => setShowShareModal(true)}
           />
         }
       />
@@ -106,16 +240,18 @@ export default function UserProfilePage() {
         {userPosts.length > 0 ? (
           <div className="flex flex-col items-center gap-2 mx-auto pb-6 border-b border-bg">
             {userPosts[0].user_image && userPosts[0].user_image !== "" ? (
-              <Image
-                src={userPosts[0].user_image}
-                alt={userPosts[0].user_nickname}
-                fill
-                className="object-cover rounded-full w-16 h-16"
-                unoptimized
-                onError={(e) => {
-                  console.error("ProfileInfo Image load error:", e);
-                }}
-              />
+              <div className="relative w-16 h-16 rounded-full overflow-hidden">
+                <Image
+                  src={userPosts[0].user_image}
+                  alt={userPosts[0].user_nickname}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                  onError={(e) => {
+                    console.error("ProfileInfo Image load error:", e);
+                  }}
+                />
+              </div>
             ) : (
               <div
                 className={`w-16 h-16 bg-lg flex items-center justify-center p-1 rounded-full`}
@@ -131,13 +267,13 @@ export default function UserProfilePage() {
           </div>
         ) : (
           <div className="flex flex-col items-center gap-3 mx-auto pb-6 border-b border-bg">
-            <div className="relative w-[54px] h-[54px] rounded-full overflow-hidden">
-              {userPosts[0].user_image && userPosts[0].user_image !== "" ? (
+            <div className="relative w-16 h-16 rounded-full overflow-hidden">
+              {userPosts[0]?.user_image && userPosts[0].user_image !== "" ? (
                 <Image
                   src={userPosts[0].user_image}
-                  alt={userPosts[0].user_nickname}
+                  alt={userPosts[0].user_nickname || "사용자"}
                   fill
-                  className="object-cover rounded-full w-16 h-16"
+                  className="object-cover"
                   unoptimized
                   onError={(e) => {
                     console.error("ProfileInfo Image load error:", e);
@@ -145,7 +281,7 @@ export default function UserProfilePage() {
                 />
               ) : (
                 <div
-                  className={`w-16 h-16 bg-lg flex items-center justify-center p-1 rounded-full`}
+                  className={`w-full h-full bg-lg flex items-center justify-center rounded-full`}
                 >
                   <User size={40} weight="regular" className="text-gr" />
                 </div>
@@ -159,13 +295,11 @@ export default function UserProfilePage() {
 
         <div>
           {userPosts.length === 0 ? (
-            <div className="flex flex-col min-h-screen items-center justify-center">
-              <div className="py-4.5 rounded-lg bg-bg w-full">
-                <h5 className="text-gr text-center">
-                  아직 업로드된 게시글이 없어요.
-                  <br />첫 번째 게시글을 작성해보세요!
-                </h5>
-              </div>
+            <div className="flex flex-col pt-12 items-center justify-center">
+              <h5 className="text-gr text-center">
+                아직 업로드된 게시글이 없어요.
+                <br />첫 번째 게시글을 작성해보세요!
+              </h5>
             </div>
           ) : (
             <div className="cursor-pointer">
@@ -180,11 +314,38 @@ export default function UserProfilePage() {
                   </a>
                 </div>
               ))}
+              {/* 무한 스크롤 감지 타겟 */}
+              {nextPage !== null && (
+                <div ref={observerTarget} className="py-4">
+                  {isFetching && (
+                    <div className="text-center text-gray-500 py-4">
+                      불러오는 중...
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
           <div className="h-20" />
         </div>
       </div>
+
+      {/* 공유 모달 */}
+      <CustomModal
+        open={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        title="프로필 공유하기"
+        variant="variant4"
+        onKakaoShare={handleKakaoShare}
+        onCopyLink={handleCopyLink}
+      />
+
+      {/* 토스트 */}
+      {showToast && (
+        <div className="fixed bottom-4 left-4 right-4 z-[10000]">
+          <Toast>{toastMessage}</Toast>
+        </div>
+      )}
     </Container>
   );
 }

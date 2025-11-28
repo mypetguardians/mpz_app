@@ -62,6 +62,7 @@ export function BottomSheet<T = string>({
     T | undefined
   >(selectedValue);
   const [keyboardInset, setKeyboardInset] = useState(0);
+  const baseBottomPadding = "calc(env(safe-area-inset-bottom, 0px) + 16px)";
 
   useEffect(() => {
     setInternalSelectedValue(selectedValue);
@@ -327,7 +328,8 @@ export function BottomSheet<T = string>({
       <div
         className="relative w-full max-w-[420px] bg-white rounded-t-2xl py-3.5 px-4 shadow-xl animate-slideup"
         style={{
-          paddingBottom: keyboardInset > 0 ? keyboardInset + 16 : undefined,
+          paddingBottom:
+            keyboardInset > 0 ? keyboardInset + 16 : baseBottomPadding,
         }}
       >
         <div className="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-gray-200 rounded-full" />

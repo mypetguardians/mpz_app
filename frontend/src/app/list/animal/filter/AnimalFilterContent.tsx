@@ -121,7 +121,7 @@ export function AnimalFilterContent() {
         }
       />
 
-      <div className="flex flex-col w-full gap-6 px-4 py-3 pb-24">
+      <div className="flex flex-col w-full gap-6 px-4 py-3 pb-40">
         <BreedFilter
           breedList={breedList}
           selectedBreed={selectedBreed}

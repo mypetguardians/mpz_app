@@ -107,7 +107,7 @@ export function CenterFilterContent() {
           </div>
         }
       />
-      <div className="flex flex-col w-full gap-6 px-4 py-3 pb-24">
+      <div className="flex flex-col w-full gap-6 px-4 py-3 pb-40">
         {/* 품종 (Breed) */}
         <BreedFilter
           selectedBreed={selectedBreed}

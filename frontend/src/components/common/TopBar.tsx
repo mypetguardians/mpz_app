@@ -66,7 +66,9 @@ export function TopBar({
           {/* 전체 레이아웃: justify-between으로 좌우 분배 */}
           <div className="flex items-center justify-between w-full h-full">
             {/* Left 영역 - 왼쪽 끝에 고정 */}
-            <div className="flex items-center shrink-0">{left}</div>
+            <div className="flex items-center shrink-0 text-heading2">
+              {left}
+            </div>
 
             {/* Center 영역 - 중앙 정렬 */}
             <div className="flex-1 flex justify-center items-center min-w-0">

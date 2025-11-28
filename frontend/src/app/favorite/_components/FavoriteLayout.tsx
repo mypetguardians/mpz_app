@@ -45,7 +45,7 @@ export function FavoriteLayout({ children }: FavoriteLayoutProps) {
     <Container className="min-h-screen pb-20">
       <TopBar
         variant="variant4"
-        left="찜"
+        left={<h2>찜</h2>}
         right={
           isAuthenticated ? (
             <Link href="/notifications">

@@ -62,7 +62,7 @@ export function ListLayout({ children }: ListLayoutProps) {
     <Container className="min-h-screen pb-20">
       <TopBar
         variant="variant4"
-        left="입양"
+        left={<h2>입양</h2>}
         right={
           isAuthenticated ? (
             <Link href="/notifications">

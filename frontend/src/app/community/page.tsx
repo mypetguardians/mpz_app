@@ -597,7 +597,7 @@ export default function CommunityPage() {
       </div>
 
       {/* 글쓰기 플로팅 버튼 */}
-      <div className="fixed bottom-24 right-4 z-50">
+      <div className="fixed bottom-32 right-4 z-50">
         <BigButton
           variant="primary"
           left={<Plus size={16} />}

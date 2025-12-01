@@ -292,3 +292,27 @@ async def update_me(request, data: UserUpdateIn):
         logger.error(error_detail)
         print(error_detail)  # 콘솔에도 출력
         raise HttpError(500, f"사용자 정보 수정 중 오류가 발생했습니다: {str(e)}")
+
+
+@router.delete(
+    "/deleteaccount",
+    summary="[C] 계정 탈퇴",
+    description="현재 로그인한 사용자의 계정을 완전히 삭제합니다.",
+    response={200: SuccessOut},
+    auth=jwt_auth,
+)
+async def delete_account(request):
+    """
+    계정 완전 삭제 처리
+    - 현재 로그인한 사용자의 DB 레코드를 완전히 삭제
+    - 연결된 JWT 토큰은 CASCADE로 함께 삭제됨
+    """
+    user = request.auth
+    try:
+        # 계정 완전 삭제
+        await sync_to_async(User.objects.filter(id=user.id).delete)()
+        return {"detail": "계정이 완전히 삭제되었습니다."}
+    except User.DoesNotExist:
+        raise HttpError(404, "사용자를 찾을 수 없습니다.")
+    except Exception:
+        raise HttpError(500, "계정 탈퇴 처리 중 오류가 발생했습니다.")

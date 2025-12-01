@@ -14,6 +14,7 @@ from pathlib import Path
 from decouple import config
 from pathlib import Path
 import sys
+from urllib.parse import urlparse
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -100,8 +101,17 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = []
 ENV_CORS_ALLOWED_ORIGINS = config("CORS_ALLOWED_ORIGINS", cast=str, default="")
 for origin in ENV_CORS_ALLOWED_ORIGINS.split(","):
-    if origin.strip():  # 빈 문자열 체크
-        CORS_ALLOWED_ORIGINS.append(origin.strip().lower())
+    raw = origin.strip()
+    if not raw:
+        continue
+    # path가 포함된 경우 django-cors-headers가 에러를 내므로, 스킴+호스트(+포트)만 추출
+    parsed = urlparse(raw)
+    if parsed.scheme and parsed.netloc:
+        cleaned = f"{parsed.scheme}://{parsed.netloc}"
+    else:
+        # 이미 스킴+호스트 형태라고 가정하고 그대로 사용
+        cleaned = raw
+    CORS_ALLOWED_ORIGINS.append(cleaned.lower())
 
 # cors & csrf
 SESSION_COOKIE_SECURE = True

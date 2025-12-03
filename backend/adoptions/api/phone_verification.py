@@ -53,7 +53,6 @@ async def send_phone_verification(request, data: SendPhoneVerificationIn):
             expires_at=expires_at,
         )
         
-        # TODO: 실제로는 SMS API를 통해 인증번호를 발송해야 함
         if not settings.DEBUG:
             import requests
             try:

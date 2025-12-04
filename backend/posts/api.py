@@ -33,6 +33,23 @@ def _build_post_response(post, tags=None, images=None, user_nickname=None, user_
         reply_total = Reply.objects.filter(comment__post=post).count()
         comment_count = comment_total + reply_total
     
+    # 사용자 타입과 센터 이름 가져오기
+    user_type = getattr(post.user, "user_type", None)
+    center_name = None
+    
+    # 센터 계정(센터관리자/센터최고관리자/훈련사)인 경우 센터 이름 포함
+    try:
+        if user_type in ["센터관리자", "센터최고관리자", "훈련사"]:
+            center = None
+            if hasattr(post.user, "center") and post.user.center is not None:
+                center = post.user.center
+            elif hasattr(post.user, "centers"):
+                center = post.user.centers.first()
+            if center:
+                center_name = center.name
+    except Exception:
+        center_name = None
+    
     return {
         "id": str(post.id),
         "title": post.title,
@@ -48,6 +65,8 @@ def _build_post_response(post, tags=None, images=None, user_nickname=None, user_
         "updated_at": post.updated_at,
         "user_nickname": user_nickname or post.user.username,
         "user_image": user_image or getattr(post.user, 'image', None),
+        "user_type": user_type,
+        "center_name": center_name,
         "tags": tags or [],
         "images": images or []
     }

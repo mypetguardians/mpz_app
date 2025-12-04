@@ -34,6 +34,8 @@ class PostOut(Schema):
     updated_at: datetime = Field(..., description="수정 시간")
     user_nickname: str = Field(..., description="작성자 닉네임")
     user_image: Optional[str] = Field(None, description="작성자 이미지")
+    user_type: Optional[str] = Field(None, description="작성자 유형")
+    center_name: Optional[str] = Field(None, description="센터 이름 (센터 계정인 경우)")
     tags: List[PostTagOut] = Field([], description="태그 목록")
     images: List[PostImageOut] = Field([], description="이미지 목록")
 

@@ -8,11 +8,12 @@ from asgiref.sync import sync_to_async
 
 from comments.models import Comment, Reply
 from posts.models import Post
-from comments.schemas.inbound import (
-    CommentCreateIn, CommentUpdateIn
-)
+from comments.schemas.inbound import CommentCreateIn, CommentUpdateIn
 from comments.schemas.outbound import (
-    CommentOut, CommentCreateOut, CommentUpdateOut, CommentDeleteOut
+    CommentOut,
+    CommentCreateOut,
+    CommentUpdateOut,
+    CommentDeleteOut,
 )
 from api.security import jwt_auth
 
@@ -51,10 +52,30 @@ def _build_user_info(user):
     """사용자 정보 구성"""
     if not user:
         return None
+    # 기본 정보
+    user_type = getattr(user, "user_type", None)
+    center_name = None
+
+    # 센터 계정(센터관리자/센터최고관리자/훈련사)인 경우 센터 이름 포함
+    try:
+        if user_type in ["센터관리자", "센터최고관리자", "훈련사"]:
+            center = None
+            # User 모델에 center 또는 centers 관계가 있을 수 있음
+            if hasattr(user, "center") and user.center is not None:
+                center = user.center
+            elif hasattr(user, "centers"):
+                center = user.centers.first()
+            if center:
+                center_name = center.name
+    except Exception:
+        center_name = None
+
     return {
         "id": str(user.id),
-        "nickname": getattr(user, 'nickname', None),
-        "image": getattr(user, 'image', None)
+        "nickname": getattr(user, "nickname", None),
+        "image": getattr(user, "image", None),
+        "user_type": user_type,
+        "center_name": center_name,
     }
 
 

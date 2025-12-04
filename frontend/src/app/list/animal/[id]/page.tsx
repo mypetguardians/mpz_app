@@ -355,7 +355,7 @@ export default function AnimalDetailPage({
         
         // 이미지 URL을 절대 URL로 변환하는 함수
         const getAbsoluteImageUrl = (url: string | null | undefined): string => {
-          if (!url) return `${window.location.origin}/img/op-image.png`;
+          if (!url) return `${window.location.origin}/illust/logo.svg`;
           if (url.startsWith('http://') || url.startsWith('https://')) {
             return url;
           }
@@ -389,7 +389,7 @@ export default function AnimalDetailPage({
         const shareDescription = "유기동물 입양하기! 마펫쯔와 편하게";
         
         // 동물 이미지가 있으면 첫 번째 이미지 사용, 없으면 기본 이미지
-        let shareImageUrl = `${window.location.origin}/img/op-image.png`;
+        let shareImageUrl = `${window.location.origin}/illust/logo.svg`;
         
         if (animal?.animal_images && animal.animal_images.length > 0) {
           shareImageUrl = getAbsoluteImageUrl(animal.animal_images[0].image_url);

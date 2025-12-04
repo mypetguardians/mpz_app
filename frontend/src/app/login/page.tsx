@@ -57,7 +57,7 @@ function LogInInner() {
       <div className="flex justify-center flex-shrink-0">
         <div className="w-[198px] h-[162px] flex items-center justify-center">
           <Image
-            src="/illust/login.svg"
+            src="/illust/login.png"
             alt="로그인 일러스트"
             width={198}
             height={162}

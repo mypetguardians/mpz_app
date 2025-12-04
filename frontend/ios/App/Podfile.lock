@@ -1,4 +1,5 @@
 PODS:
+  - Alamofire (5.10.2)
   - Capacitor (7.4.4):
     - CapacitorCordova
   - CapacitorApp (7.1.0):
@@ -10,6 +11,48 @@ PODS:
     - Capacitor
     - IONGeolocationLib (= 1.0.1)
   - IONGeolocationLib (1.0.1)
+  - KakaoSDK (2.18.2):
+    - KakaoSDKAuth (= 2.18.2)
+    - KakaoSDKCert (= 2.18.2)
+    - KakaoSDKCommon (= 2.18.2)
+    - KakaoSDKFriend (= 2.18.2)
+    - KakaoSDKNavi (= 2.18.2)
+    - KakaoSDKShare (= 2.18.2)
+    - KakaoSDKStory (= 2.18.2)
+    - KakaoSDKTalk (= 2.18.2)
+    - KakaoSDKTemplate (= 2.18.2)
+    - KakaoSDKUser (= 2.18.2)
+  - KakaoSDKAuth (2.18.2):
+    - KakaoSDKCommon (= 2.18.2)
+  - KakaoSDKCert (2.18.2):
+    - KakaoSDKCertCore (= 2.18.2)
+    - KakaoSDKUser (= 2.18.2)
+  - KakaoSDKCertCore (2.18.2)
+  - KakaoSDKCommon (2.18.2):
+    - KakaoSDKCommon/Common (= 2.18.2)
+    - KakaoSDKCommon/Network (= 2.18.2)
+  - KakaoSDKCommon/Common (2.18.2)
+  - KakaoSDKCommon/Network (2.18.2):
+    - Alamofire (~> 5.1)
+    - KakaoSDKCommon/Common (= 2.18.2)
+  - KakaoSDKFriend (2.18.2):
+    - KakaoSDKFriendCore (= 2.18.2)
+    - KakaoSDKUser (= 2.18.2)
+  - KakaoSDKFriendCore (2.18.2)
+  - KakaoSDKNavi (2.18.2):
+    - KakaoSDKCommon/Common (= 2.18.2)
+  - KakaoSDKShare (2.18.2):
+    - KakaoSDKCommon (= 2.18.2)
+    - KakaoSDKTemplate (= 2.18.2)
+  - KakaoSDKStory (2.18.2):
+    - KakaoSDKUser (= 2.18.2)
+  - KakaoSDKTalk (2.18.2):
+    - KakaoSDKTemplate (= 2.18.2)
+    - KakaoSDKUser (= 2.18.2)
+  - KakaoSDKTemplate (2.18.2):
+    - KakaoSDKCommon/Common (= 2.18.2)
+  - KakaoSDKUser (2.18.2):
+    - KakaoSDKAuth (= 2.18.2)
 
 DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
@@ -17,10 +60,25 @@ DEPENDENCIES:
   - "CapacitorCamera (from `../../node_modules/@capacitor/camera`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorGeolocation (from `../../node_modules/@capacitor/geolocation`)"
+  - KakaoSDK (~> 2.18.0)
 
 SPEC REPOS:
   trunk:
+    - Alamofire
     - IONGeolocationLib
+    - KakaoSDK
+    - KakaoSDKAuth
+    - KakaoSDKCert
+    - KakaoSDKCertCore
+    - KakaoSDKCommon
+    - KakaoSDKFriend
+    - KakaoSDKFriendCore
+    - KakaoSDKNavi
+    - KakaoSDKShare
+    - KakaoSDKStory
+    - KakaoSDKTalk
+    - KakaoSDKTemplate
+    - KakaoSDKUser
 
 EXTERNAL SOURCES:
   Capacitor:
@@ -35,13 +93,27 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/geolocation"
 
 SPEC CHECKSUMS:
+  Alamofire: 7193b3b92c74a07f85569e1a6c4f4237291e7496
   Capacitor: 358dd1c3fdd71d969547b17e159fd8a7736cb45f
   CapacitorApp: 26587c2ce485d88ddb39adb21cac64f8e481afe3
   CapacitorCamera: f9e54db0a18bb218a8dc360907d63aaefe9209ff
   CapacitorCordova: bf648a636f3c153f652d312ae145fb508b6ffced
   CapacitorGeolocation: 84f868bea4c2499aebc3bb3a88fd0a508f87ab87
   IONGeolocationLib: 20f9d0248a0b5264511fb57a37e25dd2badf797a
+  KakaoSDK: 438d39ca25bee3ec2eb2654b64124ae2941fde8b
+  KakaoSDKAuth: 3daf72ec463876e0fe6d0d37c7d6b0b2729169f1
+  KakaoSDKCert: 406f3dfd02161524280a7d4000fbbd37939e9cbd
+  KakaoSDKCertCore: e1953ae2746cd8d1fbc7fcddf2957eac434f7ef8
+  KakaoSDKCommon: 516f68bc6b223ed502c34a362d6ecc9145e0dcc0
+  KakaoSDKFriend: 4b22f72008eb773f830cfd75ad3a112fee0ed8ba
+  KakaoSDKFriendCore: 33e32cbb1b3c73a6ce7849cfff8a65520988d17b
+  KakaoSDKNavi: d963dc3f12d9755c562cea4efdf26a3a4c3e8168
+  KakaoSDKShare: 8980e83a3a80bd805ab859c102dd41ed6801424e
+  KakaoSDKStory: 63c8deb29ba1baa0bcd6ab9fcf0d3310226a5e41
+  KakaoSDKTalk: 567d2697b419b4f01f2f8bdb28e13100817c4090
+  KakaoSDKTemplate: 0fcfbbb7cc05986fe6690b85e19dd8de0fc634e6
+  KakaoSDKUser: 5b0826033381d314f550dd90fbf70d3612044ad6
 
-PODFILE CHECKSUM: a9c4834c5e8ad1c8de2eca8522a9365ef0e547e7
+PODFILE CHECKSUM: 050383f9a0ed01806928b216893871c092e1b76d
 
 COCOAPODS: 1.16.2

@@ -115,7 +115,7 @@ export function CenterDetailHeader({
         
         const shareDescription = "유기동물 입양하기! 마펫쯔와 편하게";
         
-        const shareImageUrl = centerImageUrl || `/img/op-image.png`;
+        const shareImageUrl = centerImageUrl || `/illust/logo.svg`;
         
         // sendDefault 메서드 사용 (더 상세한 정보 포함)
         const kakaoShare = window.Kakao.Share as {

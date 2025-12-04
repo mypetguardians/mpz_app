@@ -5,7 +5,8 @@ use_frameworks!
 
 # CocoaPods repositories
 source 'https://cdn.cocoapods.org/'
-source 'https://devrepo.kakao.com/nexus/content/groups/public/'
+# 카카오 SDK는 기본 CocoaPods 저장소에서 제공됩니다
+# source 'https://devrepo.kakao.com/nexus/content/groups/public/'
 
 # workaround to avoid Xcode caching of Pods that requires
 # Product -> Clean Build Folder after new Cordova plugins installed

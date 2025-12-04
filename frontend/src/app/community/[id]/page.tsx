@@ -155,7 +155,7 @@ export default function CommunityDetailPage() {
         
         // 이미지 URL을 절대 URL로 변환하는 함수
         const getAbsoluteImageUrl = (url: string | null | undefined): string => {
-          if (!url) return `${window.location.origin}/img/op-image.png`;
+          if (!url) return `${window.location.origin}/illust/logo.svg`;
           if (url.startsWith('http://') || url.startsWith('https://')) {
             return url;
           }
@@ -201,7 +201,7 @@ export default function CommunityDetailPage() {
         
         // 게시글 이미지가 있으면 첫 번째 이미지 사용, 없으면 동물 이미지, 둘 다 없으면 기본 이미지
         // post.images[0].image_url 또는 animalData.animal_images[0].image_url 사용
-        let shareImageUrl = `${window.location.origin}/img/op-image.png`;
+        let shareImageUrl = `${window.location.origin}/illust/logo.svg`;
         
         if (post?.images && post.images.length > 0) {
           shareImageUrl = getAbsoluteImageUrl(post.images[0].image_url);

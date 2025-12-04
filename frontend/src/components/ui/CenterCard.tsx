@@ -25,9 +25,8 @@ function CenterCard({
   centerId,
 }: CenterCardProps) {
   const router = useRouter();
-  const [imgSrc, setImgSrc] = useState<string>(
-    imageUrl && imageUrl.trim() !== "" ? imageUrl : "/img/dummyImg.png"
-  );
+  const [hasImageError, setHasImageError] = useState(false);
+  const hasValidImage = imageUrl && imageUrl.trim() !== "" && !hasImageError;
 
   const handleCardClick = () => {
     if (centerId) {
@@ -43,19 +42,19 @@ function CenterCard({
       onClick={handleCardClick}
     >
       <div className="flex items-center gap-3">
-        <div className="relative w-[63px] h-[63px] rounded-md border border-lg overflow-hidden flex-shrink-0 bg-white">
-          <Image
-            src={imgSrc}
-            alt={name}
-            fill
-            className="object-cover"
-            priority
-            onError={() => {
-              if (imgSrc !== "/img/dummyImg.png") {
-                setImgSrc("/img/dummyImg.png");
-              }
-            }}
-          />
+        <div className="relative w-[63px] h-[63px] rounded-md border border-lg overflow-hidden flex-shrink-0 bg-gray-300">
+          {hasValidImage && (
+            <Image
+              src={imageUrl}
+              alt={name}
+              fill
+              className="object-cover"
+              priority
+              onError={() => {
+                setHasImageError(true);
+              }}
+            />
+          )}
         </div>
         <div className="flex flex-col justify-center min-w-0 gap-1">
           <div className="flex items-center gap-1">

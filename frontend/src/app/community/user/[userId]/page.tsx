@@ -298,7 +298,6 @@ export default function UserProfilePage() {
             <div className="flex flex-col pt-12 items-center justify-center">
               <h5 className="text-gr text-center">
                 아직 업로드된 게시글이 없어요.
-                <br />첫 번째 게시글을 작성해보세요!
               </h5>
             </div>
           ) : (

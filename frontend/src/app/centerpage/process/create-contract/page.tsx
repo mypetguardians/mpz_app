@@ -163,7 +163,7 @@ export default function CenterProcessCreateContract() {
             placeholder="내용을 입력해주세요."
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="flex w-full rounded-md border border-lg px-4 py-3 h5 placeholder:text-gr placeholder:text-body placeholder:text-top disabled:cursor-not-allowed disabled:opacity-50 resize-none h-[150px] focus:outline-none"
+            className="flex w-full rounded-md border border-lg px-4 py-3 h5 placeholder:text-gr placeholder:text-body placeholder:text-top disabled:cursor-not-allowed disabled:opacity-50 resize-none h-[200px] focus:outline-none"
           />
         </div>
       </div>

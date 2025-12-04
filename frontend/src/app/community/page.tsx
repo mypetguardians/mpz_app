@@ -539,7 +539,7 @@ export default function CommunityPage() {
           )
         }
       />
-      <div className="w-full overflow-x-auto scrollbar-hide px-3 z-10">
+      <div className="z-10 w-full px-3 overflow-x-auto scrollbar-hide">
         <TabButton
           value={activeTab}
           onValueChange={setActiveTab}
@@ -563,7 +563,7 @@ export default function CommunityPage() {
           <div className="flex flex-col gap-4">
             {[...Array(5)].map((_, index) => (
               <div key={index}>
-                {(index + 1) % 3 === 0 && <Banner variant="sub" />}
+                {(index + 1) % 10 === 0 && <Banner variant="sub" />}
                 <div className="pt-4">
                   <CommunityCardSkeleton />
                 </div>
@@ -591,7 +591,7 @@ export default function CommunityPage() {
                     index={index}
                     priority={isPriority}
                   />
-                  {(index + 1) % 3 === 0 && <Banner variant="sub" />}
+                  {(index + 1) % 10 === 0 && <Banner variant="sub" />}
                 </div>
               );
             })}
@@ -601,7 +601,7 @@ export default function CommunityPage() {
       </div>
 
       {/* 글쓰기 플로팅 버튼 */}
-      <div className="fixed bottom-32 right-4 z-50">
+      <div className="fixed z-50 bottom-32 right-4">
         <BigButton
           variant="primary"
           left={<Plus size={16} />}

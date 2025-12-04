@@ -405,7 +405,7 @@ export default function BasicInfo({
           placeholder="센터에 들어온 날을 선택해주세요"
           value={data.centerEntryDate}
           onChange={(e) => onChange({ centerEntryDate: e.target.value })}
-          required={true}
+          required={false}
         />
       </div>
 

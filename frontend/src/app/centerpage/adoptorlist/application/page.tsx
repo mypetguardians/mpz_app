@@ -124,7 +124,7 @@ function ApplicationPageContent() {
           value={searchValue}
           onChange={(e) => setSearchValue(e.target.value)}
           onSearch={handleSearch}
-          placeholder="입양자명으로 검색해보세요."
+          placeholder="이름으로 검색해보세요."
           variant="primary"
         />
       </div>

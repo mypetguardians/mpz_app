@@ -14,6 +14,8 @@ export interface ApiPostResponse {
   updated_at: string;
   user_nickname: string;
   user_image: string;
+  user_type?: string;
+  center_name?: string;
   tags: Array<{
     id: string;
     tag_name: string;
@@ -54,6 +56,8 @@ export interface Post {
   updated_at: string;
   user_nickname: string;
   user_image: string;
+  user_type?: string;
+  center_name?: string;
   tags: Array<{
     id: string;
     tag_name: string;
@@ -155,6 +159,8 @@ export interface CommentUser {
   id: string;
   nickname: string;
   image: string;
+  user_type?: string;
+  center_name?: string;
 }
 
 export interface Comment {

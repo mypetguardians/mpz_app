@@ -69,6 +69,9 @@ export default function CenterDetailPage() {
         centerName={center.name}
         centerId={id}
         verified={center.verified}
+        centerDescription={center.description}
+        centerImageUrl={center.imageUrl}
+        centerRegion={center.region}
         isKakaoLoaded={isLoaded}
         isKakaoInitialized={isInitialized}
       />

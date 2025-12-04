@@ -259,7 +259,7 @@ export default function Home() {
         <button
           type="button"
           onClick={handleConsultClick}
-          className="fixed bottom-32 right-4 z-50 transition-transform hover:scale-105"
+          className="fixed z-50 transition-transform bottom-32 right-4 hover:scale-105"
           aria-label="상담 채널로 이동"
         >
           <NextImage

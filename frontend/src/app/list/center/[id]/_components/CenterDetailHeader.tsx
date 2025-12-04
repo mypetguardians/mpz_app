@@ -21,6 +21,9 @@ interface CenterDetailHeaderProps {
   centerName: string;
   centerId: string;
   verified: boolean;
+  centerDescription?: string | null;
+  centerImageUrl?: string | null;
+  centerRegion?: string | null;
   isKakaoLoaded?: boolean;
   isKakaoInitialized?: boolean;
 }
@@ -29,6 +32,9 @@ export function CenterDetailHeader({
   centerName,
   centerId,
   verified,
+  centerDescription, // eslint-disable-line @typescript-eslint/no-unused-vars
+  centerImageUrl,
+  centerRegion, // eslint-disable-line @typescript-eslint/no-unused-vars
   isKakaoLoaded,
   isKakaoInitialized,
 }: CenterDetailHeaderProps) {
@@ -97,12 +103,71 @@ export function CenterDetailHeader({
     if (
       typeof window !== "undefined" &&
       window.Kakao &&
-      window.Kakao.Share &&
-      window.Kakao.Share.sendScrap
+      window.Kakao.Share
     ) {
       try {
-        const centerUrl = `${window.location.origin}/list/center/${centerId}`;
-        window.Kakao.Share.sendScrap({ requestUrl: centerUrl });
+        const centerUrl = `https://mpz.kr/list/center/${centerId}`;
+        
+        // 상세 정보가 포함된 공유 메시지
+        const shareTitle = verified 
+          ? `✅ 인증 ${centerName}`
+          : centerName;
+        
+        const shareDescription = "유기동물 입양하기! 마펫쯔와 편하게";
+        
+        const shareImageUrl = centerImageUrl || `/img/op-image.png`;
+        
+        // sendDefault 메서드 사용 (더 상세한 정보 포함)
+        const kakaoShare = window.Kakao.Share as {
+          sendScrap?: (options: { requestUrl: string }) => void;
+          sendDefault?: (options: {
+            objectType: string;
+            content: {
+              title: string;
+              description: string;
+              imageUrl: string;
+              link: {
+                mobileWebUrl: string;
+                webUrl: string;
+              };
+            };
+            buttons: Array<{
+              title: string;
+              link: {
+                mobileWebUrl: string;
+                webUrl: string;
+              };
+            }>;
+          }) => void;
+        };
+        
+        if (kakaoShare.sendDefault) {
+          kakaoShare.sendDefault({
+            objectType: "feed",
+            content: {
+              title: shareTitle,
+              description: shareDescription,
+              imageUrl: shareImageUrl,
+              link: {
+                mobileWebUrl: centerUrl,
+                webUrl: centerUrl,
+              },
+            },
+            buttons: [
+              {
+                title: "자세히 보기",
+                link: {
+                  mobileWebUrl: centerUrl,
+                  webUrl: centerUrl,
+                },
+              },
+            ],
+          });
+        } else if (kakaoShare.sendScrap) {
+          // sendDefault가 없으면 sendScrap 사용 (fallback)
+          kakaoShare.sendScrap({ requestUrl: centerUrl });
+        }
+        
         setShowShareModal(false);
       } catch (error) {
         console.error("카카오톡 공유 실패:", error);
@@ -197,7 +262,7 @@ export function CenterDetailHeader({
     <div className="px-4 py-5">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-1">
-          <h2 className="text-bk text-xl font-bold">
+          <h2 className="text-xl font-bold text-bk">
             {centerName || "보호센터 정보 없음"}
           </h2>
           {verified && (

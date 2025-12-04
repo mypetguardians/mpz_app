@@ -348,12 +348,104 @@ export default function AnimalDetailPage({
     if (
       typeof window !== "undefined" &&
       window.Kakao &&
-      window.Kakao.Share &&
-      window.Kakao.Share.sendScrap
+      window.Kakao.Share
     ) {
       try {
         const animalUrl = `${window.location.origin}/list/animal/${id}`;
-        window.Kakao.Share.sendScrap({ requestUrl: animalUrl });
+        
+        // 이미지 URL을 절대 URL로 변환하는 함수
+        const getAbsoluteImageUrl = (url: string | null | undefined): string => {
+          if (!url) return `${window.location.origin}/img/op-image.png`;
+          if (url.startsWith('http://') || url.startsWith('https://')) {
+            return url;
+          }
+          if (url.startsWith('/')) {
+            return `${window.location.origin}${url}`;
+          }
+          return `${window.location.origin}/${url}`;
+        };
+        
+        // 동물 정보 기반 제목 생성: "마펫쯔: 믹스견(3살 추정)"
+        const breed = animal?.breed || "믹스견";
+        // 나이는 개월 단위이므로 12로 나누어 살 단위로 변환
+        const ageText = animal?.age 
+          ? (() => {
+              const ageInYears = animal.age / 12;
+              // 1살 미만이면 개월로 표시, 1살 이상이면 살로 표시
+              if (ageInYears < 1) {
+                return `${animal.age}개월 추정`;
+              } else {
+                // 소수점 첫째자리까지 표시 (예: 1.5살, 3살)
+                const roundedAge = Math.round(ageInYears * 10) / 10;
+                return roundedAge % 1 === 0 
+                  ? `${Math.round(roundedAge)}살 추정`
+                  : `${roundedAge}살 추정`;
+              }
+            })()
+          : "";
+        const shareTitle = `${breed}${ageText ? `(${ageText})` : ""}`;
+        
+        // 설명
+        const shareDescription = "유기동물 입양하기! 마펫쯔와 편하게";
+        
+        // 동물 이미지가 있으면 첫 번째 이미지 사용, 없으면 기본 이미지
+        let shareImageUrl = `${window.location.origin}/img/op-image.png`;
+        
+        if (animal?.animal_images && animal.animal_images.length > 0) {
+          shareImageUrl = getAbsoluteImageUrl(animal.animal_images[0].image_url);
+        }
+        
+        // sendDefault 메서드 사용 (더 상세한 정보 포함)
+        const kakaoShare = window.Kakao.Share as {
+          sendScrap?: (options: { requestUrl: string }) => void;
+          sendDefault?: (options: {
+            objectType: string;
+            content: {
+              title: string;
+              description: string;
+              imageUrl: string;
+              link: {
+                mobileWebUrl: string;
+                webUrl: string;
+              };
+            };
+            buttons: Array<{
+              title: string;
+              link: {
+                mobileWebUrl: string;
+                webUrl: string;
+              };
+            }>;
+          }) => void;
+        };
+        
+        if (kakaoShare.sendDefault) {
+          kakaoShare.sendDefault({
+            objectType: "feed",
+            content: {
+              title: shareTitle,
+              description: shareDescription,
+              imageUrl: shareImageUrl,
+              link: {
+                mobileWebUrl: animalUrl,
+                webUrl: animalUrl,
+              },
+            },
+            buttons: [
+              {
+                title: "자세히 보기",
+                link: {
+                  mobileWebUrl: animalUrl,
+                  webUrl: animalUrl,
+                },
+              },
+            ],
+          });
+        } else if (kakaoShare.sendScrap) {
+          // sendDefault가 없으면 sendScrap 사용 (fallback)
+          kakaoShare.sendScrap({ requestUrl: animalUrl });
+        }
+        
         setShowShareBottomSheet(false);
       } catch (error) {
         console.error("카카오톡 공유 실패:", error);

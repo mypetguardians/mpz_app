@@ -105,7 +105,7 @@ function NavBar() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 w-full bg-wh pb-safe-bottom"
+      className="fixed bottom-0 max-w-[420px] mx-auto left-0 right-0 z-50 w-full bg-wh pb-safe-bottom"
       style={{
         pointerEvents: "auto",
       }}

@@ -86,6 +86,7 @@ export const useCreateAnimal = () => {
       // 모든 동물 관련 캐시 무효화
       queryClient.invalidateQueries({ queryKey: ["animals"] });
       queryClient.invalidateQueries({ queryKey: ["myCenterAnimals"] });
+      queryClient.invalidateQueries({ queryKey: ["myCenterAnimalsInfinite"] });
       queryClient.invalidateQueries({ queryKey: ["relatedAnimals"] });
 
       // 센터 관련 캐시도 무효화 (통계 등)

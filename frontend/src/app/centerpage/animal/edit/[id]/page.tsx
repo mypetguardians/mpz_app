@@ -13,6 +13,9 @@ import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
 import { useUpdateAnimal, useUploadImages } from "@/hooks/mutation";
 import type { UpdateAnimalData } from "@/hooks/mutation/useUpdateAnimal";
 import { useGetAnimalById } from "@/hooks/query/useGetAnimals";
+import { useGetMyCenter } from "@/hooks/query/useGetMyCenter";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { BottomSheet } from "@/components/ui/BottomSheet";
 
 interface FormData {
   basicInfo: {
@@ -119,7 +122,11 @@ export default function EditAnimal({
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const updateAnimalMutation = useUpdateAnimal();
   const uploadImagesMutation = useUploadImages();
-
+  const { data: myCenter } = useGetMyCenter();
+  const { user } = useAuth();
+  const isSubscriber = myCenter?.isSubscriber === true;
+  const isTrainer = user?.userType === "훈련사";
+  const [showBackConfirmSheet, setShowBackConfirmSheet] = useState(false);
   // 기존 동물 데이터 불러오기
   const { data: animalData, isLoading: isLoadingAnimal } = useGetAnimalById(
     resolvedParams.id
@@ -359,16 +366,30 @@ export default function EditAnimal({
           images={formData.images}
           onImagesChange={handleImagesChange}
         />
-        <DetailInfo
-          data={formData.detailInfo}
-          onChange={handleDetailInfoChange}
-        />
+        {isSubscriber && isTrainer && (
+          <DetailInfo
+            data={formData.detailInfo}
+            onChange={handleDetailInfoChange}
+            canEdit={isSubscriber && isTrainer}
+          />
+        )}
       </div>
       <FixedBottomBar
         variant="variant4"
-        primaryButtonText="적용하기"
+        primaryButtonText={isLoading ? "적용중 ..." : "적용하기"}
         onPrimaryButtonClick={handleSubmit}
         applyButtonDisabled={isLoading}
+      />
+      <BottomSheet
+        open={showBackConfirmSheet}
+        onClose={() => setShowBackConfirmSheet(false)}
+        variant="primary"
+        title="창을 닫으면 저장되지 않아요!"
+        description="작성한 내용은 저장 및 복구가 불가능해요."
+        leftButtonText="취소"
+        rightButtonText="괜찮아요"
+        onLeftClick={() => setShowBackConfirmSheet(false)}
+        onRightClick={handleSubmit}
       />
     </Container>
   );

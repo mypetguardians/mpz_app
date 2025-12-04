@@ -42,50 +42,47 @@ export default function SubscriberDetails({
       {/* 전문가 의견 */}
       <div className="pb-3 mb-3 border-b border-bg">
         <h4 className="mb-3 text-bk">전문가 의견</h4>
-        <div className="grid grid-cols-2 gap-y-2 gap-x-5">
-          {activityLevel && (
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">활동량</span>
-              <DotsIndicator
-                count={activityLevel}
-                color="bg-brand"
-                variant="variant2"
-              />
-            </div>
-          )}
+        {activityLevel ||
+          sensitivity ||
+          sociability ||
+          (separationAnxiety && (
+            <div className="grid grid-cols-2 gap-y-2 gap-x-5">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">활동량</span>
+                <DotsIndicator
+                  count={activityLevel}
+                  color="bg-brand"
+                  variant="variant2"
+                />
+              </div>
 
-          {sensitivity && (
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">민감도</span>
-              <DotsIndicator
-                count={sensitivity}
-                color="bg-yellow"
-                variant="variant2"
-              />
-            </div>
-          )}
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">민감도</span>
+                <DotsIndicator
+                  count={sensitivity}
+                  color="bg-yellow"
+                  variant="variant2"
+                />
+              </div>
 
-          {sociability && (
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">사회성</span>
-              <DotsIndicator
-                count={sociability}
-                color="bg-green"
-                variant="variant2"
-              />
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">사회성</span>
+                <DotsIndicator
+                  count={sociability}
+                  color="bg-green"
+                  variant="variant2"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">분리불안</span>
+                <DotsIndicator
+                  count={separationAnxiety}
+                  color="bg-green"
+                  variant="variant2"
+                />
+              </div>
             </div>
-          )}
-          {separationAnxiety && (
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">분리불안</span>
-              <DotsIndicator
-                count={separationAnxiety}
-                color="bg-green"
-                variant="variant2"
-              />
-            </div>
-          )}
-        </div>
+          ))}
       </div>
 
       {/* 훈련사 한 마디 */}

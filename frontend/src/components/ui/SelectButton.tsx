@@ -8,6 +8,7 @@ interface SelectButtonProps {
   className?: string;
   icon?: React.ReactNode;
   children?: React.ReactNode;
+  disabled?: boolean;
 }
 
 export function SelectButton({
@@ -17,20 +18,30 @@ export function SelectButton({
   className,
   icon,
   children,
+  disabled = false,
 }: SelectButtonProps) {
   const isLarge = variant === "3" || variant === "4";
   const isSelected =
     selected || variant === "2" || variant === "4" || variant === "6";
 
+  const handleClick = () => {
+    if (!disabled && onClick) {
+      onClick();
+    }
+  };
+
   return (
     <div
       className={cn(
-        "relative bg-transparent rounded-xl transition-all cursor-pointer px-4 py-3",
+        "relative bg-transparent rounded-xl transition-all px-4 py-3",
+        disabled
+          ? "cursor-not-allowed opacity-50"
+          : "cursor-pointer",
         isSelected && "border border-brand bg-brand/10 hover:bg-brand/10",
         !isSelected && "border border-lg",
         className
       )}
-      onClick={onClick}
+      onClick={handleClick}
     >
       {/* **mr-2 삭제 */}
       {isLarge ? (

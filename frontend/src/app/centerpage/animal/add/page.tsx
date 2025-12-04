@@ -60,6 +60,8 @@ interface FormData {
       groomingAcceptanceLevel: number;
     };
     trainerComment: string;
+    createdAt?: string;
+    updatedAt?: string;
   };
   images: File[];
 }
@@ -106,6 +108,8 @@ const initialFormData: FormData = {
       groomingAcceptanceLevel: 3,
     },
     trainerComment: "",
+    createdAt: undefined,
+    updatedAt: undefined,
   },
   images: [],
 };
@@ -428,6 +432,7 @@ export default function AddAnimal() {
           <DetailInfo
             data={formData.detailInfo}
             onChange={handleDetailInfoChange}
+            canEdit={isSubscriber && isTrainer}
           />
         )}
       </div>

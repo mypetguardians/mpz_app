@@ -51,8 +51,18 @@ export function CommentItem({
   const [showActionSheet, setShowActionSheet] = useState(false);
 
   // 사용자 정보 가져오기 (대댓글에서 user 정보가 없을 경우 대비)
-  const nickname =
+  const rawNickname =
     comment.user?.nickname || `사용자${comment.user_id?.slice(-4) || ""}`;
+  const userType = comment.user?.user_type;
+  const centerName = comment.user?.center_name;
+
+  // 센터 계정인 경우: "센터이름 - 닉네임" 형태로 표시
+  const nickname =
+    userType &&
+    ["센터관리자", "센터최고관리자", "훈련사"].includes(userType) &&
+    centerName
+      ? `${centerName} - ${rawNickname}`
+      : rawNickname;
   const profileImg = comment.user?.image;
 
   // 현재 사용자가 댓글 작성자인지 확인

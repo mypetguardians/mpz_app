@@ -228,12 +228,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error("로그아웃 요청 실패:", error);
     } finally {
-      // 1. 상태 초기화
       setUser(null);
       setIsAuthenticated(false);
 
-      // 2. React Query 캐시 무효화 (모든 사용자 관련 쿼리 자동 재실행)
-      // predicate 함수가 항상 boolean을 반환하도록 null 체크 추가
       queryClient.invalidateQueries({
         predicate: (query) => {
           const firstKey = query.queryKey[0];
@@ -247,9 +244,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
       });
 
-      // 3. 메인 페이지로 이동
       router.push("/");
-      router.refresh(); // Next.js 캐시 갱신
+      router.refresh();
     }
   };
 

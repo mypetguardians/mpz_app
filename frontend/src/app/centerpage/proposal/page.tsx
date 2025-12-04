@@ -80,7 +80,6 @@ export default function ProposalPage() {
             <p className="body2 text-gr">
               마이펫가디언즈를 이용하며 느낀 서비스 이용 후기, 불편한 점,
               건의사항 등 어떤 의견이든 좋아요. <br />
-              자유롭게 작성해주세요!
             </p>
           </div>
 

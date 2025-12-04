@@ -11,7 +11,7 @@ interface CenterInfoTabProps {
   hasVolunteer?: boolean;
   hasFosterCare?: boolean;
   isSubscribed?: boolean;
-  isPublicData?: boolean;
+  showLocation?: boolean;
   className?: string;
 }
 
@@ -28,17 +28,17 @@ export function CenterInfoTab({
   hasVolunteer,
   hasFosterCare,
   isSubscribed,
-  isPublicData,
+  showLocation = false,
   className = "",
 }: CenterInfoTabProps) {
   const adoptionItems: InfoItem[] = [
     { label: "전화번호", value: centerNumber || "" },
-    ...(isPublicData
+    ...(showLocation
       ? [{ label: "위치", value: location || "" }]
       : [
           {
             label: "위치",
-            value: "관리자를 통해 안내받으실 수 있습니다.",
+            value: "민간 센터의 위치 정보는 비공개로 관리됩니다. 관리자를 통해 안내받으실 수 있습니다.",
           },
         ]),
   ].filter((item) => item.value);
@@ -62,31 +62,31 @@ export function CenterInfoTab({
     <div className={`flex flex-col gap-2 mx-4 ${className}`}>
       <div className="w-full">
         <table className="w-full">
-          <tbody className="flex flex-col gap-2 items-start">
+          <tbody className="flex flex-col items-start gap-2">
             {adoptionItems.map((item) => (
               <tr key={item.label}>
-                <td className="h6 text-gr w-32 text-left align-top">
+                <td className="w-32 text-left align-top h6 text-gr">
                   {item.label}
                 </td>
-                <td className="body text-bk align-top">{item.value}</td>
+                <td className="align-top body text-bk">{item.value}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      {isPublicData && <KakaoMap address={location || ""} />}
+      {showLocation && <KakaoMap address={location || ""} />}
       {isSubscribed && (
         <>
-          <div className="border-t border-bg my-2" />
+          <div className="my-2 border-t border-bg" />
           <h3>입양 정보</h3>
           <table className="w-full">
-            <tbody className="flex flex-col gap-2 items-start">
+            <tbody className="flex flex-col items-start gap-2">
               {adoptionDetailItems.map((item) => (
                 <tr key={item.label}>
-                  <td className="h6 text-gr w-32 text-left align-top">
+                  <td className="w-32 text-left align-top h6 text-gr">
                     {item.label}
                   </td>
-                  <td className="body text-bk align-top">{item.value}</td>
+                  <td className="align-top body text-bk">{item.value}</td>
                 </tr>
               ))}
             </tbody>

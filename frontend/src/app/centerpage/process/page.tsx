@@ -70,8 +70,12 @@ export default function CenterProcess() {
     setToast({ ...toast, show: false });
   };
 
-  const hasConsent =
-    !!consentsData && Array.isArray(consentsData) && consentsData.length > 0;
+  // 활성화된 동의서만 기준으로 판단
+  const activeConsents =
+    Array.isArray(consentsData) && consentsData.length > 0
+      ? consentsData.filter((consent: Consent) => consent.is_active)
+      : [];
+  const hasConsent = activeConsents.length > 0;
   const hasContractTemplate =
     !!procedureSettings?.contract_templates &&
     procedureSettings.contract_templates.length > 0;
@@ -246,9 +250,9 @@ export default function CenterProcess() {
                 disabled={true}
                 className="text-gr"
               />
-            ) : consentsData && consentsData.length > 0 ? (
+            ) : hasConsent ? (
               <div className="w-full flex flex-col">
-                {consentsData.map((consent: Consent, index: number) => (
+                {activeConsents.map((consent: Consent, index: number) => (
                   <CustomInput
                     key={consent.id}
                     variant="text"

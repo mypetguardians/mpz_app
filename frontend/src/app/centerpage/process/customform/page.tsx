@@ -331,6 +331,29 @@ export default function CenterProcessCustomForm() {
   };
 
   const handleSave = async () => {
+    // 1) 질문 내용 빈칸 검증
+    const firstEmptyIndex = questionInputs.findIndex(
+      (q) => q.text.trim() === ""
+    );
+
+    if (firstEmptyIndex !== -1) {
+      showToast("빈칸을 입력해주세요.", "error");
+
+      // 해당 인풋으로 포커스 및 스크롤 이동
+      if (typeof document !== "undefined") {
+        const el = document.getElementById(`question-${firstEmptyIndex}`);
+        if (
+          el instanceof HTMLInputElement ||
+          el instanceof HTMLTextAreaElement
+        ) {
+          el.focus();
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }
+
+      return;
+    }
+
     try {
       // 새로운 커스텀 질문들을 API에 저장
       const customQuestionsToSave = questionInputs.filter(
@@ -450,6 +473,7 @@ export default function CenterProcessCustomForm() {
           {questionInputs.map((question, index) => (
             <div key={question.id || index} className="relative">
               <CustomInput
+                id={`question-${index}`}
                 variant="primary"
                 label={`질문${index + 1}`}
                 placeholder="자유롭게 질문을 입력해주세요."

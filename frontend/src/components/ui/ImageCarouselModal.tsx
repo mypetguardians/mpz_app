@@ -108,7 +108,7 @@ export function ImageCarouselModal({
       onClick={onClose}
     >
       {/* 닫기 버튼 */}
-      <div className="absolute top-4 right-4 z-[10002] ">
+      <div className="absolute top-12 right-4 z-[10002]">
         <IconButton
           icon={({ size }) => <X size={size} weight="bold" />}
           size="iconL"
@@ -118,7 +118,7 @@ export function ImageCarouselModal({
       </div>
 
       {/* 상단 정보 바: 카운터 + 원본 토글 */}
-      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-[10002] flex items-center gap-2">
+      <div className="absolute top-12 left-1/2 transform -translate-x-1/2 z-[10002] flex items-center gap-2">
         {images.length > 1 && (
           <div className="bg-black/50 px-3 py-1 rounded-full">
             <span className="text-white text-sm">
@@ -199,7 +199,15 @@ export function ImageCarouselModal({
                   className="object-contain object-center select-none"
                   sizes="(min-width: 1024px) 70vw, 70vw"
                   draggable={false}
-                  onLoadingComplete={() => {
+                  unoptimized={image.startsWith("/api/proxy-image")}
+                  onLoad={() => {
+                    setImageLoaded((prev) => {
+                      const next = [...prev];
+                      next[index] = true;
+                      return next;
+                    });
+                  }}
+                  onError={() => {
                     setImageLoaded((prev) => {
                       const next = [...prev];
                       next[index] = true;
@@ -250,6 +258,7 @@ export function ImageCarouselModal({
                   alt={`썸네일 ${index + 1}`}
                   fill
                   className="object-cover"
+                  unoptimized={img.startsWith("/api/proxy-image")}
                 />
               </button>
             ))}

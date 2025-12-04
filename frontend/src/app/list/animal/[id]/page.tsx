@@ -246,15 +246,30 @@ export default function AnimalDetailPage({
       setShowToast(true);
       return;
     }
+    // 임시보호 신청도 입양 신청과 동일한 절차를 거치되,
+    // 스토어에 임시보호 플래그를 함께 저장한다.
+    const centerId = animal?.center_id || center?.id || "";
+    adoptionStore.setAnimalInfo(id, centerId);
+    adoptionStore.updateField("isTemporaryProtection", true);
 
-    // 구독 센터인 경우 입양신청과 같은 절차로 진행
-    if (isCenterSubscriber) {
-      handleAdoptionClick();
-      return;
+    if (userProfile) {
+      adoptionStore.loadUserData({
+        phone: userProfile.phone_number || undefined,
+        phoneVerification: userProfile.is_phone_verified || false,
+        name: userProfile.name || undefined,
+        birth: userProfile.birth || undefined,
+        address: userProfile.address || undefined,
+      });
     }
 
-    // 비구독 센터인 경우 전화번호 바텀시트 표시
-    setShowFosterBottomSheet(true);
+    const isPhoneVerified = userProfile?.is_phone_verified === true;
+
+    if (isPhoneVerified) {
+      router.push(`/adoption/verification/5?directAccess=true`);
+    } else {
+      // 전화번호 인증이 안된 경우 step1부터 시작
+      router.push(`/adoption/verification/1`);
+    }
   };
 
   // 입양 절차 모달에서 입양 신청하기 버튼 클릭 핸들러
@@ -277,7 +292,6 @@ export default function AnimalDetailPage({
     const isPhoneVerified = userProfile?.is_phone_verified === true;
 
     if (isPhoneVerified) {
-      // 전화번호 인증이 완료된 경우 step5로 이동 (뒤로가기 버튼 숨김 플래그 추가)
       router.push(`/adoption/verification/5?directAccess=true`);
     } else {
       // 전화번호 인증이 안된 경우 step1부터 시작
@@ -402,19 +416,30 @@ export default function AnimalDetailPage({
     }
   }, [animal?.is_megaphoned, animal]);
 
-  // 이전 경로 추적 (adoption/verification 제외)
+  // 이전 경로 추적 (adoption/verification, 현재 동물 상세는 제외)
   useEffect(() => {
     if (typeof window !== "undefined" && pathname) {
-      // adoption/verification 경로가 아닌 경우에만 저장
-      if (!pathname.startsWith("/adoption/verification/")) {
+      if (
+        !pathname.startsWith("/adoption/verification/") &&
+        !pathname.startsWith(`/list/animal/${id}`)
+      ) {
         sessionStorage.setItem("lastNonVerificationPath", pathname);
       }
     }
-  }, [pathname]);
+  }, [pathname, id]);
 
-  // 뒤로가기 핸들러 (adoption/verification 제외)
   const handleBack = () => {
-    router.back();
+    if (typeof window !== "undefined") {
+      const lastPath = sessionStorage.getItem("lastNonVerificationPath");
+
+      if (lastPath && !lastPath.includes("/adoption/")) {
+        router.push(lastPath);
+        return;
+      }
+    }
+
+    // 이전 경로가 없거나 입양 경로뿐이면 리스트로 이동 (입양 절차로는 가지 않도록)
+    router.push("/list/animal");
   };
 
   // 거리 기반 관련 동물 데이터 가져오기
@@ -475,6 +500,7 @@ export default function AnimalDetailPage({
           protection_status={animal.protection_status}
           adoption_status={animal.adoption_status}
           name={animal.name}
+          neutering={animal.neutering || false}
           isFemale={animal.is_female}
           age={animal.age}
           weight={animal.weight || 0}
@@ -721,7 +747,7 @@ export default function AnimalDetailPage({
         <CustomModal
           open={showShareBottomSheet}
           onClose={() => setShowShareBottomSheet(false)}
-          title="공고 공유"
+          title="공유"
           variant="variant4"
           onKakaoShare={handleKakaoShare}
           onCopyLink={handleCopyLink}
@@ -829,7 +855,7 @@ export default function AnimalDetailPage({
           subText={`전화 가능시간: ${center.callAvailableTime}`}
           leftButtonText="전화 문의"
           onLeftClick={handleCenterPhoneCall}
-          rightButtonText="입양 문의"
+          rightButtonText="입양 신청"
           onRightClick={handleAdoptionProcedureConfirm}
         />
       )}

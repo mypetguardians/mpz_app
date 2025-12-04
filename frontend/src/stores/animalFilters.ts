@@ -4,7 +4,9 @@ import { FilterState } from "@/lib/filter-utils";
 
 type AnimalFilterStore = {
   filters: FilterState;
+  searchValue: string;
   setFilters: (partial: Partial<FilterState>) => void;
+  setSearchValue: (value: string) => void;
   reset: () => void;
 };
 
@@ -22,16 +24,18 @@ export const useAnimalFiltersStore = create<AnimalFilterStore>()(
   persist(
     (set, get) => ({
       filters: initialFilters,
+      searchValue: "",
       setFilters: (partial) => {
         const next = { ...get().filters, ...partial };
         set({ filters: next });
       },
-      reset: () => set({ filters: initialFilters }),
+      setSearchValue: (value) => set({ searchValue: value }),
+      reset: () => set({ filters: initialFilters, searchValue: "" }),
     }),
     {
       name: "animalFilters",
-      version: 1,
-      partialize: (state) => ({ filters: state.filters }),
+      version: 2,
+      partialize: (state) => ({ filters: state.filters, searchValue: state.searchValue }),
     }
   )
 );

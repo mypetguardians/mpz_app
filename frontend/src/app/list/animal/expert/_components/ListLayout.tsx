@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Bell, CaretDown } from "@phosphor-icons/react";
 
@@ -27,7 +27,16 @@ interface ListLayoutProps {
 export function ListLayout({ children }: ListLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const [searchValue, setSearchValue] = useState("");
+  const searchParams = useSearchParams();
+  const { searchValue, setSearchValue: setStoredSearchValue } =
+    useAnimalFiltersStore();
+
+  // URL 파라미터에서 검색 값 읽기
+  const searchFromUrl = searchParams.get("search") || "";
+
+  // 스토어 값과 URL 파라미터 중 우선순위: URL > 스토어
+  const initialSearchValue = searchFromUrl || searchValue;
+  const [localSearchValue, setLocalSearchValue] = useState(initialSearchValue);
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { unreadCount: socketUnreadCount, isConnected } =
     useNotificationSocket();
@@ -51,6 +60,18 @@ export function ListLayout({ children }: ListLayoutProps) {
   const { filters } = useAnimalFiltersStore();
   const filterCounts = useMemo(() => getFilterCounts(filters), [filters]);
   const { open: openAnimalFilterOverlay } = useAnimalFilterOverlayStore();
+
+  // URL 파라미터와 스토어 값 동기화
+  useEffect(() => {
+    // URL에 검색 파라미터가 있으면 우선 사용
+    if (searchFromUrl && searchFromUrl !== searchValue) {
+      setStoredSearchValue(searchFromUrl);
+      setLocalSearchValue(searchFromUrl);
+    } else if (searchValue && !searchFromUrl) {
+      // URL에 없고 스토어에만 있으면 로컬 상태만 업데이트
+      setLocalSearchValue(searchValue);
+    }
+  }, [searchFromUrl, searchValue, setStoredSearchValue]);
 
   const filterOptions = [
     {
@@ -86,10 +107,41 @@ export function ListLayout({ children }: ListLayoutProps) {
   ];
 
   const handleSearch = () => {
-    if (searchValue.trim()) {
-      router.push(`${pathname}?search=${encodeURIComponent(searchValue)}`);
+    const trimmedValue = localSearchValue.trim();
+    setStoredSearchValue(trimmedValue);
+    // URL 업데이트
+    if (trimmedValue) {
+      router.push(`${pathname}?search=${encodeURIComponent(trimmedValue)}`);
+    } else {
+      // 검색 값이 비어있으면 URL에서 제거
+      router.push(pathname);
     }
   };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setLocalSearchValue(value);
+    // 실시간으로 스토어에 저장
+    setStoredSearchValue(value);
+  };
+
+  // 입력이 완료된 후 자동으로 URL에 반영 (디바운싱)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const trimmedValue = localSearchValue.trim();
+      // 현재 URL의 검색 값과 다를 때만 업데이트
+      if (trimmedValue !== searchFromUrl) {
+        if (trimmedValue) {
+          router.push(`${pathname}?search=${encodeURIComponent(trimmedValue)}`);
+        } else if (searchFromUrl) {
+          // 검색 값이 비어있고 URL에 검색 파라미터가 있으면 제거
+          router.push(pathname);
+        }
+      }
+    }, 500); // 500ms 디바운싱
+
+    return () => clearTimeout(timer);
+  }, [localSearchValue, pathname, router, searchFromUrl]);
 
   return (
     <Container className="min-h-screen pb-20">
@@ -131,8 +183,8 @@ export function ListLayout({ children }: ListLayoutProps) {
 
       <div className="px-4 pt-4">
         <SearchInput
-          value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
+          value={localSearchValue}
+          onChange={handleSearchChange}
           onSearch={handleSearch}
           placeholder={
             activeTab === "animal"

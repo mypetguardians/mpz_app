@@ -13,7 +13,7 @@ import { pickImages } from "@/lib/image-picker";
 
 import { openKakaoAddress } from "@/lib/openKakaoAddress";
 import { NotificationToast } from "@/components/ui/NotificationToast";
-import { breedList } from "@/data/breedList";
+import { CenterBreedList } from "@/data/breedList";
 
 interface BasicInfoData {
   name: string;
@@ -59,7 +59,7 @@ export default function BasicInfo({
   const [isManualFoundLocation, setIsManualFoundLocation] = useState(false);
 
   // 품종 검색 결과 필터링
-  const filteredBreeds = breedList.filter((breed) =>
+  const filteredBreeds = CenterBreedList.filter((breed) =>
     breed.toLowerCase().includes(breedSearchTerm.toLowerCase())
   );
   // 업로드 진행 상태 관리는 제출 시 상위에서 처리

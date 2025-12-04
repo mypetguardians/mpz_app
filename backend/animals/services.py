@@ -266,7 +266,7 @@ class PublicDataService:
             age=self._parse_age(animal_data.age),
             is_female=animal_data.sex_cd == 'F',
             weight=self._parse_weight(animal_data.weight),
-            neutering=animal_data.neuter_yn == 'Y',
+            neutering=self._parse_neutering(animal_data.neuter_yn),  # 공공데이터 스키마: neuter_yn
             protection_status=self._map_protection_status(animal_data.process_state),  # 공공데이터 상태를 보호상태에 매핑
             adoption_status=self._map_adoption_status(animal_data.process_state),  # 공공데이터 상태를 입양상태에 매핑
             description=animal_data.special_mark or '',  # 공공데이터 특이사항을 description에 저장
@@ -292,13 +292,15 @@ class PublicDataService:
         updated = False
         
         # 1. 상태 업데이트 (가장 중요한 변경사항)
+        # 공공데이터 process_state(처리상태)를 protection_status(보호상태)로 매핑
         new_protection_status = self._map_protection_status(animal_data.process_state)
         new_adoption_status = self._map_adoption_status(animal_data.process_state)
         
         if animal.protection_status != new_protection_status:
+            old_status = animal.protection_status
             animal.protection_status = new_protection_status
             updated = True
-            print(f"동물 보호상태 업데이트: {animal.public_notice_number} - {animal.protection_status} -> {new_protection_status}")
+            print(f"동물 보호상태 업데이트: {animal.public_notice_number} - process_state={animal_data.process_state} -> protection_status: {old_status} -> {new_protection_status}")
         
         if animal.adoption_status != new_adoption_status:
             animal.adoption_status = new_adoption_status
@@ -347,9 +349,12 @@ class PublicDataService:
             animal.is_female = animal_data.sex_cd == 'F'
             updated = True
         
-        if animal.neutering != (animal_data.neuter_yn == 'Y'):
-            animal.neutering = animal_data.neuter_yn == 'Y'
+        # 공공데이터 스키마: neuter_yn 값 처리 (Y: 예, N: 아니오, U: 미상)
+        new_neutering = self._parse_neutering(animal_data.neuter_yn)
+        if animal.neutering != new_neutering:
+            animal.neutering = new_neutering
             updated = True
+            print(f"동물 중성화 여부 업데이트: {animal.public_notice_number} - neuter_yn={animal_data.neuter_yn} -> neutering={new_neutering}")
         
         # 4. 센터 정보 업데이트 (필요한 경우)
         if animal.center.public_reg_no != animal_data.care_reg_no:
@@ -506,17 +511,56 @@ class PublicDataService:
         except (ValueError, AttributeError):
             return None
     
+    def _parse_neutering(self, neuter_yn: str) -> bool:
+        """중성화 여부 파싱 (공공데이터 스키마: neuter_yn)
+        
+        Args:
+            neuter_yn: 공공데이터의 중성화 여부 값 (Y: 예, N: 아니오, U: 미상)
+        
+        Returns:
+            bool: Y인 경우 True, 그 외(N, U, 빈 값 등)는 False
+        """
+        if not neuter_yn:
+            return False
+        
+        # Y: 예 (중성화됨) -> True
+        # N: 아니오 (중성화 안됨) -> False
+        # U: 미상 (알 수 없음) -> False
+        return neuter_yn.upper() == 'Y'
+    
     def _map_protection_status(self, public_status: str) -> str:
-        """공공데이터 상태를 보호상태로 매핑"""
+        """공공데이터 process_state(처리상태)를 protection_status(보호상태)로 매핑
+        
+        Args:
+            public_status: 공공데이터의 process_state 값
+        
+        Returns:
+            str: protection_status 값 (보호중, 입양완료, 안락사, 자연사, 반환 등)
+        """
+        if not public_status:
+            return '보호중'
+        
+        # 공공데이터 process_state -> protection_status 매핑
         protection_mapping = {
             '보호중': '보호중',
-            '공고중': '보호중',
-            '입양완료': '보호중',  # 입양완료되어도 보호소에서 보호받은 상태
+            '공고중': '보호중',  # 공고중도 보호중으로 처리
+            '입양완료': '입양완료',  # 입양완료는 그대로 입양완료로 매핑
             '안락사': '안락사',
             '자연사': '자연사',
-            '반환': '반환'
+            '반환': '반환',
+            '기증': '기증',
+            '방사': '방사',
+            '임시보호': '임시보호',
         }
-        return protection_mapping.get(public_status, '보호중')
+        
+        # 매핑된 값이 있으면 반환, 없으면 기본값 '보호중'
+        mapped_status = protection_mapping.get(public_status.strip(), '보호중')
+        
+        # 디버깅용 로그 (필요시 주석 해제)
+        # if public_status.strip() not in protection_mapping:
+        #     print(f"⚠️ 알 수 없는 process_state 값: '{public_status}' -> '보호중'으로 매핑")
+        
+        return mapped_status
     
     def _map_adoption_status(self, public_status: str) -> str:
         """공공데이터 상태를 입양상태로 매핑"""

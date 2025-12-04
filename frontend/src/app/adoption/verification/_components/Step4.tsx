@@ -10,6 +10,7 @@ import { NotificationToast } from "@/components/ui/NotificationToast";
 import { openKakaoAddress } from "@/lib/openKakaoAddress";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useAdoptionVerificationStore } from "@/lib/stores";
+import { useUpdateProfile } from "@/hooks/mutation/useUpdateProfile";
 
 export interface StepProps {
   onNext: () => void;
@@ -20,6 +21,7 @@ export function Step4({ onNext }: StepProps) {
   const { data: storeData, updateField } = useAdoptionVerificationStore(
     user?.id
   );
+  const updateProfileMutation = useUpdateProfile();
 
   const [roadAddress, setRoadAddress] = React.useState("");
   const [detailAddress, setDetailAddress] = React.useState("");
@@ -54,8 +56,9 @@ export function Step4({ onNext }: StepProps) {
   const isVisibilityValid =
     visibility === "공개함" || visibility === "공개안함";
   const isValid = isAddressValid && isVisibilityValid;
+  const isSaving = updateProfileMutation.isPending;
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!isAddressValid) {
       showErrorToast("주소를 입력해주세요.");
       return;
@@ -69,6 +72,23 @@ export function Step4({ onNext }: StepProps) {
       sessionStorage.setItem("verification.addressVisibility", visibility);
       updateField("address", fullAddress);
       updateField("addressIsPublic", visibility === "공개함");
+
+      // Step1~4에서 모은 사용자 정보로 프로필 수정 API 한 번 호출
+      if (user) {
+        try {
+          await updateProfileMutation.mutateAsync({
+            name: storeData?.name,
+            phone_number: storeData?.phone?.replace(/\D/g, ""),
+            is_phone_verified: storeData?.isPhoneVerified ?? undefined,
+            birth: storeData?.birth,
+            address: fullAddress,
+            address_is_public: visibility === "공개함",
+          });
+        } catch (error) {
+          console.error("프로필 수정 API 호출 실패:", error);
+        }
+      }
+
       onNext();
     } catch (error) {
       console.error("주소 정보 저장 실패:", error);
@@ -143,9 +163,9 @@ export function Step4({ onNext }: StepProps) {
 
       <FixedBottomBar
         variant="variant1"
-        primaryButtonText="확인"
+        primaryButtonText={isSaving ? "정보 저장 중..." : "확인"}
         onPrimaryButtonClick={handleNext}
-        primaryButtonDisabled={!isValid}
+        primaryButtonDisabled={!isValid || isSaving}
       />
 
       {showToast && (

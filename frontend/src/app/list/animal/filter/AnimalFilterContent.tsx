@@ -11,7 +11,7 @@ import { InfoCard } from "@/components/ui/InfoCard";
 import { FilterState } from "@/lib/filter-utils";
 import { useAnimalFiltersStore } from "@/stores/animalFilters";
 import { useAnimalFilterOverlayStore } from "@/stores/animalFilterOverlay";
-import { breedList } from "@/data/breedList";
+import { SearchBreedList } from "@/data/breedList";
 
 import BreedFilter from "./_components/BreedFilter";
 import MultiSelectFilter from "./_components/MultiSelectFilter";
@@ -123,7 +123,7 @@ export function AnimalFilterContent() {
 
       <div className="flex flex-col w-full gap-6 px-4 py-3 pb-40">
         <BreedFilter
-          breedList={breedList}
+          breedList={SearchBreedList}
           selectedBreed={selectedBreed}
           setSelectedBreed={setSelectedBreed}
           breedSearchTerm={breedSearchTerm}
@@ -172,19 +172,19 @@ export function AnimalFilterContent() {
         />
 
         {lastSelectedProtectionStatus === "입양가능" && (
-          <InfoCard>입양을 기다리는 동물들입니다.</InfoCard>
+          <InfoCard>가족을 기다리는 동물들입니다.</InfoCard>
         )}
-        {lastSelectedProtectionStatus === "무지개" && (
-          <InfoCard>무지개 다리를 건넌 동물들입니다.</InfoCard>
+        {lastSelectedProtectionStatus === "🌈" && (
+          <InfoCard>안락사, 자연사로 무지개 다리를 건넌 동물들입니다.</InfoCard>
         )}
         {lastSelectedProtectionStatus === "반환" && (
-          <InfoCard>입양 후 반환된 동물들입니다.</InfoCard>
+          <InfoCard>원래 주인에게 돌아간 동물들입니다.</InfoCard>
         )}
         {lastSelectedProtectionStatus === "방사" && (
           <InfoCard>자연으로 방사된 동물들입니다.</InfoCard>
         )}
         {lastSelectedProtectionStatus === "입양완료" && (
-          <InfoCard>새로운 가족을 만난 동물들입니다.</InfoCard>
+          <InfoCard>가족을 만난 동물들입니다.</InfoCard>
         )}
       </div>
 

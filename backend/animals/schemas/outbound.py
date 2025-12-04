@@ -31,22 +31,6 @@ class AnimalOut(Schema):
     sociability: Optional[int] = Field(None, description="사회성")
     separation_anxiety: Optional[int] = Field(None, description="분리불안 정도")
     
-    # 사회성 세부 항목들
-    confidence: Optional[int] = Field(None, description="새로운 자극/상황 적극성")
-    independence: Optional[int] = Field(None, description="독립성 있는 행동")
-    physical_contact: Optional[int] = Field(None, description="사람 터치 긍정적 수용")
-    handling_acceptance: Optional[int] = Field(None, description="몸 만지기 저항감")
-    strangers_attitude: Optional[int] = Field(None, description="낯선 사람 반응")
-    objects_attitude: Optional[int] = Field(None, description="낯선 사물 반응")
-    environment_attitude: Optional[int] = Field(None, description="낯선 환경 반응")
-    dogs_attitude: Optional[int] = Field(None, description="낯선 강아지 반응")
-    
-    # 분리불안 세부 항목들
-    coping_ability: Optional[int] = Field(None, description="낯선 공간 혼자 남겨졌을 때 반응")
-    playfulness_level: Optional[int] = Field(None, description="장난감/바디시그널 놀이 유도 반응")
-    walkability_level: Optional[int] = Field(None, description="산책 과정에서 모습")
-    grooming_acceptance_level: Optional[int] = Field(None, description="그루밍 진행 시 모습")
-    
     special_notes: Optional[str] = Field(None, description="특이사항")
     health_notes: Optional[str] = Field(None, description="건강 정보")
     trainer_name: Optional[str] = Field(None, description="훈련사 이름")

@@ -7,6 +7,7 @@ interface SearchInputProps {
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSearch?: () => void;
+  onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
   placeholder?: string;
   variant?: SearchInputVariant;
   className?: string;
@@ -18,6 +19,7 @@ export function SearchInput({
   value,
   onChange,
   onSearch,
+  onFocus,
   placeholder = "품종으로 검색해보세요.",
   variant = "primary",
   className,
@@ -57,6 +59,7 @@ export function SearchInput({
         placeholder={placeholder}
         value={value}
         onChange={onChange}
+        onFocus={onFocus}
         onKeyDown={(e) => e.key === "Enter" && onSearch?.()}
         readOnly={readOnly}
         autoFocus={autoFocus}

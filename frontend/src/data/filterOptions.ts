@@ -7,7 +7,7 @@ export const genderOptions = ["남아", "여아"];
 // 필터용 보호상태 (사용자가 보는 그룹)
 export const protectionStatusOptions = [
   "입양가능",
-  "무지개",
+  "🌈",
   "반환",
   "방사",
   "입양완료",
@@ -15,7 +15,7 @@ export const protectionStatusOptions = [
 
 export const protectionStatusToRawMap: Record<string, string[]> = {
   입양가능: ["임시보호", "보호중"],
-  무지개: ["안락사", "자연사"],
+  "🌈": ["안락사", "자연사"],
 };
 
 // 동물 업로드용 보호상태 (실제 DB 상태)

@@ -10,26 +10,95 @@ import { IconButton } from "@/components/ui/IconButton";
 import { PetCard } from "@/components/ui/PetCard";
 import { BigButton } from "@/components/ui/BigButton";
 import { SectionLine } from "../_components/SectionLine";
-import RelatedPosts from "@/app/list/animal/[id]/_components/RelatedPosts";
-import { mainPetInfo, user, adoptionResponses } from "@/app/mock";
+import { useGetCenterAdoption } from "@/hooks";
+import { useGetAnimalById } from "@/hooks/query/useGetAnimals";
+import { transformRawAnimalToPetCard } from "@/types/animal";
 
-export default function AdoptorlistDetailPage({
-  params,
-}: {
+interface FosterDetailPageProps {
   params: Promise<{ id: string }>;
-}) {
+}
+
+export default function FosterDetailPage({ params }: FosterDetailPageProps) {
   const router = useRouter();
   const { id } = use(params);
 
-  const animal = mainPetInfo.find((item) => item.id === id);
+  // 개별 임시보호(입양) 신청 조회
+  const { data: adoption, isLoading, error } = useGetCenterAdoption(id);
+
+  // 동물 정보 조회
+  const {
+    data: animalData,
+    isLoading: animalLoading,
+    error: animalError,
+  } = useGetAnimalById(adoption?.animal_id || "");
 
   const handleBack = () => {
     router.back();
   };
 
   const handleViewConsent = () => {
-    console.log("동의서 보기");
+    // 기존 입양 동의서 화면을 그대로 재사용
+    router.push(`/centerpage/adoptorlist/application/${id}/consentform`);
   };
+
+  if (isLoading || animalLoading) {
+    return (
+      <div className="min-h-screen bg-bg">
+        <Container className="min-h-screen">
+          <TopBar
+            variant="variant4"
+            left={
+              <div className="flex items-center gap-2">
+                <IconButton
+                  icon={({ size }) => <ArrowLeft size={size} weight="bold" />}
+                  size="iconM"
+                  onClick={handleBack}
+                />
+                <h4>로딩 중...</h4>
+              </div>
+            }
+          />
+          <div className="relative z-10 flex-1 -mt-4 bg-white rounded-t-3xl">
+            <div className="p-4">
+              <div className="py-8 text-center">로딩 중...</div>
+            </div>
+          </div>
+        </Container>
+      </div>
+    );
+  }
+
+  if (error || !adoption) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-bg">
+        <div className="text-center">
+          <div className="mb-2 text-red-500">
+            임시보호 신청 데이터를 불러오는 중 오류가 발생했습니다
+          </div>
+          {error && (
+            <div className="text-sm text-gray-500">{error.message}</div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (animalError) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-bg">
+        <div className="text-center">
+          <div className="mb-2 text-red-500">
+            동물 정보를 불러오는 중 오류가 발생했습니다
+          </div>
+          <div className="text-sm text-gray-500">{animalError.message}</div>
+        </div>
+      </div>
+    );
+  }
+
+  const petCardData = animalData
+    ? transformRawAnimalToPetCard(animalData)
+    : null;
 
   return (
     <div className="min-h-screen bg-bg">
@@ -44,129 +113,81 @@ export default function AdoptorlistDetailPage({
                 size="iconM"
                 onClick={handleBack}
               />
-              <h4>UserName</h4>
+              <h4>{adoption.user_info.name}</h4>
             </div>
           }
         />
 
         {/* Main Content */}
-        <div className="flex-1 bg-white rounded-t-3xl -mt-4 relative z-10">
-          <div className="p-4">
+        <div className="relative z-10 flex-1 -mt-4 bg-white rounded-t-3xl">
+          <div className="p-4 pb-24">
             {/* Pet Info */}
             <SectionLine>
-              <h3 className="text-bk mb-3">임시보호 동물</h3>
-              <PetCard
-                pet={{
-                  id: mainPetInfo[0].id,
-                  name: mainPetInfo[0].name,
-                  breed: mainPetInfo[0].tag,
-                  isFemale: mainPetInfo[0].isFemale,
-                  protection_status: "보호중" as const,
-                  adoption_status: "입양가능" as const,
-                  centerId: "1",
-                  animalImages: mainPetInfo[0].imageUrls.map((url, index) => ({
-                    id: index.toString(),
-                    imageUrl: url,
-                    orderIndex: index,
-                  })),
-                  foundLocation: mainPetInfo[0].foundLocation,
-                }}
-                variant="variant4"
-              />
+              <h3 className="mb-3 text-bk">임시보호 동물</h3>
+              {petCardData ? (
+                <PetCard pet={petCardData} variant="variant4" />
+              ) : (
+                <div className="py-4 text-sm text-center text-gr">
+                  동물 정보를 불러올 수 없습니다.
+                </div>
+              )}
             </SectionLine>
 
-            {animal && (
-              <RelatedPosts
-                currentPet={{
-                  id: animal.id,
-                  name: animal.name,
-                  breed: animal.tag,
-                  isFemale: animal.isFemale,
-                  status: animal.tag === "보호중" ? "보호중" : "임시보호중",
-                  protection_status: "보호중" as const,
-                  adoption_status: "입양가능" as const,
-                  age: animal.age || 0,
-                  weight: animal.weight || null,
-                  color: animal.color || null,
-                  description: animal.description || null,
-                  waitingDays: animal.waitingDays || null,
-                  activityLevel: animal.activityLevel?.toString() || null,
-                  sensitivity: animal.sensitivity?.toString() || null,
-                  sociability: animal.sociability?.toString() || null,
-                  separationAnxiety: null,
-                  specialNotes: null,
-                  healthNotes: null,
-                  basicTraining: null,
-                  trainerName: null,
-                  trainerComment: null,
-                  announceNumber: null,
-                  announcementDate: null,
-                  noticeStartDate: null,
-                  noticeEndDate: null,
-                  admissionDate: null,
-                  foundLocation: animal.foundLocation || null,
-                  personality: null,
-                  megaphoneCount: 0,
-                  isMegaphoned: false,
-                  centerId: "1",
-                  animalImages:
-                    animal.imageUrls?.map((url, index) => ({
-                      id: index.toString(),
-                      imageUrl: url,
-                      orderIndex: index,
-                    })) || null,
-                  createdAt: new Date().toISOString(),
-                  updatedAt: new Date().toISOString(),
-                }}
-                title="임시보호자가 올린 글"
-              />
-            )}
-
             <SectionLine>
-              {/* My Information */}
+              {/* Foster Information */}
               <div className="mb-6">
-                <h3 className="text-bk mb-3">임시보호자 정보</h3>
-                <div className="bg-white rounded-lg p-4">
+                <h3 className="mb-3 text-bk">임시보호자 정보</h3>
+                <div className="p-4 bg-white rounded-lg">
                   <table className="w-full">
                     <tbody className="space-y-1">
                       <tr>
-                        <td className="text-gr h5 py-1 pr-3 align-top w-20">
+                        <td className="w-20 py-1 pr-3 align-top text-gr h5">
                           이름
                         </td>
-                        <td className="text-sm py-1">
-                          <div className="py-1 px-3">{user[0].nickname}</div>
+                        <td className="py-1 text-sm">
+                          <div className="px-3 py-1">
+                            {adoption.user_info.name}
+                          </div>
                         </td>
                       </tr>
                       <tr>
-                        <td className="text-gr h5 py-1 pr-3 align-top w-20">
+                        <td className="w-20 py-1 pr-3 align-top text-gr h5">
                           생년월일
                         </td>
-                        <td className="text-sm py-1">
-                          <div className="py-1 px-3">{user[0].birthDate}</div>
+                        <td className="py-1 text-sm">
+                          <div className="px-3 py-1">
+                            {adoption.user_info.birthDate}
+                          </div>
                         </td>
                       </tr>
                       <tr>
-                        <td className="text-gr h5 py-1 pr-3 align-top w-20">
+                        <td className="w-20 py-1 pr-3 align-top text-gr h5">
                           성별
                         </td>
-                        <td className="text-sm py-1">
-                          <div className="py-1 px-3">{user[0].gender}</div>
+                        <td className="py-1 text-sm">
+                          <div className="px-3 py-1">
+                            {adoption.user_info.gender}
+                          </div>
                         </td>
                       </tr>
                       <tr>
-                        <td className="text-gr h5 py-1 pr-3 align-top w-20">
+                        <td className="w-20 py-1 pr-3 align-top text-gr h5">
                           주소
                         </td>
-                        <td className="text-sm py-1">
-                          <div className="py-1 px-3">{user[0].address}</div>
+                        <td className="py-1 text-sm">
+                          <div className="px-3 py-1">
+                            {adoption.user_info.address}
+                          </div>
                         </td>
                       </tr>
                       <tr>
-                        <td className="text-gr h5 py-1 pr-3 align-top w-20">
+                        <td className="w-20 py-1 pr-3 align-top text-gr h5">
                           전화번호
                         </td>
-                        <td className="text-sm py-1">
-                          <div className="py-1 px-3">{user[0].phoneNumber}</div>
+                        <td className="py-1 text-sm">
+                          <div className="px-3 py-1">
+                            {adoption.user_info.phone}
+                          </div>
                         </td>
                       </tr>
                     </tbody>
@@ -175,19 +196,30 @@ export default function AdoptorlistDetailPage({
               </div>
             </SectionLine>
 
-            {/* My Responses */}
+            {/* Question Responses */}
             <SectionLine>
-              <h3 className="text-bk mb-3">폼 응답</h3>
-              <div className="flex flex-col ">
-                {adoptionResponses.map((response, index) => (
-                  <div
-                    key={index}
-                    className="flex flex-col py-3 border-b border-bg"
-                  >
-                    <h5 className="text-gr">{response.question}</h5>
-                    <p className="text-bk body">{response.answer}</p>
+              <h3 className="mb-3 text-bk">폼 응답</h3>
+              <div className="flex flex-col">
+                {adoption.question_responses.length === 0 ? (
+                  <div className="py-4 text-sm text-center text-gr">
+                    폼 응답이 없습니다.
                   </div>
-                ))}
+                ) : (
+                  adoption.question_responses.map((response, index) => (
+                    <div
+                      key={index}
+                      className="flex flex-col py-3 border-b border-bg"
+                    >
+                      <h5 className="text-gr">
+                        {response.question_content ||
+                          response.question ||
+                          response.question_id ||
+                          "질문"}
+                      </h5>
+                      <p className="body text-bk">{response.answer}</p>
+                    </div>
+                  ))
+                )}
               </div>
             </SectionLine>
 

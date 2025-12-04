@@ -1,16 +1,23 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { CaretDown } from "@phosphor-icons/react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { CaretDown, Heart } from "@phosphor-icons/react";
 
 import { SearchInput } from "@/components/ui/SearchInput";
 import { MiniButton } from "@/components/ui/MiniButton";
 import { PetCard } from "@/components/ui/PetCard";
+import { IconButton } from "@/components/ui/IconButton";
 import { useGetAnimals } from "@/hooks/query/useGetAnimals";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { useToggleAnimalFavorite } from "@/hooks/mutation/useToggleAnimalFavorite";
+import { useCheckAnimalFavorite } from "@/hooks/query/useCheckAnimalFavorite";
+import { cn } from "@/lib/utils";
 
 import { FilterState, getFilterCounts } from "@/lib/filter-utils";
 import { useAnimalFilterOverlayStore } from "@/stores/animalFilterOverlay";
+import { useAnimalFiltersStore } from "@/stores/animalFilters";
+import type { RawAnimalResponse } from "@/types/animal";
 
 interface AnimalSearchSectionProps {
   filters: FilterState;
@@ -18,15 +25,49 @@ interface AnimalSearchSectionProps {
   onSearchStateChange: (isSearching: boolean) => void;
 }
 
+type SearchAnimal = RawAnimalResponse;
+
 export function AnimalSearchSection({
   filters,
   filterCounts,
   onSearchStateChange,
 }: AnimalSearchSectionProps) {
   const router = useRouter();
-  const [searchValue, setSearchValue] = useState("");
-  const [isSearching, setIsSearching] = useState(false);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { isAuthenticated } = useAuth();
+  const toggleFavorite = useToggleAnimalFavorite();
+  const {
+    searchValue: storedSearchValue,
+    setSearchValue: setStoredSearchValue,
+  } = useAnimalFiltersStore();
+
+  // URL 파라미터에서 검색 값 읽기
+  const searchFromUrl = searchParams.get("search") || "";
+
+  // 검색 값 우선순위: URL > 스토어
+  const searchValue = searchFromUrl || storedSearchValue;
+  const [localSearchValue, setLocalSearchValue] = useState(searchValue);
+  const [isSearching, setIsSearching] = useState(!!searchValue);
+  const [localFavorites, setLocalFavorites] = useState<Record<string, boolean>>(
+    {}
+  );
   const { open: openFilterOverlay } = useAnimalFilterOverlayStore();
+
+  // URL 파라미터와 스토어 값 동기화
+  useEffect(() => {
+    if (searchFromUrl && searchFromUrl !== storedSearchValue) {
+      setStoredSearchValue(searchFromUrl);
+      setLocalSearchValue(searchFromUrl);
+      setIsSearching(true);
+    } else if (storedSearchValue && !searchFromUrl) {
+      setLocalSearchValue(storedSearchValue);
+      setIsSearching(!!storedSearchValue);
+    } else if (searchValue) {
+      setLocalSearchValue(searchValue);
+      setIsSearching(true);
+    }
+  }, [searchFromUrl, storedSearchValue, searchValue, setStoredSearchValue]);
 
   // 검색 결과 가져오기
   const {
@@ -37,7 +78,7 @@ export function AnimalSearchSection({
     hasNextPage: hasNextSearchPage,
     isFetchingNextPage: isFetchingNextSearchPage,
   } = useGetAnimals({
-    breed: searchValue.trim() || filters.breed || undefined,
+    breed: localSearchValue.trim() || filters.breed || undefined,
     page_size: 20,
     // 체중 필터
     ...(filters.weights.length > 0 && {
@@ -182,29 +223,81 @@ export function AnimalSearchSection({
   ];
 
   const handleSearch = () => {
-    if (searchValue.trim()) {
+    const trimmedValue = localSearchValue.trim();
+    if (trimmedValue) {
+      setStoredSearchValue(trimmedValue);
       setIsSearching(true);
+      router.push(`${pathname}?search=${encodeURIComponent(trimmedValue)}`);
       onSearchStateChange(true);
     }
   };
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setLocalSearchValue(value);
+    setStoredSearchValue(value);
+  };
+
   const handleSearchClear = () => {
-    setSearchValue("");
+    setLocalSearchValue("");
+    setStoredSearchValue("");
     setIsSearching(false);
-    // 필터도 초기화
-    const currentUrl = new URL(window.location.href);
-    currentUrl.search = "";
-    router.push(currentUrl.pathname);
+    // URL에서 검색 파라미터 제거
+    router.push(pathname);
     onSearchStateChange(false);
   };
+
+  // 좋아요 토글 핸들러
+  const handleLikeToggle = useCallback(
+    (animalId: string) => {
+      if (!isAuthenticated) {
+        const qs = searchParams.toString();
+        const currentUrl = `${pathname}${qs ? `?${qs}` : ""}`;
+        router.push(`/login?redirect=${encodeURIComponent(currentUrl)}`);
+        return;
+      }
+
+      const currentFavorite =
+        localFavorites[animalId] !== undefined
+          ? localFavorites[animalId]
+          : false;
+
+      // optimistic update
+      setLocalFavorites((prev) => ({ ...prev, [animalId]: !currentFavorite }));
+
+      toggleFavorite.mutate(
+        { animalId },
+        {
+          onSuccess: (data) => {
+            const isFavorited = data.is_favorited ?? false;
+            setLocalFavorites((prev) => ({ ...prev, [animalId]: isFavorited }));
+          },
+          onError: () => {
+            setLocalFavorites((prev) => ({
+              ...prev,
+              [animalId]: currentFavorite,
+            }));
+          },
+        }
+      );
+    },
+    [
+      isAuthenticated,
+      localFavorites,
+      toggleFavorite,
+      pathname,
+      router,
+      searchParams,
+    ]
+  );
 
   return (
     <>
       {/* 검색 입력 */}
       <div className="px-4 py-4">
         <SearchInput
-          value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
+          value={localSearchValue}
+          onChange={handleSearchChange}
           onSearch={handleSearch}
           placeholder="품종으로 검색해보세요."
           variant="primary"
@@ -235,8 +328,8 @@ export function AnimalSearchSection({
         <div className="px-4 pt-4">
           <div className="flex items-center justify-between mb-3">
             <h5 className="text-dg">
-              {isSearching && searchValue.trim().length > 0
-                ? `"${searchValue}" 검색 결과`
+              {isSearching && localSearchValue.trim().length > 0
+                ? `"${localSearchValue}" 검색 결과`
                 : "검색 결과"}
               {searchData && ` (${searchTotal}건)`}
             </h5>
@@ -263,7 +356,8 @@ export function AnimalSearchSection({
           {!isSearchLoading && !searchError && !hasSearchResults && (
             <div className="py-8 text-center">
               <div className="text-gray-500">
-                &ldquo;{searchValue}&rdquo;에 해당하는 동물을 찾을 수 없습니다
+                &ldquo;{localSearchValue}&rdquo;에 해당하는 동물을 찾을 수
+                없습니다
               </div>
             </div>
           )}
@@ -284,45 +378,24 @@ export function AnimalSearchSection({
                     typeof animal === "object"
                 )
                 .map((animal, idx) => (
-                  <div
+                  <SearchAnimalCardWithFavorite
                     key={animal.id ?? idx}
+                    animal={animal}
+                    isAuthenticated={isAuthenticated}
+                    localFavorite={localFavorites[animal.id]}
+                    onLikeToggle={handleLikeToggle}
+                    onNavigate={() => router.push(`/list/animal/${animal.id}`)}
+                    variant={
+                      filters.expertOpinion.includes("포함")
+                        ? "variant2"
+                        : "primary"
+                    }
                     className={
                       filters.expertOpinion.includes("포함")
                         ? "w-full cursor-pointer"
                         : "w-[calc(50%-4px)] cursor-pointer"
                     }
-                    onClick={() => router.push(`/list/animal/${animal.id}`)}
-                  >
-                    <PetCard
-                      pet={{
-                        id: animal.id,
-                        name: animal.name,
-                        breed: animal.breed,
-                        isFemale: animal.is_female,
-                        protection_status: animal.protection_status || "보호중",
-                        adoption_status: animal.adoption_status || "입양가능",
-                        animalImages:
-                          animal.animal_images?.map((image) => ({
-                            id: image.id,
-                            imageUrl: image.image_url,
-                            orderIndex: image.order_index,
-                          })) || [],
-                        foundLocation: animal.found_location || "",
-                        centerId: animal.center_id,
-                        trainerComment: animal.trainer_comment,
-                        activityLevel: animal.activity_level || null,
-                        sensitivity: animal.sensitivity || null,
-                        sociability: animal.sociability || null,
-                      }}
-                      variant={
-                        filters.expertOpinion.includes("포함")
-                          ? "variant2"
-                          : "primary"
-                      }
-                      imageSize="full"
-                      className="w-full"
-                    />
-                  </div>
+                  />
                 ))}
             </div>
           )}
@@ -333,5 +406,91 @@ export function AnimalSearchSection({
         </div>
       )}
     </>
+  );
+}
+
+// 검색 결과용 동물 카드 컴포넌트 (찜 버튼 포함)
+function SearchAnimalCardWithFavorite({
+  animal,
+  isAuthenticated,
+  onLikeToggle,
+  localFavorite,
+  onNavigate,
+  variant,
+  className,
+}: {
+  animal: SearchAnimal;
+  isAuthenticated: boolean;
+  onLikeToggle: (animalId: string) => void;
+  localFavorite?: boolean;
+  onNavigate: () => void;
+  variant: "primary" | "variant2";
+  className: string;
+}) {
+  const { data: favoriteData } = useCheckAnimalFavorite(
+    animal.id,
+    isAuthenticated && localFavorite === undefined
+  );
+
+  const isLiked =
+    isAuthenticated &&
+    (localFavorite !== undefined
+      ? localFavorite
+      : favoriteData
+      ? favoriteData.is_favorited
+      : false);
+
+  return (
+    <div className={className} onClick={onNavigate}>
+      <div className="relative">
+        <PetCard
+          pet={{
+            id: animal.id,
+            name: animal.name,
+            breed: animal.breed,
+            isFemale: animal.is_female,
+            protection_status: animal.protection_status ?? "보호중",
+            adoption_status: animal.adoption_status ?? "입양가능",
+            animalImages:
+              animal.animal_images?.map((image) => ({
+                id: image.id,
+                imageUrl: image.image_url,
+                orderIndex: image.order_index,
+              })) || [],
+            foundLocation: animal.found_location || "",
+            centerId: animal.center_id,
+            trainerComment: animal.trainer_comment ?? null,
+            activityLevel: animal.activity_level || null,
+            sensitivity: animal.sensitivity || null,
+            sociability: animal.sociability || null,
+          }}
+          variant={variant}
+          imageSize="full"
+          className="w-full"
+          headerAction={
+            isAuthenticated ? (
+              <div onClick={(e) => e.stopPropagation()}>
+                <IconButton
+                  icon={({ size, className }) => (
+                    <Heart
+                      size={size}
+                      className={cn(
+                        className,
+                        isLiked ? "text-brand" : "text-lg",
+                        isLiked && "fill-current"
+                      )}
+                      weight={isLiked ? "fill" : "regular"}
+                    />
+                  )}
+                  size="iconM"
+                  label="찜"
+                  onClick={() => onLikeToggle(animal.id)}
+                />
+              </div>
+            ) : undefined
+          }
+        />
+      </div>
+    </div>
   );
 }

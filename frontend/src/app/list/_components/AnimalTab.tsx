@@ -30,7 +30,14 @@ function AnimalTab() {
     {}
   );
 
-  const { filters, reset: resetAnimalFilters } = useAnimalFiltersStore();
+  const {
+    filters,
+    searchValue,
+    reset: resetAnimalFilters,
+  } = useAnimalFiltersStore();
+
+  // URL 파라미터에서 검색 값 읽기
+  const searchFromUrl = searchParams.get("search") || "";
 
   // 필터 파라미터를 API 요청에 맞게 변환
   const apiParams = useMemo(() => {
@@ -40,9 +47,10 @@ function AnimalTab() {
       sort_order: "desc",
     };
 
-    // 품종 필터
-    if (filters.breed) {
-      params.breed = filters.breed;
+    // 검색 값 우선순위: URL 파라미터 > 스토어 searchValue > 필터 breed
+    const breedValue = searchFromUrl || searchValue || filters.breed;
+    if (breedValue) {
+      params.breed = breedValue;
     }
 
     // 체중 필터 (weights 배열의 첫 번째 값 사용)
@@ -101,7 +109,7 @@ function AnimalTab() {
     }
 
     return params;
-  }, [filters]);
+  }, [filters, searchFromUrl, searchValue]);
 
   // 오래기다린순 우선노출로 전체 데이터 가져오기
   const {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { BottomSheet } from "@/components/ui/BottomSheet";
@@ -29,6 +29,7 @@ export default function BreedFilter({
   setTempSelectedBreed,
 }: BreedFilterProps) {
   const searchParams = useSearchParams();
+  const searchInputRef = useRef<HTMLDivElement>(null);
 
   // URL 파라미터에서 breed 값 읽어오기
   useEffect(() => {
@@ -38,6 +39,29 @@ export default function BreedFilter({
       setBreedSearchTerm(breedFromUrl);
     }
   }, [searchParams, selectedBreed, setSelectedBreed, setBreedSearchTerm]);
+
+  // BottomSheet가 열릴 때 입력 필드에 포커스하고 스크롤 처리
+  useEffect(() => {
+    if (isBreedSheetOpen) {
+      // 키보드가 올라올 시간을 주기 위해 약간의 딜레이
+      const timer = setTimeout(() => {
+        // input 요소를 찾아서 포커스 및 스크롤
+        const inputElement = searchInputRef.current?.querySelector(
+          "input"
+        ) as HTMLInputElement;
+        if (inputElement) {
+          inputElement.focus();
+          // 입력 필드가 보이도록 스크롤
+          inputElement.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+        }
+      }, 300);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isBreedSheetOpen]);
 
   const handleBreedSearchClick = () => {
     setTempSelectedBreed(selectedBreed);
@@ -55,6 +79,17 @@ export default function BreedFilter({
     const nextValue = e.target.value;
     setBreedSearchTerm(nextValue);
     setTempSelectedBreed(nextValue);
+  };
+
+  // 입력 필드 포커스 시 스크롤 처리
+  const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    // 키보드가 올라온 후 입력 필드가 보이도록 스크롤
+    setTimeout(() => {
+      e.target.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 100);
   };
 
   const filteredBreeds =
@@ -89,12 +124,16 @@ export default function BreedFilter({
         selectedValue={tempSelectedBreed}
       >
         <div className="flex flex-col gap-4">
-          <SearchInput
-            variant="variant2"
-            placeholder="품종명을 검색해보세요"
-            value={breedSearchTerm}
-            onChange={handleSearchChange}
-          />
+          <div ref={searchInputRef}>
+            <SearchInput
+              variant="variant2"
+              placeholder="품종명을 검색해보세요"
+              value={breedSearchTerm}
+              onChange={handleSearchChange}
+              onFocus={handleInputFocus}
+              autoFocus={true}
+            />
+          </div>
 
           {/* 품종 리스트 표시 */}
           <div className="max-h-96 overflow-y-auto scrollbar-hide">

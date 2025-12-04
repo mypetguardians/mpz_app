@@ -19,8 +19,9 @@ export interface StepProps {
 export function Step6({ onNext }: StepProps) {
   const router = useRouter();
   const { user } = useAuth();
-  const { data: storeData } = useAdoptionVerificationStore(user?.id);
-  const centerId = storeData.centerId;
+  const adoptionStore = useAdoptionVerificationStore(user?.id);
+  const storeData = adoptionStore.data;
+  const centerId = storeData?.centerId;
 
   const {
     data: consentsData,
@@ -137,7 +138,7 @@ export function Step6({ onNext }: StepProps) {
       // 동의 사항
       monitoringAgreement: true, // 동의서에 동의했다면 모니터링도 동의한 것으로 간주
       guidelinesAgreement: true, // 동의서에 동의했다면 가이드라인도 동의한 것으로 간주
-      isTemporaryProtection: false, // 기본값
+      isTemporaryProtection: storeData.isTemporaryProtection === true, // 임시보호 여부
       notes: "",
 
       // 메타 정보

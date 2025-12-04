@@ -307,8 +307,11 @@ async def get_animals(
                 # 방사
                 queryset = queryset.filter(protection_status='방사')
             elif filters.status == '입양완료':
-                # 입양완료
-                queryset = queryset.filter(protection_status='입양완료')
+                # 입양완료: 입양완료, 반환
+                queryset = queryset.filter(
+                    Q(protection_status='입양완료') | 
+                    Q(protection_status='반환')
+                )
             else:
                 # 기존 status 필터를 protection_status로 직접 매핑 (호환성)
                 if filters.status in ['보호중', '임시보호', '안락사', '자연사', '반환', '기증', '방사', '입양완료']:
@@ -1278,6 +1281,9 @@ async def sync_public_data(
         public_data_service = PublicDataService(service_key)
         
         # 유기동물 데이터 가져오기
+        # - Y: 예 (중성화됨) -> neutering=True
+        # - N: 아니오 (중성화 안됨) -> neutering=False
+        # - U: 미상 (알 수 없음) -> neutering=False
         animals_data = await public_data_service.fetch_abandoned_animals(
             bgnde=bgnde,
             endde=endde,

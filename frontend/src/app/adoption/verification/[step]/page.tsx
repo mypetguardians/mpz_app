@@ -80,13 +80,14 @@ export default function VeriticationPage() {
     };
   }, [currentStep]);
 
+  // 단계 번호와 컴포넌트 매핑 (URL의 step과 실제 Step 컴포넌트 번호를 1:1로 맞춤)
   const stepsMap: Record<number, React.ReactNode> = {
-    0: <Step1 onNext={() => router.push("/adoption/verification/2")} />,
-    1: <Step2 onNext={() => router.push("/adoption/verification/3")} />,
-    2: <Step3 onNext={() => router.push("/adoption/verification/4")} />,
-    3: <Step4 onNext={() => router.push("/adoption/verification/5")} />,
-    4: <Step5 onNext={() => router.push("/adoption/verification/6")} />,
-    5: <Step6 onNext={() => router.push("/my/adoption")} />,
+    1: <Step1 onNext={() => router.push("/adoption/verification/2")} />,
+    2: <Step2 onNext={() => router.push("/adoption/verification/3")} />,
+    3: <Step3 onNext={() => router.push("/adoption/verification/4")} />,
+    4: <Step4 onNext={() => router.push("/adoption/verification/5")} />,
+    5: <Step5 onNext={() => router.push("/adoption/verification/6")} />,
+    6: <Step6 onNext={() => router.push("/my/adoption")} />,
   };
 
   if (!stepsMap[currentStep]) {
@@ -101,7 +102,6 @@ export default function VeriticationPage() {
       <LinearProgressBar value={progressValue} max={progressMax} />
       <TopBar
         variant="variant6"
-        className="mt-8"
         left={
           currentStep > 1 && !isDirectAccess ? (
             <IconButton

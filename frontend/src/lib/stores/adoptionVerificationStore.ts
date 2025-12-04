@@ -36,6 +36,9 @@ export interface AdoptionVerificationData {
   animalId?: string;
   centerId?: string;
   applicationDate?: string;
+
+  // 임시보호 신청 여부
+  isTemporaryProtection?: boolean;
 }
 
 interface AdoptionVerificationStore {

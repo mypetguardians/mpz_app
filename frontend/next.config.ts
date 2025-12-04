@@ -13,6 +13,7 @@ const nextConfig = {
       },
       { protocol: "https", hostname: "encrypted-tbn3.gstatic.com" },
     ],
+    unoptimized: false,
     // 이미지 최적화를 위한 크기 설정
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],

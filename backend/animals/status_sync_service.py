@@ -275,16 +275,32 @@ class PublicDataStatusSyncService:
             return False
     
     def _map_protection_status(self, public_status: str) -> str:
-        """공공데이터 상태를 보호상태로 매핑"""
+        """공공데이터 process_state(처리상태)를 protection_status(보호상태)로 매핑
+        
+        Args:
+            public_status: 공공데이터의 process_state 값
+        
+        Returns:
+            str: protection_status 값 (보호중, 입양완료, 안락사, 자연사, 반환 등)
+        """
+        if not public_status:
+            return '보호중'
+        
+        # 공공데이터 process_state -> protection_status 매핑
         protection_mapping = {
             '보호중': '보호중',
-            '공고중': '보호중',
-            '입양완료': '보호중',  # 입양완료되어도 보호소에서 보호받은 상태
+            '공고중': '보호중',  # 공고중도 보호중으로 처리
+            '입양완료': '입양완료',  # 입양완료는 그대로 입양완료로 매핑
             '안락사': '안락사',
             '자연사': '자연사',
-            '반환': '반환'
+            '반환': '반환',
+            '기증': '기증',
+            '방사': '방사',
+            '임시보호': '임시보호',
         }
-        return protection_mapping.get(public_status, '보호중')
+        
+        # 매핑된 값이 있으면 반환, 없으면 기본값 '보호중'
+        return protection_mapping.get(public_status.strip(), '보호중')
     
     def _map_adoption_status(self, public_status: str) -> str:
         """공공데이터 상태를 입양상태로 매핑"""

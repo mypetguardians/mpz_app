@@ -15,6 +15,7 @@ interface AnimalBasicInfoProps {
   adoption_status: string;
   name: string;
   isFemale: boolean;
+  neutering: boolean;
   age: number;
   weight: number;
   color: string;
@@ -28,6 +29,7 @@ export default function AnimalBasicInfo({
   adoption_status,
   name,
   isFemale,
+  neutering,
   age,
   weight,
   color,
@@ -220,7 +222,9 @@ export default function AnimalBasicInfo({
           )}
         </div>
         <div className="flex items-center body2 text-dg gap-2">
-          <span>{isFemale ? "암컷" : "수컷"} (중성화 완료)</span>
+          <span>
+            {isFemale ? "암컷" : "수컷"} ({neutering ? "중성화 O" : "중성화 X"})
+          </span>
           <span className="text-gray-300">|</span>
           <span>{Math.trunc(age / 12)}살 추정</span>
           <span className="text-gray-300">|</span>

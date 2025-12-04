@@ -40,7 +40,13 @@ function AdoptorNotificationCard({
       return;
     }
 
-    // API 상태에 따른 단계별 이동
+    // 임시보호 탭은 항상 임시보호 상세 페이지로 이동
+    if (tabType === "foster") {
+      router.push(`/centerpage/adoptorlist/foster/${id}`);
+      return;
+    }
+
+    // API 상태에 따른 단계별 이동 (입양 신청 / 입양자 탭)
     if (apiStatus) {
       switch (apiStatus) {
         case "신청":
@@ -65,10 +71,7 @@ function AdoptorNotificationCard({
           router.push(`/centerpage/adoptorlist/application/${id}/request`);
       }
     } else {
-      // 기존 로직 (fallback)
-      if (tabType === "foster") {
-        router.push(`/centerpage/adoptorlist/foster/${id}`);
-      } else if (tabType === "adopter") {
+      if (tabType === "adopter") {
         router.push(`/centerpage/adoptorlist/adopter/${id}`);
       } else {
         router.push(`/centerpage/adoptorlist/application/${id}/request`);

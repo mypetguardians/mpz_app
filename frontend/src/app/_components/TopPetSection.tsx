@@ -56,7 +56,13 @@ export function TopPetSection({
     requestLocation,
   } = useGeolocation();
   const [userLocation, setUserLocation] = useState<string>("");
+  const [isMounted, setIsMounted] = useState(false);
   const hasAutoAppliedLocation = useRef(false);
+
+  // 클라이언트 마운트 여부 추적
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // selectedLocation이 변경되면 자동 적용 플래그 업데이트
   useEffect(() => {
@@ -205,7 +211,7 @@ export function TopPetSection({
           <MiniButton
             key="location"
             leftIcon={<MapPin size={16} />}
-            text={locationLoading ? "위치 확인 중..." : "내 주변"}
+            text={isMounted && locationLoading ? "위치 확인 중..." : "내 주변"}
             variant={
               selectedLocation === "내 주변" ||
               selectedLocation === userLocation
@@ -213,7 +219,7 @@ export function TopPetSection({
                 : "filterOff"
             }
             onClick={handleNearbyClick}
-            disabled={locationLoading}
+            disabled={isMounted && locationLoading}
           />
           {locations.map((loc) => {
             const displayName = getShortLocationName(loc);

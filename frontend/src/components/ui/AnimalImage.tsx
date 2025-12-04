@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image, { type ImageProps } from "next/image";
 import { getProxyImageUrl } from "@/lib/getProxyImageUrl";
 import { cn } from "@/lib/utils";
@@ -28,9 +28,18 @@ export default function AnimalImage({
 }: AnimalImageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   const proxiedImageUrl = getProxyImageUrl(imageUrl);
+  const isProxyUrl = proxiedImageUrl?.startsWith("/api/proxy-image") ?? false;
   const shouldShowFallback = !proxiedImageUrl || hasError;
+
+  // imageUrl이 변경되면 상태 초기화
+  useEffect(() => {
+    setIsLoading(true);
+    setHasError(false);
+    setRetryCount(0);
+  }, [imageUrl]);
 
   if (shouldShowFallback) {
     return (
@@ -46,6 +55,7 @@ export default function AnimalImage({
           width={imageProps.width || 100}
           height={imageProps.height || 100}
           className={cn("object-contain", imageClassName)}
+          sizes={imageProps.sizes || "100vw"}
         />
       </div>
     );
@@ -63,11 +73,18 @@ export default function AnimalImage({
         src={proxiedImageUrl}
         alt={alt}
         className={cn("object-cover rounded-md", imageClassName)}
+        unoptimized={isProxyUrl}
         onLoad={(event) => {
           setIsLoading(false);
+          setHasError(false);
           onLoad?.(event);
         }}
         onError={(event) => {
+          console.error("AnimalImage: 이미지 로드 실패", {
+            proxiedImageUrl,
+            imageUrl,
+            retryCount,
+          });
           setHasError(true);
           setIsLoading(false);
           onError?.(event);

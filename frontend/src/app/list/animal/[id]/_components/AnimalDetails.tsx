@@ -60,7 +60,7 @@ export default function AnimalDetails({
             </tr>
           )}
           <tr className="h-8">
-            <td className="text-gr h5 py-1 pr-3 align-top w-24">성격</td>
+            <td className="text-gr h5 py-1 pr-3 align-top w-24">특징</td>
             <td className="text-sm py-1">
               <div>{description ? description : "-"}</div>
             </td>

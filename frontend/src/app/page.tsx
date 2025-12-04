@@ -32,12 +32,17 @@ export default function Home() {
   const router = useRouter();
   const pathname = usePathname();
   const kakaoChannelUrl = "http://pf.kakao.com/_mbxbDn/chat";
-  const [selectedLocation, setSelectedLocation] = useState<string>(() => {
+  const [selectedLocation, setSelectedLocation] = useState<string>("");
+
+  // 클라이언트에서만 localStorage에서 초기값 로드
+  useEffect(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("homeLocationFilter") || "";
+      const savedLocation = localStorage.getItem("homeLocationFilter") || "";
+      if (savedLocation) {
+        setSelectedLocation(savedLocation);
+      }
     }
-    return "";
-  });
+  }, []);
   // 메인 배너는 공통 로직 컴포넌트로 대체
   const [showMatchingNotification, setShowMatchingNotification] =
     useState(false);
@@ -250,23 +255,23 @@ export default function Home() {
       <FooterSection />
 
       <NavBar />
-
-      <button
-        type="button"
-        onClick={handleConsultClick}
-        className="fixed bottom-32 right-4 z-50 h-16 w-16 rounded-full overflow-hidden transition-transform hover:scale-105"
-        aria-label="상담 채널로 이동"
-      >
-        <NextImage
-          src="/img/main_chat.png"
-          alt="상담 채널 이동"
-          fill
-          sizes="64px"
-          className="object-cover"
-          priority
-        />
-      </button>
-
+      <div className="max-w-[420px] mx-auto">
+        <button
+          type="button"
+          onClick={handleConsultClick}
+          className="fixed bottom-32 right-4 z-50 transition-transform hover:scale-105"
+          aria-label="상담 채널로 이동"
+        >
+          <NextImage
+            src="/img/main_chat.png"
+            alt="상담 채널 이동"
+            width={150}
+            height={50}
+            className="object-contain"
+            priority
+          />
+        </button>
+      </div>
       <BottomSheet
         open={showConsultModal}
         onClose={() => setShowConsultModal(false)}

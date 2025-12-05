@@ -3,7 +3,7 @@ import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
-import { Capacitor } from "@capacitor/core";
+// import { Capacitor } from "@capacitor/core";
 
 const topbarVariants = cva(
   "fixed left-1/2 -translate-x-1/2 top-0 z-50 w-full max-w-[420px] min-h-[54px] bg-wh",

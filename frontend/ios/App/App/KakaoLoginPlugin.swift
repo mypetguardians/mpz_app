@@ -5,7 +5,16 @@ import KakaoSDKUser
 import KakaoSDKCommon
 
 @objc(KakaoLoginPlugin)
-public class KakaoLoginPlugin: CAPPlugin {
+public class KakaoLoginPlugin: CAPPlugin, CAPBridgedPlugin {
+    public let identifier = "KakaoLoginPlugin"
+    public let jsName = "KakaoLogin"
+    public let pluginMethods: [CAPPluginMethod] = [
+        CAPPluginMethod(name: "initialize", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "login", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "logout", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "unlink", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getUserInfo", returnType: CAPPluginReturnPromise)
+    ]
     
     @objc func initialize(_ call: CAPPluginCall) {
         print("🔵 [KakaoLoginPlugin] initialize() 메서드 호출됨")

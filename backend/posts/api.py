@@ -36,8 +36,13 @@ def _build_post_response(post, tags=None, images=None, user_nickname=None, user_
     # 사용자 타입과 센터 이름 가져오기
     user_type = getattr(post.user, 'user_type', None)
     center_name = None
-    if post.user.center:
+    
+    # 센터 정보 가져오기: center(소속) 또는 owned_center(소유) 확인
+    # select_related로 이미 로드되어 있으므로 직접 접근
+    if hasattr(post.user, 'center') and post.user.center is not None:
         center_name = post.user.center.name
+    elif hasattr(post.user, 'owned_center') and post.user.owned_center is not None:
+        center_name = post.user.owned_center.name
     
     return {
         "id": str(post.id),
@@ -97,7 +102,7 @@ async def get_all_public_posts(request: HttpRequest, user_id: str = Query(None),
     try:
         @sync_to_async
         def get_public_posts():
-            posts_query = Post.objects.filter(is_all_access=True).select_related('user', 'user__center')
+            posts_query = Post.objects.filter(is_all_access=True).select_related('user', 'user__center', 'user__owned_center')
             
             # 필터링 적용
             if user_id:
@@ -111,8 +116,6 @@ async def get_all_public_posts(request: HttpRequest, user_id: str = Query(None),
             if tags:
                 try:
                     system_tag_names = [tag.strip() for tag in tags if tag.strip()]
-                    print(f"🔍 Public Posts 태그 필터링 시도: {system_tag_names}")
-                    print(f"🔍 필터링 전 게시글 수: {posts_query.count()}")
                     
                     if system_tag_names:
                         # 대소문자 무시 정확 일치 정규식으로 필터링
@@ -122,11 +125,9 @@ async def get_all_public_posts(request: HttpRequest, user_id: str = Query(None),
                         posts_query = posts_query.filter(
                             posttag__tag_name__iregex=pattern
                         ).distinct()
-                        print(f"🔍 필터링 후 게시글 수: {posts_query.count()}")
                         
                         # 실제로 매칭되는 태그들 확인
                         matching_tags = PostTag.objects.filter(tag_name__in=system_tag_names).values_list('tag_name', flat=True).distinct()
-                        print(f"🔍 실제 매칭되는 태그들: {list(matching_tags)}")
                         
                 except Exception as e:
                     print(f"❌ 시스템 태그 필터링 오류: {e}")
@@ -195,10 +196,10 @@ async def get_mixed_access_posts(request: HttpRequest, user_id: str = Query(None
         @sync_to_async
         def get_mixed_posts():
             # 전체 공개 게시글 조회
-            public_posts_query = Post.objects.filter(is_all_access=True).select_related('user', 'user__center')
+            public_posts_query = Post.objects.filter(is_all_access=True).select_related('user', 'user__center', 'user__owned_center')
             
             # 제한 공개 게시글 조회 (센터 권한자만)
-            private_posts_query = Post.objects.filter(is_all_access=False).select_related('user', 'user__center')
+            private_posts_query = Post.objects.filter(is_all_access=False).select_related('user', 'user__center', 'user__owned_center')
             
             # 필터링 적용 (전체 공개)
             if user_id:
@@ -308,7 +309,7 @@ async def get_all_public_post_detail(request: HttpRequest, post_id: str):
         @sync_to_async
         def get_public_post_detail():
             try:
-                post = Post.objects.select_related('user', 'user__center').get(id=post_id, is_all_access=True)
+                post = Post.objects.select_related('user', 'user__center', 'user__owned_center').get(id=post_id, is_all_access=True)
             except Post.DoesNotExist:
                 return None, None, None
             
@@ -395,7 +396,7 @@ async def get_center_posts(request: HttpRequest, user_id: str = Query(None), tag
                     models.Q(is_all_access=False)                                  # 제한 공개 글
                 )
 
-            posts_query = Post.objects.select_related('user', 'user__center').filter(access_condition)
+            posts_query = Post.objects.select_related('user', 'user__center', 'user__owned_center').filter(access_condition)
             
             # 필터링 적용
             if user_id:
@@ -514,7 +515,7 @@ async def get_center_post_detail(request: HttpRequest, post_id: str):
         @sync_to_async
         def get_center_post_detail():
             try:
-                post = Post.objects.select_related('user', 'user__center').get(id=post_id)
+                post = Post.objects.select_related('user', 'user__center', 'user__owned_center').get(id=post_id)
             except Post.DoesNotExist:
                 return None, None, None
             

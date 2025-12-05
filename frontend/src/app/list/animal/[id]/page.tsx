@@ -345,30 +345,28 @@ export default function AnimalDetailPage({
       return;
     }
 
-    if (
-      typeof window !== "undefined" &&
-      window.Kakao &&
-      window.Kakao.Share
-    ) {
+    if (typeof window !== "undefined" && window.Kakao && window.Kakao.Share) {
       try {
         const animalUrl = `${window.location.origin}/list/animal/${id}`;
-        
+
         // 이미지 URL을 절대 URL로 변환하는 함수
-        const getAbsoluteImageUrl = (url: string | null | undefined): string => {
+        const getAbsoluteImageUrl = (
+          url: string | null | undefined
+        ): string => {
           if (!url) return `${window.location.origin}/illust/logo.svg`;
-          if (url.startsWith('http://') || url.startsWith('https://')) {
+          if (url.startsWith("http://") || url.startsWith("https://")) {
             return url;
           }
-          if (url.startsWith('/')) {
+          if (url.startsWith("/")) {
             return `${window.location.origin}${url}`;
           }
           return `${window.location.origin}/${url}`;
         };
-        
+
         // 동물 정보 기반 제목 생성: "마펫쯔: 믹스견(3살 추정)"
         const breed = animal?.breed || "믹스견";
         // 나이는 개월 단위이므로 12로 나누어 살 단위로 변환
-        const ageText = animal?.age 
+        const ageText = animal?.age
           ? (() => {
               const ageInYears = animal.age / 12;
               // 1살 미만이면 개월로 표시, 1살 이상이면 살로 표시
@@ -377,24 +375,26 @@ export default function AnimalDetailPage({
               } else {
                 // 소수점 첫째자리까지 표시 (예: 1.5살, 3살)
                 const roundedAge = Math.round(ageInYears * 10) / 10;
-                return roundedAge % 1 === 0 
+                return roundedAge % 1 === 0
                   ? `${Math.round(roundedAge)}살 추정`
                   : `${roundedAge}살 추정`;
               }
             })()
           : "";
         const shareTitle = `${breed}${ageText ? `(${ageText})` : ""}`;
-        
+
         // 설명
         const shareDescription = "유기동물 입양하기! 마펫쯔와 편하게";
-        
+
         // 동물 이미지가 있으면 첫 번째 이미지 사용, 없으면 기본 이미지
         let shareImageUrl = `${window.location.origin}/illust/logo.svg`;
-        
+
         if (animal?.animal_images && animal.animal_images.length > 0) {
-          shareImageUrl = getAbsoluteImageUrl(animal.animal_images[0].image_url);
+          shareImageUrl = getAbsoluteImageUrl(
+            animal.animal_images[0].image_url
+          );
         }
-        
+
         // sendDefault 메서드 사용 (더 상세한 정보 포함)
         const kakaoShare = window.Kakao.Share as {
           sendScrap?: (options: { requestUrl: string }) => void;
@@ -418,7 +418,7 @@ export default function AnimalDetailPage({
             }>;
           }) => void;
         };
-        
+
         if (kakaoShare.sendDefault) {
           kakaoShare.sendDefault({
             objectType: "feed",
@@ -445,7 +445,7 @@ export default function AnimalDetailPage({
           // sendDefault가 없으면 sendScrap 사용 (fallback)
           kakaoShare.sendScrap({ requestUrl: animalUrl });
         }
-        
+
         setShowShareBottomSheet(false);
       } catch (error) {
         console.error("카카오톡 공유 실패:", error);
@@ -523,6 +523,11 @@ export default function AnimalDetailPage({
   const handleBack = () => {
     if (typeof window !== "undefined") {
       const lastPath = sessionStorage.getItem("lastNonVerificationPath");
+
+      if (!lastPath) {
+        router.push("/list/animal");
+        return;
+      }
 
       if (lastPath && !lastPath.includes("/adoption/")) {
         router.push(lastPath);

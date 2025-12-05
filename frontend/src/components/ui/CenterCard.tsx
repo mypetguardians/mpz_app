@@ -2,7 +2,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { IconButton } from "./IconButton";
-import { SealCheck, Heart } from "@phosphor-icons/react";
+import { SealCheck, Heart, UsersThree } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 interface CenterCardProps {
@@ -42,8 +42,8 @@ function CenterCard({
       onClick={handleCardClick}
     >
       <div className="flex items-center gap-3">
-        <div className="relative w-[63px] h-[63px] rounded-md border border-lg overflow-hidden flex-shrink-0 bg-gray-300">
-          {hasValidImage && (
+        <div className="relative w-[63px] h-[63px] rounded-md border border-lg overflow-hidden flex-shrink-0 bg-gray-300 flex items-center justify-center">
+          {hasValidImage ? (
             <Image
               src={imageUrl}
               alt={name}
@@ -54,6 +54,8 @@ function CenterCard({
                 setHasImageError(true);
               }}
             />
+          ) : (
+            <UsersThree size={40} className="text-gray-500" weight="light" />
           )}
         </div>
         <div className="flex flex-col justify-center min-w-0 gap-1">

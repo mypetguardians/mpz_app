@@ -55,30 +55,17 @@ export function CommentItem({
     comment.user?.nickname || `사용자${comment.user_id?.slice(-4) || ""}`;
   const userType = comment.user?.user_type;
 
-  // 센터 이름 가져오기: comment.user.center_name 우선, 없으면 다른 경로 확인
-  let centerName = comment.user?.center_name;
-  if (!centerName && comment.user) {
-    // comment.user에 center 정보가 있는 경우 (타입에 따라 다를 수 있음)
-    const user = comment.user as {
-      center?: { name: string } | null;
-      centers?: Array<{ name: string }> | null;
-      centerName?: string | null;
-    };
-    const userCenter =
-      user.center?.name || user.centers?.[0]?.name || user.centerName;
-    if (userCenter) {
-      centerName = userCenter;
-    }
-  }
+  // 센터 이름: 백엔드에서 comment.user.center_name으로 전달됨 (이미 처리됨)
+  const centerName = comment.user?.center_name?.trim() || null;
 
   // 센터 계정인 경우: "센터이름 - 닉네임" 형태로 표시
-  const nickname =
-    userType &&
-    ["센터관리자", "센터최고관리자", "훈련사"].includes(userType) &&
-    centerName &&
-    centerName.trim() !== ""
+  const isCenterAccount =
+    userType && ["센터관리자", "센터최고관리자", "훈련사"].includes(userType);
+  const nickname = isCenterAccount
+    ? centerName && centerName !== ""
       ? `${centerName} - ${rawNickname}`
-      : rawNickname;
+      : `센터 - ${rawNickname}`
+    : rawNickname;
   const profileImg = comment.user?.image;
 
   // 현재 사용자가 댓글 작성자인지 확인

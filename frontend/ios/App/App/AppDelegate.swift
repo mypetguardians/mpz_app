@@ -10,7 +10,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
-        // 카카오 SDK 초기화는 플러그인의 initialize 메서드에서 처리합니다.
+        // 카카오 SDK 초기화
+        KakaoSDK.initSDK(appKey: "30c65f4b266ed8e462b30c91518d174b")
         return true
     }
 

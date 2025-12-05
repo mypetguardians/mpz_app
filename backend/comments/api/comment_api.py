@@ -57,8 +57,13 @@ def _build_user_info(user):
     # 사용자 타입과 센터 이름 가져오기
     user_type = getattr(user, 'user_type', None)
     center_name = None
-    if hasattr(user, 'center') and user.center:
+    
+    # 센터 정보 가져오기: center(소속) 또는 owned_center(소유) 확인
+    # select_related로 이미 로드되어 있으므로 직접 접근
+    if hasattr(user, 'center') and user.center is not None:
         center_name = user.center.name
+    elif hasattr(user, 'owned_center') and user.owned_center is not None:
+        center_name = user.owned_center.name
     
     return {
         "id": str(user.id),
@@ -149,12 +154,12 @@ def get_comments(request: HttpRequest, post_id: str):
             raise HttpError(404, "게시글을 찾을 수 없습니다")
         
         # 댓글 조회
-        comments = Comment.objects.filter(post=post).select_related('user', 'user__center').prefetch_related('reply_set').order_by('-created_at')
+        comments = Comment.objects.filter(post=post).select_related('user', 'user__center', 'user__owned_center').prefetch_related('reply_set').order_by('-created_at')
         
         comments_with_replies = []
         for comment in comments:
             # 대댓글 조회
-            replies = Reply.objects.filter(comment=comment).select_related('user', 'user__center').order_by('created_at')
+            replies = Reply.objects.filter(comment=comment).select_related('user', 'user__center', 'user__owned_center').order_by('created_at')
             
             comment_data = _build_comment_response(
                 comment,

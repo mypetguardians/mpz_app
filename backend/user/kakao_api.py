@@ -182,12 +182,8 @@ async def kakao_login_callback(request, code: str, state: str, redirect_uri: str
     """카카오 로그인 콜백 처리"""
     print(f"카카오 로그인 콜백 시작 - code: {code[:10]}..., state: {state}, redirect_uri: {redirect_uri}")
 
-    # 액세스 토큰 받기 (프론트엔드와 동일한 로직)
     try:
-        # redirect_uri를 동적으로 결정 (프론트엔드에서 전달받거나 기본값 사용)
-        # 프론트엔드에서 전달된 redirect_uri가 있으면 사용, 없으면 기본값 사용
         if redirect_uri:
-            # URL 디코딩 처리
             from urllib.parse import unquote
             actual_redirect_uri = unquote(redirect_uri)
         else:
@@ -221,8 +217,6 @@ async def kakao_login_callback(request, code: str, state: str, redirect_uri: str
                     "Content-Type": "application/x-www-form-urlencoded;charset=utf-8"
                 }
             )
-            print(f"카카오 토큰 요청 응답: {token_request.status_code}")
-            print(f"카카오 토큰 요청 응답 내용: {token_request.text}")
             
             if token_request.status_code != 200:
                 error_text = token_request.text

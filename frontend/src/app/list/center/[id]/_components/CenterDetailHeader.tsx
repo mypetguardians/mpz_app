@@ -80,6 +80,11 @@ export function CenterDetailHeader({
     const storedParams = sessionStorage.getItem("centerListSearchParams");
     const fallbackPath = "/list/center";
 
+    if (!storedParams) {
+      router.push(fallbackPath);
+      return;
+    }
+
     // 이전 히스토리가 리스트 페이지가 아니면 저장된 검색 파라미터 기반으로 이동
     if (storedParams !== null) {
       router.push(`${fallbackPath}${storedParams}`);
@@ -100,23 +105,17 @@ export function CenterDetailHeader({
       return;
     }
 
-    if (
-      typeof window !== "undefined" &&
-      window.Kakao &&
-      window.Kakao.Share
-    ) {
+    if (typeof window !== "undefined" && window.Kakao && window.Kakao.Share) {
       try {
         const centerUrl = `https://mpz.kr/list/center/${centerId}`;
-        
+
         // 상세 정보가 포함된 공유 메시지
-        const shareTitle = verified 
-          ? `✅ 인증 ${centerName}`
-          : centerName;
-        
+        const shareTitle = verified ? `✅ 인증 ${centerName}` : centerName;
+
         const shareDescription = "유기동물 입양하기! 마펫쯔와 편하게";
-        
+
         const shareImageUrl = centerImageUrl || `/illust/logo.svg`;
-        
+
         // sendDefault 메서드 사용 (더 상세한 정보 포함)
         const kakaoShare = window.Kakao.Share as {
           sendScrap?: (options: { requestUrl: string }) => void;
@@ -140,7 +139,7 @@ export function CenterDetailHeader({
             }>;
           }) => void;
         };
-        
+
         if (kakaoShare.sendDefault) {
           kakaoShare.sendDefault({
             objectType: "feed",
@@ -167,7 +166,7 @@ export function CenterDetailHeader({
           // sendDefault가 없으면 sendScrap 사용 (fallback)
           kakaoShare.sendScrap({ requestUrl: centerUrl });
         }
-        
+
         setShowShareModal(false);
       } catch (error) {
         console.error("카카오톡 공유 실패:", error);

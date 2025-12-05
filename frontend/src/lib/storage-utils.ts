@@ -26,7 +26,6 @@ export const safeSetItem = (
     } else {
       throw new Error("localStorage unavailable");
     }
-    console.log(`localStorage에 ${key} 저장 완료`);
 
     // iOS Safari의 경우 추가적으로 쿠키에도 저장 (이중 보안)
     if (isIOSSafari()) {

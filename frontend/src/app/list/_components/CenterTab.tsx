@@ -240,7 +240,7 @@ function CenterCardWithFavorite({
 
   return (
     <CenterCard
-      imageUrl={center.imageUrl || "/img/op-image.svg"}
+      imageUrl={center.imageUrl || ""}
       name={center.name}
       location={center.location || "주소 정보 없음"}
       isSubscribed={center.isSubscriber || false}

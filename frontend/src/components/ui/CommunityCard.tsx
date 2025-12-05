@@ -169,37 +169,17 @@ export function CommunityCard({
   const rawNickname = user_nickname || foundUser?.nickname || "알 수 없음";
   const userType = item.user_type;
 
-  // 센터 이름 가져오기: item.center_name 우선, 없으면 foundUser에서 확인
-  let centerName = item.center_name;
-  if (!centerName && foundUser) {
-    // foundUser에 center 정보가 있는 경우 (타입에 따라 다를 수 있음)
-    let foundUserCenter: string | undefined;
-
-    if (foundUser.center?.name) {
-      foundUserCenter = foundUser.center.name;
-    } else if (foundUser.centers) {
-      if (Array.isArray(foundUser.centers) && foundUser.centers.length > 0) {
-        foundUserCenter = foundUser.centers[0]?.name;
-      } else if (!Array.isArray(foundUser.centers) && foundUser.centers.name) {
-        foundUserCenter = foundUser.centers.name;
-      }
-    } else if (foundUser.centerName) {
-      foundUserCenter = foundUser.centerName;
-    }
-
-    if (foundUserCenter) {
-      centerName = foundUserCenter;
-    }
-  }
+  // 센터 이름: 백엔드에서 item.center_name으로 전달됨 (이미 처리됨)
+  const centerName = item.center_name?.trim() || null;
 
   // 센터 계정인 경우 "센터이름 - 닉네임" 형식으로 표시
-  const author =
-    userType &&
-    ["센터관리자", "센터최고관리자", "훈련사"].includes(userType) &&
-    centerName &&
-    centerName.trim() !== ""
+  const isCenterAccount =
+    userType && ["센터관리자", "센터최고관리자", "훈련사"].includes(userType);
+  const author = isCenterAccount
+    ? centerName && centerName !== ""
       ? `${centerName} - ${rawNickname}`
-      : rawNickname;
+      : `센터 - ${rawNickname}`
+    : rawNickname;
 
   // 현재 로그인된 사용자의 게시물인 경우 Auth context에서 이미지 가져오기
   const isCurrentUserPost = user?.id === user_id;

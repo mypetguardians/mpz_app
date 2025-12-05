@@ -276,15 +276,16 @@ export default function CenterProcess() {
                 className="text-gr"
               />
             )}
-            {hasConsent ? (
+            {!hasConsent && (
               <AddButton disabled>유의사항 동의서 만들기</AddButton>
-            ) : (
+            )}
+            {/* : (
               <Link href="/centerpage/process/create-consent">
                 <AddButton disabled={isOverallLoading}>
                   유의사항 동의서 만들기
                 </AddButton>
               </Link>
-            )}
+            )} */}
           </div>
           <div className="w-full flex flex-col gap-3">
             <h5 className="text-dg">입양 계약서</h5>
@@ -321,14 +322,15 @@ export default function CenterProcess() {
                 className="text-gr"
               />
             )}
-            {/* 계약서가 없거나 하나만 있을 때만 생성 버튼 표시 */}
-            {!hasContractTemplate ? (
+            {/* 계약서가 없을 때만 생성 버튼 표시 */}
+            {!hasContractTemplate && (
               <Link href="/centerpage/process/create-contract">
                 <AddButton disabled={isOverallLoading}>계약서 만들기</AddButton>
               </Link>
-            ) : hasExactlyOneContractTemplate ? (
+            )}
+            {/*  : hasExactlyOneContractTemplate ? (
               <AddButton disabled>계약서 만들기</AddButton>
-            ) : null}
+             ) : null} */}
           </div>
         </div>
         <div className="w-full flex flex-col gap-3">

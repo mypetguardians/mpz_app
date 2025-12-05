@@ -24,7 +24,7 @@ const config: CapacitorConfig = {
   },
   ios: {
     scheme: "mpz",
-    contentInset: "automatic",
+    contentInset: "never",
   },
   plugins: {
     SplashScreen: {

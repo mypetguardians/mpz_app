@@ -213,6 +213,43 @@ body {
   }
 }
 
+/* iOS 네이티브 환경에서 Safe Area 강제 제거 */
+html[data-capacitor-platform="ios"] {
+  --safe-area-top: 0px !important;
+  --safe-area-bottom: 0px !important;
+  --safe-area-left: 0px !important;
+  --safe-area-right: 0px !important;
+}
+
+html[data-capacitor-platform="ios"] body {
+  padding-top: 0px !important;
+  margin-top: 0px !important;
+  padding-bottom: 0px !important;
+  margin-bottom: 0px !important;
+}
+
+/* iOS 네이티브에서 pt-safe-top 클래스도 0으로 */
+html[data-capacitor-platform="ios"] .pt-safe-top {
+  padding-top: 0px !important;
+}
+
+/* iOS 네이티브에서 pb-safe-bottom 클래스도 0으로 */
+html[data-capacitor-platform="ios"] .pb-safe-bottom {
+  padding-bottom: 0px !important;
+}
+
+/* iOS 네이티브에서 TopBar가 상태 바 바로 아래에 위치하도록 */
+html[data-capacitor-platform="ios"] .fixed.top-0 {
+  top: 0px !important;
+}
+
+/* iOS 네이티브에서 TopBar 다음 모든 형제 요소의 상단 여백 제거 */
+html[data-capacitor-platform="ios"] nav.fixed.top-0 ~ *,
+html[data-capacitor-platform="ios"] nav[class*="fixed"][class*="top-0"] ~ * {
+  margin-top: 0px !important;
+  padding-top: 0px !important;
+}
+
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;

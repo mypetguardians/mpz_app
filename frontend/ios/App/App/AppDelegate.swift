@@ -10,8 +10,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
-        // 카카오 SDK 초기화
-        KakaoSDK.init(appKey: "30c65f4b266ed8e462b30c91518d174b")
+        // 카카오 SDK 초기화는 플러그인의 initialize 메서드에서 처리합니다.
         return true
     }
 
@@ -41,7 +40,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Called when the app was launched with a url. Feel free to add additional processing here,
         // but if you want the App API to support tracking app url opens, make sure to keep this call
         
-        // 카카오 로그인 URL 처리
+        // 카카오 로그인 URL 처리 (카카오톡 앱에서 돌아올 때)
+        // ⚠️ 웹뷰를 사용하지 않고 카카오톡 앱 간 전환으로 처리
         if AuthApi.isKakaoTalkLoginUrl(url) {
             return AuthController.handleOpenUrl(url: url)
         }

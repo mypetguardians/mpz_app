@@ -4,6 +4,7 @@ import { useAuth } from "../providers/AuthProvider";
 import { HouseSimple, Dog, Chats, Heart, User } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { CustomModal } from "../ui/CustomModal";
+import { Capacitor } from "@capacitor/core";
 
 interface NavbarBtnProps {
   icon: React.ReactElement<{ className?: string }>;
@@ -103,9 +104,15 @@ function NavBar() {
     router.push(url);
   };
 
+  const isIOSNative = Capacitor.getPlatform() === "ios";
+  const safeAreaClass = isIOSNative ? "" : "pb-safe-bottom";
+
   return (
     <nav
-      className="fixed bottom-0 max-w-[420px] mx-auto left-0 right-0 z-50 w-full bg-wh pb-safe-bottom"
+      className={cn(
+        "fixed bottom-0 max-w-[420px] mx-auto left-0 right-0 z-50 w-full bg-wh",
+        safeAreaClass
+      )}
       style={{
         pointerEvents: "auto",
       }}

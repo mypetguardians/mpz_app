@@ -6,10 +6,9 @@ export interface KakaoNativeLoginResult {
 }
 
 export interface KakaoNativeLoginPlugin {
+  initialize(options: { appKey: string }): Promise<void>;
   login(): Promise<KakaoNativeLoginResult>;
 }
 
-export const KakaoNativeLogin = registerPlugin<KakaoNativeLoginPlugin>(
-  "KakaoLogin"
-);
-
+export const KakaoNativeLogin =
+  registerPlugin<KakaoNativeLoginPlugin>("KakaoLogin");

@@ -3,9 +3,10 @@ import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
+import { Capacitor } from "@capacitor/core";
 
 const topbarVariants = cva(
-  "fixed left-1/2 -translate-x-1/2 top-0 z-50 w-full max-w-[420px] min-h-[54px] bg-wh pt-safe-top",
+  "fixed left-1/2 -translate-x-1/2 top-0 z-50 w-full max-w-[420px] min-h-[54px] bg-wh",
   {
     variants: {
       variant: {
@@ -43,11 +44,14 @@ export function TopBar({
   ...props
 }: TopBarProps) {
   const Comp = asChild ? Slot : "nav";
+  const isIOSNative = Capacitor.getPlatform() === "ios";
 
   // 안정적인 className 생성을 위해 메모이제이션
   const outerClassName = React.useMemo(() => {
-    return cn(topbarVariants({ variant, className }));
-  }, [variant, className]);
+    // iOS 네이티브에서는 Safe Area padding 제거, 웹/안드로이드에서는 적용
+    const safeAreaClass = isIOSNative ? "" : "pt-safe-top";
+    return cn(topbarVariants({ variant, className }), safeAreaClass);
+  }, [variant, className, isIOSNative]);
 
   const innerClassName = React.useMemo(() => {
     return cn(
@@ -58,6 +62,11 @@ export function TopBar({
 
   // center와 title 중 하나만 표시
   const centerContent = center || title;
+
+  // iOS 네이티브에서는 Safe Area가 0이므로 TopBar 높이만, 웹/안드로이드에서는 Safe Area + TopBar 높이
+  const spacerHeight = isIOSNative
+    ? "54px"
+    : "calc(var(--safe-area-top) + 54px)";
 
   return (
     <>
@@ -80,12 +89,10 @@ export function TopBar({
           </div>
         </nav>
       </Comp>
-      {/* 안전 영역 + TopBar 높이만큼 공간 확보 */}
-      <div
-        aria-hidden
-        className="w-full"
-        style={{ height: "calc(var(--safe-area-top) + 54px)" }}
-      />
+
+      {!isIOSNative && (
+        <div aria-hidden className="w-full" style={{ height: spacerHeight }} />
+      )}
       {props.children}
     </>
   );

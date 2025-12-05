@@ -2,6 +2,8 @@
 
 import Script from "next/script";
 import { useEffect } from "react";
+import { Capacitor } from "@capacitor/core";
+import { KakaoNativeLogin } from "@/lib/capacitor/kakao-login";
 
 interface KakaoProviderProps {
   children: React.ReactNode;
@@ -9,8 +11,54 @@ interface KakaoProviderProps {
 
 export function KakaoProvider({ children }: KakaoProviderProps) {
   const kakaoKey = "06b1ee860fa3d10d88b67258d93243cf";
+  const nativeAppKey = "30c65f4b266ed8e462b30c91518d174b";
 
   useEffect(() => {
+    // 네이티브 플랫폼인 경우 네이티브 플러그인 초기화
+    const isNative = Capacitor.isNativePlatform();
+    const platform = Capacitor.getPlatform();
+    console.log("🔵 [KakaoProvider] 플랫폼 확인:", { isNative, platform });
+
+    if (isNative) {
+      const initializeNativeKakao = async () => {
+        try {
+          console.log("🔵 [KakaoProvider] 네이티브 카카오 SDK 초기화 시작...", {
+            plugin: KakaoNativeLogin,
+            hasInitialize: typeof KakaoNativeLogin?.initialize === "function",
+            appKey: nativeAppKey,
+          });
+
+          if (!KakaoNativeLogin) {
+            console.error(
+              "❌ [KakaoProvider] KakaoNativeLogin 플러그인이 없습니다!"
+            );
+            return;
+          }
+
+          if (typeof KakaoNativeLogin.initialize !== "function") {
+            console.error(
+              "❌ [KakaoProvider] KakaoNativeLogin.initialize 메서드가 없습니다!"
+            );
+            return;
+          }
+
+          await KakaoNativeLogin.initialize({ appKey: nativeAppKey });
+          console.log("✅ [KakaoProvider] 네이티브 카카오 SDK 초기화 완료");
+        } catch (error) {
+          console.error(
+            "❌ [KakaoProvider] 네이티브 카카오 SDK 초기화 실패:",
+            error
+          );
+          console.error("에러 상세:", {
+            message: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined,
+          });
+        }
+      };
+      initializeNativeKakao();
+    }
+
+    // 웹 플랫폼인 경우 JavaScript SDK 초기화
     if (!kakaoKey) {
       console.error("NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY가 설정되지 않았습니다.");
       return;
@@ -58,7 +106,7 @@ export function KakaoProvider({ children }: KakaoProviderProps) {
       clearInterval(interval);
       clearTimeout(timeout);
     };
-  }, [kakaoKey]);
+  }, [kakaoKey, nativeAppKey]);
 
   return (
     <>

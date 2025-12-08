@@ -12,6 +12,11 @@ export function SafeAreaLayout({ children }: SafeAreaLayoutProps) {
   const [safeAreaTop, setSafeAreaTop] = useState(0);
   const [safeAreaBottom, setSafeAreaBottom] = useState(0);
 
+  const clampValue = useCallback((value: number, max = 60) => {
+    if (Number.isNaN(value)) return 0;
+    return Math.min(Math.max(value, 0), max);
+  }, []);
+
   // Safe area 값을 가져오는 함수
   const updateSafeAreaValues = useCallback(() => {
     if (typeof window === "undefined") return;
@@ -29,28 +34,24 @@ export function SafeAreaLayout({ children }: SafeAreaLayoutProps) {
         ?.trim();
 
       if (top && top !== "0px" && top !== "") {
-        const topValue = parseInt(top.replace("px", "")) || 0;
-        if (topValue > 0 && topValue <= 100) {
-          setSafeAreaTop((prev) => {
-            // 값이 실제로 변경된 경우에만 업데이트
-            if (Math.abs(prev - topValue) > 1) {
-              return topValue;
-            }
-            return prev;
-          });
-        }
+        const topValue = clampValue(parseFloat(top));
+        setSafeAreaTop((prev) => {
+          // 값이 실제로 변경된 경우에만 업데이트
+          if (Math.abs(prev - topValue) > 1) {
+            return topValue;
+          }
+          return prev;
+        });
       }
 
       if (bottom && bottom !== "0px" && bottom !== "") {
-        const bottomValue = parseInt(bottom.replace("px", "")) || 0;
-        if (bottomValue >= 0 && bottomValue <= 100) {
-          setSafeAreaBottom((prev) => {
-            if (Math.abs(prev - bottomValue) > 1) {
-              return bottomValue;
-            }
-            return prev;
-          });
-        }
+        const bottomValue = clampValue(parseFloat(bottom), 50);
+        setSafeAreaBottom((prev) => {
+          if (Math.abs(prev - bottomValue) > 1) {
+            return bottomValue;
+          }
+          return prev;
+        });
       }
     } else if (isIOS) {
       // iOS: env() 값 사용
@@ -62,30 +63,26 @@ export function SafeAreaLayout({ children }: SafeAreaLayoutProps) {
         ?.trim();
 
       if (top && top !== "0px" && top !== "") {
-        const topValue = parseInt(top.replace("px", "")) || 0;
-        if (topValue > 0 && topValue <= 100) {
-          setSafeAreaTop((prev) => {
-            if (Math.abs(prev - topValue) > 1) {
-              return topValue;
-            }
-            return prev;
-          });
-        }
+        const topValue = clampValue(parseFloat(top));
+        setSafeAreaTop((prev) => {
+          if (Math.abs(prev - topValue) > 1) {
+            return topValue;
+          }
+          return prev;
+        });
       }
 
       if (bottom && bottom !== "0px" && bottom !== "") {
-        const bottomValue = parseInt(bottom.replace("px", "")) || 0;
-        if (bottomValue >= 0 && bottomValue <= 100) {
-          setSafeAreaBottom((prev) => {
-            if (Math.abs(prev - bottomValue) > 1) {
-              return bottomValue;
-            }
-            return prev;
-          });
-        }
+        const bottomValue = clampValue(parseFloat(bottom), 50);
+        setSafeAreaBottom((prev) => {
+          if (Math.abs(prev - bottomValue) > 1) {
+            return bottomValue;
+          }
+          return prev;
+        });
       }
     }
-  }, []);
+  }, [clampValue]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -115,35 +112,41 @@ export function SafeAreaLayout({ children }: SafeAreaLayoutProps) {
     const handleSafeAreaChange = (event: CustomEvent) => {
       const { top, bottom } = event.detail;
       if (top !== undefined && top >= 0) {
-        // 비정상적으로 큰 값 방지 (일반적으로 100px 이하)
-        if (top <= 100) {
-          setSafeAreaTop((prev) => {
-            if (Math.abs(prev - top) > 1) {
-              return top;
-            }
-            return prev;
-          });
-        }
+        const clampedTop = clampValue(top);
+        setSafeAreaTop((prev) => {
+          if (Math.abs(prev - clampedTop) > 1) {
+            return clampedTop;
+          }
+          return prev;
+        });
       }
       if (bottom !== undefined && bottom >= 0) {
-        if (bottom <= 100) {
-          setSafeAreaBottom((prev) => {
-            if (Math.abs(prev - bottom) > 1) {
-              return bottom;
-            }
-            return prev;
-          });
-        }
+        const clampedBottom = clampValue(bottom, 50);
+        setSafeAreaBottom((prev) => {
+          if (Math.abs(prev - clampedBottom) > 1) {
+            return clampedBottom;
+          }
+          return prev;
+        });
       }
     };
 
     // 앱이 포그라운드로 돌아올 때 safe area 재계산
     const handleVisibilityChange = () => {
       if (!document.hidden) {
+        // 먼저 값을 0으로 리셋한 후 재계산 (잘못된 값 방지)
+        setSafeAreaTop(0);
+        setSafeAreaBottom(0);
+
         // 약간의 지연을 두고 재계산 (레이아웃이 안정화된 후)
         setTimeout(() => {
           updateSafeAreaValues();
-        }, 100);
+        }, 50);
+
+        // 추가 재계산 (더 안정적)
+        setTimeout(() => {
+          updateSafeAreaValues();
+        }, 200);
       }
     };
 
@@ -152,10 +155,21 @@ export function SafeAreaLayout({ children }: SafeAreaLayoutProps) {
     if (Capacitor.isNativePlatform()) {
       App.addListener("appStateChange", ({ isActive }) => {
         if (isActive) {
+          // 먼저 값을 0으로 리셋한 후 재계산 (잘못된 값 방지)
+          setSafeAreaTop(0);
+          setSafeAreaBottom(0);
+
           // 앱이 활성화될 때 safe area 재계산
           setTimeout(() => {
             updateSafeAreaValues();
-          }, 150);
+          }, 50);
+
+          // 추가 재계산 (더 안정적)
+          setTimeout(() => {
+            updateSafeAreaValues();
+          }, 200);
+        } else {
+          // 앱이 백그라운드로 갈 때는 값을 유지 (선택사항)
         }
       }).then((listener) => {
         appStateListener = listener;
@@ -169,11 +183,17 @@ export function SafeAreaLayout({ children }: SafeAreaLayoutProps) {
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     // 주기적으로 safe area 값 확인 (백그라운드에서 돌아올 때를 대비)
+    // 하지만 너무 자주 실행하면 성능 문제가 있을 수 있으므로 간격을 늘림
     const intervalId = setInterval(() => {
       if (!document.hidden) {
-        updateSafeAreaValues();
+        // 현재 값이 비정상적으로 큰 경우에만 재계산
+        if (safeAreaTop > 100 || safeAreaBottom > 100) {
+          setSafeAreaTop(0);
+          setSafeAreaBottom(0);
+          updateSafeAreaValues();
+        }
       }
-    }, 1000);
+    }, 2000);
 
     return () => {
       window.removeEventListener(
@@ -186,35 +206,31 @@ export function SafeAreaLayout({ children }: SafeAreaLayoutProps) {
         appStateListener.remove();
       }
     };
-  }, [updateSafeAreaValues]);
+  }, [updateSafeAreaValues, clampValue, safeAreaTop, safeAreaBottom]);
+
+  // 비정상적으로 큰 값 방지 (100px 이상이면 0으로 처리)
+  const normalizedSafeAreaTop = safeAreaTop > 100 ? 0 : safeAreaTop;
+  const normalizedSafeAreaBottom = safeAreaBottom > 100 ? 0 : safeAreaBottom;
+
+  // CSS env() 값을 직접 사용 (더 안정적)
+  const safeAreaTopStyle =
+    normalizedSafeAreaTop > 0
+      ? `${normalizedSafeAreaTop}px`
+      : "env(safe-area-inset-top, 0px)";
+  const safeAreaBottomStyle =
+    normalizedSafeAreaBottom > 0
+      ? `${normalizedSafeAreaBottom}px`
+      : "env(safe-area-inset-bottom, 0px)";
 
   return (
-    <>
-      {/* 상단 safe area 영역을 흰색으로 채움 */}
-      <div
-        className="fixed top-0 left-0 right-0 bg-wh z-50"
-        style={{
-          height:
-            safeAreaTop > 0
-              ? `${safeAreaTop}px`
-              : "var(--safe-area-top, env(safe-area-inset-top, 0px))",
-        }}
-      />
-      <div
-        className="flex min-h-screen flex-col bg-wh"
-        style={{
-          paddingTop:
-            safeAreaTop > 0
-              ? `${safeAreaTop}px`
-              : "var(--safe-area-top, env(safe-area-inset-top, 0px))",
-          paddingBottom:
-            safeAreaBottom > 0
-              ? `${safeAreaBottom}px`
-              : "var(--safe-area-bottom, env(safe-area-inset-bottom, 0px))",
-        }}
-      >
-        {children}
-      </div>
-    </>
+    <div
+      className="flex min-h-screen flex-col bg-wh"
+      style={{
+        paddingTop: safeAreaTopStyle,
+        paddingBottom: safeAreaBottomStyle,
+      }}
+    >
+      {children}
+    </div>
   );
 }

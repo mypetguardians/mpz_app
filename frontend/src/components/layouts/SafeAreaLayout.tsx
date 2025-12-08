@@ -2,7 +2,6 @@
 
 import { ReactNode, useEffect, useState, useCallback } from "react";
 import { Capacitor } from "@capacitor/core";
-import { App } from "@capacitor/app";
 import { SafeArea } from "capacitor-plugin-safe-area";
 
 interface SafeAreaLayoutProps {
@@ -171,22 +170,11 @@ export function SafeAreaLayout({ children }: SafeAreaLayoutProps) {
         "safeAreaInsetsChanged",
         handleSafeAreaChange as EventListener
       );
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      clearInterval(intervalId);
-      if (appStateListener) {
-        appStateListener.remove();
-      }
       if (safeAreaPluginListener) {
         safeAreaPluginListener.remove();
       }
     };
-  }, [
-    updateSafeAreaValues,
-    clampValue,
-    safeAreaTop,
-    safeAreaBottom,
-    applyInsets,
-  ]);
+  }, [updateSafeAreaValues, clampValue, applyInsets]);
 
   // 비정상적으로 큰 값 방지 (100px 이상이면 0으로 처리)
   const normalizedSafeAreaTop = safeAreaTop > 100 ? 0 : safeAreaTop;

@@ -237,6 +237,7 @@ export default function AdoptionPage() {
               <AdoptorNotificationCard
                 key={adoption.id}
                 id={adoption.id}
+                animalId={adoption.animal_id}
                 userName={adoption.animal_name || "이름 없음"}
                 profileImage={adoption.animal_image || "/img/dummyImg.png"}
                 timeAgo={formatTimeAgo(adoption.updated_at)}

@@ -289,6 +289,19 @@ if LANGCHAIN_TRACING_V2:
 
 SMS_API_KEY=config("SMS_API_KEY", default="")
 
+# Firebase Admin SDK 초기화
+try:
+    # Firebase 모듈 import 시 자동으로 초기화됨
+    # firebase/__init__.py에서 자동으로 Firebase Admin SDK를 초기화합니다
+    import sys
+    from pathlib import Path
+    firebase_path = BASE_DIR / "firebase"
+    if firebase_path.exists():
+        sys.path.insert(0, str(BASE_DIR))
+        import firebase  # noqa: F401
+except ImportError:
+    pass
+
 # Django Channels Settings
 ASGI_APPLICATION = "cfehome.asgi.application"
 

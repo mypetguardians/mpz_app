@@ -27,11 +27,7 @@ export function CenterFilterContent() {
   const { close: closeOverlay } = useCenterFilterOverlayStore();
 
   const [selectedBreed, setSelectedBreed] = useState(filters.breed || "");
-  const [breedSearchTerm, setBreedSearchTerm] = useState("");
-  const [isBreedSheetOpen, setIsBreedSheetOpen] = useState(false);
-  const [tempSelectedBreed, setTempSelectedBreed] = useState(
-    filters.breed || ""
-  );
+  const [, setBreedSearchTerm] = useState("");
 
   const [selectedWeights, setSelectedWeights] = useState<string[]>(
     filters.weights || []
@@ -112,12 +108,7 @@ export function CenterFilterContent() {
         <BreedFilter
           selectedBreed={selectedBreed}
           setSelectedBreed={setSelectedBreed}
-          breedSearchTerm={breedSearchTerm}
           setBreedSearchTerm={setBreedSearchTerm}
-          isBreedSheetOpen={isBreedSheetOpen}
-          setIsBreedSheetOpen={setIsBreedSheetOpen}
-          tempSelectedBreed={tempSelectedBreed}
-          setTempSelectedBreed={setTempSelectedBreed}
         />
 
         {/* 체중 (Weight) */}

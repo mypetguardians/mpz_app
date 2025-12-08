@@ -69,6 +69,12 @@ export function AnimalSearchSection({
     }
   }, [searchFromUrl, storedSearchValue, searchValue, setStoredSearchValue]);
 
+  // 보호상태 필터 기본값 처리 (비어있으면 "입양가능"을 기본값으로 사용)
+  const effectiveProtectionStatus =
+    filters.protectionStatus.length > 0
+      ? filters.protectionStatus
+      : ["입양가능"];
+
   // 검색 결과 가져오기
   const {
     data: searchData,
@@ -108,14 +114,14 @@ export function AnimalSearchSection({
     ...(filters.genders.length > 0 && {
       gender: filters.genders[0] === "남아" ? "male" : "female",
     }),
-    // 보호상태 필터
-    ...(filters.protectionStatus.length > 0 && {
+    // 보호상태 필터 (기본값 "입양가능" 적용)
+    ...(effectiveProtectionStatus.length > 0 && {
       status:
-        filters.protectionStatus[0] === "입양가능"
+        effectiveProtectionStatus[0] === "입양가능"
           ? "입양가능" // 입양가능은 입양가능으로 검색 (백엔드에서 입양진행중도 포함하도록 수정 필요)
-          : filters.protectionStatus[0] === "보호중"
+          : effectiveProtectionStatus[0] === "보호중"
           ? "입양불가" // "보호중"으로 표시되지만 "입양불가"로 검색
-          : (filters.protectionStatus[0] as
+          : (effectiveProtectionStatus[0] as
               | "보호중"
               | "입양가능"
               | "입양진행중"

@@ -6,6 +6,7 @@ import type { CenterAdoptionData } from "@/types/center-adoption";
 
 interface AdoptorNotificationCardProps {
   id: string;
+  animalId: string;
   userName: string;
   profileImage: string;
   timeAgo: string;
@@ -16,12 +17,14 @@ interface AdoptorNotificationCardProps {
   adoption?: CenterAdoptionData; // 입양 데이터 추가
   animalName?: string; // 동물 이름
   animalAdoptionStatus?: string; // 동물 입양 상태
+  announceNumber?: string; // 공고번호
   onClick?: () => void;
   className?: string;
 }
 
 function AdoptorNotificationCard({
   id,
+  animalId,
   userName,
   profileImage,
   timeAgo,
@@ -29,6 +32,8 @@ function AdoptorNotificationCard({
   isGrayscale = false,
   tabType = "adopter",
   apiStatus,
+  animalName,
+  announceNumber,
   onClick,
   className,
 }: AdoptorNotificationCardProps) {
@@ -121,10 +126,15 @@ function AdoptorNotificationCard({
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between">
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-gray-900 truncate">
+            {(animalName || announceNumber) && animalId && (
+              <span className="text-xs font-semibold text-gr mb-1">
+                {animalName || announceNumber}
+              </span>
+            )}
+            <span className="text-sm font-medium text-bk truncate">
               {userName}
             </span>
-            <span className="text-xs text-gray-500 mt-1">{timeAgo}</span>
+            <span className="text-xs text-gr">{timeAgo}</span>
           </div>
 
           {/* 상태 태그들 */}

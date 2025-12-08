@@ -8,6 +8,7 @@
   "theme_color": "#3b82f6",
   "orientation": "portrait",
   "scope": "/",
+  "gcm_sender_id": "103953800507",
   "icons": [
     {
       "src": "../icons/icon-48.webp",
@@ -52,10 +53,7 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": [
-    "lifestyle",
-    "social"
-  ],
+  "categories": ["lifestyle", "social"],
   "lang": "ko",
   "dir": "ltr"
 }

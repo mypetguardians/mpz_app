@@ -1,11 +1,18 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useRef,
+} from "react";
 import type { AxiosError, AxiosResponse } from "axios";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import instance from "@/lib/axios-instance";
 import { User, AuthContextType, LoginResult } from "@/types/auth";
+import { useWebPushNotification } from "@/hooks/mutation/usePushToken";
 
 // AxiosError 타입 가드 함수
 const isAxiosError = (error: unknown): error is AxiosError => {
@@ -21,11 +28,14 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { requestPermissionAndRegisterToken } = useWebPushNotification();
 
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const pushTokenRegisteringRef = useRef(false);
+  const pushTokenRegisteredRef = useRef(false);
 
   // Axios 에러 메시지 추출
   const extractAxiosErrorMessage = (error: unknown): string | null => {
@@ -170,6 +180,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // 즉시 사용자 정보 갱신
           const updatedUser = await fetchCurrentUser();
           if (updatedUser) {
+            // 로그인 성공 시 푸시 알림 초기화 (비동기로 실행, 실패해도 로그인은 성공)
+            // 중복 등록 방지
+            if (
+              !pushTokenRegisteringRef.current &&
+              !pushTokenRegisteredRef.current
+            ) {
+              pushTokenRegisteringRef.current = true;
+              requestPermissionAndRegisterToken()
+                .then(() => {
+                  console.log("푸시 알림 등록 완료");
+                  pushTokenRegisteredRef.current = true;
+                  pushTokenRegisteringRef.current = false;
+                })
+                .catch((error) => {
+                  console.warn("푸시 알림 등록 실패:", error);
+                  pushTokenRegisteringRef.current = false; // 실패 시 다시 시도 가능하도록
+                });
+            }
+
             return { success: true, message: "로그인에 성공했습니다!" };
           } else {
             return {
@@ -196,10 +225,62 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // 초기 로드시 한 번만 사용자 정보 확인
+  // 초기 로드시 한 번만 사용자 정보 확인 및 푸시 알림 초기화
   useEffect(() => {
-    fetchCurrentUser();
-  }, []);
+    let isMounted = true;
+    let timeoutId: NodeJS.Timeout | null = null;
+    let hasInitialized = false;
+
+    const initializeAuth = async () => {
+      // 이미 초기화되었으면 스킵
+      if (hasInitialized) {
+        return;
+      }
+
+      const currentUser = await fetchCurrentUser();
+      // 이미 로그인된 사용자인 경우 푸시 알림 초기화
+      if (
+        currentUser &&
+        isMounted &&
+        !pushTokenRegisteringRef.current &&
+        !pushTokenRegisteredRef.current &&
+        !hasInitialized
+      ) {
+        hasInitialized = true;
+        pushTokenRegisteringRef.current = true;
+        // 약간의 지연 후 푸시 알림 초기화 (서비스 워커 등록 시간 확보)
+        timeoutId = setTimeout(() => {
+          if (isMounted && pushTokenRegisteringRef.current) {
+            requestPermissionAndRegisterToken()
+              .then(() => {
+                if (isMounted) {
+                  console.log("푸시 알림 등록 완료");
+                  pushTokenRegisteredRef.current = true;
+                  pushTokenRegisteringRef.current = false;
+                }
+              })
+              .catch((error) => {
+                console.warn("푸시 알림 등록 실패:", error);
+                if (isMounted) {
+                  pushTokenRegisteringRef.current = false; // 실패 시 다시 시도 가능하도록
+                  hasInitialized = false; // 실패 시 재시도 가능하도록
+                }
+              });
+          }
+        }, 2000); // 지연 시간 증가
+      }
+    };
+
+    initializeAuth();
+
+    return () => {
+      isMounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // requestPermissionAndRegisterToken은 안정적인 함수이므로 의존성에서 제외
 
   // 로그아웃 - 쿼리 캐시 무효화 포함
   const logout = async () => {
@@ -230,6 +311,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setUser(null);
       setIsAuthenticated(false);
+      pushTokenRegisteredRef.current = false; // 로그아웃 시 플래그 리셋
+      pushTokenRegisteringRef.current = false;
 
       queryClient.invalidateQueries({
         predicate: (query) => {

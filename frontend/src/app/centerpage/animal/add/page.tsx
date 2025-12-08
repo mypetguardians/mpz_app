@@ -130,6 +130,9 @@ export default function AddAnimal() {
   const { user } = useAuth();
   const isTrainer = user?.userType === "훈련사";
   const isSubscriber = myCenter?.isSubscriber === true;
+  const [uploadingImageIndexes, setUploadingImageIndexes] = useState<
+    Set<number>
+  >(new Set());
 
   // 폼 수정 여부 감지
   const isDirty = useMemo(() => {
@@ -299,12 +302,75 @@ export default function AddAnimal() {
     setFormData((prev) => ({ ...prev, images }));
   };
 
+  // 이미지 추가 시 자동 업로드
+  const handleImageAdd = async (newFiles: File[]) => {
+    const currentImages = formData.images;
+    const startIndex = currentImages.length;
+
+    // 새 이미지를 images 배열에 추가
+    const updatedImages = [...currentImages, ...newFiles];
+    setFormData((prev) => ({ ...prev, images: updatedImages }));
+
+    // 각 새 이미지를 순차적으로 업로드
+    for (
+      let relativeIndex = 0;
+      relativeIndex < newFiles.length;
+      relativeIndex++
+    ) {
+      const file = newFiles[relativeIndex];
+      const absoluteIndex = startIndex + relativeIndex;
+      setUploadingImageIndexes((prev) => new Set(prev).add(absoluteIndex));
+
+      try {
+        const res = await uploadImagesMutation.mutateAsync({
+          postId: "new",
+          images: [file],
+        });
+
+        if (res.images && res.images.length > 0) {
+          // 업로드된 URL을 basicInfo.imageUrls에 추가
+          setFormData((prev) => ({
+            ...prev,
+            basicInfo: {
+              ...prev.basicInfo,
+              imageUrls: [...(prev.basicInfo.imageUrls || []), res.images[0]],
+            },
+            // 업로드 완료된 이미지는 images 배열에서 제거
+            images: prev.images.filter((_, i) => i !== absoluteIndex),
+          }));
+        }
+      } catch (error) {
+        console.error("이미지 업로드 실패:", error);
+        showToast("이미지 업로드에 실패했습니다.", "error");
+        // 실패한 이미지는 images 배열에서 제거
+        setFormData((prev) => ({
+          ...prev,
+          images: prev.images.filter((_, i) => i !== absoluteIndex),
+        }));
+      } finally {
+        setUploadingImageIndexes((prev) => {
+          const next = new Set(prev);
+          next.delete(absoluteIndex);
+          return next;
+        });
+      }
+    }
+  };
+
   const handleReset = () => {
     setFormData(initialFormData);
   };
 
   const handleSubmit = async () => {
-    if (isLoading) return;
+    if (isLoading || uploadingImageIndexes.size > 0) {
+      if (uploadingImageIndexes.size > 0) {
+        showToast(
+          "이미지 업로드가 진행 중입니다. 잠시만 기다려주세요.",
+          "error"
+        );
+      }
+      return;
+    }
     // 필수 필드 검증
     const { basicInfo, detailInfo } = formData;
 
@@ -322,18 +388,8 @@ export default function AddAnimal() {
     }
 
     try {
-      // 1) 이미지가 있다면 선 업로드 후 URL 수집
-      let uploadedImageUrls: string[] = [];
-      const imagesToUpload = formData.images;
-      if (imagesToUpload.length > 0) {
-        const res = await uploadImagesMutation.mutateAsync({
-          postId: "new", // 서버 미사용, 시그니처 충족용
-          images: imagesToUpload,
-        });
-        uploadedImageUrls = res.images;
-      }
-
-      // 2) 업로드된 이미지 URL을 포함해 동물 생성
+      // 이미 업로드된 이미지 URL 사용 (이미지 업로드는 이미 완료됨)
+      const uploadedImageUrls = basicInfo.imageUrls || [];
       const requestData = {
         name: basicInfo.name,
         is_female: basicInfo.gender === "암컷",
@@ -402,8 +458,7 @@ export default function AddAnimal() {
     }
   };
 
-  const isLoading =
-    createAnimalMutation.isPending || uploadImagesMutation.isPending;
+  const isLoading = createAnimalMutation.isPending;
 
   return (
     <Container className="min-h-screen bg-wh">
@@ -427,6 +482,8 @@ export default function AddAnimal() {
           onChange={handleBasicInfoChange}
           images={formData.images}
           onImagesChange={handleImagesChange}
+          onImageAdd={handleImageAdd}
+          uploadingImageIndexes={uploadingImageIndexes}
         />
         {isSubscriber && isTrainer && (
           <DetailInfo

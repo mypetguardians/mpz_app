@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   ImageCard,
-  BottomSheet,
   CustomInput,
   SearchInput,
   CustomModal,
   AddButton,
 } from "@/components/ui";
+import { CaretDown } from "@phosphor-icons/react";
 import { pickImages } from "@/lib/image-picker";
 
 import { openKakaoAddress } from "@/lib/openKakaoAddress";
@@ -37,6 +37,8 @@ interface BasicInfoProps {
   onChange: (data: Partial<BasicInfoData>) => void;
   images: File[];
   onImagesChange: (images: File[]) => void;
+  onImageAdd?: (files: File[]) => void;
+  uploadingImageIndexes?: Set<number>;
 }
 
 export default function BasicInfo({
@@ -44,10 +46,12 @@ export default function BasicInfo({
   onChange,
   images,
   onImagesChange,
+  onImageAdd,
+  uploadingImageIndexes = new Set(),
 }: BasicInfoProps) {
-  const [isBreedSheetOpen, setIsBreedSheetOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [breedSearchTerm, setBreedSearchTerm] = useState("");
-  const [tempSelectedBreed, setTempSelectedBreed] = useState("");
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [extraFeatures, setExtraFeatures] = useState<string[]>([]);
   // 업로드된 이미지 URL 관리는 제출 시 상위에서 처리
   const [isFoundLocationDialogOpen, setIsFoundLocationDialogOpen] =
@@ -57,6 +61,26 @@ export default function BasicInfo({
   );
   const [detailAddress, setDetailAddress] = useState("");
   const [isManualFoundLocation, setIsManualFoundLocation] = useState(false);
+
+  // 외부 클릭 시 dropdown 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isDropdownOpen]);
 
   // 품종 검색 결과 필터링
   const filteredBreeds = CenterBreedList.filter((breed) =>
@@ -102,18 +126,22 @@ export default function BasicInfo({
   ]);
 
   const handleBreedSearchClick = () => {
-    setTempSelectedBreed(data.breed);
-    setIsBreedSheetOpen(true);
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const nextValue = e.target.value;
+    onChange({ breed: nextValue });
+    setBreedSearchTerm(nextValue);
+    if (!isDropdownOpen) {
+      setIsDropdownOpen(true);
+    }
   };
 
   const handleBreedSelect = (breed: string) => {
-    setTempSelectedBreed(breed);
-  };
-
-  const handleBreedApply = (breed: string) => {
     onChange({ breed });
-    setIsBreedSheetOpen(false);
-    setBreedSearchTerm("");
+    setBreedSearchTerm(breed);
+    setIsDropdownOpen(false);
   };
 
   const handleAddImage = async () => {
@@ -134,10 +162,18 @@ export default function BasicInfo({
         const newTotal = existingCount + images.length + files.length;
 
         if (newTotal <= 5) {
-          onImagesChange([...images, ...files]);
+          if (onImageAdd) {
+            onImageAdd(files);
+          } else {
+            onImagesChange([...images, ...files]);
+          }
         } else {
           const filesToAdd = files.slice(0, remainingSlots);
-          onImagesChange([...images, ...filesToAdd]);
+          if (onImageAdd) {
+            onImageAdd(filesToAdd);
+          } else {
+            onImagesChange([...images, ...filesToAdd]);
+          }
           showToastMessage(
             `최대 5장까지만 업로드할 수 있습니다. ${remainingSlots}장만 추가되었습니다.`,
             "error"
@@ -226,14 +262,23 @@ export default function BasicInfo({
             />
           ))}
           {images.map((_, index) => (
-            <ImageCard
-              key={index}
-              src={previewUrls[index]}
-              alt={`이미지 ${index + 1}`}
-              onRemove={() => handleRemoveImage(index)}
-            />
+            <div key={index} className="relative">
+              <ImageCard
+                src={previewUrls[index]}
+                alt={`이미지 ${index + 1}`}
+                onRemove={() => handleRemoveImage(index)}
+              />
+              {uploadingImageIndexes.has(index) && (
+                <div className="absolute inset-0 bg-black/50 rounded-[10px] flex items-center justify-center">
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span className="text-white text-xs">업로드 중...</span>
+                  </div>
+                </div>
+              )}
+            </div>
           ))}
-          {images.length < 5 && (
+          {(data.imageUrls?.length || 0) + images.length < 5 && (
             <ImageCard variant="add" onClick={handleAddImage} />
           )}
         </div>
@@ -266,18 +311,72 @@ export default function BasicInfo({
           onChangeOption={(value) => onChange({ protection_status: value })}
           required={true}
         />
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 relative" ref={dropdownRef}>
           <h5 className="text-dg">
             견종 <span className="text-brand">*</span>
           </h5>
-          <div onClick={handleBreedSearchClick} className="cursor-pointer">
+          <div className="relative">
             <SearchInput
               variant="variant2"
               placeholder="품종으로 검색해보세요."
               value={data.breed}
-              onChange={(e) => onChange({ breed: e.target.value })}
+              onChange={handleSearchChange}
+              onFocus={() => setIsDropdownOpen(true)}
             />
+            <span
+              className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 cursor-pointer"
+              onClick={handleBreedSearchClick}
+            >
+              <CaretDown
+                size={18}
+                className={`transition-transform ${
+                  isDropdownOpen ? "rotate-180" : ""
+                }`}
+              />
+            </span>
           </div>
+
+          {isDropdownOpen && (
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+              <div className="flex flex-col p-4">
+                {/* 품종 리스트 표시 */}
+                <div className="max-h-96 overflow-y-auto scrollbar-hide">
+                  {filteredBreeds.length > 0 ? (
+                    <div className="flex flex-col">
+                      <div className="space-y-1">
+                        {filteredBreeds.map((breedItem, index) => (
+                          <button
+                            key={index}
+                            className={`w-full text-left p-3 rounded-lg transition-colors hover:bg-gray-50 ${
+                              data.breed === breedItem
+                                ? "bg-blue-50 text-blue-600 border border-blue-200"
+                                : "text-gray-800"
+                            }`}
+                            onClick={() => handleBreedSelect(breedItem)}
+                          >
+                            {breedItem}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : breedSearchTerm ? (
+                    <div className="text-center py-8">
+                      <div className="text-gray-500">
+                        &ldquo;{breedSearchTerm}&rdquo;에 해당하는 품종이
+                        없습니다
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="text-gray-500">
+                        품종명을 입력하여 검색해보세요
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         <CustomInput
           variant="primary"
@@ -408,50 +507,6 @@ export default function BasicInfo({
           required={false}
         />
       </div>
-
-      {/* 견종 선택 BottomSheet */}
-      <BottomSheet
-        open={isBreedSheetOpen}
-        onClose={() => setIsBreedSheetOpen(false)}
-        variant="selectMenu"
-        showApplyButton={true}
-        applyButtonText="적용하기"
-        onApply={handleBreedApply}
-        selectedValue={tempSelectedBreed}
-      >
-        <div className="flex flex-col gap-4">
-          <SearchInput
-            variant="variant2"
-            placeholder="품종으로 검색해보세요"
-            value={breedSearchTerm}
-            onChange={(e) => setBreedSearchTerm(e.target.value)}
-            autoFocus={true}
-          />
-          <div className="overflow-y-auto max-h-60 scrollbar-hide">
-            {filteredBreeds.length > 0 ? (
-              <div className="flex flex-col">
-                {filteredBreeds.map((breedItem, index) => (
-                  <button
-                    key={index}
-                    className={`text-left p-3 rounded-lg transition-colors ${
-                      tempSelectedBreed === breedItem
-                        ? " text-blue-600 border border-brand"
-                        : "hover:bg-gray-50"
-                    }`}
-                    onClick={() => handleBreedSelect(breedItem)}
-                  >
-                    {breedItem}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <p className="py-4 text-center text-gray-500">
-                검색 결과가 없습니다.
-              </p>
-            )}
-          </div>
-        </div>
-      </BottomSheet>
 
       {/* 발견장소 입력 방식 선택 모달 */}
       <CustomModal

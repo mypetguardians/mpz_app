@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { SearchInput } from "@/components/ui/SearchInput";
-import { BottomSheet } from "@/components/ui/BottomSheet";
+import { CaretDown } from "@phosphor-icons/react";
 
 interface BreedFilterProps {
   breedList: string[];
@@ -21,15 +21,12 @@ export default function BreedFilter({
   breedList,
   selectedBreed,
   setSelectedBreed,
-  breedSearchTerm,
   setBreedSearchTerm,
-  isBreedSheetOpen,
-  setIsBreedSheetOpen,
-  tempSelectedBreed,
-  setTempSelectedBreed,
 }: BreedFilterProps) {
   const searchParams = useSearchParams();
-  const searchInputRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [localSearchTerm, setLocalSearchTerm] = useState("");
 
   // URL 파라미터에서 breed 값 읽어오기
   useEffect(() => {
@@ -40,140 +37,118 @@ export default function BreedFilter({
     }
   }, [searchParams, selectedBreed, setSelectedBreed, setBreedSearchTerm]);
 
-  // BottomSheet가 열릴 때 입력 필드에 포커스하고 스크롤 처리
+  // 외부 클릭 시 dropdown 닫기
   useEffect(() => {
-    if (isBreedSheetOpen) {
-      // 키보드가 올라올 시간을 주기 위해 약간의 딜레이
-      const timer = setTimeout(() => {
-        // input 요소를 찾아서 포커스 및 스크롤
-        const inputElement = searchInputRef.current?.querySelector(
-          "input"
-        ) as HTMLInputElement;
-        if (inputElement) {
-          inputElement.focus();
-          // 입력 필드가 보이도록 스크롤
-          inputElement.scrollIntoView({
-            behavior: "smooth",
-            block: "center",
-          });
-        }
-      }, 300);
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+        setLocalSearchTerm("");
+      }
+    };
 
-      return () => clearTimeout(timer);
+    if (isDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
     }
-  }, [isBreedSheetOpen]);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isDropdownOpen]);
 
   const handleBreedSearchClick = () => {
-    setTempSelectedBreed(selectedBreed);
-    setBreedSearchTerm(selectedBreed);
-    setIsBreedSheetOpen(true);
-  };
-
-  const handleBreedApply = (breed: string) => {
-    setSelectedBreed(breed);
-    setIsBreedSheetOpen(false);
-    setBreedSearchTerm("");
+    setIsDropdownOpen(!isDropdownOpen);
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const nextValue = e.target.value;
-    setBreedSearchTerm(nextValue);
-    setTempSelectedBreed(nextValue);
+    setSelectedBreed(nextValue);
+    setLocalSearchTerm(nextValue);
+    if (!isDropdownOpen) {
+      setIsDropdownOpen(true);
+    }
   };
 
-  // 입력 필드 포커스 시 스크롤 처리
-  const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    // 키보드가 올라온 후 입력 필드가 보이도록 스크롤
-    setTimeout(() => {
-      e.target.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
-    }, 100);
+  const handleBreedSelect = (breed: string) => {
+    setSelectedBreed(breed);
+    setBreedSearchTerm(breed);
+    setIsDropdownOpen(false);
+    setLocalSearchTerm("");
   };
 
   const filteredBreeds =
-    breedSearchTerm.trim().length === 0
+    localSearchTerm.trim().length === 0
       ? breedList
       : breedList.filter((breed) =>
-          breed.toLowerCase().includes(breedSearchTerm.toLowerCase())
+          breed.toLowerCase().includes(localSearchTerm.toLowerCase())
         );
 
   return (
-    <>
-      <div className="flex flex-col gap-3">
-        <h5 className="text-dg">품종</h5>
-        <div onClick={handleBreedSearchClick} className="cursor-pointer">
-          <SearchInput
-            variant="variant2"
-            placeholder="품종명을 검색해보세요"
-            value={selectedBreed}
-            onChange={(e) => setSelectedBreed(e.target.value)}
-            readOnly={true}
+    <div className="flex flex-col gap-3 relative" ref={dropdownRef}>
+      <h5 className="text-dg">품종</h5>
+      <div className="relative">
+        <SearchInput
+          variant="variant2"
+          placeholder="품종명을 검색해보세요"
+          value={selectedBreed}
+          onChange={handleSearchChange}
+          onFocus={() => setIsDropdownOpen(true)}
+        />
+        <span
+          className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 cursor-pointer"
+          onClick={handleBreedSearchClick}
+        >
+          <CaretDown
+            size={18}
+            className={`transition-transform ${
+              isDropdownOpen ? "rotate-180" : ""
+            }`}
           />
-        </div>
+        </span>
+
+        {isDropdownOpen && (
+          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+            <div className="flex flex-col p-4">
+              {/* 품종 리스트 표시 */}
+              <div className="max-h-96 overflow-y-auto scrollbar-hide">
+                {filteredBreeds.length > 0 ? (
+                  <div className="flex flex-col">
+                    <div className="space-y-1">
+                      {filteredBreeds.map((breed, index) => (
+                        <button
+                          key={`${breed}-${index}`}
+                          className={`w-full text-left p-3 rounded-lg transition-colors hover:bg-gray-50 ${
+                            selectedBreed === breed
+                              ? "bg-blue-50 text-blue-600 border border-blue-200"
+                              : "text-gray-800"
+                          }`}
+                          onClick={() => handleBreedSelect(breed)}
+                        >
+                          {breed}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : localSearchTerm ? (
+                  <div className="text-center py-8">
+                    <div className="text-gray-500">
+                      &ldquo;{localSearchTerm}&rdquo;에 해당하는 품종이 없습니다
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="text-gray-500">
+                      품종명을 입력하여 검색해보세요
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-
-      <BottomSheet
-        open={isBreedSheetOpen}
-        onClose={() => setIsBreedSheetOpen(false)}
-        variant="selectMenu"
-        showApplyButton={true}
-        applyButtonText="적용하기"
-        onApply={handleBreedApply}
-        selectedValue={tempSelectedBreed}
-      >
-        <div className="flex flex-col gap-4">
-          <div ref={searchInputRef}>
-            <SearchInput
-              variant="variant2"
-              placeholder="품종명을 검색해보세요"
-              value={breedSearchTerm}
-              onChange={handleSearchChange}
-              onFocus={handleInputFocus}
-              autoFocus={true}
-            />
-          </div>
-
-          {/* 품종 리스트 표시 */}
-          <div className="max-h-96 overflow-y-auto scrollbar-hide">
-            {filteredBreeds.length > 0 ? (
-              <div className="flex flex-col">
-                <div className="space-y-1">
-                  {filteredBreeds.map((breed, index) => (
-                    <button
-                      key={`${breed}-${index}`}
-                      className={`w-full text-left p-3 rounded-lg transition-colors hover:bg-gray-50 ${
-                        tempSelectedBreed === breed
-                          ? "bg-blue-50 text-blue-600 border border-blue-200"
-                          : "text-gray-800"
-                      }`}
-                      onClick={() => {
-                        setTempSelectedBreed(breed);
-                        handleBreedApply(breed);
-                      }}
-                    >
-                      {breed}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : breedSearchTerm ? (
-              <div className="text-center py-8">
-                <div className="text-gray-500">
-                  &ldquo;{breedSearchTerm}&rdquo;에 해당하는 품종이 없습니다
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <div className="text-gray-500">
-                  품종명을 입력하여 검색해보세요
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </BottomSheet>
-    </>
+    </div>
   );
 }

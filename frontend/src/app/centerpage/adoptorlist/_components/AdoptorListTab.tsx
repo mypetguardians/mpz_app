@@ -10,6 +10,7 @@ type TabType = "application" | "foster" | "adopter";
 
 interface AdoptorData {
   id: string;
+  animalId: string;
   userName: string;
   profileImage: string;
   timeAgo: string;
@@ -20,6 +21,7 @@ interface AdoptorData {
   animalName?: string;
   animalAdoptionStatus?: string;
   animalProtectionStatus?: string;
+  announceNumber?: string;
 }
 
 // API 상태를 UI 상태로 매핑하는 함수
@@ -63,6 +65,7 @@ const transformApiDataToUI = (
 
   return {
     id: adoption.id,
+    animalId: adoption.animal_id,
     userName: adoption.user_info.name,
     profileImage: adoption.animal_image || "", // 실제 동물 이미지 사용, 없으면 기본 이미지
     timeAgo,
@@ -195,6 +198,7 @@ function AdoptorListTab() {
         <AdoptorNotificationCard
           key={adoptor.id}
           id={adoptor.id}
+          animalId={adoptor.animalId}
           userName={adoptor.userName}
           profileImage={adoptor.profileImage}
           timeAgo={adoptor.timeAgo}
@@ -212,6 +216,7 @@ function AdoptorListTab() {
           apiStatus={adoptor.apiStatus}
           animalName={adoptor.animalName}
           animalAdoptionStatus={adoptor.animalAdoptionStatus}
+          announceNumber={adoptor.announceNumber}
           className="border-b border-gray-200 pb-2"
         />
       ))}

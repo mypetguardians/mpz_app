@@ -7,7 +7,7 @@ FRONTEND_DIR="/Users/jhy20/mpz_fullstack/frontend"
 ANDROID_DIR="$FRONTEND_DIR/android"
 WEB_BUILD_DIR="$FRONTEND_DIR/.next"
 APK_DEBUG_PATH="$ANDROID_DIR/app/build/outputs/apk/debug/app-debug.apk"
-# AAB_RELEASE_PATH="$ANDROID_DIR/app/build/outputs/bundle/release/app-release.aab"
+AAB_RELEASE_PATH="$ANDROID_DIR/app/build/outputs/bundle/release/app-release.aab"
 
 cd "$FRONTEND_DIR"
 
@@ -113,18 +113,18 @@ else
 	exit 1
 fi
 
-# echo ""
-# echo "🔐 릴리스 번들(AAB) 빌드 시도 (서명 설정 필요할 수 있음)"
-# echo "   - 릴리스 서명 설정 전: ./gradlew bundleRelease 실행 시 실패할 수 있습니다."
-# echo "   - 서명 키 설정 방법: android/app/keystore 및 signingConfigs 설정 필요"
-# ./gradlew bundleRelease || true
-#
-# if [ -f "$AAB_RELEASE_PATH" ]; then
-# 	echo "✅ 릴리스 AAB 빌드 성공: $AAB_RELEASE_PATH"
-# 	du -h "$AAB_RELEASE_PATH" | awk '{print "📊 파일 크기:", $1}'
-# else
-# 	echo "ℹ️ 릴리스 AAB를 찾을 수 없습니다. 서명 설정 후 다시 시도하세요."
-# fi
+echo ""
+echo "🔐 릴리스 번들(AAB) 빌드 시도 (서명 설정 필요할 수 있음)"
+echo "   - 릴리스 서명 설정 전: ./gradlew bundleRelease 실행 시 실패할 수 있습니다."
+echo "   - 서명 키 설정 방법: android/app/keystore 및 signingConfigs 설정 필요"
+./gradlew bundleRelease || true
+
+if [ -f "$AAB_RELEASE_PATH" ]; then
+	echo "✅ 릴리스 AAB 빌드 성공: $AAB_RELEASE_PATH"
+	du -h "$AAB_RELEASE_PATH" | awk '{print "📊 파일 크기:", $1}'
+else
+	echo "ℹ️ 릴리스 AAB를 찾을 수 없습니다. 서명 설정 후 다시 시도하세요."
+fi
 
 echo ""
 echo "📲 기기 설치 안내 (디버그 APK):"

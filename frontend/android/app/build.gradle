@@ -47,6 +47,15 @@ dependencies {
     implementation project(':capacitor-cordova-android-plugins')
     // 카카오 SDK
     implementation "com.kakao.sdk:v2-all:2.18.0"
+    
+    // Firebase BoM (Bill of Materials) - 모든 Firebase 라이브러리의 버전을 관리
+    implementation platform('com.google.firebase:firebase-bom:34.6.0')
+    
+    // Firebase Cloud Messaging
+    implementation 'com.google.firebase:firebase-messaging'
+    
+    // Firebase Analytics (선택사항)
+    implementation 'com.google.firebase:firebase-analytics'
 }
 
 apply from: 'capacitor.build.gradle'

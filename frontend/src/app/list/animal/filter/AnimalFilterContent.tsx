@@ -46,16 +46,22 @@ export function AnimalFilterContent() {
   const [selectedGenders, setSelectedGenders] = useState<string[]>(
     filters.genders || []
   );
+  // protectionStatus가 비어있으면 "입양가능"을 기본값으로 설정
+  const defaultProtectionStatus =
+    filters.protectionStatus && filters.protectionStatus.length > 0
+      ? filters.protectionStatus
+      : ["입양가능"];
+
   const [selectedProtectionStatus, setSelectedProtectionStatus] = useState<
     string[]
-  >(filters.protectionStatus || []);
+  >(defaultProtectionStatus);
   const [selectedExpertOpinion, setSelectedExpertOpinion] = useState<string[]>(
     filters.expertOpinion || []
   );
 
   const [lastSelectedProtectionStatus, setLastSelectedProtectionStatus] =
     useState<string>(
-      filters.protectionStatus[filters.protectionStatus.length - 1] || ""
+      defaultProtectionStatus[defaultProtectionStatus.length - 1] || ""
     );
 
   const handleClose = () => {
@@ -88,9 +94,9 @@ export function AnimalFilterContent() {
     setSelectedRegions([]);
     setSelectedAges([]);
     setSelectedGenders([]);
-    setSelectedProtectionStatus([]);
+    setSelectedProtectionStatus(["입양가능"]);
     setSelectedExpertOpinion([]);
-    setLastSelectedProtectionStatus("");
+    setLastSelectedProtectionStatus("입양가능");
   };
 
   const handleProtectionStatusChange = (values: string[]) => {

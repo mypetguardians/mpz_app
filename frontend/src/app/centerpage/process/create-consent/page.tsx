@@ -168,7 +168,7 @@ export default function CenterProcessCreateConsent() {
             placeholder="예) 입양 후 n개월간 센터의 요청에 응답하지 않을 시, 임의로 입양을 취소할 수 있습니다."
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="flex w-full rounded-md border border-lg px-4 py-3 h5 placeholder:text-gr placeholder:text-body placeholder:text-top disabled:cursor-not-allowed disabled:opacity-50 resize-none h-[200px] focus:outline-none"
+            className="flex w-full rounded-md border border-lg px-4 py-3 h5 placeholder:text-gr placeholder:text-body placeholder:text-top disabled:cursor-not-allowed disabled:opacity-50 resize-none h-[250px] focus:outline-none"
           />
         </div>
       </div>

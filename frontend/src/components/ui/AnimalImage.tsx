@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image, { type ImageProps } from "next/image";
 import { getProxyImageUrl } from "@/lib/getProxyImageUrl";
 import { cn } from "@/lib/utils";
@@ -15,7 +15,7 @@ interface AnimalImageProps extends ForwardImageProps {
 }
 
 /**
- * 공공데이터 이미지를 안전하게 보여주기 위한 컴포넌트.
+ * 이미지를 안전하게 보여주기 위한 컴포넌트.
  */
 export default function AnimalImage({
   imageUrl,
@@ -30,16 +30,16 @@ export default function AnimalImage({
   const [hasError, setHasError] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
 
-  const proxiedImageUrl = getProxyImageUrl(imageUrl);
+  const proxiedImageUrl = useMemo(() => getProxyImageUrl(imageUrl), [imageUrl]);
   const isProxyUrl = proxiedImageUrl?.startsWith("/api/proxy-image") ?? false;
   const shouldShowFallback = !proxiedImageUrl || hasError;
 
-  // imageUrl이 변경되면 상태 초기화
+  // proxiedImageUrl이 변경될 때만 상태 초기화
   useEffect(() => {
     setIsLoading(true);
     setHasError(false);
     setRetryCount(0);
-  }, [imageUrl]);
+  }, [proxiedImageUrl]);
 
   if (shouldShowFallback) {
     return (
@@ -70,6 +70,7 @@ export default function AnimalImage({
       )}
       <Image
         {...imageProps}
+        key={proxiedImageUrl}
         src={proxiedImageUrl}
         alt={alt}
         className={cn("object-cover rounded-md", imageClassName)}

@@ -21,3 +21,8 @@ Thumbs.db
 logs/
 *.log
 django.log
+
+# Firebase
+firebase/firebase-adminsdk.json
+firebase/*.json
+!firebase/__init__.py

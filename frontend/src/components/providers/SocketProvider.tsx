@@ -39,6 +39,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
   const { user, isAuthenticated } = useAuth();
   const { toast, showToast, hideToast } = useToast();
   const { requestPermissionAndRegisterToken } = useWebPushNotification();
+  const pushTokenRegisteredRef = useRef(false);
 
   // 읽지 않은 알림 개수 계산
   const unreadCount = notifications.filter(
@@ -132,13 +133,21 @@ export function SocketProvider({ children }: SocketProviderProps) {
     };
   }, [isAuthenticated, user, showToast]);
 
-  // 브라우저 알림 권한 요청 및 푸시 토큰 등록
+  // 브라우저 알림 권한 요청 및 푸시 토큰 등록 (한 번만 실행)
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (isAuthenticated && user && !pushTokenRegisteredRef.current) {
+      pushTokenRegisteredRef.current = true;
       // 웹 푸시 알림 권한 요청 및 토큰 등록
-      requestPermissionAndRegisterToken();
+      requestPermissionAndRegisterToken()
+        .then(() => {
+          console.log("SocketProvider: 푸시 알림 등록 완료");
+        })
+        .catch((error) => {
+          console.warn("SocketProvider: 푸시 알림 등록 실패:", error);
+          pushTokenRegisteredRef.current = false; // 실패 시 재시도 가능하도록
+        });
     }
-  }, [isAuthenticated, user, requestPermissionAndRegisterToken]);
+  }, [isAuthenticated, user]); // requestPermissionAndRegisterToken은 의존성에서 제거
 
   // 알림 추가 함수
   const addNotification = useCallback((notification: Notification) => {

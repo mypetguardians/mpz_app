@@ -41,9 +41,12 @@ export function ImageCarouselModal({
     [images]
   );
 
+  // images 배열이 변경될 때만 imageLoaded 초기화
   useEffect(() => {
-    setImageLoaded(images.map(() => false));
-  }, [images]);
+    if (images.length !== imageLoaded.length) {
+      setImageLoaded(images.map(() => false));
+    }
+  }, [images.length, imageLoaded.length]);
 
   useEffect(() => {
     setCurrentIndex(initialIndex);
@@ -144,9 +147,9 @@ export function ImageCarouselModal({
       )}
 
       {/* 이미지 */}
-      <div className="relative w-full h-full grid place-items-center px-6 sm:px-16 py-20">
+      <div className="relative w-full h-full grid place-items-center px-2 sm:px-4 py-4">
         <div
-          className="pointer-events-auto relative max-h-[85vh] max-w-[95vw] w-full touch-pan-x"
+          className="pointer-events-auto relative h-[calc(100vh-8rem)] w-[calc(100vw-8rem)] touch-pan-x"
           ref={emblaRef}
           style={{ touchAction: "pan-x pinch-zoom" }}
           onMouseDown={(e) => {
@@ -180,10 +183,10 @@ export function ImageCarouselModal({
             }
           }}
         >
-          <div className="flex h-full w-full gap-6 px-6">
+          <div className="flex h-full w-full gap-4 px-2">
             {proxiedImages.map((image, index) => (
               <div
-                key={image + index}
+                key={`image-${index}-${image}`}
                 className="relative flex-[0_0_100%] w-full aspect-auto touch-pan-x"
                 style={{ touchAction: "pan-x pinch-zoom", minHeight: "320px" }}
               >
@@ -193,15 +196,19 @@ export function ImageCarouselModal({
                   </div>
                 )}
                 <Image
+                  key={`img-${index}-${image}`}
                   src={image}
                   alt={`이미지 ${index + 1}`}
                   fill
                   className="object-contain object-center select-none"
-                  sizes="(min-width: 1024px) 70vw, 70vw"
+                  sizes="(min-width: 1024px) 98vw, 98vw"
                   draggable={false}
                   unoptimized={image.startsWith("/api/proxy-image")}
+                  priority={index === 0 || index === currentIndex}
                   onLoad={() => {
                     setImageLoaded((prev) => {
+                      // 이미 로드된 경우 업데이트하지 않음
+                      if (prev[index]) return prev;
                       const next = [...prev];
                       next[index] = true;
                       return next;
@@ -209,6 +216,8 @@ export function ImageCarouselModal({
                   }}
                   onError={() => {
                     setImageLoaded((prev) => {
+                      // 이미 처리된 경우 업데이트하지 않음
+                      if (prev[index]) return prev;
                       const next = [...prev];
                       next[index] = true;
                       return next;
@@ -254,6 +263,7 @@ export function ImageCarouselModal({
                 }`}
               >
                 <Image
+                  key={`thumb-${index}-${img}`}
                   src={img}
                   alt={`썸네일 ${index + 1}`}
                   fill

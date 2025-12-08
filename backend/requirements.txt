@@ -42,6 +42,7 @@ uvicorn
 
 # FCM (Firebase Cloud Messaging) packages
 firebase-admin>=6.0.0
+pywebpush>=1.14.0  # VAPID 키 생성용
 
 # Django Channels for real-time notifications
 channels>=4.0.0

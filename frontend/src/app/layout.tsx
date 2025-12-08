@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-// import { Inter } from "next/font/google";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { KakaoProvider } from "@/components/providers/KakaoProvider";
@@ -31,7 +30,7 @@ export const metadata: Metadata = {
     template: "%s | 마펫쯔",
   },
   description:
-    "전국 유기동물 보호센터 정보와 입양 절차를 한눈에 확인하기! 반려동물 입양 플랫폼",
+    "전국 유기동물 입양! 마펫쯔와 편하게 - 유기동물 입양 • 사후 관리 플랫폼",
   keywords: [
     "마펫쯔",
     "유기동물",
@@ -52,7 +51,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "ko_KR",
-    url: "https://mapetz.com",
+    url: "https://mpz.kr",
     siteName: "마펫쯔",
     title: {
       default: "마펫쯔",
@@ -62,7 +61,7 @@ export const metadata: Metadata = {
       "전국 유기동물 보호센터 정보와 입양 절차를 한눈에 확인하기! 반려동물 입양 플랫폼",
     images: [
       {
-        url: "/illust/logo.svg",
+        url: "https://mpz.kr/img/op-image.png",
         width: 1200,
         height: 630,
         alt: "마펫쯔 - 반려동물 입양 플랫폼",
@@ -77,7 +76,7 @@ export const metadata: Metadata = {
     },
     description:
       "전국 유기동물 보호센터 정보와 입양 절차를 한눈에 확인하기! 반려동물 입양 플랫폼",
-    images: ["/illust/logo.svg"],
+    images: ["https://mpz.kr/img/op-image.png"],
     creator: "@mapetz_official",
   },
   verification: {
@@ -103,6 +102,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ko">
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+      </head>
       <body className={inter.className}>
         <QueryProvider>
           <AuthProvider>

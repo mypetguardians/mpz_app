@@ -844,7 +844,7 @@ export default function AnimalDetailPage({
         <CustomModal
           open={showShareBottomSheet}
           onClose={() => setShowShareBottomSheet(false)}
-          title="공유"
+          title="공고 공유"
           variant="variant4"
           onKakaoShare={handleKakaoShare}
           onCopyLink={handleCopyLink}

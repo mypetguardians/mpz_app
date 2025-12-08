@@ -2,9 +2,17 @@ package com.mpz.app;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.view.WindowInsets;
 import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import com.getcapacitor.BridgeActivity;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.messaging.FirebaseMessaging;
+import androidx.annotation.NonNull;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MainActivity extends BridgeActivity {
@@ -29,7 +37,122 @@ public class MainActivity extends BridgeActivity {
             }
         };
 
-        renderSafeAreaInsetsIfInitialized();
+        // Safe area insets 계산 및 JavaScript로 전달
+        setupSafeAreaInsets();
+        
+        // FCM 토큰 가져오기
+        getFCMToken();
+    }
+    
+    /**
+     * Safe area insets를 계산하고 JavaScript로 전달
+     */
+    private void setupSafeAreaInsets() {
+        View decorView = getWindow().getDecorView();
+        decorView.setOnApplyWindowInsetsListener((v, insets) -> {
+            WindowInsetsCompat windowInsets = WindowInsetsCompat.toWindowInsetsCompat(insets);
+            
+            int top = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+            int bottom = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+            int left = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).left;
+            int right = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).right;
+            
+            // JavaScript로 safe area insets 전달 (지연 실행)
+            decorView.postDelayed(() -> {
+                sendSafeAreaInsetsToJavaScript(top, bottom, left, right);
+            }, 300);
+            
+            return insets;
+        });
+        
+        // 초기 insets 계산 (WebView가 준비될 때까지 지연)
+        decorView.postDelayed(() -> {
+            WindowInsetsCompat windowInsets = WindowInsetsCompat.toWindowInsetsCompat(
+                decorView.getRootWindowInsets()
+            );
+            if (windowInsets != null) {
+                int top = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+                int bottom = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+                int left = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).left;
+                int right = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).right;
+                
+                sendSafeAreaInsetsToJavaScript(top, bottom, left, right);
+            }
+        }, 500);
+    }
+    
+    /**
+     * Safe area insets를 JavaScript로 전달
+     */
+    private void sendSafeAreaInsetsToJavaScript(int top, int bottom, int left, int right) {
+        // Bridge가 준비될 때까지 재시도
+        if (getBridge() == null || getBridge().getWebView() == null) {
+            // Bridge가 아직 준비되지 않았으면 100ms 후 재시도
+            getWindow().getDecorView().postDelayed(() -> {
+                sendSafeAreaInsetsToJavaScript(top, bottom, left, right);
+            }, 100);
+            return;
+        }
+        
+        try {
+            String script = String.format(
+                "(function() {" +
+                "  if (typeof window !== 'undefined' && document && document.documentElement) {" +
+                "    document.documentElement.style.setProperty('--safe-area-top', '%dpx', 'important');" +
+                "    document.documentElement.style.setProperty('--safe-area-bottom', '%dpx', 'important');" +
+                "    document.documentElement.style.setProperty('--safe-area-left', '%dpx', 'important');" +
+                "    document.documentElement.style.setProperty('--safe-area-right', '%dpx', 'important');" +
+                "    var event = new CustomEvent('safeAreaInsetsChanged', { " +
+                "      detail: { top: %d, bottom: %d, left: %d, right: %d }" +
+                "    });" +
+                "    window.dispatchEvent(event);" +
+                "  }" +
+                "})();",
+                top, bottom, left, right, top, bottom, left, right
+            );
+            getBridge().eval(script, null);
+            Log.d("MainActivity", String.format("Safe area insets 전달 성공: top=%d, bottom=%d, left=%d, right=%d", top, bottom, left, right));
+        } catch (Exception e) {
+            Log.e("MainActivity", "Safe area insets 전달 실패", e);
+            // 실패 시 재시도
+            getWindow().getDecorView().postDelayed(() -> {
+                sendSafeAreaInsetsToJavaScript(top, bottom, left, right);
+            }, 200);
+        }
+    }
+    
+    /**
+     * FCM 토큰을 가져와서 JavaScript로 전달
+     */
+    private void getFCMToken() {
+        FirebaseMessaging.getInstance().getToken()
+            .addOnCompleteListener(new OnCompleteListener<String>() {
+                @Override
+                public void onComplete(@NonNull Task<String> task) {
+                    if (!task.isSuccessful()) {
+                        Log.w("MainActivity", "FCM 토큰 가져오기 실패", task.getException());
+                        return;
+                    }
+
+                    // FCM 토큰 가져오기 성공
+                    String token = task.getResult();
+                    Log.d("MainActivity", "FCM 토큰: " + token);
+                    
+                    // JavaScript로 토큰 전달
+                    sendTokenToJavaScript(token);
+                }
+            });
+    }
+    
+    /**
+     * FCM 토큰을 JavaScript로 전달
+     * JavaScript에서 window.addEventListener('fcmToken', ...)로 받을 수 있습니다.
+     */
+    private void sendTokenToJavaScript(String token) {
+        if (getBridge() != null) {
+            getBridge().eval("window.dispatchEvent(new CustomEvent('fcmToken', { detail: '" + token + "' }));", null);
+            Log.d("MainActivity", "FCM 토큰을 JavaScript로 전달 완료");
+        }
     }
 
     private void renderSafeAreaInsetsIfInitialized() {
@@ -47,5 +170,32 @@ public class MainActivity extends BridgeActivity {
     public void notifySafeAreaInsetsInitialized() {
         safeAreaInsetsInitialized.set(true);
         renderSafeAreaInsetsIfInitialized();
+    }
+    
+    @Override
+    public void onStart() {
+        super.onStart();
+        // 앱이 시작될 때 safe area insets 다시 계산
+        setupSafeAreaInsets();
+    }
+    
+    @Override
+    public void onResume() {
+        super.onResume();
+        // 앱이 재개될 때 safe area insets 다시 계산
+        View decorView = getWindow().getDecorView();
+        decorView.post(() -> {
+            WindowInsetsCompat windowInsets = WindowInsetsCompat.toWindowInsetsCompat(
+                decorView.getRootWindowInsets()
+            );
+            if (windowInsets != null) {
+                int top = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+                int bottom = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+                int left = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).left;
+                int right = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).right;
+                
+                sendSafeAreaInsetsToJavaScript(top, bottom, left, right);
+            }
+        });
     }
 }

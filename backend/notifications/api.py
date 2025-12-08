@@ -1,3 +1,4 @@
+import logging
 from ninja import Router, Query
 from ninja.errors import HttpError
 from ninja.pagination import paginate
@@ -5,7 +6,10 @@ from django.http import HttpRequest
 from asgiref.sync import sync_to_async
 from typing import List
 from django.utils import timezone
+from django.core.exceptions import MultipleObjectsReturned
 from notifications.models import Notification, PushToken
+
+logger = logging.getLogger(__name__)
 from notifications.schemas.inbound import (
     PushTokenIn,
     PushTokenDeleteIn,
@@ -205,28 +209,83 @@ async def register_push_token(request: HttpRequest, data: PushTokenIn):
 
         @sync_to_async
         def register_token():
-            # 기존 토큰이 있으면 업데이트, 없으면 새로 생성
             try:
-                existing_token = PushToken.objects.get(
+                # 1. 같은 사용자, 플랫폼, 토큰 조합이 이미 있는지 확인
+                existing_same_token = PushToken.objects.filter(
+                    user=current_user,
+                    platform=data.platform,
+                    token=data.token
+                ).first()
+                
+                if existing_same_token:
+                    # 같은 토큰이 이미 존재하는 경우: 업데이트만
+                    existing_same_token.last_used = timezone.now()
+                    existing_same_token.is_active = True
+                    existing_same_token.save()
+                    
+                    # 같은 플랫폼의 다른 토큰들은 비활성화 (같은 플랫폼에서 하나만 활성화)
+                    PushToken.objects.filter(
+                        user=current_user,
+                        platform=data.platform
+                    ).exclude(id=existing_same_token.id).update(is_active=False)
+                    
+                    return {"message": "푸시 토큰이 업데이트되었습니다"}
+                
+                # 2. 같은 사용자와 플랫폼의 기존 토큰들 조회 및 비활성화
+                existing_tokens = PushToken.objects.filter(
                     user=current_user,
                     platform=data.platform
                 )
-                # 토큰 업데이트
-                existing_token.token = data.token
-                existing_token.last_used = timezone.now()
-                existing_token.is_active = True
-                existing_token.save()
-            except PushToken.DoesNotExist:
-                # 새 토큰 생성
-                PushToken.objects.create(
+                
+                # 같은 플랫폼의 모든 기존 토큰 비활성화
+                existing_tokens.update(is_active=False)
+                
+                # 3. 새 토큰 생성 (unique_together 제약 조건 고려)
+                # get_or_create를 사용하여 중복 생성 방지
+                token_obj, created = PushToken.objects.get_or_create(
                     user=current_user,
                     platform=data.platform,
                     token=data.token,
-                    is_active=True,
-                    last_used=timezone.now()
+                    defaults={
+                        'is_active': True,
+                        'last_used': timezone.now()
+                    }
                 )
-
-            return {"message": "푸시 토큰이 등록되었습니다"}
+                
+                if not created:
+                    # 이미 존재하는 경우 업데이트
+                    token_obj.is_active = True
+                    token_obj.last_used = timezone.now()
+                    token_obj.save()
+                
+                return {"message": "푸시 토큰이 등록되었습니다"}
+                
+            except Exception as e:
+                logger.error(f"푸시 토큰 등록 중 오류: {str(e)}")
+                # 예외 발생 시에도 안전하게 처리
+                # 이미 존재하는 토큰을 찾아서 활성화
+                try:
+                    token_obj = PushToken.objects.filter(
+                        user=current_user,
+                        platform=data.platform,
+                        token=data.token
+                    ).first()
+                    
+                    if token_obj:
+                        token_obj.is_active = True
+                        token_obj.last_used = timezone.now()
+                        token_obj.save()
+                        # 같은 플랫폼의 다른 토큰들 비활성화
+                        PushToken.objects.filter(
+                            user=current_user,
+                            platform=data.platform
+                        ).exclude(id=token_obj.id).update(is_active=False)
+                        return {"message": "푸시 토큰이 업데이트되었습니다"}
+                except Exception as inner_error:
+                    logger.error(f"푸시 토큰 복구 중 오류: {str(inner_error)}")
+                
+                # 최종 실패 시 예외 발생
+                raise
 
         return await register_token()
 

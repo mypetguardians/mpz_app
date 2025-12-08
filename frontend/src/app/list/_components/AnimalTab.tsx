@@ -272,8 +272,8 @@ function AnimalTab() {
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">
               {filters.protectionStatus.length > 0
-                ? "보호상태 필터링된 결과"
-                : "필터링된 결과"}
+                ? "필터링된 결과"
+                : "전체 결과"}
             </span>
             <button onClick={handleClearFilters} className="text-sm text-gr">
               전체 해제

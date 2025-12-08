@@ -21,6 +21,24 @@ from asgiref.sync import async_to_sync
 logger = logging.getLogger(__name__)
 
 
+def resolve_notification_title(notification_type: str, message: str) -> str:
+    """
+    알림 타입에 따라 제목을 매핑합니다.
+    지정된 타입이 없으면 메시지를 그대로 사용합니다.
+    """
+    type_to_title = {
+        "like": "좋아요",
+        "comment": "댓글",
+        "reply": "대댓글",
+        "matching": "매칭",
+        "matching_result": "매칭 결과",
+        "adoption": "입양",
+        "adoption_approved": "입양 승인",
+        "adoption_rejected": "입양 반려",
+    }
+    return type_to_title.get(notification_type, message or "새 알림")
+
+
 class FCMPushNotificationService:
     """Firebase Cloud Messaging 푸시 알림 서비스"""
     
@@ -167,14 +185,18 @@ async def create_and_send_notification(
     
     # 알림 생성
     notification = await create_notification()
+
+    # 타입 기반 제목 결정
+    title = resolve_notification_title(notification_type, message)
     
     # 푸시 알림 전송
     if send_push:
-        await send_push_notification_to_user(user_id, message, message, metadata)
+        await send_push_notification_to_user(user_id, title, message, metadata)
     
     # 실시간 WebSocket 알림 전송
     notification_data = {
         "id": str(notification.id),
+        "title": title,
         "message": message,
         "notification_type": notification_type,
         "priority": priority,
@@ -401,6 +423,8 @@ async def create_notification_for_center_users(center_id: str, notification_type
                                              action_url: str = None, metadata: dict = None, priority: str = 'normal'):
     """센터의 모든 관리자에게 알림을 생성하고 FCM 푸시 알림을 전송합니다."""
     
+    title = resolve_notification_title(notification_type, message)
+
     @sync_to_async
     def create_center_notifications():
         # 센터의 소유자와 해당 센터에 소속된 관리자들을 찾기
@@ -443,7 +467,7 @@ async def create_notification_for_center_users(center_id: str, notification_type
             fcm_service = FCMPushNotificationService()
             await fcm_service.send_push_notification(
                 user_tokens=push_tokens,
-                title=message,
+                title=title,
                 body=message,
                 data={
                     'notification_type': notification_type,
@@ -456,6 +480,7 @@ async def create_notification_for_center_users(center_id: str, notification_type
     
     # 실시간 WebSocket 알림 전송
     notification_data = {
+        "title": title,
         "message": message,
         "notification_type": notification_type,
         "priority": priority,
@@ -478,6 +503,9 @@ async def create_notification_for_user(user_id: str, notification_type: str, mes
     """특정 사용자에게 알림을 생성하고 FCM 푸시 알림을 전송합니다."""
     try:
         logger.info(f"알림 생성 시작: user_id={user_id}, type={notification_type}, message={message[:50]}...")
+
+        # 타입 기반 제목 결정
+        title = resolve_notification_title(notification_type, message)
         
         @sync_to_async
         def create_user_notification():
@@ -504,7 +532,7 @@ async def create_notification_for_user(user_id: str, notification_type: str, mes
                 fcm_service = FCMPushNotificationService()
                 await fcm_service.send_push_notification(
                     user_tokens=push_tokens,
-                    title=message,
+                    title=title,
                     body=message,
                     data={
                         'notification_type': notification_type,
@@ -521,6 +549,7 @@ async def create_notification_for_user(user_id: str, notification_type: str, mes
         # 실시간 WebSocket 알림 전송
         notification_data = {
             "id": str(notification.id),
+            "title": title,
             "message": message,
             "notification_type": notification_type,
             "priority": priority,

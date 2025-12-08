@@ -91,9 +91,11 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         """실시간 알림 메시지 전송"""
         # 클라이언트에게 알림 데이터 전송
         notification_data = event["data"]
+        title = notification_data.get("title") or notification_data.get("message", "")
         await self.send(text_data=json.dumps({
             "type": "new_notification",
             "id": notification_data.get("id"),
+            "title": title,
             "message": notification_data.get("message"),
             "notification_type": notification_data.get("notification_type"),
             "priority": notification_data.get("priority"),

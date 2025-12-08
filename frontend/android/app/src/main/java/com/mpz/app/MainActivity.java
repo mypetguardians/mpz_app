@@ -57,28 +57,43 @@ public class MainActivity extends BridgeActivity {
             int left = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).left;
             int right = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).right;
             
-            // JavaScript로 safe area insets 전달 (지연 실행)
-            decorView.postDelayed(() -> {
-                sendSafeAreaInsetsToJavaScript(top, bottom, left, right);
-            }, 300);
+            // JavaScript로 safe area insets 전달 (즉시 실행)
+            sendSafeAreaInsetsToJavaScript(top, bottom, left, right);
             
             return insets;
         });
         
-        // 초기 insets 계산 (WebView가 준비될 때까지 지연)
-        decorView.postDelayed(() -> {
-            WindowInsetsCompat windowInsets = WindowInsetsCompat.toWindowInsetsCompat(
-                decorView.getRootWindowInsets()
-            );
-            if (windowInsets != null) {
-                int top = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
-                int bottom = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
-                int left = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).left;
-                int right = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).right;
-                
-                sendSafeAreaInsetsToJavaScript(top, bottom, left, right);
+        // 초기 insets 계산 (WebView가 준비될 때까지 약간 지연)
+        decorView.post(() -> {
+            // Bridge가 준비될 때까지 재시도
+            if (getBridge() == null || getBridge().getWebView() == null) {
+                decorView.postDelayed(() -> {
+                    WindowInsetsCompat windowInsets = WindowInsetsCompat.toWindowInsetsCompat(
+                        decorView.getRootWindowInsets()
+                    );
+                    if (windowInsets != null) {
+                        int top = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+                        int bottom = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+                        int left = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).left;
+                        int right = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).right;
+                        
+                        sendSafeAreaInsetsToJavaScript(top, bottom, left, right);
+                    }
+                }, 100);
+            } else {
+                WindowInsetsCompat windowInsets = WindowInsetsCompat.toWindowInsetsCompat(
+                    decorView.getRootWindowInsets()
+                );
+                if (windowInsets != null) {
+                    int top = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+                    int bottom = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+                    int left = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).left;
+                    int right = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).right;
+                    
+                    sendSafeAreaInsetsToJavaScript(top, bottom, left, right);
+                }
             }
-        }, 500);
+        });
     }
     
     /**

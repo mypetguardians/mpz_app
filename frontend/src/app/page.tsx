@@ -172,87 +172,92 @@ export default function Home() {
 
   return (
     <Container>
-      <HomeHeader isLoggedIn={isAuthenticated} />
+      <div className="flex flex-col min-h-screen">
+        <HomeHeader isLoggedIn={isAuthenticated} />
 
-      {/* 매칭 완료 알림 */}
-      {showMatchingNotification && (
-        <div className="fixed z-50 max-w-sm p-4 mx-auto bg-white border rounded-lg shadow-lg top-20 left-4 right-4 border-brand">
-          <div className="flex items-center gap-3">
-            <div className="w-3 h-3 rounded-full bg-brand animate-pulse"></div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-900">
-                매칭이 완료되었어요!
-              </p>
-              <p className="text-xs text-gray-600">결과를 확인해보세요</p>
+        {/* 매칭 완료 알림 */}
+        {showMatchingNotification && (
+          <div className="fixed z-50 max-w-sm p-4 mx-auto bg-white border rounded-lg shadow-lg top-20 left-4 right-4 border-brand">
+            <div className="flex items-center gap-3">
+              <div className="w-3 h-3 rounded-full bg-brand animate-pulse"></div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-900">
+                  매칭이 완료되었어요!
+                </p>
+                <p className="text-xs text-gray-600">결과를 확인해보세요</p>
+              </div>
+              <button
+                onClick={handleMatchingNotificationClick}
+                className="text-sm font-medium transition-colors text-brand hover:text-brand-dark"
+              >
+                확인
+              </button>
             </div>
-            <button
-              onClick={handleMatchingNotificationClick}
-              className="text-sm font-medium transition-colors text-brand hover:text-brand-dark"
-            >
-              확인
-            </button>
           </div>
-        </div>
-      )}
-
-      <div>
-        {bannerLoading ? (
-          <div className="w-full h-[232px] bg-gray-200 animate-pulse" />
-        ) : (
-          <Banner variant="main" />
         )}
+
+        <div>
+          {bannerLoading ? (
+            <div className="w-full h-[232px] bg-gray-200 animate-pulse" />
+          ) : (
+            <Banner variant="main" />
+          )}
+        </div>
+        <TopPetSection
+          title="내 근처에 있는 아이들"
+          rightSlot="모두 보기"
+          animals={topSectionAnimals}
+          variant="primary"
+          showLocationFilter={true}
+          locations={[
+            "서울",
+            "부산",
+            "대구",
+            "인천",
+            "광주",
+            "대전",
+            "울산",
+            "세종",
+            "경기",
+            "강원",
+            "충북",
+            "충남",
+            "전북",
+            "전남",
+            "경북",
+            "경남",
+            "제주",
+          ]}
+          isLoading={isTopSectionLoading}
+          error={topSectionError}
+          selectedLocation={selectedLocation}
+          onLocationSelect={handleLocationSelect}
+          sortBy="admission_date"
+          sortOrder="asc"
+        />
+
+        {/* <MatchingSection
+          variant="variant2"
+          isLoading={isTopSectionLoading}
+          error={topSectionError}
+          isExpertAnalysis={true}
+          aiMatchingResult={aiMatchingResult}
+        /> */}
+
+        <CommunitySection />
+
+        <PetSection
+          title={`지금 주목받고 있는 \n아이들이에요`}
+          animals={petSectionAnimals}
+          isLoading={isPetSectionLoading}
+          error={petSectionError}
+        />
+
+        <FooterSection />
+
+        {/* NavBar 높이만큼 하단 여백 추가 (NavBar가 fixed이므로) */}
+        <div className="h-16" aria-hidden="true" />
       </div>
-      <TopPetSection
-        title="내 근처에 있는 아이들"
-        rightSlot="모두 보기"
-        animals={topSectionAnimals}
-        variant="primary"
-        showLocationFilter={true}
-        locations={[
-          "서울",
-          "부산",
-          "대구",
-          "인천",
-          "광주",
-          "대전",
-          "울산",
-          "세종",
-          "경기",
-          "강원",
-          "충북",
-          "충남",
-          "전북",
-          "전남",
-          "경북",
-          "경남",
-          "제주",
-        ]}
-        isLoading={isTopSectionLoading}
-        error={topSectionError}
-        selectedLocation={selectedLocation}
-        onLocationSelect={handleLocationSelect}
-        sortBy="admission_date"
-        sortOrder="asc"
-      />
-
-      {/* <MatchingSection
-        variant="variant2"
-        isLoading={isTopSectionLoading}
-        error={topSectionError}
-        isExpertAnalysis={true}
-        aiMatchingResult={aiMatchingResult}
-      /> */}
-
-      <CommunitySection />
-
-      <PetSection
-        title={`지금 주목받고 있는 \n아이들이에요`}
-        animals={petSectionAnimals}
-        isLoading={isPetSectionLoading}
-        error={petSectionError}
-      />
-
-      <FooterSection />
 
       <NavBar />
       <div className="max-w-[420px] mx-auto">

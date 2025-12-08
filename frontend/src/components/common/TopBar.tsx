@@ -50,38 +50,68 @@ export function TopBar({
   React.useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const updateSafeAreaTop = () => {
-      const isAndroid = Capacitor.getPlatform() === "android";
-      const isIOS = Capacitor.getPlatform() === "ios";
+    const isAndroid = Capacitor.getPlatform() === "android";
+    const isIOS = Capacitor.getPlatform() === "ios";
 
+    // Safe area 값을 가져오는 함수
+    const checkSafeAreaValue = () => {
       if (isAndroid) {
         // Android: CSS 변수에서 값 가져오기
         const top = getComputedStyle(document.documentElement)
           .getPropertyValue("--safe-area-top")
           ?.trim();
-        if (top && top !== "0px") {
+        if (top && top !== "0px" && top !== "") {
           const topValue = parseInt(top.replace("px", "")) || 0;
-          setSafeAreaTop(topValue);
+          if (topValue > 0 && topValue <= 100) {
+            setSafeAreaTop((prev) => {
+              if (Math.abs(prev - topValue) > 1) {
+                return topValue;
+              }
+              return prev;
+            });
+          }
         }
       } else if (isIOS) {
         // iOS: env() 값 사용
         const top = getComputedStyle(document.documentElement)
           .getPropertyValue("env(safe-area-inset-top)")
           ?.trim();
-        if (top && top !== "0px") {
+        if (top && top !== "0px" && top !== "") {
           const topValue = parseInt(top.replace("px", "")) || 0;
-          setSafeAreaTop(topValue);
+          if (topValue > 0 && topValue <= 100) {
+            setSafeAreaTop((prev) => {
+              if (Math.abs(prev - topValue) > 1) {
+                return topValue;
+              }
+              return prev;
+            });
+          }
         }
       }
     };
 
-    updateSafeAreaTop();
+    // 즉시 확인
+    checkSafeAreaValue();
 
-    // safeAreaInsetsChanged 이벤트 리스너 (Android)
+    // safeAreaInsetsChanged 이벤트 리스너 (Android에서 값이 전달될 때만 업데이트)
     const handleSafeAreaChange = (event: CustomEvent) => {
       const { top } = event.detail;
-      if (top && top > 0) {
-        setSafeAreaTop(top);
+      if (top !== undefined && top >= 0 && top <= 100) {
+        setSafeAreaTop((prev) => {
+          if (Math.abs(prev - top) > 1) {
+            return top;
+          }
+          return prev;
+        });
+      }
+    };
+
+    // 앱이 포그라운드로 돌아올 때 safe area 재계산
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        setTimeout(() => {
+          checkSafeAreaValue();
+        }, 100);
       }
     };
 
@@ -89,32 +119,20 @@ export function TopBar({
       "safeAreaInsetsChanged",
       handleSafeAreaChange as EventListener
     );
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    // 주기적으로 확인 (Android에서 값이 늦게 올 수 있음)
-    const intervals: NodeJS.Timeout[] = [];
-    [100, 300, 500, 1000, 2000].forEach((delay) => {
-      const timeoutId = setTimeout(updateSafeAreaTop, delay);
-      intervals.push(timeoutId);
-    });
-
-    // 추가로 100ms마다 확인 (최대 5초)
-    let checkCount = 0;
-    const maxChecks = 50; // 5초
-    const intervalId = setInterval(() => {
-      updateSafeAreaTop();
-      checkCount++;
-      if (checkCount >= maxChecks) {
-        clearInterval(intervalId);
-      }
-    }, 100);
+    // 최소한의 지연 확인 (한 번만, 500ms 후)
+    const timeoutId = setTimeout(() => {
+      checkSafeAreaValue();
+    }, 500);
 
     return () => {
       window.removeEventListener(
         "safeAreaInsetsChanged",
         handleSafeAreaChange as EventListener
       );
-      intervals.forEach((id) => clearTimeout(id));
-      clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      clearTimeout(timeoutId);
     };
   }, []);
 
@@ -134,14 +152,18 @@ export function TopBar({
   const centerContent = center || title;
 
   // TopBar 위치: safe area top 아래에 배치
+  // backgroundColor는 className에서 이미 처리되므로 제거
   const topBarStyle = React.useMemo(() => {
-    return safeAreaTop > 0 ? { top: `${safeAreaTop}px` } : { top: "0px" };
+    if (safeAreaTop > 0) {
+      return {
+        top: `${safeAreaTop}px`,
+      };
+    }
+    return {};
   }, [safeAreaTop]);
 
-  // Spacer 높이: safe area top + TopBar 높이
-  const spacerHeight = React.useMemo(() => {
-    return `${safeAreaTop + 54}px`;
-  }, [safeAreaTop]);
+  // Spacer 높이: TopBar 높이만 (safe area top은 위치에만 반영)
+  const spacerHeight = "54px";
 
   return (
     <>

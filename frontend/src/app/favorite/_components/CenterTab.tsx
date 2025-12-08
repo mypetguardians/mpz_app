@@ -130,9 +130,8 @@ function CenterTab() {
 
   return (
     <div>
-      <div className="flex flex-col gap-4 px-4">
+      <div className="flex flex-col gap-4 p-4">
         {centers.map((center) => {
-          // 로컬 상태가 있으면 로컬 상태 사용, 없으면 API 응답 사용
           const isLiked =
             localFavorites[center.id] !== undefined
               ? localFavorites[center.id]
@@ -141,7 +140,7 @@ function CenterTab() {
           return (
             <div key={center.id}>
               <CenterCard
-                imageUrl={center.imageUrl || "/img/dummyImg.png"} // 실제 이미지 URL 사용, 없으면 더미 이미지
+                imageUrl={center.imageUrl || "/img/dummyImg.png"}
                 name={center.name}
                 location={center.location || center.region || "위치 정보 없음"}
                 isSubscribed={Boolean(

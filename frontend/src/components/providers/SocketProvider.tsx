@@ -8,15 +8,15 @@ import React, {
   useCallback,
   useRef,
 } from "react";
-import { io, type Socket } from "socket.io-client";
 import { useAuth } from "./AuthProvider";
 import { useToast } from "@/hooks/useToast";
 import { NotificationToast } from "@/components/ui/NotificationToast";
 import { useWebPushNotification } from "@/hooks/mutation/usePushToken";
 import type { Notification } from "@/types/notifications";
+import Cookies from "js-cookie";
 
 interface SocketContextValue {
-  socket: Socket | null;
+  socket: WebSocket | null;
   isConnected: boolean;
   notifications: Notification[];
   unreadCount: number;
@@ -32,10 +32,11 @@ interface SocketProviderProps {
 }
 
 export function SocketProvider({ children }: SocketProviderProps) {
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [socket, setSocket] = useState<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const socketRef = useRef<Socket | null>(null);
+  const socketRef = useRef<WebSocket | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { user, isAuthenticated } = useAuth();
   const { toast, showToast, hideToast } = useToast();
   const { requestPermissionAndRegisterToken } = useWebPushNotification();
@@ -50,10 +51,14 @@ export function SocketProvider({ children }: SocketProviderProps) {
   useEffect(() => {
     if (!isAuthenticated || !user) {
       if (socketRef.current) {
-        socketRef.current.disconnect();
+        socketRef.current.close();
         socketRef.current = null;
         setSocket(null);
         setIsConnected(false);
+      }
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
       }
       return;
     }
@@ -61,75 +66,127 @@ export function SocketProvider({ children }: SocketProviderProps) {
     // 소켓 연결 생성 (환경에 따른 URL 설정)
     const isDevelopment =
       typeof window !== "undefined" && window.location.hostname === "localhost";
-    const socketUrl = isDevelopment
-      ? "ws://localhost:8000"
-      : "wss://your-backend-domain.com"; // Django 실제 백엔드 서버주소필요해요
+    const protocol = isDevelopment ? "ws" : "wss";
+    const host = isDevelopment ? "localhost:8000" : window.location.hostname; // 실제 백엔드 도메인으로 변경 필요
 
-    const newSocket = io(socketUrl, {
-      auth: {
-        userId: user.id,
-      },
-      transports: ["websocket", "polling"],
-      reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionAttempts: 5,
-    });
+    // JWT 토큰 가져오기
+    const accessToken = Cookies.get("accessToken") || Cookies.get("access");
+    const tokenParam = accessToken
+      ? `?token=${encodeURIComponent(accessToken)}`
+      : "";
+    const socketUrl = `${protocol}://${host}/ws/notifications/${user.id}/${tokenParam}`;
 
-    // 연결 이벤트 핸들러
-    newSocket.on("connect", () => {
-      console.log("소켓 연결됨:", newSocket.id);
-      setIsConnected(true);
-    });
+    const connectWebSocket = () => {
+      try {
+        const newSocket = new WebSocket(socketUrl);
 
-    newSocket.on("disconnect", () => {
-      console.log("소켓 연결 해제됨");
-      setIsConnected(false);
-    });
+        // 연결 성공
+        newSocket.onopen = () => {
+          console.log("WebSocket 연결됨");
+          setIsConnected(true);
+          if (reconnectTimeoutRef.current) {
+            clearTimeout(reconnectTimeoutRef.current);
+            reconnectTimeoutRef.current = null;
+          }
+        };
 
-    // 새로운 알림 수신
-    newSocket.on("new_notification", (notification: Notification) => {
-      console.log("새 알림 수신:", notification);
-      setNotifications((prev: Notification[]) => [notification, ...prev]);
+        // 메시지 수신
+        newSocket.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
 
-      // 토스트 알림 표시
-      showToast(notification.message, "success");
+            if (data.type === "new_notification") {
+              const notification: Notification = {
+                id: data.id || "",
+                user_id: user.id,
+                title: data.title || data.message || "",
+                message: data.message || "",
+                notification_type: data.notification_type || "other",
+                priority: data.priority || "normal",
+                is_read: data.is_read || false,
+                read_at: data.read_at || null,
+                action_url: data.action_url || null,
+                metadata: data.metadata || null,
+                created_at: data.created_at || new Date().toISOString(),
+                updated_at: data.created_at || new Date().toISOString(),
+              };
 
-      // 브라우저 알림 표시 (권한이 있는 경우)
-      if (
-        "Notification" in window &&
-        window.Notification.permission === "granted"
-      ) {
-        new window.Notification(notification.title, {
-          body: notification.message,
-          icon: "/favicon.ico",
-        });
+              console.log("새 알림 수신:", notification);
+              setNotifications((prev: Notification[]) => [
+                notification,
+                ...prev,
+              ]);
+
+              // 토스트 알림 표시
+              showToast(notification.message, "success");
+
+              // 브라우저 알림 표시 (권한이 있는 경우)
+              if (
+                "Notification" in window &&
+                window.Notification.permission === "granted"
+              ) {
+                new window.Notification(notification.title, {
+                  body: notification.message,
+                  icon: "/favicon.ico",
+                });
+              }
+            } else if (data.type === "notification_read") {
+              setNotifications((prev: Notification[]) =>
+                prev.map((n: Notification) =>
+                  n.id === data.notificationId
+                    ? { ...n, is_read: true, read_at: new Date().toISOString() }
+                    : n
+                )
+              );
+            } else if (data.type === "connection_established") {
+              console.log("WebSocket 연결 성공:", data.message);
+            }
+          } catch (error) {
+            console.error("메시지 파싱 오류:", error);
+          }
+        };
+
+        // 연결 해제
+        newSocket.onclose = () => {
+          console.log("WebSocket 연결 해제됨");
+          setIsConnected(false);
+          socketRef.current = null;
+          setSocket(null);
+
+          // 재연결 시도 (5초 후)
+          if (isAuthenticated && user) {
+            reconnectTimeoutRef.current = setTimeout(() => {
+              connectWebSocket();
+            }, 5000);
+          }
+        };
+
+        // 연결 오류 처리
+        newSocket.onerror = (error) => {
+          console.error("WebSocket 연결 오류:", error);
+          setIsConnected(false);
+        };
+
+        socketRef.current = newSocket;
+        setSocket(newSocket);
+      } catch (error) {
+        console.error("WebSocket 생성 오류:", error);
+        setIsConnected(false);
       }
-    });
+    };
 
-    // 알림 읽음 상태 업데이트
-    newSocket.on("notification_read", (data: { notificationId: string }) => {
-      setNotifications((prev: Notification[]) =>
-        prev.map((n: Notification) =>
-          n.id === data.notificationId
-            ? { ...n, is_read: true, read_at: new Date().toISOString() }
-            : n
-        )
-      );
-    });
-
-    // 연결 오류 처리
-    newSocket.on("connect_error", (error: Error) => {
-      console.error("소켓 연결 오류:", error);
-      setIsConnected(false);
-    });
-
-    socketRef.current = newSocket;
-    setSocket(newSocket);
+    connectWebSocket();
 
     // 정리 함수
     return () => {
-      newSocket.disconnect();
-      socketRef.current = null;
+      if (socketRef.current) {
+        socketRef.current.close();
+        socketRef.current = null;
+      }
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
     };
   }, [isAuthenticated, user, showToast]);
 
@@ -147,7 +204,8 @@ export function SocketProvider({ children }: SocketProviderProps) {
           pushTokenRegisteredRef.current = false; // 실패 시 재시도 가능하도록
         });
     }
-  }, [isAuthenticated, user]); // requestPermissionAndRegisterToken은 의존성에서 제거
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, user]); // requestPermissionAndRegisterToken은 안정적인 함수이므로 의존성에서 제외
 
   // 알림 추가 함수
   const addNotification = useCallback((notification: Notification) => {
@@ -157,8 +215,13 @@ export function SocketProvider({ children }: SocketProviderProps) {
   // 알림 읽음 처리 함수
   const markAsRead = useCallback(
     (notificationId: string) => {
-      if (socket) {
-        socket.emit("mark_notification_read", { notificationId });
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(
+          JSON.stringify({
+            type: "mark_read",
+            notification_id: notificationId,
+          })
+        );
       }
 
       setNotifications((prev: Notification[]) =>

@@ -172,6 +172,22 @@ async def create_and_send_notification(
     if send_push:
         await send_push_notification_to_user(user_id, message, message, metadata)
     
+    # 실시간 WebSocket 알림 전송
+    notification_data = {
+        "id": str(notification.id),
+        "message": message,
+        "notification_type": notification_type,
+        "priority": priority,
+        "action_url": action_url,
+        "metadata": metadata,
+        "created_at": notification.created_at.isoformat()
+    }
+    
+    try:
+        await send_real_time_notification(user_id, notification_data)
+    except Exception as e:
+        logger.error(f"실시간 알림 전송 실패 (사용자 {user_id}): {e}")
+    
     return notification
 
 
@@ -445,7 +461,7 @@ async def create_notification_for_center_users(center_id: str, notification_type
         "priority": priority,
         "action_url": action_url,
         "metadata": metadata,
-        "timestamp": timezone.now().isoformat()
+        "created_at": timezone.now().isoformat()
     }
     
     for user_id in user_ids:

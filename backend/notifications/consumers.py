@@ -90,9 +90,18 @@ class NotificationConsumer(AsyncWebsocketConsumer):
     async def notification_message(self, event):
         """실시간 알림 메시지 전송"""
         # 클라이언트에게 알림 데이터 전송
+        notification_data = event["data"]
         await self.send(text_data=json.dumps({
-            "type": "notification",
-            "data": event["data"]
+            "type": "new_notification",
+            "id": notification_data.get("id"),
+            "message": notification_data.get("message"),
+            "notification_type": notification_data.get("notification_type"),
+            "priority": notification_data.get("priority"),
+            "action_url": notification_data.get("action_url"),
+            "metadata": notification_data.get("metadata"),
+            "created_at": notification_data.get("created_at"),
+            "is_read": False,
+            "title": notification_data.get("message", "")  # title 필드 추가
         }))
     
     async def send_recent_notifications(self):
@@ -122,7 +131,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         return [
             {
                 "id": str(notification.id),
-                "title": notification.title,
+                "title": notification.message,  # title 필드가 없으므로 message 사용
                 "message": notification.message,
                 "notification_type": notification.notification_type,
                 "priority": notification.priority,

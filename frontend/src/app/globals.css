@@ -211,6 +211,10 @@ body {
   .h-screen-safe {
     min-height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
   }
+
+  .h-safe-top {
+    height: var(--safe-area-top);
+  }
 }
 
 /* iOS 네이티브 환경에서도 safe area를 사용하도록 설정 */

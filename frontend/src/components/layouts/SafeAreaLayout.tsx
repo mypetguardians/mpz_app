@@ -1,7 +1,8 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useState, useCallback } from "react";
 import { Capacitor } from "@capacitor/core";
+import { App } from "@capacitor/app";
 
 interface SafeAreaLayoutProps {
   children: ReactNode;
@@ -9,6 +10,82 @@ interface SafeAreaLayoutProps {
 
 export function SafeAreaLayout({ children }: SafeAreaLayoutProps) {
   const [safeAreaTop, setSafeAreaTop] = useState(0);
+  const [safeAreaBottom, setSafeAreaBottom] = useState(0);
+
+  // Safe area 값을 가져오는 함수
+  const updateSafeAreaValues = useCallback(() => {
+    if (typeof window === "undefined") return;
+
+    const isAndroid = Capacitor.getPlatform() === "android";
+    const isIOS = Capacitor.getPlatform() === "ios";
+
+    if (isAndroid) {
+      // Android: CSS 변수에서 값 가져오기
+      const top = getComputedStyle(document.documentElement)
+        .getPropertyValue("--safe-area-top")
+        ?.trim();
+      const bottom = getComputedStyle(document.documentElement)
+        .getPropertyValue("--safe-area-bottom")
+        ?.trim();
+
+      if (top && top !== "0px" && top !== "") {
+        const topValue = parseInt(top.replace("px", "")) || 0;
+        if (topValue > 0 && topValue <= 100) {
+          setSafeAreaTop((prev) => {
+            // 값이 실제로 변경된 경우에만 업데이트
+            if (Math.abs(prev - topValue) > 1) {
+              return topValue;
+            }
+            return prev;
+          });
+        }
+      }
+
+      if (bottom && bottom !== "0px" && bottom !== "") {
+        const bottomValue = parseInt(bottom.replace("px", "")) || 0;
+        if (bottomValue >= 0 && bottomValue <= 100) {
+          setSafeAreaBottom((prev) => {
+            if (Math.abs(prev - bottomValue) > 1) {
+              return bottomValue;
+            }
+            return prev;
+          });
+        }
+      }
+    } else if (isIOS) {
+      // iOS: env() 값 사용
+      const top = getComputedStyle(document.documentElement)
+        .getPropertyValue("env(safe-area-inset-top)")
+        ?.trim();
+      const bottom = getComputedStyle(document.documentElement)
+        .getPropertyValue("env(safe-area-inset-bottom)")
+        ?.trim();
+
+      if (top && top !== "0px" && top !== "") {
+        const topValue = parseInt(top.replace("px", "")) || 0;
+        if (topValue > 0 && topValue <= 100) {
+          setSafeAreaTop((prev) => {
+            if (Math.abs(prev - topValue) > 1) {
+              return topValue;
+            }
+            return prev;
+          });
+        }
+      }
+
+      if (bottom && bottom !== "0px" && bottom !== "") {
+        const bottomValue = parseInt(bottom.replace("px", "")) || 0;
+        if (bottomValue >= 0 && bottomValue <= 100) {
+          setSafeAreaBottom((prev) => {
+            if (Math.abs(prev - bottomValue) > 1) {
+              return bottomValue;
+            }
+            return prev;
+          });
+        }
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -29,98 +106,115 @@ export function SafeAreaLayout({ children }: SafeAreaLayoutProps) {
         "data-capacitor-platform",
         "android"
       );
+    }
 
-      // 초기 safe area 값 확인
-      const checkSafeArea = () => {
-        const top = getComputedStyle(document.documentElement)
-          .getPropertyValue("--safe-area-top")
-          ?.trim();
-        if (top && top !== "0px" && top !== "") {
-          const topValue = parseInt(top.replace("px", "")) || 0;
-          if (topValue > 0) {
-            setSafeAreaTop(topValue);
-            if (process.env.NODE_ENV !== "production") {
-              console.info("[SafeAreaLayout] Safe area top 값 확인:", topValue);
+    // 초기 safe area 값 가져오기
+    updateSafeAreaValues();
+
+    // safe area 변경 이벤트 리스너 (Android)
+    const handleSafeAreaChange = (event: CustomEvent) => {
+      const { top, bottom } = event.detail;
+      if (top !== undefined && top >= 0) {
+        // 비정상적으로 큰 값 방지 (일반적으로 100px 이하)
+        if (top <= 100) {
+          setSafeAreaTop((prev) => {
+            if (Math.abs(prev - top) > 1) {
+              return top;
             }
-          }
+            return prev;
+          });
         }
-      };
-
-      // safeAreaInsetsChanged 이벤트 리스너
-      const handleSafeAreaChange = (event: CustomEvent) => {
-        const { top } = event.detail;
-        if (top && top > 0) {
-          setSafeAreaTop(top);
-          if (process.env.NODE_ENV !== "production") {
-            console.info(
-              "[SafeAreaLayout] Safe area insets 업데이트:",
-              event.detail
-            );
-          }
+      }
+      if (bottom !== undefined && bottom >= 0) {
+        if (bottom <= 100) {
+          setSafeAreaBottom((prev) => {
+            if (Math.abs(prev - bottom) > 1) {
+              return bottom;
+            }
+            return prev;
+          });
         }
-      };
+      }
+    };
 
-      window.addEventListener(
+    // 앱이 포그라운드로 돌아올 때 safe area 재계산
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // 약간의 지연을 두고 재계산 (레이아웃이 안정화된 후)
+        setTimeout(() => {
+          updateSafeAreaValues();
+        }, 100);
+      }
+    };
+
+    // 앱 상태 변경 감지 (Capacitor)
+    let appStateListener: { remove: () => Promise<void> } | null = null;
+    if (Capacitor.isNativePlatform()) {
+      App.addListener("appStateChange", ({ isActive }) => {
+        if (isActive) {
+          // 앱이 활성화될 때 safe area 재계산
+          setTimeout(() => {
+            updateSafeAreaValues();
+          }, 150);
+        }
+      }).then((listener) => {
+        appStateListener = listener;
+      });
+    }
+
+    window.addEventListener(
+      "safeAreaInsetsChanged",
+      handleSafeAreaChange as EventListener
+    );
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    // 주기적으로 safe area 값 확인 (백그라운드에서 돌아올 때를 대비)
+    const intervalId = setInterval(() => {
+      if (!document.hidden) {
+        updateSafeAreaValues();
+      }
+    }, 1000);
+
+    return () => {
+      window.removeEventListener(
         "safeAreaInsetsChanged",
         handleSafeAreaChange as EventListener
       );
-
-      // 초기 확인 (즉시)
-      checkSafeArea();
-
-      // 주기적으로 확인 (네이티브에서 값이 전달되는 시간 고려)
-      const intervals: NodeJS.Timeout[] = [];
-      [100, 300, 500, 1000, 2000].forEach((delay) => {
-        const timeoutId = setTimeout(checkSafeArea, delay);
-        intervals.push(timeoutId);
-      });
-
-      // 추가로 100ms마다 확인 (최대 5초)
-      let checkCount = 0;
-      const maxChecks = 50; // 5초
-      const intervalId = setInterval(() => {
-        checkSafeArea();
-        checkCount++;
-        if (checkCount >= maxChecks) {
-          clearInterval(intervalId);
-        }
-      }, 100);
-
-      return () => {
-        window.removeEventListener(
-          "safeAreaInsetsChanged",
-          handleSafeAreaChange as EventListener
-        );
-        intervals.forEach((id) => clearTimeout(id));
-        clearInterval(intervalId);
-      };
-    }
-
-    const isAndroidWeb = /Android/i.test(window.navigator.userAgent);
-    const safeBottom = getComputedStyle(document.documentElement)
-      .getPropertyValue("env(safe-area-inset-bottom)")
-      ?.trim();
-    const edgeToEdgeActive =
-      isAndroidWeb && safeBottom !== "" && safeBottom !== "0px";
-
-    if (process.env.NODE_ENV !== "production") {
-      console.info(
-        "[SafeAreaLayout] Edge-to-edge:",
-        edgeToEdgeActive ? "active" : "inactive",
-        "iOS Native:",
-        isIOS,
-        "Android Native:",
-        isAndroid
-      );
-    }
-  }, []);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      clearInterval(intervalId);
+      if (appStateListener) {
+        appStateListener.remove();
+      }
+    };
+  }, [updateSafeAreaValues]);
 
   return (
-    <div
-      className="flex min-h-screen flex-col pt-safe-top"
-      style={safeAreaTop > 0 ? { paddingTop: `${safeAreaTop}px` } : undefined}
-    >
-      {children}
-    </div>
+    <>
+      {/* 상단 safe area 영역을 흰색으로 채움 */}
+      <div
+        className="fixed top-0 left-0 right-0 bg-wh z-50"
+        style={{
+          height:
+            safeAreaTop > 0
+              ? `${safeAreaTop}px`
+              : "var(--safe-area-top, env(safe-area-inset-top, 0px))",
+        }}
+      />
+      <div
+        className="flex min-h-screen flex-col bg-wh"
+        style={{
+          paddingTop:
+            safeAreaTop > 0
+              ? `${safeAreaTop}px`
+              : "var(--safe-area-top, env(safe-area-inset-top, 0px))",
+          paddingBottom:
+            safeAreaBottom > 0
+              ? `${safeAreaBottom}px`
+              : "var(--safe-area-bottom, env(safe-area-inset-bottom, 0px))",
+        }}
+      >
+        {children}
+      </div>
+    </>
   );
 }

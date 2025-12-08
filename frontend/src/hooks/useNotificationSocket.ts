@@ -50,37 +50,42 @@ export function useNotificationSocket(): NotificationSocketHook {
     clearNotifications,
   } = useSocket();
 
-  // 이벤트 리스너 등록
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   const addEventListener = useCallback(
     <K extends keyof SocketEventData>(
-      event: K,
-      callback: (data: SocketEventData[K]) => void
+      _event: K,
+      _callback: (data: SocketEventData[K]) => void
     ) => {
-      if (socket) {
-        socket.on(event as string, callback);
-      }
+      console.warn(
+        "addEventListener는 네이티브 WebSocket에서는 사용되지 않습니다. 알림은 SocketProvider를 통해 자동으로 처리됩니다."
+      );
     },
-    [socket]
+    []
   );
 
-  // 이벤트 리스너 제거
   const removeEventListener = useCallback(
     <K extends keyof SocketEventData>(
-      event: K,
-      callback: (data: SocketEventData[K]) => void
+      _event: K,
+      _callback: (data: SocketEventData[K]) => void
     ) => {
-      if (socket) {
-        socket.off(event as string, callback);
-      }
+      console.warn(
+        "removeEventListener는 네이티브 WebSocket에서는 사용되지 않습니다."
+      );
     },
-    [socket]
+    []
   );
+  /* eslint-enable @typescript-eslint/no-unused-vars */
 
   // 서버로 이벤트 전송
   const emit = useCallback(
     <K extends keyof SocketEventData>(event: K, data?: SocketEventData[K]) => {
-      if (socket && isConnected) {
-        socket.emit(event as string, data);
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(
+          JSON.stringify({
+            type: event as string,
+            ...(data && { data }),
+          })
+        );
       } else {
         console.warn(
           "소켓이 연결되지 않았습니다. 이벤트를 전송할 수 없습니다:",
@@ -88,7 +93,7 @@ export function useNotificationSocket(): NotificationSocketHook {
         );
       }
     },
-    [socket, isConnected]
+    [socket]
   );
 
   // 연결 상태 로깅 (개발 환경에서만)

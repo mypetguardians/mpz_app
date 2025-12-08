@@ -57,28 +57,43 @@ public class MainActivity extends BridgeActivity {
             int left = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).left;
             int right = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).right;
             
-            // JavaScript로 safe area insets 전달 (지연 실행)
-            decorView.postDelayed(() -> {
-                sendSafeAreaInsetsToJavaScript(top, bottom, left, right);
-            }, 300);
+            // JavaScript로 safe area insets 전달 (즉시 실행)
+            sendSafeAreaInsetsToJavaScript(top, bottom, left, right);
             
             return insets;
         });
         
-        // 초기 insets 계산 (WebView가 준비될 때까지 지연)
-        decorView.postDelayed(() -> {
-            WindowInsetsCompat windowInsets = WindowInsetsCompat.toWindowInsetsCompat(
-                decorView.getRootWindowInsets()
-            );
-            if (windowInsets != null) {
-                int top = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
-                int bottom = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
-                int left = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).left;
-                int right = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).right;
-                
-                sendSafeAreaInsetsToJavaScript(top, bottom, left, right);
+        // 초기 insets 계산 (WebView가 준비될 때까지 약간 지연)
+        decorView.post(() -> {
+            // Bridge가 준비될 때까지 재시도
+            if (getBridge() == null || getBridge().getWebView() == null) {
+                decorView.postDelayed(() -> {
+                    WindowInsetsCompat windowInsets = WindowInsetsCompat.toWindowInsetsCompat(
+                        decorView.getRootWindowInsets()
+                    );
+                    if (windowInsets != null) {
+                        int top = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+                        int bottom = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+                        int left = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).left;
+                        int right = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).right;
+                        
+                        sendSafeAreaInsetsToJavaScript(top, bottom, left, right);
+                    }
+                }, 100);
+            } else {
+                WindowInsetsCompat windowInsets = WindowInsetsCompat.toWindowInsetsCompat(
+                    decorView.getRootWindowInsets()
+                );
+                if (windowInsets != null) {
+                    int top = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+                    int bottom = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+                    int left = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).left;
+                    int right = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).right;
+                    
+                    sendSafeAreaInsetsToJavaScript(top, bottom, left, right);
+                }
             }
-        }, 500);
+        });
     }
     
     /**
@@ -175,14 +190,14 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onStart() {
         super.onStart();
-        // 앱이 시작될 때 safe area insets 다시 계산
-        setupSafeAreaInsets();
+        // onStart에서는 setupSafeAreaInsets를 호출하지 않음
+        // setupSafeAreaInsets는 onCreate에서만 호출하여 리스너 중복 등록 방지
     }
     
     @Override
     public void onResume() {
         super.onResume();
-        // 앱이 재개될 때 safe area insets 다시 계산
+        // 앱이 재개될 때 safe area insets 다시 계산 (값만 업데이트, 리스너는 재등록하지 않음)
         View decorView = getWindow().getDecorView();
         decorView.post(() -> {
             WindowInsetsCompat windowInsets = WindowInsetsCompat.toWindowInsetsCompat(
@@ -193,6 +208,16 @@ public class MainActivity extends BridgeActivity {
                 int bottom = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
                 int left = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).left;
                 int right = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars()).right;
+                
+                // 비정상적으로 큰 값 방지 (일반적으로 100px 이하)
+                if (top > 100) {
+                    Log.w("MainActivity", "비정상적인 safe area top 값 감지: " + top + "px, 0으로 설정");
+                    top = 0;
+                }
+                if (bottom > 100) {
+                    Log.w("MainActivity", "비정상적인 safe area bottom 값 감지: " + bottom + "px, 0으로 설정");
+                    bottom = 0;
+                }
                 
                 sendSafeAreaInsetsToJavaScript(top, bottom, left, right);
             }

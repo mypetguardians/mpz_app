@@ -46,7 +46,8 @@ export function ImageCarouselModal({
     if (images.length !== imageLoaded.length) {
       setImageLoaded(images.map(() => false));
     }
-  }, [images.length, imageLoaded.length]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [images.length, imageLoaded.length]); // images 배열 전체를 의존성에 추가하면 불필요한 재실행 발생
 
   useEffect(() => {
     setCurrentIndex(initialIndex);

@@ -53,7 +53,10 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["lifestyle", "social"],
+  "categories": [
+    "lifestyle",
+    "social"
+  ],
   "lang": "ko",
   "dir": "ltr"
 }

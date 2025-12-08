@@ -254,9 +254,6 @@ export default function Home() {
         />
 
         <FooterSection />
-
-        {/* NavBar 높이만큼 하단 여백 추가 (NavBar가 fixed이므로) */}
-        <div className="h-16" aria-hidden="true" />
       </div>
 
       <NavBar />

@@ -11,6 +11,8 @@ interface SafeAreaLayoutProps {
 export function SafeAreaLayout({ children }: SafeAreaLayoutProps) {
   const [safeAreaTop, setSafeAreaTop] = useState(0);
   const [safeAreaBottom, setSafeAreaBottom] = useState(0);
+  // 고정 하단 네비게이션 높이 (px)
+  const NAV_HEIGHT = 64;
 
   const clampValue = useCallback((value: number, max = 60) => {
     if (Number.isNaN(value)) return 0;
@@ -221,13 +223,15 @@ export function SafeAreaLayout({ children }: SafeAreaLayoutProps) {
     normalizedSafeAreaBottom > 0
       ? `${normalizedSafeAreaBottom}px`
       : "env(safe-area-inset-bottom, 0px)";
+  const combinedBottomPadding = `calc(${safeAreaBottomStyle} + ${NAV_HEIGHT}px)`;
 
   return (
     <div
       className="flex min-h-screen flex-col bg-wh"
       style={{
         paddingTop: safeAreaTopStyle,
-        paddingBottom: safeAreaBottomStyle,
+        // 네비게이션 높이 + safe-area bottom 합산
+        paddingBottom: combinedBottomPadding,
       }}
     >
       {children}

@@ -227,7 +227,7 @@ export function SafeAreaLayout({ children }: SafeAreaLayoutProps) {
 
   return (
     <div
-      className="flex min-h-screen flex-col bg-wh"
+      className="relative flex min-h-screen flex-col bg-wh"
       style={{
         paddingTop: safeAreaTopStyle,
         // 네비게이션 높이 + safe-area bottom 합산
@@ -235,6 +235,35 @@ export function SafeAreaLayout({ children }: SafeAreaLayoutProps) {
         backgroundColor: "#fff",
       }}
     >
+      {/* 상단/하단 safe area를 흰색으로 덮어 투명 노출 방지 */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-x-0 top-0"
+        style={{
+          height: safeAreaTopStyle,
+          backgroundColor: "#fff",
+          zIndex: 50,
+        }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-x-0 bottom-0"
+        style={{
+          height: safeAreaBottomStyle,
+          backgroundColor: "#fff",
+          zIndex: 50,
+        }}
+      />
+      {/* 하단 네비게이션 영역 전체(네비+safe-area)를 흰색으로 덮어 blur 투명 노출 방지 */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-x-0 bottom-0"
+        style={{
+          height: combinedBottomPadding,
+          backgroundColor: "#fff",
+          zIndex: 45,
+        }}
+      />
       {children}
     </div>
   );

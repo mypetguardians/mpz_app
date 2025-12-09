@@ -597,7 +597,13 @@ export default function CommunityPage() {
       </div>
 
       {/* 글쓰기 플로팅 버튼 */}
-      <div className="fixed z-50 bottom-28 right-4">
+      <div
+        className="fixed z-50 right-4"
+        style={{
+          bottom:
+            "calc(var(--safe-area-bottom, env(safe-area-inset-bottom, 0px)) + 80px)", // 네비 높이(64) + 여백 16
+        }}
+      >
         <BigButton
           variant="primary"
           left={<Plus size={16} />}

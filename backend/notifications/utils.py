@@ -1,5 +1,6 @@
 import os
 import json
+import asyncio
 import logging
 from typing import List, Dict, Optional
 from django.conf import settings
@@ -16,6 +17,8 @@ from comments.models import Comment
 from posts.models import Post
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from google.oauth2 import service_account
+from google.auth.transport.requests import Request
 
 
 logger = logging.getLogger(__name__)
@@ -61,12 +64,158 @@ class FCMPushNotificationService:
     """Firebase Cloud Messaging 푸시 알림 서비스"""
     
     def __init__(self):
-        self.fcm_server_key = os.getenv('FCM_SERVER_KEY')
-        self.fcm_project_id = os.getenv('FCM_PROJECT_ID')
-        self.fcm_url = "https://fcm.googleapis.com/fcm/send"
-        
-        if not self.fcm_server_key:
-            logger.warning("FCM_SERVER_KEY 환경변수가 설정되지 않았습니다.")
+        self.fcm_server_key = os.getenv("FCM_SERVER_KEY")  # 레거시 키 (더 이상 사용하지 않음)
+        self.fcm_project_id = os.getenv("FCM_PROJECT_ID")
+        self.scopes = ["https://www.googleapis.com/auth/firebase.messaging"]
+        self.credentials = self._load_credentials()
+        self.fcm_url = (
+            f"https://fcm.googleapis.com/v1/projects/{self.fcm_project_id}/messages:send"
+            if self.fcm_project_id
+            else None
+        )
+
+        if not self.fcm_project_id:
+            logger.warning("FCM_PROJECT_ID 환경변수가 설정되지 않았습니다.")
+        if not self.credentials:
+            logger.warning(
+                "Firebase 서비스 계정 자격증명을 찾을 수 없습니다. "
+                "FIREBASE_ADMIN_CREDENTIALS_PATH 또는 FIREBASE_ADMIN_CREDENTIALS_JSON을 설정하세요."
+            )
+
+    def _load_credentials(self):
+        """서비스 계정 자격증명을 로드합니다."""
+        # JSON 문자열 우선
+        credentials_json = os.getenv("FIREBASE_ADMIN_CREDENTIALS_JSON")
+        if credentials_json:
+            try:
+                info = json.loads(credentials_json)
+                return service_account.Credentials.from_service_account_info(
+                    info, scopes=self.scopes
+                )
+            except json.JSONDecodeError as e:
+                logger.error(f"서비스 계정 JSON 파싱 실패: {e}")
+                return None
+            except Exception as e:
+                logger.error(f"서비스 계정 JSON 로드 실패: {e}")
+                return None
+
+        # 파일 경로 (Firebase 가이드의 기본값 포함)
+        credentials_path = os.getenv("FIREBASE_ADMIN_CREDENTIALS_PATH") or os.getenv(
+            "GOOGLE_APPLICATION_CREDENTIALS"
+        )
+        if credentials_path and os.path.exists(credentials_path):
+            try:
+                return service_account.Credentials.from_service_account_file(
+                    credentials_path, scopes=self.scopes
+                )
+            except Exception as e:
+                logger.error(f"서비스 계정 파일 로드 실패: {e}")
+                return None
+
+        # backend/firebase/firebase-adminsdk.json 기본 경로 시도
+        default_path = os.path.join(
+            os.path.dirname(__file__), "..", "firebase", "firebase-adminsdk.json"
+        )
+        default_path = os.path.abspath(default_path)
+        if os.path.exists(default_path):
+            try:
+                return service_account.Credentials.from_service_account_file(
+                    default_path, scopes=self.scopes
+                )
+            except Exception as e:
+                logger.error(f"기본 서비스 계정 파일 로드 실패: {e}")
+                return None
+
+        return None
+
+    def _stringify_data(self, data: Dict) -> Dict:
+        """FCM HTTP v1 data 필드는 문자열만 허용하므로 변환합니다."""
+        stringified = {}
+        for key, value in data.items():
+            if isinstance(value, (dict, list)):
+                stringified[key] = json.dumps(value, ensure_ascii=False)
+            else:
+                stringified[key] = str(value)
+        return stringified
+
+    def _build_message_payload(
+        self,
+        token: str,
+        title: str,
+        body: str,
+        data: Optional[Dict],
+        platform: Optional[str],
+    ) -> Dict:
+        payload: Dict = {
+            "message": {
+                "token": token,
+                "notification": {"title": title, "body": body},
+            }
+        }
+
+        if data:
+            payload["message"]["data"] = self._stringify_data(data)
+
+        # 플랫폼별 옵션 (필요 시 확장 가능)
+        if platform == "ios":
+            payload["message"]["apns"] = {
+                "payload": {
+                    "aps": {
+                        "sound": "default",
+                        "content-available": 1,
+                    }
+                }
+            }
+        elif platform == "android":
+            payload["message"]["android"] = {
+                "priority": "HIGH",
+                "notification": {
+                    "icon": "ic_notification",
+                    "color": "#FF6B35",
+                },
+            }
+
+        return payload
+
+    def _get_access_token(self) -> Optional[str]:
+        """OAuth2 액세스 토큰 발급"""
+        if not self.credentials:
+            return None
+        try:
+            credentials = self.credentials.with_scopes(self.scopes)
+            if not credentials.valid:
+                credentials.refresh(Request())
+            return credentials.token
+        except Exception as e:
+            logger.error(f"액세스 토큰 발급 실패: {e}")
+            return None
+
+    async def _send_single_message(
+        self,
+        token: str,
+        title: str,
+        body: str,
+        data: Optional[Dict],
+        platform: Optional[str],
+        access_token: str,
+    ) -> Dict:
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json; UTF-8",
+        }
+        payload = self._build_message_payload(token, title, body, data, platform)
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(self.fcm_url, headers=headers, json=payload)
+
+        if response.status_code == 200:
+            return {"success": True, "token": token, "response": response.json()}
+        return {
+            "success": False,
+            "token": token,
+            "status": response.status_code,
+            "error": response.text,
+        }
 
     async def send_push_notification(
         self,
@@ -89,66 +238,61 @@ class FCMPushNotificationService:
         Returns:
             Dict: 전송 결과
         """
-        if not self.fcm_server_key:
-            logger.error("FCM_SERVER_KEY가 설정되지 않아 푸시 알림을 전송할 수 없습니다.")
-            return {"success": False, "error": "FCM_SERVER_KEY not configured"}
+        if not self.fcm_project_id or not self.fcm_url:
+            logger.error("FCM_PROJECT_ID가 설정되지 않아 푸시 알림을 전송할 수 없습니다.")
+            return {"success": False, "error": "FCM_PROJECT_ID not configured"}
+
+        access_token = self._get_access_token()
+        if not access_token:
+            logger.error("FCM 액세스 토큰을 발급할 수 없어 푸시 알림을 전송할 수 없습니다.")
+            return {"success": False, "error": "FCM access token not available"}
 
         if not user_tokens:
             logger.warning("푸시 토큰이 없어 알림을 전송할 수 없습니다.")
             return {"success": False, "error": "No push tokens provided"}
 
-        headers = {
-            "Authorization": f"key={self.fcm_server_key}",
-            "Content-Type": "application/json",
-        }
+        # FCM v1은 1회 요청당 단일 token만 지원하므로 병렬 전송
+        semaphore = asyncio.Semaphore(10)  # 동시 전송 제한
 
-        # FCM 페이로드 구성
-        notification_data = {
-            "title": title,
-            "body": body,
-        }
-
-        # 플랫폼별 커스터마이징
-        if platform == "ios":
-            notification_data["sound"] = "default"
-        elif platform == "android":
-            notification_data["icon"] = "ic_notification"
-            notification_data["color"] = "#FF6B35"
-
-        payload = {
-            "registration_ids": user_tokens,
-            "notification": notification_data,
-            "priority": "high",
-        }
-
-        # 커스텀 데이터 추가
-        if data:
-            payload["data"] = data
+        async def _send(token: str):
+            async with semaphore:
+                return await self._send_single_message(
+                    token=token,
+                    title=title,
+                    body=body,
+                    data=data,
+                    platform=platform,
+                    access_token=access_token,
+                )
 
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.post(
-                    self.fcm_url,
-                    headers=headers,
-                    json=payload
-                )
-                
-                if response.status_code == 200:
-                    result = response.json()
-                    logger.info(f"FCM 푸시 알림 전송 성공: {result}")
-                    return {
-                        "success": True,
-                        "success_count": result.get("success", 0),
-                        "failure_count": result.get("failure", 0),
-                        "results": result.get("results", [])
-                    }
+            results = await asyncio.gather(*[_send(t) for t in user_tokens], return_exceptions=True)
+
+            success_count = 0
+            failure_details = []
+            for result in results:
+                if isinstance(result, Exception):
+                    failure_details.append({"error": str(result)})
+                    continue
+                if result.get("success"):
+                    success_count += 1
                 else:
-                    logger.error(f"FCM 푸시 알림 전송 실패: {response.status_code} - {response.text}")
-                    return {
-                        "success": False,
-                        "error": f"HTTP {response.status_code}: {response.text}"
-                    }
-                    
+                    failure_details.append(result)
+
+            if failure_details:
+                logger.warning(
+                    f"FCM 푸시 알림 일부 실패: 성공 {success_count}, 실패 {len(failure_details)}"
+                )
+            else:
+                logger.info(f"FCM 푸시 알림 전송 성공: {success_count}건")
+
+            return {
+                "success": len(failure_details) == 0,
+                "success_count": success_count,
+                "failure_count": len(failure_details),
+                "failures": failure_details,
+            }
+
         except Exception as e:
             logger.error(f"FCM 푸시 알림 전송 중 예외 발생: {str(e)}")
             return {"success": False, "error": str(e)}

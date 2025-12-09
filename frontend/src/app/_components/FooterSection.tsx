@@ -8,7 +8,7 @@ export function FooterSection() {
       </div>
 
       {/* Footer 섹션 */}
-      <div className="bg-bg pb-20">
+      <div className="bg-bg pb-16">
         <h6 className="text-gr text-[10px] font-light px-4 py-3">
           (주)마이펫가디언즈
           <br /> 사업자 등록번호 : 246-81-03596 <br />

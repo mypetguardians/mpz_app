@@ -103,6 +103,14 @@ export function SafeAreaLayout({ children }: SafeAreaLayoutProps) {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
+    // Safe area로 확보된 영역도 흰색으로 채워서 투명 배경 노출 방지
+    const htmlEl = document.documentElement;
+    const bodyEl = document.body;
+    const prevHtmlBg = htmlEl.style.backgroundColor;
+    const prevBodyBg = bodyEl.style.backgroundColor;
+    htmlEl.style.backgroundColor = "#fff";
+    bodyEl.style.backgroundColor = "#fff";
+
     const isIOS = Capacitor.getPlatform() === "ios";
     const isAndroid = Capacitor.getPlatform() === "android";
 
@@ -197,6 +205,8 @@ export function SafeAreaLayout({ children }: SafeAreaLayoutProps) {
       if (safeAreaPluginListener) {
         safeAreaPluginListener.remove();
       }
+      htmlEl.style.backgroundColor = prevHtmlBg;
+      bodyEl.style.backgroundColor = prevBodyBg;
     };
   }, [updateSafeAreaValues, clampValue, applyInsets]);
 
@@ -222,6 +232,7 @@ export function SafeAreaLayout({ children }: SafeAreaLayoutProps) {
         paddingTop: safeAreaTopStyle,
         // 네비게이션 높이 + safe-area bottom 합산
         paddingBottom: combinedBottomPadding,
+        backgroundColor: "#fff",
       }}
     >
       {children}

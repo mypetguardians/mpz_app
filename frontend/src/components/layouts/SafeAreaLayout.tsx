@@ -117,6 +117,19 @@ export function SafeAreaLayout({ children }: SafeAreaLayoutProps) {
       );
     }
 
+    const recalcSafeArea = async () => {
+      if (Capacitor.isNativePlatform()) {
+        try {
+          const { insets } = await SafeArea.getSafeAreaInsets();
+          applyInsets(insets);
+          return;
+        } catch (error) {
+          console.warn("SafeArea plugin 실패, fallback 사용", error);
+        }
+      }
+      updateSafeAreaValues();
+    };
+
     // 플러그인으로 먼저 안전 영역을 주입 (실패하면 기존 방식 fallback)
     let safeAreaPluginListener: { remove: () => void } | null = null;
     (async () => {
@@ -129,7 +142,7 @@ export function SafeAreaLayout({ children }: SafeAreaLayoutProps) {
             ({ insets }) => applyInsets(insets)
           );
         } catch (error) {
-          console.warn("SafeArea plugin 실패, fallback 사용", error);
+          console.warn("SafeArea plugin 초기 로드 실패, fallback 사용", error);
           updateSafeAreaValues();
         }
       } else {
@@ -160,16 +173,27 @@ export function SafeAreaLayout({ children }: SafeAreaLayoutProps) {
       }
     };
 
+    // 백그라운드→포그라운드 복귀 시 재계산
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // 약간의 지연 후 두 번 재계산 (레이아웃 안정화 대기)
+        setTimeout(() => recalcSafeArea(), 60);
+        setTimeout(() => recalcSafeArea(), 180);
+      }
+    };
+
     window.addEventListener(
       "safeAreaInsetsChanged",
       handleSafeAreaChange as EventListener
     );
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       window.removeEventListener(
         "safeAreaInsetsChanged",
         handleSafeAreaChange as EventListener
       );
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       if (safeAreaPluginListener) {
         safeAreaPluginListener.remove();
       }

@@ -3,7 +3,7 @@ import { Banner } from "@/components/ui/Banner";
 export function FooterSection() {
   return (
     <>
-      <div className="px-4">
+      <div className="px-4 pb-8">
         <Banner variant="sub" />
       </div>
 

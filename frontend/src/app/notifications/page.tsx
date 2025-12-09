@@ -2,7 +2,7 @@
 
 import { ArrowLeft } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useCallback, useMemo } from "react";
 
 import { Container } from "@/components/common/Container";
 import { TopBar } from "@/components/common/TopBar";
@@ -38,19 +38,27 @@ export default function Notification() {
     markAsRead: socketMarkAsRead,
   } = useNotificationSocket();
 
-  const [useSocketData, setUseSocketData] = useState(false);
-
   const markNotificationRead = useMarkNotificationRead();
   const markAllNotificationsRead = useMarkAllNotificationsRead();
 
-  // 소켓이 연결되어 있고 실시간 알림이 있으면 소켓 데이터 사용
-  // 무한스크롤 데이터를 평면화하여 사용
+  // API 알림 + 소켓 알림을 병합(신규 알림 우선)하여 중복 제거
   const allNotifications =
     notificationsData?.pages?.flatMap((page) => page.data || []) || [];
-  const notifications =
-    socketConnected && socketNotifications.length > 0
-      ? socketNotifications
-      : allNotifications;
+  const notifications = useMemo(() => {
+    const merged = [...socketNotifications, ...allNotifications];
+    const seen = new Set<string>();
+    return merged
+      .filter((n) => {
+        if (!n?.id) return false;
+        if (seen.has(n.id)) return false;
+        seen.add(n.id);
+        return true;
+      })
+      .sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+  }, [socketNotifications, allNotifications]);
 
   const isCenterUser =
     user?.userType === "센터관리자" || user?.userType === "센터최고관리자";
@@ -243,27 +251,11 @@ export default function Notification() {
     });
   }, [notifications, user, isCenterUser, centerIds]);
 
-  // 소켓 연결 상태에 따른 데이터 소스 결정
-  useEffect(() => {
-    setUseSocketData(socketConnected && socketNotifications.length > 0);
-  }, [socketConnected, socketNotifications.length]);
-
   // 무한스크롤 함수
   const loadMoreNotifications = useCallback(() => {
-    if (
-      isFetchingNextPage ||
-      !hasNextPage ||
-      (socketConnected && useSocketData)
-    )
-      return;
+    if (isFetchingNextPage || !hasNextPage) return;
     fetchNextPage();
-  }, [
-    isFetchingNextPage,
-    hasNextPage,
-    fetchNextPage,
-    socketConnected,
-    useSocketData,
-  ]);
+  }, [isFetchingNextPage, hasNextPage, fetchNextPage]);
 
   // 스크롤 이벤트 처리
   useEffect(() => {
@@ -325,7 +317,7 @@ export default function Notification() {
 
   const handleNotificationClick = (notification: NotificationType) => {
     if (!notification.is_read) {
-      if (socketConnected && useSocketData) {
+      if (socketConnected) {
         socketMarkAsRead(notification.id);
       } else {
         markNotificationRead.mutate(notification.id, {
@@ -347,7 +339,7 @@ export default function Notification() {
 
   const handleMarkAllAsRead = () => {
     // 소켓 연결 시 소켓으로 전체 읽음 처리, 아니면 기존 API 사용
-    if (socketConnected && useSocketData) {
+    if (socketConnected && socketNotifications.length > 0) {
       filteredNotifications.forEach((notification) => {
         if (!notification.is_read) {
           socketMarkAsRead(notification.id);
@@ -529,13 +521,11 @@ export default function Notification() {
             )}
 
             {/* 모든 알림을 불러온 경우 */}
-            {!useSocketData &&
-              !hasNextPage &&
-              filteredNotifications.length > 0 && (
-                <div className="flex items-center justify-center py-8">
-                  <p className="text-gray-500">모든 알림을 불러왔습니다.</p>
-                </div>
-              )}
+            {!hasNextPage && filteredNotifications.length > 0 && (
+              <div className="flex items-center justify-center py-8">
+                <p className="text-gray-500">모든 알림을 불러왔습니다.</p>
+              </div>
+            )}
           </>
         )}
       </div>

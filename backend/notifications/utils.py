@@ -525,7 +525,9 @@ async def create_notification_for_user(user_id: str, notification_type: str, mes
     try:
         logger.info(f"알림 생성 시작: user_id={user_id}, type={notification_type}, message={message[:50]}...")
 
+        # DB에는 정규화된 타입을 저장하되, 클라이언트 전송 시에는 세부 타입(comment/reply/like)을 그대로 사용
         notification_type, metadata = normalize_notification_type(notification_type, metadata)
+        outgoing_notification_type = metadata.get("sub_type", notification_type)
 
         # 타입 기반 제목 결정
         title_key = metadata.get("sub_type") if metadata and "sub_type" in metadata else notification_type
@@ -559,7 +561,8 @@ async def create_notification_for_user(user_id: str, notification_type: str, mes
                     title=title,
                     body=message,
                     data={
-                        'notification_type': notification_type,
+                        # 푸시 페이로드에는 세부 타입을 내려 프론트 필터와 일치시킴
+                        'notification_type': outgoing_notification_type,
                         'action_url': action_url,
                         'metadata': metadata
                     }
@@ -575,7 +578,8 @@ async def create_notification_for_user(user_id: str, notification_type: str, mes
             "id": str(notification.id),
             "title": title,
             "message": message,
-            "notification_type": notification_type,
+            # 실시간 소켓에도 세부 타입을 내려보냄
+            "notification_type": outgoing_notification_type,
             "priority": priority,
             "action_url": action_url,
             "metadata": metadata,

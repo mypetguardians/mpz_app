@@ -149,41 +149,75 @@ export async function getAndroidFCMToken(): Promise<string | null> {
 // iOS FCM 토큰 가져오기
 export async function getIOSFCMToken(): Promise<string | null> {
   if (typeof window === "undefined") {
+    console.log("❌ getIOSFCMToken: window가 없습니다");
     return null;
   }
 
   // Capacitor가 없으면 웹 플랫폼
   const capWindow = window as CapacitorWindow;
   if (!capWindow.Capacitor) {
+    console.log("❌ getIOSFCMToken: Capacitor가 없습니다");
     return null;
   }
 
   const capPlatform = capWindow.Capacitor.getPlatform();
+  console.log("🔍 getIOSFCMToken: 플랫폼 =", capPlatform);
+
   if (capPlatform !== "ios") {
+    console.log("❌ getIOSFCMToken: iOS 플랫폼이 아닙니다");
     return null;
   }
 
-  // 전역 리스너가 없으면 한 번만 등록
+  // 1. 먼저 localStorage에서 저장된 토큰 확인
+  const savedToken = localStorage.getItem("fcm_token_debug");
+  if (savedToken) {
+    console.log(
+      "✅ localStorage에서 iOS FCM 토큰 발견:",
+      savedToken.substring(0, 30) + "..."
+    );
+    return savedToken;
+  }
+  console.log("ℹ️ localStorage에 저장된 토큰이 없습니다");
+
+  // 2. 전역 리스너가 없으면 한 번만 등록 (앱 시작 시점에 등록되도록)
   if (!fcmTokenListenerAdded) {
+    console.log("📡 iOS FCM 토큰 이벤트 리스너 등록 중...");
     window.addEventListener("fcmToken", handleFCMTokenGlobal);
     fcmTokenListenerAdded = true;
+    console.log("✅ iOS FCM 토큰 이벤트 리스너 등록 완료");
+  } else {
+    console.log("ℹ️ iOS FCM 토큰 이벤트 리스너가 이미 등록되어 있습니다");
   }
 
+  console.log("⏳ iOS FCM 토큰 대기 중... (최대 15초)");
+
   return new Promise((resolve) => {
-    // 타임아웃 (10초 - iOS는 초기화 시간이 좀 더 걸릴 수 있음)
+    // 타임아웃 (15초 - iOS는 초기화 시간이 좀 더 걸릴 수 있음)
     const timeoutId = setTimeout(() => {
       // 대기 목록에서 제거
       const index = pendingResolvers.indexOf(resolve);
       if (index > -1) {
         pendingResolvers.splice(index, 1);
       }
-      console.warn("iOS FCM 토큰을 받는 데 시간이 너무 오래 걸립니다.");
+      // 타임아웃 시에도 localStorage 다시 확인
+      const timeoutToken = localStorage.getItem("fcm_token_debug");
+      if (timeoutToken) {
+        console.log("⏰ 타임아웃 후 localStorage에서 토큰 발견");
+        resolve(timeoutToken);
+        return;
+      }
+      console.warn("❌ iOS FCM 토큰을 받는 데 시간이 너무 오래 걸립니다.");
+      console.warn("   - AppDelegate에서 토큰이 dispatch되었는지 확인하세요");
+      console.warn("   - Xcode 콘솔에서 'FCM 토큰 수신' 메시지를 확인하세요");
       resolve(null);
-    }, 10000);
+    }, 15000);
 
     // 대기 목록에 추가
     const wrappedResolve = (token: string | null) => {
       clearTimeout(timeoutId);
+      if (token) {
+        console.log("✅ iOS FCM 토큰 수신 성공!");
+      }
       resolve(token);
     };
     pendingResolvers.push(wrappedResolve);
@@ -338,33 +372,7 @@ export function useWebPushNotification() {
 
         // iOS 플랫폼 처리
         if (detectedPlatform === "ios") {
-          // 먼저 localStorage에서 이미 저장된 토큰이 있는지 확인
-          const savedToken =
-            typeof window !== "undefined"
-              ? localStorage.getItem("fcm_token_debug")
-              : null;
-
-          if (savedToken) {
-            console.log(
-              "저장된 iOS FCM 토큰 발견, 즉시 등록 시도:",
-              savedToken.substring(0, 20) + "..."
-            );
-            try {
-              await registerPushToken.mutateAsync({
-                token: savedToken,
-                platform: "ios",
-              });
-              console.log("저장된 iOS FCM 토큰이 성공적으로 등록되었습니다.");
-              hasRegisteredRef.current = true;
-              isRegisteringRef.current = false;
-              errorCountRef.current = 0;
-              return true;
-            } catch (error) {
-              console.warn("저장된 토큰 등록 실패, 새 토큰 대기:", error);
-              // 저장된 토큰 등록 실패 시 새 토큰을 기다림
-            }
-          }
-
+          // getIOSFCMToken 내부에서 이미 localStorage 확인하고 있으므로 바로 호출
           const result = await registerIOSFCMToken();
 
           // 네이티브(Firebase + Capacitor) 토큰을 받았다면 그대로 종료

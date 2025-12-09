@@ -60,13 +60,75 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate, UNUser
         
         // JavaScript로 토큰 전달
         if let token = fcmToken {
-            DispatchQueue.main.async {
-                if let bridge = (self.window?.rootViewController as? CAPBridgeViewController)?.bridge {
-                    bridge.eval(js: "window.dispatchEvent(new CustomEvent('fcmToken', { detail: '\(token)' }));")
-                    print("✅ FCM 토큰을 JavaScript로 전달 완료")
-                }
+            // bridge가 준비될 때까지 여러 번 시도
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                self.sendTokenToJavaScript(token: token, retryCount: 0)
             }
         }
+    }
+    
+    // JavaScript로 토큰 전달 (재시도 로직 포함)
+    private func sendTokenToJavaScript(token: String, retryCount: Int) {
+        let maxRetries = 30 // 최대 3초 대기 (0.1초 * 30)
+        
+        guard let bridge = (self.window?.rootViewController as? CAPBridgeViewController)?.bridge else {
+            if retryCount < maxRetries {
+                if retryCount % 10 == 0 {
+                    print("⏳ Bridge 준비 대기 중... (\(retryCount + 1)/\(maxRetries))")
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    self.sendTokenToJavaScript(token: token, retryCount: retryCount + 1)
+                }
+            } else {
+                print("❌ Bridge를 찾을 수 없습니다. 토큰 전달 실패")
+            }
+            return
+        }
+        
+        // 토큰을 Base64로 인코딩하여 안전하게 전달
+        guard let tokenData = token.data(using: .utf8) else {
+            print("❌ 토큰 인코딩 실패")
+            return
+        }
+        let base64Token = tokenData.base64EncodedString()
+        
+        // JavaScript 코드: localStorage 저장 + 이벤트 전달 (분리 실행)
+        let saveCode = """
+            try {
+                var token = atob('\(base64Token)');
+                if (typeof localStorage !== 'undefined') {
+                    localStorage.setItem('fcm_token_debug', token);
+                    console.log('✅ localStorage에 FCM 토큰 저장 완료');
+                }
+            } catch(e) {
+                console.error('localStorage 저장 실패:', e);
+            }
+        """
+        
+        let eventCode = """
+            try {
+                var token = atob('\(base64Token)');
+                if (typeof window !== 'undefined' && window.dispatchEvent) {
+                    var event = new CustomEvent('fcmToken', { detail: token });
+                    window.dispatchEvent(event);
+                    console.log('✅ fcmToken 이벤트 전달 완료');
+                } else {
+                    console.warn('⚠️ window 또는 dispatchEvent가 없습니다');
+                }
+            } catch(e) {
+                console.error('이벤트 전달 실패:', e);
+            }
+        """
+        
+        // localStorage 저장 먼저
+        bridge.eval(js: saveCode)
+        
+        // 약간의 지연 후 이벤트 전달 (웹뷰 완전 로드 대기)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            bridge.eval(js: eventCode)
+        }
+        
+        print("✅ FCM 토큰을 JavaScript로 전달 완료 (재시도: \(retryCount)회)")
     }
 
     // 포그라운드 수신 시 표시 방식

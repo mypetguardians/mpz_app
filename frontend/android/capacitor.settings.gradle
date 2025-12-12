@@ -17,8 +17,5 @@ project(':capgo-capacitor-navigation-bar').projectDir = new File('../node_module
 include ':kichunsung-capacitor-kakao-login-plugin'
 project(':kichunsung-capacitor-kakao-login-plugin').projectDir = new File('../node_modules/@kichunsung/capacitor-kakao-login-plugin/android')
 
-include ':capacitor-kakao-login-plugin'
-project(':capacitor-kakao-login-plugin').projectDir = new File('../node_modules/capacitor-kakao-login-plugin/android')
-
 include ':capacitor-plugin-safe-area'
 project(':capacitor-plugin-safe-area').projectDir = new File('../node_modules/capacitor-plugin-safe-area/android')

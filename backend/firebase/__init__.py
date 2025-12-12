@@ -52,8 +52,8 @@ def initialize_firebase():
                 _firebase_initialized = True
                 return
         
-        # 기본 경로 확인 (backend/firebase/firebase-adminsdk.json)
-        default_path = Path(__file__).parent / "firebase-adminsdk.json"
+        # 기본 경로 확인 (backend/firebase/serviceAccountKey.json)
+        default_path = Path(__file__).parent / "serviceAccountKey.json"
         if default_path.exists():
             cred = credentials.Certificate(str(default_path))
             firebase_admin.initialize_app(cred)

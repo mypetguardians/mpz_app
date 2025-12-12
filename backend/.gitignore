@@ -23,6 +23,6 @@ logs/
 django.log
 
 # Firebase
-firebase/firebase-adminsdk.json
+firebase/serviceAccountKey.json
 firebase/*.json
 !firebase/__init__.py

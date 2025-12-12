@@ -4,7 +4,7 @@
 
 ## 파일 구조
 
-- `firebase-adminsdk.json`: Firebase 서비스 계정 자격증명 파일
+- `serviceAccountKey.json`: Firebase 서비스 계정 자격증명 파일
 - `__init__.py`: Firebase Admin SDK 자동 초기화 코드
 - `generate_vapid_keys.py`: VAPID 키 생성 스크립트
 
@@ -16,14 +16,14 @@ Firebase Admin SDK는 다음 순서로 자격증명을 찾습니다:
 
 1. 환경변수 `FIREBASE_ADMIN_CREDENTIALS_JSON` (JSON 문자열)
 2. 환경변수 `FIREBASE_ADMIN_CREDENTIALS_PATH` (파일 경로)
-3. 기본 경로: `backend/firebase/firebase-adminsdk.json`
+3. 기본 경로: `backend/firebase/serviceAccountKey.json`
 
 ### 2. 환경변수 설정
 
 **옵션 1: 파일 경로 사용 (권장)**
 
 ```bash
-FIREBASE_ADMIN_CREDENTIALS_PATH=backend/firebase/firebase-adminsdk.json
+FIREBASE_ADMIN_CREDENTIALS_PATH=backend/firebase/serviceAccountKey.json
 ```
 
 **옵션 2: JSON 문자열 사용**
@@ -92,7 +92,7 @@ NEXT_PUBLIC_VAPID_PUBLIC_KEY=your_vapid_public_key_here
 
 ```env
 # Firebase Admin SDK (선택사항 - 파일 경로 사용 시 불필요)
-FIREBASE_ADMIN_CREDENTIALS_PATH=backend/firebase/firebase-adminsdk.json
+FIREBASE_ADMIN_CREDENTIALS_PATH=backend/firebase/serviceAccountKey.json
 
 # 또는 JSON 문자열로 직접 설정
 # FIREBASE_ADMIN_CREDENTIALS_JSON='{"type":"service_account",...}'
@@ -117,7 +117,7 @@ Firebase Console에서 FCM 서버 키를 가져올 수 있습니다:
 
 ⚠️ **중요**:
 
-- `firebase-adminsdk.json` 파일은 절대 Git에 커밋하지 마세요
+- `serviceAccountKey.json` 파일은 절대 Git에 커밋하지 마세요
 - `.gitignore`에 포함되어 있는지 확인하세요
 - 프로덕션 환경에서는 환경변수로 자격증명을 관리하세요
 

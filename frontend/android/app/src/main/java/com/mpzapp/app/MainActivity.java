@@ -32,7 +32,8 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(KakaoLoginPlugin.class);
         super.onCreate(savedInstanceState);
 
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        // 시스템 바 영역까지 앱이 그리지 않도록 설정하여 상단 안전 영역이 흰색으로 채워지게 함
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
         // 상태바/내비게이션 바를 흰색으로 채워 노치 영역이 투명하게 보이지 않도록 처리
         getWindow().setStatusBarColor(Color.WHITE);
         getWindow().setNavigationBarColor(Color.WHITE);

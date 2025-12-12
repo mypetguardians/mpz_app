@@ -112,9 +112,9 @@ class FCMPushNotificationService:
                 logger.error(f"서비스 계정 파일 로드 실패: {e}")
                 return None
 
-        # backend/firebase/firebase-adminsdk.json 기본 경로 시도
+        # backend/firebase/serviceAccountKey.json 기본 경로 시도
         default_path = os.path.join(
-            os.path.dirname(__file__), "..", "firebase", "firebase-adminsdk.json"
+            os.path.dirname(__file__), "..", "firebase", "serviceAccountKey.json"
         )
         default_path = os.path.abspath(default_path)
         if os.path.exists(default_path):

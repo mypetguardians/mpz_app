@@ -30,7 +30,7 @@ FCM_SERVER_KEY=your-fcm-server-key-here
 FCM_PROJECT_ID=your-firebase-project-id-here
 
 # Firebase Admin SDK (선택사항)
-FIREBASE_ADMIN_CREDENTIALS_PATH=path/to/firebase-adminsdk.json
+FIREBASE_ADMIN_CREDENTIALS_PATH=path/to/serviceAccountKey.json
 ```
 
 ### 2.2 환경변수 설정 방법
@@ -78,13 +78,13 @@ FCM_PROJECT_ID = os.getenv('FCM_PROJECT_ID', 'your-firebase-project-id')
 ```bash
 # 프로젝트 내 안전한 위치에 배치
 mkdir -p backend/firebase/
-mv ~/Downloads/firebase-adminsdk-*.json backend/firebase/
+mv ~/Downloads/serviceAccountKey-*.json backend/firebase/
 ```
 
 ### 3.3 환경변수에 경로 추가
 
 ```bash
-echo "FIREBASE_ADMIN_CREDENTIALS_PATH=backend/firebase/firebase-adminsdk-*.json" >> .env
+echo "FIREBASE_ADMIN_CREDENTIALS_PATH=backend/firebase/serviceAccountKey-*.json" >> .env
 ```
 
 ## 4. 의존성 설치

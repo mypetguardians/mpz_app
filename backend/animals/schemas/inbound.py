@@ -94,7 +94,7 @@ class AnimalStatusUpdateIn(Schema):
 
 class AnimalListQueryIn(Schema):
     """동물 목록 조회 쿼리 입력 스키마"""
-    status: Optional[str] = Field(None, description="동물 상태 필터")
+    status: Optional[str] = Field(None, description="동물 상태 필터 (단일 값 또는 쉼표로 구분된 여러 값: '반환,방사')")
     center_id: Optional[str] = Field(None, description="센터 ID 필터")
     gender: Optional[str] = Field(None, description="성별 필터 (male/female)")
     weight_min: Optional[Decimal] = Field(None, description="최소 체중 (kg)")

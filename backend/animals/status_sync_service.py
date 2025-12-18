@@ -11,6 +11,7 @@ from typing import List, Dict, Optional, Set
 from urllib.parse import urlencode
 from django.conf import settings
 from django.utils import timezone
+from django.db.models import Q
 from asgiref.sync import sync_to_async
 from .models import Animal, AnimalImage
 from centers.models import Center
@@ -234,12 +235,12 @@ class PublicDataStatusSyncService:
             # 공공데이터에서 제거된 경우 처리
             if status_info.get('not_found_in_public_data'):
                 # 동물이 공공데이터에서 제거되었을 가능성
-                # 상태를 '데이터 없음'으로 표시하거나 특별한 처리
-                if animal.adoption_status != '데이터없음':
-                    animal.adoption_status = '데이터없음'
-                    animal.protection_status = '상태불명'
+                # 모델 choices에 맞는 값으로 설정: '입양불가', '보호중' (기본값 유지)
+                if animal.adoption_status != '입양불가':
+                    animal.adoption_status = '입양불가'
                     updated = True
-                    print(f"📝 공고번호 {notice_number}: 공공데이터에서 제거됨 - 상태를 '데이터없음'으로 변경")
+                    print(f"📝 공고번호 {notice_number}: 공공데이터에서 제거됨 - 입양상태를 '입양불가'로 변경")
+                # protection_status는 변경하지 않음 (기존 상태 유지)
             else:
                 # 정상적으로 상태 정보가 있는 경우
                 current_process_state = status_info.get('process_state')
@@ -277,63 +278,183 @@ class PublicDataStatusSyncService:
     def _map_protection_status(self, public_status: str) -> str:
         """공공데이터 process_state(처리상태)를 protection_status(보호상태)로 매핑
         
+        공공데이터의 원본 상태를 모델의 보호상태로 정확히 매핑합니다.
+        - '공고중'은 모델에 없으므로 '보호중'으로 변환
+        - '기증', '안락사' 등은 그대로 해당 상태로 매핑
+        - '종료(반환)', '종료(자연사)' 같은 형식도 처리
+        
         Args:
             public_status: 공공데이터의 process_state 값
         
         Returns:
-            str: protection_status 값 (보호중, 입양완료, 안락사, 자연사, 반환 등)
+            str: protection_status 값 (보호중, 임시보호, 안락사, 자연사, 반환, 기증, 방사, 입양완료)
         """
         if not public_status:
             return '보호중'
         
+        status = public_status.strip()
+        
+        # '종료(반환)', '종료(자연사)' 같은 괄호 형식 처리
+        if status.startswith('종료(') and status.endswith(')'):
+            inner_status = status[3:-1]  # '종료(' (3글자) 와 ')' (1글자) 제거
+            if inner_status == '반환':
+                status = '반환'
+            elif inner_status == '자연사':
+                status = '자연사'
+            elif inner_status == '안락사':
+                status = '안락사'
+            elif inner_status == '방사':
+                status = '방사'
+            elif inner_status == '입양':
+                status = '입양완료'
+            elif inner_status == '기증':
+                status = '기증'
+        
+        # '종료 입양', '종료 기증' 같은 공백 형식 처리
+        if status.startswith('종료 '):
+            inner_status = status[3:].strip()  # '종료 ' (3글자) 제거
+            if inner_status == '입양':
+                status = '입양완료'
+            elif inner_status == '기증':
+                status = '기증'
+            elif inner_status == '반환':
+                status = '반환'
+            elif inner_status == '자연사':
+                status = '자연사'
+            elif inner_status == '안락사':
+                status = '안락사'
+            elif inner_status == '방사':
+                status = '방사'
+        
         # 공공데이터 process_state -> protection_status 매핑
+        # 각 공공데이터 상태를 모델의 보호상태로 정확히 매핑
         protection_mapping = {
-            '보호중': '보호중',
-            '공고중': '보호중',  # 공고중도 보호중으로 처리
-            '입양완료': '입양완료',  # 입양완료는 그대로 입양완료로 매핑
-            '안락사': '안락사',
-            '자연사': '자연사',
-            '반환': '반환',
-            '기증': '기증',
-            '방사': '방사',
-            '임시보호': '임시보호',
+            '보호중': '보호중',      # 보호중 → 보호중
+            '공고중': '보호중',      # 공고중 → 보호중 (모델에 '공고중'이 없으므로)
+            '임시보호': '임시보호',  # 임시보호 → 임시보호
+            '입양완료': '입양완료',  # 입양완료 → 입양완료
+            '기증': '기증',          # 기증 → 기증
+            '안락사': '안락사',      # 안락사 → 안락사
+            '자연사': '자연사',      # 자연사 → 자연사
+            '반환': '반환',          # 반환 → 반환
+            '방사': '방사',          # 방사 → 방사
         }
         
         # 매핑된 값이 있으면 반환, 없으면 기본값 '보호중'
-        return protection_mapping.get(public_status.strip(), '보호중')
+        return protection_mapping.get(status, '보호중')
     
     def _map_adoption_status(self, public_status: str) -> str:
-        """공공데이터 상태를 입양상태로 매핑"""
+        """공공데이터 process_state(처리상태)를 adoption_status(입양상태)로 매핑
+        
+        보호상태와 별도로 입양 가능 여부를 결정합니다.
+        - 보호중/공고중/임시보호 → 입양가능
+        - 입양완료/기증 → 입양완료
+        - 안락사/자연사/반환/방사 → 입양불가
+        
+        Args:
+            public_status: 공공데이터의 process_state 값
+        
+        Returns:
+            str: adoption_status 값 (입양가능, 입양진행중, 입양완료, 입양불가)
+        """
+        if not public_status:
+            return '입양가능'
+        
+        status = public_status.strip()
+        
+        # '종료(반환)', '종료(자연사)' 같은 괄호 형식 처리
+        if status.startswith('종료(') and status.endswith(')'):
+            inner_status = status[3:-1]  # '종료(' (3글자) 와 ')' (1글자) 제거
+            if inner_status == '반환':
+                status = '반환'
+            elif inner_status == '자연사':
+                status = '자연사'
+            elif inner_status == '안락사':
+                status = '안락사'
+            elif inner_status == '방사':
+                status = '방사'
+            elif inner_status == '입양':
+                status = '입양완료'
+            elif inner_status == '기증':
+                status = '기증'
+        
+        # '종료 입양', '종료 기증' 같은 공백 형식 처리
+        if status.startswith('종료 '):
+            inner_status = status[3:].strip()  # '종료 ' (3글자) 제거
+            if inner_status == '입양':
+                status = '입양완료'
+            elif inner_status == '기증':
+                status = '기증'
+            elif inner_status == '반환':
+                status = '반환'
+            elif inner_status == '자연사':
+                status = '자연사'
+            elif inner_status == '안락사':
+                status = '안락사'
+            elif inner_status == '방사':
+                status = '방사'
+        
         adoption_mapping = {
-            '보호중': '입양가능',
-            '공고중': '입양가능',
-            '입양완료': '입양완료',
-            '안락사': '입양불가',
-            '자연사': '입양불가',
-            '반환': '입양불가'
+            '보호중': '입양가능',    # 보호중 → 입양가능
+            '공고중': '입양가능',    # 공고중 → 입양가능
+            '임시보호': '입양가능',  # 임시보호 → 입양가능
+            '입양완료': '입양완료',  # 입양완료 → 입양완료
+            '기증': '입양완료',      # 기증 → 입양완료 (기증은 입양 완료로 간주)
+            '안락사': '입양불가',    # 안락사 → 입양불가
+            '자연사': '입양불가',    # 자연사 → 입양불가
+            '반환': '입양불가',      # 반환 → 입양불가
+            '방사': '입양불가',      # 방사 → 입양불가
         }
-        return adoption_mapping.get(public_status, '입양가능')
+        return adoption_mapping.get(status, '입양가능')
+        """공공데이터 process_state(처리상태)를 adoption_status(입양상태)로 매핑
+        
+        보호상태와 별도로 입양 가능 여부를 결정합니다.
+        - 보호중/공고중/임시보호 → 입양가능
+        - 입양완료/기증 → 입양완료
+        - 안락사/자연사/반환/방사 → 입양불가
+        
+        Args:
+            public_status: 공공데이터의 process_state 값
+        
+        Returns:
+            str: adoption_status 값 (입양가능, 입양진행중, 입양완료, 입양불가)
+        """
+        adoption_mapping = {
+            '보호중': '입양가능',    # 보호중 → 입양가능
+            '공고중': '입양가능',    # 공고중 → 입양가능
+            '임시보호': '입양가능',  # 임시보호 → 입양가능
+            '입양완료': '입양완료',  # 입양완료 → 입양완료
+            '기증': '입양완료',      # 기증 → 입양완료 (기증은 입양 완료로 간주)
+            '안락사': '입양불가',    # 안락사 → 입양불가
+            '자연사': '입양불가',    # 자연사 → 입양불가
+            '반환': '입양불가',      # 반환 → 입양불가
+            '방사': '입양불가',      # 방사 → 입양불가
+        }
+        return adoption_mapping.get(public_status.strip(), '입양가능')
     
     async def sync_recent_status_changes(self, days_back: int = 7) -> Dict:
-        """최근 며칠간 상태가 변경되었을 가능성이 높은 동물들만 체크합니다."""
+        """최근 며칠간 등록되거나 업데이트된 동물들의 상태를 체크합니다."""
         print(f"🔄 최근 {days_back}일간 상태 변경 동기화 시작...")
         
-        # 최근 업데이트된 동물들 우선 체크
+        # 최근 등록된 동물들 (created_at 기준) + 최근 업데이트된 동물들 (updated_at 기준)
         recent_animals = await sync_to_async(list)(
             Animal.objects.filter(
-                is_public_data=True,
-                public_notice_number__isnull=False,
-                updated_at__gte=timezone.now() - timedelta(days=days_back)
-            ).values_list('public_notice_number', flat=True)
+                Q(is_public_data=True) &
+                Q(public_notice_number__isnull=False) &
+                (
+                    Q(created_at__gte=timezone.now() - timedelta(days=days_back)) |
+                    Q(updated_at__gte=timezone.now() - timedelta(days=days_back))
+                )
+            ).values_list('public_notice_number', flat=True).distinct()
         )
         
         if not recent_animals:
-            # 최근 업데이트가 없다면 무작위로 일부 동물 체크
+            # 최근 등록/업데이트가 없다면 최근 등록된 동물들 중 일부 체크
             sample_animals = await sync_to_async(list)(
                 Animal.objects.filter(
                     is_public_data=True,
                     public_notice_number__isnull=False
-                ).order_by('?')[:50]  # 무작위로 50개
+                ).order_by('-created_at')[:100]  # 최근 등록된 100개
                 .values_list('public_notice_number', flat=True)
             )
             recent_animals = sample_animals

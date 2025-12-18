@@ -13,9 +13,9 @@ def capacitor_pods
   pod 'CapacitorCordova', :path => '../../node_modules/@capacitor/ios'
   pod 'CapacitorApp', :path => '../../node_modules/@capacitor/app'
   pod 'CapacitorCamera', :path => '../../node_modules/@capacitor/camera'
-  pod 'CapacitorGeolocation', :path => '../../node_modules/@capacitor/geolocation'
+  pod 'CapacitorGeolocation', :path => '../../node_modules/@capacitor/geolocation'``
   pod 'CapgoCapacitorNavigationBar', :path => '../../node_modules/@capgo/capacitor-navigation-bar'
-  pod 'KichunsungCapacitorKakaoLoginPlugin', :path => '../../node_modules/@kichunsung/capacitor-kakao-login-plugin'
+  pod 'CapacitorKakaoLoginPlugin', :path => '../../node_modules/@kichunsung/capacitor-kakao-login-plugin'
   pod 'CapacitorPluginSafeArea', :path => '../../node_modules/capacitor-plugin-safe-area'
 end
 

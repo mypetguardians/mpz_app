@@ -89,13 +89,15 @@ class PublicDataService:
                     if current_page > 100:  # 최대 100페이지까지만
                         break
         else:
-            # 업데이트 동기화: 최근 5페이지만 가져옴
-            for page in range(1, 6):  # 1~5페이지
+            # 업데이트 동기화: 모든 페이지를 가져옴 (데이터가 없을 때까지)
+            current_page = 1
+            max_pages = 100  # 안전장치: 최대 100페이지
+            while current_page <= max_pages:
                 params = {
                     'serviceKey': self.service_key,
                     'upkind': upkind,
-                    'pageNo': page,
-                    'numOfRows': min(num_of_rows, 100),  # 최대 100개로 제한
+                    'pageNo': current_page,
+                    'numOfRows': min(num_of_rows, 1000),  # 최대 1000개로 제한
                     '_type': '_xml'
                 }
                 
@@ -113,17 +115,31 @@ class PublicDataService:
                 query_string = urlencode(params)
                 full_url = f"{url}?{query_string}"
                 
-                async with httpx.AsyncClient() as client:
+                async with httpx.AsyncClient(timeout=30.0) as client:
+                    print(f"📄 페이지 {current_page} 가져오는 중...", end='\r')
                     response = await client.get(full_url)
-                    response.raise_for_status()
                     
+                    # 500 에러 처리
+                    if response.status_code == 500:
+                        print(f"\n⚠️ 공공데이터 API 500 에러 (페이지 {current_page}): {response.url}")
+                        break  # 해당 페이지 건너뛰기
+                    
+                    response.raise_for_status()
                     page_animals = self._parse_xml_response(response.text)
                     
                     # 더 이상 데이터가 없으면 중단
                     if not page_animals:
+                        print(f"\n✅ 페이지 {current_page}: 데이터 없음, 종료")
                         break
                     
                     all_animals.extend(page_animals)
+                    print(f"✅ 페이지 {current_page} 완료: {len(page_animals)}개 (누적: {len(all_animals):,}개)")
+                    current_page += 1
+                    
+                    # 페이지당 동물 수가 요청한 수보다 적으면 마지막 페이지
+                    if len(page_animals) < min(num_of_rows, 1000):
+                        print(f"\n✅ 마지막 페이지 도달 (페이지당 {len(page_animals)}개 < {min(num_of_rows, 1000)}개)")
+                        break
         
         return all_animals
     
@@ -204,36 +220,62 @@ class PublicDataService:
             print(f"XML 파싱 오류: {e}")
             return []
     
-    async def process_abandoned_animals(self, animals_data: List[PublicDataAnimalOut]) -> Dict:
-        """유기동물 데이터 처리 및 DB 저장"""
+    async def process_abandoned_animals(self, animals_data: List[PublicDataAnimalOut], batch_size: int = 1000) -> Dict:
+        """유기동물 데이터 처리 및 DB 저장 (배치 단위로 처리)"""
         created_count = 0
         updated_count = 0
+        deleted_count = 0
         error_count = 0
+        total = len(animals_data)
         
-        for animal_data in animals_data:
-            try:
-                # 공고번호로 기존 동물 확인
-                existing_animal = await self._get_existing_animal(animal_data)
-                
-                if existing_animal:
-                    # 기존 동물 업데이트 (상태 변경 등)
-                    was_updated = await self._update_animal(existing_animal, animal_data)
-                    if was_updated:
-                        updated_count += 1
-                else:
-                    # 새 동물 생성 (중복되지 않는 경우만)
-                    await self._create_animal(animal_data)
-                    created_count += 1
+        # 배치 단위로 처리
+        for i in range(0, total, batch_size):
+            batch = animals_data[i:i + batch_size]
+            batch_num = (i // batch_size) + 1
+            total_batches = (total + batch_size - 1) // batch_size
+            
+            print(f"📦 배치 처리 중: {batch_num}/{total_batches} ({len(batch)}개)")
+            
+            for animal_data in batch:
+                try:
+                    # 공고번호로 기존 동물 확인
+                    existing_animal = await self._get_existing_animal(animal_data)
                     
-            except Exception as e:
-                print(f"동물 데이터 처리 오류: {e}")
-                error_count += 1
+                    if existing_animal:
+                        # process_state가 없거나 빈 문자열인 경우 (데이터없음) - 삭제
+                        if not animal_data.process_state or not animal_data.process_state.strip():
+                            from asgiref.sync import sync_to_async
+                            await sync_to_async(existing_animal.delete)()
+                            deleted_count += 1
+                            continue
+                        
+                        # 기존 동물 업데이트 (상태 변경 등)
+                        was_updated = await self._update_animal(existing_animal, animal_data)
+                        if was_updated:
+                            updated_count += 1
+                    else:
+                        # process_state가 없거나 빈 문자열인 경우 - 생성하지 않음
+                        if not animal_data.process_state or not animal_data.process_state.strip():
+                            continue
+                        
+                        # 새 동물 생성 (중복되지 않는 경우만)
+                        await self._create_animal(animal_data)
+                        created_count += 1
+                        
+                except Exception as e:
+                    print(f"동물 데이터 처리 오류: {e}")
+                    error_count += 1
+            
+            # 배치 완료 후 진행 상황 출력
+            processed = min(i + batch_size, total)
+            print(f"✅ 배치 {batch_num} 완료: 진행률 {processed}/{total} ({processed/total*100:.1f}%)")
         
         return {
             'created': created_count,
             'updated': updated_count,
+            'deleted': deleted_count,
             'errors': error_count,
-            'total': len(animals_data)
+            'total': total
         }
     
     async def _get_existing_animal(self, animal_data: PublicDataAnimalOut) -> Optional[Animal]:
@@ -293,19 +335,29 @@ class PublicDataService:
         
         # 1. 상태 업데이트 (가장 중요한 변경사항)
         # 공공데이터 process_state(처리상태)를 protection_status(보호상태)로 매핑
-        new_protection_status = self._map_protection_status(animal_data.process_state)
-        new_adoption_status = self._map_adoption_status(animal_data.process_state)
-        
-        if animal.protection_status != new_protection_status:
-            old_status = animal.protection_status
-            animal.protection_status = new_protection_status
-            updated = True
-            print(f"동물 보호상태 업데이트: {animal.public_notice_number} - process_state={animal_data.process_state} -> protection_status: {old_status} -> {new_protection_status}")
-        
-        if animal.adoption_status != new_adoption_status:
-            animal.adoption_status = new_adoption_status
-            updated = True
-            print(f"동물 입양상태 업데이트: {animal.public_notice_number} - {animal.adoption_status} -> {new_adoption_status}")
+        # process_state가 유효한 경우에만 상태 업데이트
+        if animal_data.process_state and animal_data.process_state.strip():
+            new_protection_status = self._map_protection_status(animal_data.process_state)
+            new_adoption_status = self._map_adoption_status(animal_data.process_state)
+            
+            if animal.protection_status != new_protection_status:
+                old_status = animal.protection_status
+                animal.protection_status = new_protection_status
+                updated = True
+                # 로그는 주석 처리 (너무 많은 출력 방지)
+                # print(f"동물 보호상태 업데이트: {animal.public_notice_number} - process_state={animal_data.process_state} -> protection_status: {old_status} -> {new_protection_status}")
+            
+            if animal.adoption_status != new_adoption_status:
+                old_status = animal.adoption_status
+                animal.adoption_status = new_adoption_status
+                updated = True
+                # 로그는 주석 처리 (너무 많은 출력 방지)
+                # print(f"동물 입양상태 업데이트: {animal.public_notice_number} - adoption_status: {old_status} -> {new_adoption_status}")
+        else:
+            # process_state가 없거나 빈 문자열인 경우 로깅만 하고 상태는 업데이트하지 않음
+            # 로그는 주석 처리 (너무 많은 출력 방지)
+            # print(f"⚠️ 공고번호 {animal.public_notice_number}: process_state가 없거나 비어있어 상태 업데이트를 건너뜀")
+            pass
         
         # 2. 공공데이터 정보 업데이트 - 기존 필드 활용
         if animal.description != (animal_data.special_mark or ''):
@@ -354,20 +406,26 @@ class PublicDataService:
         if animal.neutering != new_neutering:
             animal.neutering = new_neutering
             updated = True
-            print(f"동물 중성화 여부 업데이트: {animal.public_notice_number} - neuter_yn={animal_data.neuter_yn} -> neutering={new_neutering}")
+            # 로그는 주석 처리 (너무 많은 출력 방지)
+            # print(f"동물 중성화 여부 업데이트: {animal.public_notice_number} - neuter_yn={animal_data.neuter_yn} -> neutering={new_neutering}")
         
         # 4. 센터 정보 업데이트 (필요한 경우)
-        if animal.center.public_reg_no != animal_data.care_reg_no:
+        from asgiref.sync import sync_to_async
+        current_center_reg_no = await sync_to_async(lambda: animal.center.public_reg_no)()
+        if current_center_reg_no != animal_data.care_reg_no:
             new_center = await self._get_or_create_center(animal_data)
-            if new_center and new_center != animal.center:
-                animal.center = new_center
-                updated = True
+            if new_center:
+                current_center_id = await sync_to_async(lambda: animal.center.id)()
+                if new_center.id != current_center_id:
+                    animal.center = new_center
+                    updated = True
         
         # 5. 실제 변경사항이 있을 때만 DB에 저장
         if updated:
             from asgiref.sync import sync_to_async
             await sync_to_async(animal.save)()
-            print(f"동물 정보 업데이트 완료: {animal.public_notice_number}")
+            # 로그는 주석 처리 (너무 많은 출력 방지)
+            # print(f"동물 정보 업데이트 완료: {animal.public_notice_number}")
         
         return updated
     
@@ -531,48 +589,140 @@ class PublicDataService:
     def _map_protection_status(self, public_status: str) -> str:
         """공공데이터 process_state(처리상태)를 protection_status(보호상태)로 매핑
         
+        공공데이터의 원본 상태를 모델의 보호상태로 정확히 매핑합니다.
+        - '공고중'은 모델에 없으므로 '보호중'으로 변환
+        - '기증', '안락사' 등은 그대로 해당 상태로 매핑
+        - '종료(반환)', '종료(자연사)' 같은 형식도 처리
+        
         Args:
             public_status: 공공데이터의 process_state 값
         
         Returns:
-            str: protection_status 값 (보호중, 입양완료, 안락사, 자연사, 반환 등)
+            str: protection_status 값 (보호중, 임시보호, 안락사, 자연사, 반환, 기증, 방사, 입양완료)
         """
         if not public_status:
             return '보호중'
         
+        status = public_status.strip()
+        
+        # '종료(반환)', '종료(자연사)' 같은 괄호 형식 처리
+        if status.startswith('종료(') and status.endswith(')'):
+            inner_status = status[3:-1]  # '종료(' (3글자) 와 ')' (1글자) 제거
+            if inner_status == '반환':
+                status = '반환'
+            elif inner_status == '자연사':
+                status = '자연사'
+            elif inner_status == '안락사':
+                status = '안락사'
+            elif inner_status == '방사':
+                status = '방사'
+            elif inner_status == '입양':
+                status = '입양완료'
+            elif inner_status == '기증':
+                status = '기증'
+        
+        # '종료 입양', '종료 기증' 같은 공백 형식 처리
+        if status.startswith('종료 '):
+            inner_status = status[3:].strip()  # '종료 ' (3글자) 제거
+            if inner_status == '입양':
+                status = '입양완료'
+            elif inner_status == '기증':
+                status = '기증'
+            elif inner_status == '반환':
+                status = '반환'
+            elif inner_status == '자연사':
+                status = '자연사'
+            elif inner_status == '안락사':
+                status = '안락사'
+            elif inner_status == '방사':
+                status = '방사'
+        
         # 공공데이터 process_state -> protection_status 매핑
+        # 각 공공데이터 상태를 모델의 보호상태로 정확히 매핑
         protection_mapping = {
-            '보호중': '보호중',
-            '공고중': '보호중',  # 공고중도 보호중으로 처리
-            '입양완료': '입양완료',  # 입양완료는 그대로 입양완료로 매핑
-            '안락사': '안락사',
-            '자연사': '자연사',
-            '반환': '반환',
-            '기증': '기증',
-            '방사': '방사',
-            '임시보호': '임시보호',
+            '보호중': '보호중',      # 보호중 → 보호중
+            '공고중': '보호중',      # 공고중 → 보호중 (모델에 '공고중'이 없으므로)
+            '임시보호': '임시보호',  # 임시보호 → 임시보호
+            '입양완료': '입양완료',  # 입양완료 → 입양완료
+            '기증': '기증',          # 기증 → 기증
+            '안락사': '안락사',      # 안락사 → 안락사
+            '자연사': '자연사',      # 자연사 → 자연사
+            '반환': '반환',          # 반환 → 반환
+            '방사': '방사',          # 방사 → 방사
         }
         
         # 매핑된 값이 있으면 반환, 없으면 기본값 '보호중'
-        mapped_status = protection_mapping.get(public_status.strip(), '보호중')
+        mapped_status = protection_mapping.get(status, '보호중')
         
-        # 디버깅용 로그 (필요시 주석 해제)
-        # if public_status.strip() not in protection_mapping:
-        #     print(f"⚠️ 알 수 없는 process_state 값: '{public_status}' -> '보호중'으로 매핑")
+        # 알 수 없는 상태값에 대한 경고 로그
+        if status not in protection_mapping:
+            print(f"⚠️ 알 수 없는 process_state 값: '{public_status}' -> '보호중'으로 매핑")
         
         return mapped_status
     
     def _map_adoption_status(self, public_status: str) -> str:
-        """공공데이터 상태를 입양상태로 매핑"""
+        """공공데이터 process_state(처리상태)를 adoption_status(입양상태)로 매핑
+        
+        보호상태와 별도로 입양 가능 여부를 결정합니다.
+        - 보호중/공고중/임시보호 → 입양가능
+        - 입양완료/기증 → 입양완료
+        - 안락사/자연사/반환/방사 → 입양불가
+        
+        Args:
+            public_status: 공공데이터의 process_state 값
+        
+        Returns:
+            str: adoption_status 값 (입양가능, 입양진행중, 입양완료, 입양불가)
+        """
+        if not public_status:
+            return '입양가능'
+        
+        status = public_status.strip()
+        
+        # '종료(반환)', '종료(자연사)' 같은 괄호 형식 처리
+        if status.startswith('종료(') and status.endswith(')'):
+            inner_status = status[3:-1]  # '종료(' (3글자) 와 ')' (1글자) 제거
+            if inner_status == '반환':
+                status = '반환'
+            elif inner_status == '자연사':
+                status = '자연사'
+            elif inner_status == '안락사':
+                status = '안락사'
+            elif inner_status == '방사':
+                status = '방사'
+            elif inner_status == '입양':
+                status = '입양완료'
+            elif inner_status == '기증':
+                status = '기증'
+        
+        # '종료 입양', '종료 기증' 같은 공백 형식 처리
+        if status.startswith('종료 '):
+            inner_status = status[3:].strip()  # '종료 ' (3글자) 제거
+            if inner_status == '입양':
+                status = '입양완료'
+            elif inner_status == '기증':
+                status = '기증'
+            elif inner_status == '반환':
+                status = '반환'
+            elif inner_status == '자연사':
+                status = '자연사'
+            elif inner_status == '안락사':
+                status = '안락사'
+            elif inner_status == '방사':
+                status = '방사'
+        
         adoption_mapping = {
-            '보호중': '입양가능',
-            '공고중': '입양가능',
-            '입양완료': '입양완료',
-            '안락사': '입양불가',
-            '자연사': '입양불가',
-            '반환': '입양불가'
+            '보호중': '입양가능',    # 보호중 → 입양가능
+            '공고중': '입양가능',    # 공고중 → 입양가능
+            '임시보호': '입양가능',  # 임시보호 → 입양가능
+            '입양완료': '입양완료',  # 입양완료 → 입양완료
+            '기증': '입양완료',      # 기증 → 입양완료 (기증은 입양 완료로 간주)
+            '안락사': '입양불가',    # 안락사 → 입양불가
+            '자연사': '입양불가',    # 자연사 → 입양불가
+            '반환': '입양불가',      # 반환 → 입양불가
+            '방사': '입양불가',      # 방사 → 입양불가
         }
-        return adoption_mapping.get(public_status, '입양가능')
+        return adoption_mapping.get(status, '입양가능')
     
     def _get_r2_client(self) -> Optional[R2Client]:
         """R2 클라이언트를 지연 생성"""

@@ -294,11 +294,11 @@ async def get_animals(
                     Q(protection_status='임시보호') | 
                     Q(protection_status='기증')
                 )
-            elif filters.status == '무지개':
-                # 무지개: 안락사, 자연사
+            elif filters.status in ['무지개', '🌈', '무지개다리']:
+                # 무지개다리: 안락사, 자연사, 반환 (centers API와 동일하게)
                 queryset = queryset.filter(
                     Q(protection_status='안락사') | 
-                    Q(protection_status='자연사')
+                    Q(protection_status='자연사') 
                 )
             elif filters.status == '반환':
                 # 반환
@@ -307,11 +307,8 @@ async def get_animals(
                 # 방사
                 queryset = queryset.filter(protection_status='방사')
             elif filters.status == '입양완료':
-                # 입양완료: 입양완료, 반환
-                queryset = queryset.filter(
-                    Q(protection_status='입양완료') | 
-                    Q(protection_status='반환')
-                )
+                # 입양완료: 입양완료
+                queryset = queryset.filter(protection_status='입양완료')
             else:
                 # 기존 status 필터를 protection_status로 직접 매핑 (호환성)
                 if filters.status in ['보호중', '임시보호', '안락사', '자연사', '반환', '기증', '방사', '입양완료']:

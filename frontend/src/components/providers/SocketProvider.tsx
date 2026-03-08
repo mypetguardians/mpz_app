@@ -67,14 +67,14 @@ export function SocketProvider({ children }: SocketProviderProps) {
     const isDevelopment =
       typeof window !== "undefined" && window.location.hostname === "localhost";
     const protocol = isDevelopment ? "ws" : "wss";
-    const host = isDevelopment ? "localhost:8000" : window.location.hostname; // 실제 백엔드 도메인으로 변경 필요
+    const wsHost = process.env.NEXT_PUBLIC_WS_HOST || (isDevelopment ? "localhost:8000" : "api.mpz.kr");
 
     // JWT 토큰 가져오기
     const accessToken = Cookies.get("accessToken") || Cookies.get("access");
     const tokenParam = accessToken
       ? `?token=${encodeURIComponent(accessToken)}`
       : "";
-    const socketUrl = `${protocol}://${host}/ws/notifications/${user.id}/${tokenParam}`;
+    const socketUrl = `${protocol}://${wsHost}/ws/notifications/${user.id}/${tokenParam}`;
 
     const connectWebSocket = () => {
       try {
@@ -82,7 +82,6 @@ export function SocketProvider({ children }: SocketProviderProps) {
 
         // 연결 성공
         newSocket.onopen = () => {
-          console.log("WebSocket 연결됨");
           setIsConnected(true);
           if (reconnectTimeoutRef.current) {
             clearTimeout(reconnectTimeoutRef.current);
@@ -133,7 +132,6 @@ export function SocketProvider({ children }: SocketProviderProps) {
                 updated_at: data.created_at || new Date().toISOString(),
               };
 
-              console.log("새 알림 수신:", notification);
               setNotifications((prev: Notification[]) => [
                 notification,
                 ...prev,
@@ -160,17 +158,14 @@ export function SocketProvider({ children }: SocketProviderProps) {
                     : n
                 )
               );
-            } else if (data.type === "connection_established") {
-              console.log("WebSocket 연결 성공:", data.message);
             }
-          } catch (error) {
-            console.error("메시지 파싱 오류:", error);
+          } catch {
+            // ignore malformed messages
           }
         };
 
         // 연결 해제
         newSocket.onclose = () => {
-          console.log("WebSocket 연결 해제됨");
           setIsConnected(false);
           socketRef.current = null;
           setSocket(null);
@@ -184,15 +179,13 @@ export function SocketProvider({ children }: SocketProviderProps) {
         };
 
         // 연결 오류 처리
-        newSocket.onerror = (error) => {
-          console.error("WebSocket 연결 오류:", error);
+        newSocket.onerror = () => {
           setIsConnected(false);
         };
 
         socketRef.current = newSocket;
         setSocket(newSocket);
-      } catch (error) {
-        console.error("WebSocket 생성 오류:", error);
+      } catch {
         setIsConnected(false);
       }
     };
@@ -218,12 +211,8 @@ export function SocketProvider({ children }: SocketProviderProps) {
       pushTokenRegisteredRef.current = true;
       // 웹 푸시 알림 권한 요청 및 토큰 등록
       requestPermissionAndRegisterToken()
-        .then(() => {
-          console.log("SocketProvider: 푸시 알림 등록 완료");
-        })
-        .catch((error) => {
-          console.warn("SocketProvider: 푸시 알림 등록 실패:", error);
-          pushTokenRegisteredRef.current = false; // 실패 시 재시도 가능하도록
+        .catch(() => {
+          pushTokenRegisteredRef.current = false;
         });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

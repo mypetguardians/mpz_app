@@ -98,4 +98,5 @@ dmypy.json
 # Android build artifacts / APKs (do not commit)
 MPZ-debug.apk
 *.apk
+*.aab
 frontend/android/app/build/

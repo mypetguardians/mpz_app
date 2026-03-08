@@ -10,12 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
-from pathlib import Path
-from urllib.parse import urlparse
-from decouple import config
-from pathlib import Path
+import os
 import sys
+from pathlib import Path
 from urllib.parse import urlparse
+
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -279,7 +279,6 @@ LANGCHAIN_API_KEY = config("LANGCHAIN_API_KEY", default="")
 LANGCHAIN_ENDPOINT = config("LANGCHAIN_ENDPOINT", default="https://api.smith.langchain.com")
 
 # Set environment variables for LangSmith if enabled
-import os
 if LANGCHAIN_TRACING_V2:
     os.environ["LANGCHAIN_TRACING_V2"] = str(LANGCHAIN_TRACING_V2).lower()
     os.environ["LANGCHAIN_PROJECT"] = LANGCHAIN_PROJECT
@@ -291,10 +290,6 @@ SMS_API_KEY=config("SMS_API_KEY", default="")
 
 # Firebase Admin SDK 초기화
 try:
-    # Firebase 모듈 import 시 자동으로 초기화됨
-    # firebase/__init__.py에서 자동으로 Firebase Admin SDK를 초기화합니다
-    import sys
-    from pathlib import Path
     firebase_path = BASE_DIR / "firebase"
     if firebase_path.exists():
         sys.path.insert(0, str(BASE_DIR))

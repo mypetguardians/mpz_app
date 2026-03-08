@@ -24,7 +24,6 @@ class AnimalRecommendation(BaseModel):
     """개별 동물 추천 정보"""
     animal_id: str = Field(..., description="동물 ID")
     animal_name: str = Field(..., description="동물 이름")
-    animal_type: str = Field(..., description="동물 종류 (개, 고양이 등)")
     breed: Optional[str] = Field(None, description="품종")
     age: Optional[int] = Field(None, description="나이(개월 수)")
     gender: str = Field(..., description="성별")
@@ -41,7 +40,6 @@ class AnimalRecommendation(BaseModel):
     sensitivity: Optional[int] = Field(None, description="예민함 정도 (1-5)")
     sociability: Optional[int] = Field(None, description="사회성 (1-5)")
     separation_anxiety: Optional[int] = Field(None, description="분리불안 정도 (1-5)")
-    basic_training: Optional[int] = Field(None, description="기본 훈련 상태 (1-5)")
     # 동물 설명 추가
     description: Optional[str] = Field(None, description="동물 설명")
     personality: Optional[str] = Field(None, description="성격")
@@ -96,7 +94,6 @@ class AIAnimalMatchingResponse(BaseModel):
                     {
                         "animal_id": "12345",
                         "animal_name": "바둑이",
-                        "animal_type": "개",
                         "breed": "골든 리트리버",
                         "age": 24,
                         "gender": "수컷",
@@ -122,7 +119,6 @@ class AIAnimalMatchingResponse(BaseModel):
                         "sensitivity": None,
                         "sociability": 5,
                         "separation_anxiety": 2,
-                        "basic_training": 4,
                         "description": "활발하고 친근한 성격의 골든 리트리버",
                         "personality": None,
                         "health_notes": "건강상태 양호",

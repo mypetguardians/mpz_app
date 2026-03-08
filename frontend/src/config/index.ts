@@ -47,7 +47,7 @@ const baseConfig: Partial<AppConfig> = {
     baseUrl: "https://pub-cb782373d9db4c77afff3d6f1e4d28af.r2.dev/uploads/",
   },
   jwt: {
-    secret: process.env.JWT_SECRET || "mpz-default-secret-change-in-production",
+    secret: process.env.JWT_SECRET || "",
     expiresIn: "24h",
   },
   kakao: {
@@ -241,10 +241,7 @@ export const config = getConfig();
 
 // 설정 검증
 export function validateConfig(cfg: AppConfig): void {
-  if (
-    !cfg.jwt.secret ||
-    cfg.jwt.secret === "mpz-default-secret-change-in-production"
-  ) {
+  if (!cfg.jwt.secret) {
     if (cfg.env === "prod") {
       throw new Error("JWT_SECRET must be set in production");
     }

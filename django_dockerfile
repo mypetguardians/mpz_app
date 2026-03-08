@@ -22,11 +22,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /code
 COPY ./backend /code
 
-# Django 환경 변수
-ARG DJANGO_SECRET_KEY
-ENV DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
-ARG DJANGO_DEBUG=0
-ENV DJANGO_DEBUG=${DJANGO_DEBUG}
+# Django 환경 변수 (런타임에 주입)
+ENV DJANGO_DEBUG=0
 
 # 실행 스크립트 생성 (collectstatic 이동)
 ARG PROJ_NAME="cfehome"

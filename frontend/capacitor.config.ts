@@ -40,7 +40,7 @@ const config: CapacitorConfig = {
     },
     // KakaoLogin (Capacitor plugin)
     KakaoLoginPlugin: {
-      appKey: "30c65f4b266ed8e462b30c91518d174b",
+      appKey: process.env.KAKAO_NATIVE_APP_KEY || "",
     },
     Keyboard: {
       resize: "body",

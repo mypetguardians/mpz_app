@@ -124,7 +124,7 @@ export function KakaoButton({
 
       // 웹 환경: 기존 OAuth 플로우 사용
       console.log("🌐 웹 환경에서 카카오 로그인 시작", { platform, isNative });
-      const clientId = "e87b92ff4188fc038238a9a22eb0bf35";
+      const clientId = process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID || "";
       if (!clientId) {
         console.error("카카오 클라이언트 ID가 설정되지 않았습니다.");
         return;

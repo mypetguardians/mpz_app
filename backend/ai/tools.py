@@ -1,9 +1,7 @@
-from langchain_core.tools import tool
-from typing import List, Dict, Any, Optional
-from django.db import transaction
-from asgiref.sync import sync_to_async
-import json
 import logging
+from typing import List, Dict, Any, Optional
+
+from langchain_core.tools import tool
 
 # AI 모듈 전용 로거 설정
 logger = logging.getLogger('ai.tools')
@@ -58,16 +56,14 @@ def get_user_personality_test_data(user_id: str) -> Dict[str, Any]:
 def get_available_animals(
     protection_status: Optional[str] = "보호중",
     adoption_status: Optional[str] = "입양가능",
-    animal_type: Optional[str] = None,
     limit: int = 20
 ) -> List[Dict[str, Any]]:
     """
     입양 가능한 동물 목록을 조회합니다.
-    
+
     Args:
         protection_status: 보호 상태 (기본값: 보호중)
         adoption_status: 입양 상태 (기본값: 입양가능)
-        animal_type: 동물 종류 필터
         limit: 조회할 최대 개수
         
     Returns:
@@ -81,9 +77,6 @@ def get_available_animals(
             protection_status=protection_status or "보호중",
             adoption_status=adoption_status or "입양가능"
         ).select_related('center')
-        
-        if animal_type:
-            queryset = queryset.filter(animal_type=animal_type)
         
         animals = queryset.order_by('?')[:limit]
         
@@ -106,7 +99,6 @@ def get_available_animals(
                 "sensitivity": animal.sensitivity,
                 "sociability": animal.sociability,
                 "separation_anxiety": animal.separation_anxiety,
-                "basic_training": animal.basic_training,
                 "trainer_comment": animal.trainer_comment,
                 "center_name": animal.center.name if animal.center else None,
                 "adoption_fee": animal.adoption_fee,
@@ -116,9 +108,9 @@ def get_available_animals(
                 "adoption_status": animal.adoption_status,
             }
             animal_list.append(animal_data)
-        
+
         return animal_list
-        
+
     except Exception as e:
         return [{
             "status": "error",
@@ -132,7 +124,6 @@ def filter_animals_by_characteristics(
     activity_level_range: Optional[tuple] = None,
     sociability_min: Optional[int] = None,
     separation_anxiety_max: Optional[int] = None,
-    basic_training_min: Optional[int] = None,
     is_female: Optional[bool] = None,
     size_category: Optional[str] = None,
     max_age: Optional[int] = None,
@@ -145,7 +136,6 @@ def filter_animals_by_characteristics(
         activity_level_range: 활동량 범위 (min, max)
         sociability_min: 최소 사회성 점수
         separation_anxiety_max: 최대 분리불안 점수
-        basic_training_min: 최소 기본 훈련 점수
         is_female: 성별 필터 (True: 암컷, False: 수컷, None: 전체)
         size_category: 체형 필터 ("소형": 10kg 미만, "중형": 10-25kg, "대형": 25kg 이상, None: 전체)
         max_age: 최대 나이 (년 단위, 해당 나이 이하의 동물들을 필터링)
@@ -162,7 +152,6 @@ def filter_animals_by_characteristics(
                 f"activity_level_range: {activity_level_range}, "
                 f"sociability_min: {sociability_min}, "
                 f"separation_anxiety_max: {separation_anxiety_max}, "
-                f"basic_training_min: {basic_training_min}, "
                 f"is_female: {is_female}, "
                 f"size_category: {size_category}, "
                 f"max_age: {max_age}")
@@ -177,14 +166,6 @@ def filter_animals_by_characteristics(
         # 기본 쿼리 결과 로깅
         initial_count = queryset.count()
         logger.info(f"기본 조건 후 동물 수: {initial_count}마리")
-        
-        # 성격 키워드 필터링
-        # if personality_traits:
-        #     personality_q = Q()
-        #     for trait in personality_traits:
-        #         personality_q |= Q(personality__icontains=trait)
-        #     queryset = queryset.filter(personality_q)
-        #     logger.info(f"성격 필터 후 동물 수: {queryset.count()}마리 (조건: {personality_traits})")
         
         # 활동량 필터링
         if activity_level_range:
@@ -204,11 +185,6 @@ def filter_animals_by_characteristics(
         if separation_anxiety_max is not None:
             queryset = queryset.filter(separation_anxiety__lte=separation_anxiety_max)
             logger.info(f"분리불안 필터 후 동물 수: {queryset.count()}마리 (최대: {separation_anxiety_max})")
-        
-        # 기본 훈련 필터링
-        if basic_training_min is not None:
-            queryset = queryset.filter(basic_training__gte=basic_training_min)
-            logger.info(f"기본훈련 필터 후 동물 수: {queryset.count()}마리 (최소: {basic_training_min})")
         
         # 성별 필터링
         if is_female is not None:
@@ -248,7 +224,6 @@ def filter_animals_by_characteristics(
                 "sensitivity": animal.sensitivity,
                 "sociability": animal.sociability,
                 "separation_anxiety": animal.separation_anxiety,
-                "basic_training": animal.basic_training,
                 "trainer_comment": animal.trainer_comment,
                 "center_name": animal.center.name if animal.center else None,
                 "protection_status": animal.protection_status,
@@ -303,7 +278,6 @@ def get_animal_by_id(animal_id: str) -> Dict[str, Any]:
             "sensitivity": animal.sensitivity,
             "sociability": animal.sociability,
             "separation_anxiety": animal.separation_anxiety,
-            "basic_training": animal.basic_training,
             "trainer_comment": animal.trainer_comment,
             "center_name": animal.center.name if animal.center else None,
             "adoption_fee": animal.adoption_fee,

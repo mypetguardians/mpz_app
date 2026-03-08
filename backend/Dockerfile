@@ -32,19 +32,15 @@ COPY ./ /backend
 
 WORKDIR /backend
 
-# Set environment variables
-ARG DJANGO_SECRET_KEY
-ENV DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
-
-ARG DJANGO_DEBUG=0
-ENV DJANGO_DEBUG=${DJANGO_DEBUG}
+# Set environment variables (secrets injected at runtime)
+ENV DJANGO_DEBUG=0
 
 # Install requirements
 RUN pip install -r /tmp/requirements.txt
 RUN pip install gunicorn
 
-# Run initial commands
-RUN python manage.py collectstatic --noinput
+# Run initial commands (use dummy key for collectstatic only)
+RUN DJANGO_SECRET_KEY=build-only-dummy-key python manage.py collectstatic --noinput
 
 RUN chmod +x paracord_runner.sh
 

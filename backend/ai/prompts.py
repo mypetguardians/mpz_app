@@ -106,7 +106,7 @@ ANIMAL_MATCHING_ANALYSIS_PROMPT = """
      * personality: 실제 동물 성격 데이터
      * sensitivity: 실제 예민함 수치 (1-5)
      * sociability: 실제 사회성 수치 (1-5)
-     * activity_level, separation_anxiety, basic_training 등 모든 특성값
+     * activity_level, separation_anxiety 등 모든 특성값
    - 각 동물별 1-5점 매칭 점수 부여
    - 상세한 추천 이유와 고려사항 제공
    - 구체적인 케어 팁 안내

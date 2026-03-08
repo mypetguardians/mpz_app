@@ -1,11 +1,14 @@
 """AI 관련 서비스 로직 모듈"""
 
+import logging
 from typing import Dict, Any
 from datetime import datetime
 from asgiref.sync import sync_to_async
 import uuid
 import re
 from langchain_core.output_parsers import PydanticOutputParser
+
+logger = logging.getLogger(__name__)
 
 from ai.agents import get_animal_matching_agent
 from ai.schemas import AIAnimalMatchingResponse
@@ -35,7 +38,6 @@ def sanitize_recommendations(ai_result):
             rec["sociability"] = db_animal.sociability
             rec["activity_level"] = db_animal.activity_level
             rec["separation_anxiety"] = db_animal.separation_anxiety
-            rec["basic_training"] = db_animal.basic_training
             rec["center_name"] = db_animal.center.name if db_animal.center else None
             rec["adoption_fee"] = db_animal.adoption_fee
             rec["description"] = db_animal.description
@@ -54,7 +56,7 @@ def sanitize_recommendations(ai_result):
                 
         else:
             # 존재하지 않는 동물 ID인 경우 로그나 처리
-            print(f"Warning: Animal ID {rec.get('animal_id')} not found in database")
+            logger.warning(f"Animal ID {rec.get('animal_id')} not found in database")
     
     return ai_result
 
@@ -83,10 +85,7 @@ def run_agent_recommendation(target_user_id: str, limit: int):
     # 응답에서 JSON 구조 추출 시도
         ai_response = result["messages"][-1].content
         
-        # AI 응답 원본 로깅
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.info(f"[AI 응답 원본] user_id: {target_user_id}, ai_response: {ai_response}")
+        logger.info(f"AI 응답 수신 - user_id: {target_user_id}")
         
         # Pydantic Parser로 구조화된 응답 파싱 시도
         parser = PydanticOutputParser(pydantic_object=AIAnimalMatchingResponse)

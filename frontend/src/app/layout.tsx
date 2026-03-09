@@ -102,9 +102,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ko">
-      <head>
-        <link rel="manifest" href="/manifest.json" />
-      </head>
+      <head />
       <body
         className={`${inter.className} bg-wh max-w-[420px] mx-auto shadow-md `}
       >

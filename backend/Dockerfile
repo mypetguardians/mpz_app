@@ -56,6 +56,9 @@ RUN adduser \
     --no-create-home \
     django-user
 
+# 로그 파일 생성 및 권한 설정
+RUN touch /backend/django.log && chown django-user:django-user /backend/django.log
+
 USER django-user
 
 CMD ["bash", "./paracord_runner.sh"]

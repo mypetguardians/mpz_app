@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile
       args:
         - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
-    command: ["npm", "start"]
+    command: ["node", "server.js"]
     networks:
       - network
     restart: always

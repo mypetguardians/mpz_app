@@ -1,21 +1,12 @@
-# Set the python version as a build-time argument
 ARG PYTHON_VERSION=3.12-slim-bullseye
-FROM python:${PYTHON_VERSION}
 
-# Create a virtual environment
+# ---- Builder stage: 의존성 설치 ----
+FROM python:${PYTHON_VERSION} AS builder
+
 RUN python -m venv /opt/venv
-
-# Set the virtual environment as the current location
 ENV PATH=/opt/venv/bin:$PATH
 
-# Upgrade pip
-RUN pip install --upgrade pip
-
-# Set Python-related environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-
-# Install os dependencies
+# 빌드 도구 포함해서 설치 (gcc 필요)
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     libjpeg-dev \
@@ -23,42 +14,38 @@ RUN apt-get update && apt-get install -y \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Create and set the working directory
-RUN mkdir -p /backend
-
-# Copy requirements and install dependencies
 COPY requirements.txt /tmp/requirements.txt
-COPY ./ /backend
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r /tmp/requirements.txt gunicorn
 
-WORKDIR /backend
+# ---- Runner stage: 빌드 도구 제외한 최종 이미지 ----
+FROM python:${PYTHON_VERSION} AS runner
 
-# Set environment variables (secrets injected at runtime)
-ENV DJANGO_DEBUG=0
+# 빌드된 venv만 복사 (gcc 등 빌드 도구는 포함되지 않음)
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH=/opt/venv/bin:$PATH
 
-# Install requirements
-RUN pip install -r /tmp/requirements.txt
-RUN pip install gunicorn
-
-# Run initial commands (use dummy key for collectstatic only)
-RUN DJANGO_SECRET_KEY=build-only-dummy-key python manage.py collectstatic --noinput
-
-RUN chmod +x paracord_runner.sh
-
-# Clean up
-RUN apt-get remove --purge -y \
-    && apt-get autoremove -y \
-    && apt-get clean \
+# 런타임에 필요한 시스템 라이브러리만 설치
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    libjpeg-dev \
+    libcairo2 \
     && rm -rf /var/lib/apt/lists/*
 
-# 사용자 설정
-RUN adduser \
-    --disabled-password \
-    --no-create-home \
-    django-user
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV DJANGO_DEBUG=0
 
-# 로그 파일 생성 및 권한 설정
-RUN touch /backend/django.log && chown django-user:django-user /backend/django.log
+RUN mkdir -p /backend
+COPY ./ /backend
+WORKDIR /backend
+
+RUN DJANGO_SECRET_KEY=build-only-dummy-key python manage.py collectstatic --noinput && \
+    chmod +x paracord_runner.sh
+
+RUN adduser --disabled-password --no-create-home django-user && \
+    touch /backend/django.log && \
+    chown django-user:django-user /backend/django.log
 
 USER django-user
-
 CMD ["bash", "./paracord_runner.sh"]

@@ -15,15 +15,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: >
-      bash -c "
-        python manage.py collectstatic --noinput &&
-        python manage.py migrate --no-input &&
-        gunicorn cfehome.asgi:application
-          -k uvicorn.workers.UvicornWorker
-          --workers 4
-          --bind 0.0.0.0:8000
-      "
+    command: ["bash", "./paracord_runner.sh"]
     env_file:
       - ./backend/.env.${APP_ENV:-prod}
     networks:

@@ -1,0 +1,49 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main   # prod 배포
+      - dev    # dev 배포
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set environment variables
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "EC2_HOST=${{ secrets.PROD_EC2_HOST }}" >> $GITHUB_ENV
+            echo "APP_ENV=prod" >> $GITHUB_ENV
+          else
+            echo "EC2_HOST=${{ secrets.DEV_EC2_HOST }}" >> $GITHUB_ENV
+            echo "APP_ENV=dev" >> $GITHUB_ENV
+          fi
+
+      - name: Copy files to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ env.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "."
+          target: "~/mpz_app"
+          rm: false
+
+      - name: Deploy on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ env.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: APP_ENV
+          script: |
+            cd ~/mpz_app
+            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --build
+            docker compose -f docker-compose.prod.yml exec -T backend python manage.py migrate --noinput
+            docker compose -f docker-compose.prod.yml exec -T backend python manage.py collectstatic --noinput --clear
+            echo "✅ Deploy complete: $APP_ENV"

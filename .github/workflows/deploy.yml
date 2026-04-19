@@ -43,6 +43,7 @@ jobs:
           envs: APP_ENV
           script: |
             cd ~/mpz_app
+            set -a && source backend/.env.$APP_ENV && set +a
             APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --build
             docker compose -f docker-compose.prod.yml exec -T backend python manage.py migrate --noinput
             docker compose -f docker-compose.prod.yml exec -T backend python manage.py collectstatic --noinput --clear

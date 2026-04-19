@@ -107,6 +107,8 @@ class AnimalListQueryIn(Schema):
     has_trainer_comment: Optional[str] = Field(None, description="훈련사 코멘트 존재 여부 (true/false)")
     sort_by: Optional[str] = Field("created_at", description="정렬 기준 (created_at, admission_date, megaphone_count)")
     sort_order: Optional[str] = Field("desc", description="정렬 순서 (asc/desc)")
+    protection_status: Optional[str] = Field(None, description="보호 상태 필터 (보호중, 임시보호, 안락사, 자연사, 반환, 기증, 방사, 입양완료)")
+    adoption_status: Optional[str] = Field(None, description="입양 상태 필터 (입양가능, 입양진행중, 입양완료, 입양불가)")
 
 
 class MegaphoneToggleIn(Schema):

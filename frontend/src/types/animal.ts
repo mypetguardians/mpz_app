@@ -100,6 +100,8 @@ export interface GetAnimalsParams {
   sort_order?: "asc" | "desc";
   page?: number;
   page_size?: number;
+  protection_status?: string;
+  adoption_status?: "입양가능" | "입양진행중" | "입양완료" | "입양불가";
 }
 
 // API 응답의 실제 snake_case 구조

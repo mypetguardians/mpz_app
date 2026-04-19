@@ -337,6 +337,10 @@ async def get_animals(
                 queryset = queryset.exclude(trainer_comment__isnull=True).exclude(trainer_comment="")
             else:
                 queryset = queryset.filter(Q(trainer_comment__isnull=True) | Q(trainer_comment=""))
+        if filters.protection_status:
+            queryset = queryset.filter(protection_status=filters.protection_status)
+        if filters.adoption_status:
+            queryset = queryset.filter(adoption_status=filters.adoption_status)
         if filters.breed:
             queryset = queryset.filter(breed__icontains=filters.breed)
         if filters.region:

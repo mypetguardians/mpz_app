@@ -7,10 +7,12 @@ import axios, {
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.mpz.kr/v1/";
 //const BASE_URL = "http://127.0.0.1:8000/v1/";
 
-// 디버깅: 환경 변수 확인 (개발 환경에서만)
-if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
-  console.log("🔍 API Base URL:", BASE_URL);
-  console.log("🔍 Raw env value:", process.env.NEXT_PUBLIC_API_BASE_URL);
+const IS_DEV = BASE_URL.includes("dev-api");
+
+if (typeof window !== "undefined") {
+  const env = IS_DEV ? "DEV" : "PROD";
+  const color = IS_DEV ? "#f59e0b" : "#3e93fa";
+  console.log(`%c[MPZ ${env}] API: ${BASE_URL}`, `color:${color};font-weight:bold`);
 }
 
 const instance: AxiosInstance = axios.create({

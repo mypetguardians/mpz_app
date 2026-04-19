@@ -102,6 +102,8 @@ export default function Home() {
     sort_by: "admission_date",
     sort_order: "asc",
     region: selectedLocation || undefined,
+    protection_status: "보호중",
+    adoption_status: "입양가능",
   });
 
   // PetSection용 쿼리 - megaphone_count 순
@@ -114,6 +116,8 @@ export default function Home() {
     sort_by: "megaphone_count",
     sort_order: "desc",
     region: selectedLocation || undefined,
+    protection_status: "보호중",
+    adoption_status: "입양가능",
   });
 
   const topSectionAnimals: RawAnimalResponse[] =

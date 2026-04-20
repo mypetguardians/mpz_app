@@ -14,17 +14,17 @@ export async function GET(request: NextRequest) {
 
   try {
     const decodedUrl = decodeURIComponent(imageUrl);
-    const response = await fetch(
-      decodedUrl,
-      // force-cache: 동일 URL에 대해 서버단 캐시 사용
-      {
-        headers: {
-          "User-Agent": "Mozilla/5.0",
-        },
-        cache: "force-cache",
-        next: { revalidate: 86400 },
-      }
-    );
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+    const response = await fetch(decodedUrl, {
+      headers: { "User-Agent": "Mozilla/5.0" },
+      cache: "force-cache",
+      next: { revalidate: 86400 },
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       // 404 또는 다른 에러 발생 시 기본 이미지 반환

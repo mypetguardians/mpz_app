@@ -31,7 +31,6 @@ export default function AnimalImage({
   const [retryCount, setRetryCount] = useState(0);
 
   const proxiedImageUrl = useMemo(() => getProxyImageUrl(imageUrl), [imageUrl]);
-  const isProxyUrl = proxiedImageUrl?.startsWith("/api/proxy-image") ?? false;
   const shouldShowFallback = !proxiedImageUrl || hasError;
 
   // proxiedImageUrl이 변경될 때만 상태 초기화
@@ -72,7 +71,7 @@ export default function AnimalImage({
         src={proxiedImageUrl}
         alt={alt}
         className={cn("object-cover", imageClassName)}
-        unoptimized={isProxyUrl}
+        unoptimized={true}
         onLoad={(event) => {
           setIsLoading(false);
           setHasError(false);

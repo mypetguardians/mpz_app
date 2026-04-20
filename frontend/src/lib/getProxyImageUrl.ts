@@ -17,5 +17,11 @@ export function getProxyImageUrl(imageUrl?: string | null) {
     return trimmedUrl;
   }
 
+  // HTTPS URL은 브라우저가 직접 fetch (EC2 서버 경유 불필요)
+  if (trimmedUrl.startsWith("https://")) {
+    return trimmedUrl;
+  }
+
+  // HTTP URL은 mixed content 방지를 위해 프록시 경유
   return `/api/proxy-image?url=${encodeURIComponent(trimmedUrl)}`;
 }

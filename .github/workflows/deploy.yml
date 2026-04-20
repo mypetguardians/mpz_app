@@ -43,8 +43,10 @@ jobs:
           envs: APP_ENV
           script: |
             cd ~/mpz_app
-            set -a && source backend/.env.$APP_ENV && set +a
+            export NEXT_PUBLIC_API_BASE_URL=$(grep '^NEXT_PUBLIC_API_BASE_URL' backend/.env.$APP_ENV | cut -d= -f2-)
+            set -a && source backend/.env.$APP_ENV && set +a || true
             APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --build
-            docker compose -f docker-compose.prod.yml exec -T backend python manage.py migrate --noinput
-            docker compose -f docker-compose.prod.yml exec -T backend python manage.py collectstatic --noinput --clear
+            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml restart nginx
+            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml exec -T backend python manage.py migrate --noinput
+            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml exec -T backend python manage.py collectstatic --noinput --clear
             echo "✅ Deploy complete: $APP_ENV"

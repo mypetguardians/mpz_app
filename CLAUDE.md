@@ -22,8 +22,11 @@ ssh -i ~/.ssh/mpz-key.pem ubuntu@52.79.128.129   # dev
 ssh -i ~/.ssh/mpz-key.pem ubuntu@43.202.171.188  # prod
 ```
 
-**주의:** EC2에서 아웃바운드 TCP(443, 80) 연결이 안 됨 (원인 미파악). ping/DNS/SSH는 정상.
-→ CI/CD는 GitHub Actions가 EC2로 SSH 접속하는 방식으로 우회.
+**⚠️ 미해결: EC2 아웃바운드 TCP(443, 80) 차단**
+- `curl https://...` 모두 timeout. TCP 22(SSH) 아웃바운드는 정상.
+- IGW 교체 완료했으나 여전히 차단. NACL/보안그룹/iptables 모두 이상 없음. 원인 미파악.
+- **영향**: Docker Hub 접근 불가(재빌드 안 됨), R2 이미지 서버프록시 불가, OpenAI/Firebase 외부 API 불가
+- CI/CD는 GitHub Actions가 EC2로 SSH 접속(인바운드)하는 방식으로 우회 가능.
 
 ### Supabase DB
 
@@ -177,7 +180,7 @@ FRONTEND_URL, CORS_ALLOWED_ORIGINS
 
 ## 주요 주의사항
 
-1. **EC2 아웃바운드 TCP 불가**: EC2에서 `curl https://...` 불가. 앱 내 외부 API 호출 동작 여부 별도 확인 필요.
+1. **EC2 아웃바운드 TCP 불가**: EC2에서 `curl https://...` 모두 timeout. Docker 재빌드(`--build`) 불가. R2/외부 API 서버사이드 호출 불가. (→ 미해결 항목 참고)
 2. **git push는 SSH로**: `git remote set-url origin git@github.com:WaterMinCho/mpz_app.git` (HTTPS 401 에러)
 3. **.env 파일은 gitignore**: EC2에 직접 업로드해야 함. CI/CD 파이프라인은 코드만 전송, env는 EC2에 이미 존재해야 함.
 4. **docker compose vs docker-compose**: EC2에서는 `docker compose` (v2) 사용.
@@ -188,10 +191,37 @@ FRONTEND_URL, CORS_ALLOWED_ORIGINS
 
 ## 미완료 항목
 
+### 🔴 최우선 (이미지 미노출)
+- [ ] **EC2 아웃바운드 TCP 443 원인 파악 및 해결** — 해결되면 Docker 재빌드, R2 프록시, 외부 API 모두 정상화
+- [ ] **R2 `.bin` Content-Type 문제** — Cloudflare 대시보드에서 기존 객체 Content-Type 일괄 수정(image/jpeg)하거나, 백엔드 업로드 코드 수정
+
+### 🟡 배포/인프라
+- [ ] **Docker 재빌드 정상화** — EC2 아웃바운드 해결 후 `docker compose up -d --build` 가능
+- [ ] **dev EC2 JS 패치 상태** — 현재 컨테이너 내부 JS 수동 패치 중. 재빌드 전까지 컨테이너 재시작 금지
+- [ ] 카카오 로그인 동작 확인 (dev/prod)
+- [ ] 모니터링 구축 (Freshping + Sentry + GitHub Actions Slack 배포 알림)
+
+### 🟢 기타
+- [ ] 이미지 성능 최적화 (현재 `unoptimized: true` 상태 — 임시)
+- [ ] EC2 → Supabase Storage 이관 검토
+- [ ] prod → dev Supabase 데이터 복제
 - [ ] `FIREBASE_ADMIN_CREDENTIALS_JSON` — 대표님/이전 개발사에서 수령 필요
 - [ ] `OPENAI_API_KEY` — 대표님에게 수령 필요
 - [ ] `LANGCHAIN_API_KEY` — 대표님에게 수령 필요
 - [ ] `PUBLIC_DATA_SERVICE_KEY` — 대표님에게 수령 필요
 - [ ] `SYNC_API_KEY` — 직접 생성 가능: `openssl rand -hex 32`
-- [ ] prod → dev Supabase 데이터 복제
-- [ ] 모니터링 구축 (Sentry, UptimeRobot 등)
+
+---
+
+## 이미지 아키텍처 현황
+
+R2에 이미지가 `.bin` 확장자로 저장됨 (`Content-Type: application/octet-stream`).
+브라우저가 직접 fetch하면 이미지로 인식 못 함.
+
+**원래 설계:** `/api/proxy-image` 라우트가 바이트 시그니처 감지 → 올바른 Content-Type으로 서빙
+**현재 문제:** EC2 아웃바운드 443 차단 → proxy가 R2 fetch 실패
+
+관련 파일:
+- `frontend/src/lib/getProxyImageUrl.ts` — 이미지 URL을 프록시로 변환
+- `frontend/src/app/api/proxy-image/route.ts` — 서버사이드 이미지 프록시 (Content-Type 변환 포함)
+- `frontend/src/components/ui/AnimalImage.tsx` — 이미지 렌더링 컴포넌트

@@ -253,6 +253,24 @@ async def kakao_login_callback(request, code: str, state: str, redirect_uri: str
     # 상태에 따른 리다이렉트 URL 설정
     from urllib.parse import unquote
 
+    # state에서 frontend URL 추출 (로컬 개발 지원)
+    frontend_base = settings.FRONTEND_URL
+    if state and "_frontend_" in state:
+        try:
+            encoded_url = state.split("_frontend_", 1)[1]
+            decoded_url = unquote(encoded_url)
+            # localhost 또는 설정된 FRONTEND_URL만 허용
+            allowed_origins = [
+                settings.FRONTEND_URL,
+                "http://localhost:3000",
+                "http://127.0.0.1:3000",
+            ]
+            if decoded_url in allowed_origins:
+                frontend_base = decoded_url
+                print(f"state에서 frontend URL 추출: {frontend_base}")
+        except Exception as e:
+            print(f"state에서 frontend URL 파싱 실패: {e}")
+
     redirect_candidate = (
         request.GET.get("redirect")
         or request.GET.get("redirect_path")
@@ -268,9 +286,9 @@ async def kakao_login_callback(request, code: str, state: str, redirect_uri: str
     if redirect_path and not redirect_path.startswith(("http://", "https://")):
         if not redirect_path.startswith("/"):
             redirect_path = f"/{redirect_path}"
-        redirect_url = f"{settings.FRONTEND_URL}{redirect_path}"
+        redirect_url = f"{frontend_base}{redirect_path}"
     else:
-        redirect_url = redirect_path if redirect_path else settings.FRONTEND_URL
+        redirect_url = redirect_path if redirect_path else frontend_base
 
     # JWT 토큰을 쿠키에 설정하고 홈으로 리다이렉트
     try:

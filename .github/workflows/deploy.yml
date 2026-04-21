@@ -49,6 +49,12 @@ jobs:
             echo "APP_ENV=$APP_ENV" > .env
             grep '^NEXT_PUBLIC_' backend/.env.$APP_ENV >> .env || true
 
+            # NEXT_PUBLIC_KAKAO_CLIENT_ID 추가 (backend에선 KAKAO_SOCIAL_LOGIN_CLIENT_ID로 저장)
+            if ! grep -q 'NEXT_PUBLIC_KAKAO_CLIENT_ID' .env; then
+              KAKAO_ID=$(grep '^KAKAO_SOCIAL_LOGIN_CLIENT_ID=' backend/.env.$APP_ENV | cut -d= -f2)
+              [ -n "$KAKAO_ID" ] && echo "NEXT_PUBLIC_KAKAO_CLIENT_ID=$KAKAO_ID" >> .env
+            fi
+
             APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --build
             APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml restart nginx
             APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml exec -T backend python manage.py migrate --noinput

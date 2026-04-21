@@ -159,11 +159,19 @@ async def login(request, data: UserLoginIn):
 )
 async def logout(request):
     user = request.auth
-    
+
     # 사용자의 모든 JWT 토큰 삭제
     await sync_to_async(Jwt.objects.filter(user_id=user.id).delete)()
-    
-    return {"detail": "로그아웃 되었습니다."}
+
+    from django.http import JsonResponse
+    response = JsonResponse({"detail": "로그아웃 되었습니다."})
+
+    # 쿠키 삭제
+    domain = getattr(settings, 'SESSION_COOKIE_DOMAIN', None)
+    for cookie_name in ("access", "refresh", "reset"):
+        response.delete_cookie(cookie_name, domain=domain, path="/")
+
+    return response
 
 
 @router.post(

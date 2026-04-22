@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import { getProxyImageUrl } from "@/lib/getProxyImageUrl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { User } from "@phosphor-icons/react";
@@ -165,7 +166,7 @@ export default function MyPage() {
               <div className="relative w-14 h-14 rounded-[20px] overflow-hidden">
                 {user?.image ? (
                   <Image
-                    src={user.image}
+                    src={getProxyImageUrl(user.image) ?? user.image}
                     alt="프로필 이미지"
                     fill
                     sizes="56px"

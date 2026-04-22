@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { User } from "@phosphor-icons/react";
+import { getProxyImageUrl } from "@/lib/getProxyImageUrl";
 
 interface ProfileInfoProps {
   author: string;
@@ -54,7 +55,7 @@ export function ProfileInfo({
       >
         {profileImage && !hasImageError ? (
           <Image
-            src={profileImage}
+            src={getProxyImageUrl(profileImage) ?? profileImage}
             alt={author}
             fill
             sizes="48px"

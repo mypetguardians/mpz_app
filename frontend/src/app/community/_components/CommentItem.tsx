@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { getProxyImageUrl } from "@/lib/getProxyImageUrl";
 
 import { Avatar } from "@/components/ui/avatar";
 import {
@@ -60,23 +61,12 @@ export function CommentItem({
       ["센터관리자", "센터최고관리자", "훈련사"].includes(userType)) ||
     (centerName && centerName !== "");
 
-  // 디버깅용 로그 (개발 환경에서만)
-  if (process.env.NODE_ENV === "development") {
-    console.log("CommentItem Debug:", {
-      rawNickname,
-      userType,
-      centerName,
-      isCenterAccount,
-      user: comment.user,
-    });
-  }
-
   const nickname = isCenterAccount
     ? centerName && centerName !== ""
       ? `${centerName}_${rawNickname}`
       : `센터_${rawNickname}`
     : rawNickname;
-  const profileImg = comment.user?.image;
+  const profileImg = getProxyImageUrl(comment.user?.image);
 
   const isMyComment =
     user?.id && comment.user_id && user.id === comment.user_id;
@@ -194,11 +184,9 @@ export function CommentItem({
                     src={profileImg}
                     alt={nickname}
                     fill
+                    sizes="24px"
                     className="object-cover"
-                    unoptimized
-                    onError={(e) => {
-                      console.error("ProfileInfo Image load error:", e);
-                    }}
+                    onError={() => {}}
                   />
                 ) : (
                   <div
@@ -269,11 +257,9 @@ export function CommentItem({
                     src={profileImg}
                     alt={nickname}
                     fill
+                    sizes="24px"
                     className="object-cover"
-                    unoptimized
-                    onError={(e) => {
-                      console.error("ProfileInfo Image load error:", e);
-                    }}
+                    onError={() => {}}
                   />
                 ) : (
                   <div

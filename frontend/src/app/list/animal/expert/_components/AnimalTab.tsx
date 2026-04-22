@@ -21,7 +21,7 @@ function AnimalTab() {
     const seen = new Set<string>();
     return animalsData.pages
       .flatMap((page) => page.data || [])
-      .filter((animal: any) => {
+      .filter((animal: RawAnimalResponse) => {
         if (!animal?.id) return false;
         if (seen.has(animal.id)) return false;
         seen.add(animal.id);

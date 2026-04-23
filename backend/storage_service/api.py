@@ -6,7 +6,7 @@ from django.utils import timezone
 import uuid
 import io
 import os
-from PIL import Image as PILImage
+from PIL import Image as PILImage, ImageOps
 from .services import StorageClient, _decode_base64_maybe_dataurl
 from .schemas import FileUploadIn, FileUploadOut, FileDeleteIn, FileDeleteOut, FileInfoOut
 from api.security import jwt_auth
@@ -49,11 +49,19 @@ def _resize_image(data: bytes, content_type: str, folder: str) -> tuple[bytes, s
 
     try:
         img = PILImage.open(io.BytesIO(data))
+
+        # EXIF orientation 적용 (모바일 카메라 회전 보정)
+        img = ImageOps.exif_transpose(img)
+
         w, h = img.size
 
-        # 최대 크기 이하면 리사이징 불필요
+        # 최대 크기 이하면 EXIF만 보정해서 반환
         if w <= max_size and h <= max_size:
-            return data, content_type
+            if img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")
+            buf = io.BytesIO()
+            img.save(buf, format="JPEG", quality=90, optimize=True)
+            return buf.getvalue(), "image/jpeg"
 
         # 비율 유지하며 리사이징
         img.thumbnail((max_size, max_size), PILImage.LANCZOS)

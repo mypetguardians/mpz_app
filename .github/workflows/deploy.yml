@@ -55,8 +55,10 @@ jobs:
               [ -n "$KAKAO_ID" ] && echo "NEXT_PUBLIC_KAKAO_CLIENT_ID=$KAKAO_ID" >> .env
             fi
 
-            # 빌드 + 재시작 (worker 제외)
-            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --build frontend backend redis
+            # 빌드 + 재시작 (worker 제외, CACHE_BUST로 frontend 캐시 무효화)
+            CACHE_BUST=$(date +%s) APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml build --build-arg CACHE_BUST=$CACHE_BUST frontend
+            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --build backend redis
+            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d frontend
 
             # worker는 최초 생성만 (기존 컨테이너 재시작 안 함)
             APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --no-recreate worker

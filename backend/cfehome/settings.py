@@ -243,6 +243,10 @@ if DEBUG:
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# 이미지 업로드 제한 (base64 인코딩 고려, 10MB)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
+
 # ninja settings
 NINJA_PAGINATION_CLASS = "api.pagination.CustomPageNumberPagination"
 PAGINATION_PER_PAGE = 10

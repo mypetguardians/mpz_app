@@ -56,7 +56,12 @@
 - gunicorn은 HTTP만 처리, WebSocket은 Daphne 등 ASGI 서버 필요
 - prod/로컬에서 무한 재연결 시도 발생 중
 
-### 9. 모니터링
+### 9. deploy.yml 고도화 (검토)
+- [ ] GitHub Actions에서 빌드 테스트 먼저 → 실패 시 EC2 배포 안 함
+- [ ] 또는 Actions에서 이미지 빌드 → Docker Registry push → EC2에서 pull만 (더 효율적)
+- [ ] 시간 2배 문제 vs 안정성 트레이드오프 검토
+
+### 10. 모니터링
 - [ ] Freshping + Sentry + Slack 배포 알림
 - [ ] **필수**: GitHub Actions 배포 성공/실패 Slack 알림 (에러 로그 포함) — 수동 체크 제거
 

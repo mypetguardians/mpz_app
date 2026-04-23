@@ -115,7 +115,6 @@ export default function Home() {
     page_size: 100,
     sort_by: "megaphone_count",
     sort_order: "desc",
-    region: selectedLocation || undefined,
     protection_status: "보호중",
     adoption_status: "입양가능",
   });

@@ -60,8 +60,10 @@ jobs:
             # worker 최초 생성만
             APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --no-recreate worker
 
-            # 마이그레이션 + 정적 파일
-            sleep 5
+            # backend 준비 대기 후 마이그레이션 + 정적 파일
+            until APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml exec -T backend python -c "import django" 2>/dev/null; do
+              sleep 2
+            done
             APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml exec -T backend python manage.py migrate --noinput
             APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml exec -T backend python manage.py collectstatic --noinput --clear
             echo "✅ Deploy complete: $APP_ENV"

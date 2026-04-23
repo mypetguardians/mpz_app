@@ -55,8 +55,8 @@ jobs:
               [ -n "$KAKAO_ID" ] && echo "NEXT_PUBLIC_KAKAO_CLIENT_ID=$KAKAO_ID" >> .env
             fi
 
-            # 이미지 빌드 (worker 포함, 같은 이미지 공유)
-            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml build
+            # 이미지 빌드 (캐시 없이 강제 재빌드)
+            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml build --no-cache frontend backend
 
             # 웹 서비스만 재시작 (worker는 동기화 중단 방지를 위해 제외)
             APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --no-deps frontend backend nginx redis

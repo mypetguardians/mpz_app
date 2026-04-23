@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-import NextImage from "next/image";
+// import NextImage from "next/image";
 import { Container } from "@/components/common/Container";
 import { NavBar } from "@/components/common/NavBar";
 import { HomeHeader } from "@/app/_components/HomeHeader";
@@ -23,7 +23,7 @@ import {
 } from "@/lib/storage-utils";
 import { useRouter, usePathname } from "next/navigation";
 import { Banner } from "@/components/ui/Banner";
-import { BottomSheet } from "@/components/ui/BottomSheet";
+// import { BottomSheet } from "@/components/ui/BottomSheet";
 import { App } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
 
@@ -88,7 +88,7 @@ export default function Home() {
   // 메인 배너는 공통 로직 컴포넌트로 대체
   const [showMatchingNotification, setShowMatchingNotification] =
     useState(false);
-  const [showConsultModal, setShowConsultModal] = useState(false);
+  // const [showConsultModal, setShowConsultModal] = useState(false);
   //const { aiMatchingResult, setAIMatchingResult } = useMatchingStepStore();
   const { isLoading: bannerLoading } = useGetBanners({ type: "main" });
 
@@ -170,16 +170,16 @@ export default function Home() {
     router.push("/matching/result");
   };
 
-  const handleConsultClick = () => {
-    setShowConsultModal(true);
-  };
+  // const handleConsultClick = () => {
+  //   setShowConsultModal(true);
+  // };
 
-  const handleConfirmConsult = () => {
-    setShowConsultModal(false);
-    if (typeof window !== "undefined") {
-      window.open(kakaoChannelUrl, "_blank", "noopener,noreferrer");
-    }
-  };
+  // const handleConfirmConsult = () => {
+  //   setShowConsultModal(false);
+  //   if (typeof window !== "undefined") {
+  //     window.open(kakaoChannelUrl, "_blank", "noopener,noreferrer");
+  //   }
+  // };
 
   // 앱 환경에서 홈 화면에서 뒤로가기 버튼 처리
   useEffect(() => {

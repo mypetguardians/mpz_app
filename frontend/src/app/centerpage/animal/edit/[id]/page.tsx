@@ -366,13 +366,13 @@ export default function EditAnimal({
           images={formData.images}
           onImagesChange={handleImagesChange}
         />
-        {/* {isSubscriber && isTrainer && (
+        {isSubscriber && isTrainer && (
           <DetailInfo
             data={formData.detailInfo}
             onChange={handleDetailInfoChange}
             canEdit={isSubscriber && isTrainer}
           />
-        )} */}
+        )}
       </div>
       <FixedBottomBar
         variant="variant4"

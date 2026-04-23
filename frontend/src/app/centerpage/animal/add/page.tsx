@@ -485,13 +485,13 @@ export default function AddAnimal() {
           onImageAdd={handleImageAdd}
           uploadingImageIndexes={uploadingImageIndexes}
         />
-        {/* {isSubscriber && isTrainer && (
+        {isSubscriber && isTrainer && (
           <DetailInfo
             data={formData.detailInfo}
             onChange={handleDetailInfoChange}
             canEdit={isSubscriber && isTrainer}
           />
-        )} */}
+        )}
       </div>
       <FixedBottomBar
         variant="variant4"

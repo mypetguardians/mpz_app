@@ -120,11 +120,6 @@ export default function CenterSettingName() {
       return;
     }
 
-    if (!adoptionPrice.trim()) {
-      showToastMessage("책임비를 입력해주세요.");
-      return;
-    }
-
     if (!isTemporaryAdoption) {
       showToastMessage("임시보호 가능 여부를 선택해주세요.");
       return;

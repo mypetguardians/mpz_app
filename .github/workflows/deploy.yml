@@ -55,16 +55,12 @@ jobs:
               [ -n "$KAKAO_ID" ] && echo "NEXT_PUBLIC_KAKAO_CLIENT_ID=$KAKAO_ID" >> .env
             fi
 
-            # 이미지 빌드 (캐시 없이 강제 재빌드)
-            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml build --no-cache frontend backend
+            # 빌드 + 재시작 (worker 제외)
+            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --build frontend backend nginx redis
 
-            # 웹 서비스만 재시작 (worker는 동기화 중단 방지를 위해 제외)
-            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --no-deps frontend backend nginx redis
-
-            # worker가 아직 없으면 최초 1회 생성
+            # worker는 최초 생성만 (기존 컨테이너 재시작 안 함)
             APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --no-recreate worker
 
-            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml restart nginx
             APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml exec -T backend python manage.py migrate --noinput
             APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml exec -T backend python manage.py collectstatic --noinput --clear
             echo "✅ Deploy complete: $APP_ENV (worker 유지)"

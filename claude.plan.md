@@ -2,42 +2,65 @@
 
 ## 🔴 다음 세션
 
-### 1. deploy.yml 재설계
-- 현재 상태: 코드 수정 완료, 커밋 대기
-- `up -d --build --force-recreate` 한 줄로 통합
-- CACHE_BUST를 .env에서 docker-compose로 전달
-- nginx 별도 restart 제거 (resolver 자동 해결)
-- 참고: backend 대기 로직(`sleep 5`)이 충분한지 검증 필요
+### ~~1. deploy.yml 재설계~~ ✅ 완료
+- concurrency 추가, 한 줄 통합, backend 상태 기반 대기
 
-### 2. 카카오 개발자 콘솔 (코드 X, 콘솔 작업)
+### 2. 이벤트 페이지
+- 홈 배너 → 이벤트 페이지 연결
+- 스토리 블록 + 만화 패널 + 참여 센터 리스트 + 신청 폼
+- 기획안: /Users/jominsu/Downloads/배너.html
+
+#### 확정된 사항
+- 경로: `/event/centers`
+- 센터 리스트: 기존 DB 민간센터 (`is_public=false`)
+- 신청 폼: 이메일 전송 (mypetguardians@naver.com)
+- 테마: 라이트 (다크 아님)
+- "아이들 보러가기" 버튼: 미정 (대표님 확인 후)
+
+#### 대표님 확인 필요 질문
+1. "우리 아이들 만나러 가기" CTA 버튼 → 어디로 이동? `/list/animal`?
+2. 만화 패널 일러스트 — 기획안 SVG 그대로? 별도 이미지?
+3. 홈 배너 이미지 — 디자이너가 만들어서 백오피스 업로드? 코드 구현?
+4. 신청 폼 이메일 발송 — SMTP 세팅 있는지? 없으면 방식 결정 필요
+5. "더 많은 센터 보기" 버튼 → `/list/center`로 이동?
+6. pill 태그 ("입양·임시보호 모두 가능", "전국 센터 한눈에") — 하드코딩? 동적?
+7. 이벤트 페이지 접근 — 로그인 없이 퍼블릭?
+8. 센터 카드의 "강아지 5", "고양이 3" 수치 — DB에서 실시간 카운트? 수동 입력?
+9. 센터 카드 태그 (#소형견, #접종완료 등) — DB 필드에 있는지? 수동?
+10. "NEW" 배지 — 기준이 뭔지? 최근 N일 이내 등록?
+11. 센터 카드 클릭 시 — 센터 상세(`/list/center/{id}`)로 이동?
+12. 신청 폼 필수값 — 전부 필수? 한 줄 소개만 선택?
+13. 신청 완료 후 UI — 토스트? 완료 화면? 리다이렉트?
+
+### 3. 카카오 개발자 콘솔 (코드 X, 콘솔 작업)
 - [ ] 공유: dev.mpz.kr / localhost:3001 도메인 등록
 - [ ] 로그인: localhost:8000 Redirect URI 등록
 
-### 3. SMS 인증
+### 4. SMS 인증
 - [ ] 프로필 휴대폰 번호 수정 시 SMS 인증 절차 추가
 
-### 4. AWS → Supabase 전면 이관 + 무중단 배포 (분석 진행 중)
+### 5. AWS → Supabase 전면 이관 + 무중단 배포 (분석 진행 중)
 - 호스팅 옵션 비용/장단점 조사 필요
 - Supabase 미제공: Django/Next.js 커스텀 서버 호스팅
 - 후보: Vercel(FE) + Fly.io/Railway/Render(BE) 또는 Edge Functions 재작성
 - EC2 유지 가능성도 있음
 - **무중단 배포(zero-downtime) 세팅 포함**
 
-### 5. doggy-school 프로젝트
+### 7. doggy-school 프로젝트
 - repo: https://github.com/mypetguardians/doggy-school
 - fork → clone → 분석 → Supabase 위에 배포
 - DB: mpz prod/dev Supabase DB 확장 사용 (integration, 별도 DB 아님)
 
-### 6. WebSocket 지원
+### 8. WebSocket 지원
 - 원인: Railway → EC2 이관 시 WebSocket 지원 누락
 - gunicorn은 HTTP만 처리, WebSocket은 Daphne 등 ASGI 서버 필요
 - prod/로컬에서 무한 재연결 시도 발생 중
 
-### 7. 모니터링
+### 9. 모니터링
 - [ ] Freshping + Sentry + Slack 배포 알림
 - [ ] **필수**: GitHub Actions 배포 성공/실패 Slack 알림 (에러 로그 포함) — 수동 체크 제거
 
-### 8. Django Admin UI
+### 10. Django Admin UI
 - [ ] 모던 라이브러리 조사 (unfold/jazzmin/grappelli)
 - [ ] 블로그, 공식문서, 리뷰 기반 선정 후 적용
 
@@ -47,6 +70,12 @@
 - [ ] FIREBASE_ADMIN_CREDENTIALS_JSON
 - [ ] OPENAI_API_KEY
 - [ ] LANGCHAIN_API_KEY
+
+---
+
+## 테스트 시스템 구축
+- [ ] Jest/Vitest + React Testing Library
+- [ ] Backend: Django test / pytest
 
 ---
 

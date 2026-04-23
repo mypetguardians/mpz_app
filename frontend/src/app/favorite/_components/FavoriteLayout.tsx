@@ -70,15 +70,15 @@ export function FavoriteLayout({ children }: FavoriteLayoutProps) {
       />
 
       {/* 탭 버튼 */}
-      <div className="w-full px-3.5 z-5">
+      <div className="sticky top-[54px] z-10 bg-white w-full px-3.5">
         <TabButton
           value={activeTab}
           tabs={tabs}
           variant="variant3"
           useLinks={true}
         />
+        <div className="border-b-2 border-lg -mt-0.5" />
       </div>
-      <div className="border-b-2 border-lg -mt-0.5 -px-4" />
 
       {/* 메인 콘텐츠 */}
       {children}

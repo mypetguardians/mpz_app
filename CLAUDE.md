@@ -3,7 +3,7 @@
 ## 프로젝트 개요
 
 **MPZ(마펫쯔)** — 유기동물 입양 & 보호센터 관리 플랫폼
-이전 개발사 소유 Railway/Neon 인프라 → 자체 AWS EC2 + Supabase로 마이그레이션 완료
+자체 AWS EC2 + Supabase(DB + Storage) 인프라 운영 중
 
 ---
 
@@ -22,17 +22,16 @@ ssh -i ~/.ssh/mpz-key.pem ubuntu@52.79.128.129   # dev
 ssh -i ~/.ssh/mpz-key.pem ubuntu@43.202.171.188  # prod
 ```
 
-**✅ 해결됨: EC2 아웃바운드 TCP(443, 80) 차단** — 새 VPC + EC2로 마이그레이션하여 해결됨. Docker 재빌드, R2 프록시, 외부 API 모두 정상.
-
-### Supabase DB
+### Supabase (DB + Storage)
 
 | 구분 | 프로젝트 | 리전 |
 |------|---------|------|
 | dev | mpz-dev (`djnjbimklqvzqgcrkrdf`) | Seoul (ap-northeast-2) |
 | prod | mpz-prod (`uytovxdqmlmhdzzpmwzk`) | Seoul (ap-northeast-2) |
 
-- 연결: Transaction pooler, 포트 6543
-- 직접 연결(pg_dump용): 포트 5432, `db.[project-ref].supabase.co`
+- DB 연결: Transaction pooler, 포트 6543
+- Storage 버킷: `animal-images` (dev/prod 각각)
+- Storage S3 엔드포인트: `https://{project-ref}.supabase.co/storage/v1/s3`
 
 ### DNS (가비아)
 
@@ -49,7 +48,7 @@ ssh -i ~/.ssh/mpz-key.pem ubuntu@43.202.171.188  # prod
 - Django 5 + Django Ninja (REST API)
 - Django Channels (WebSocket)
 - Gunicorn + UvicornWorker
-- Cloudflare R2 (이미지 스토리지)
+- Supabase Storage (이미지 스토리지, S3 호환 boto3)
 - Firebase FCM (푸시 알림)
 - OpenAI + LangChain (AI 동물 매칭)
 - Redis (채널 레이어)
@@ -65,6 +64,7 @@ ssh -i ~/.ssh/mpz-key.pem ubuntu@43.202.171.188  # prod
 - Nginx (SSL termination, 리버스 프록시)
 - Let's Encrypt (Certbot) SSL
 - GitHub Actions CI/CD
+- Worker 컨테이너 (공공데이터 동기화 스케줄러, 배포와 독립)
 
 ---
 
@@ -74,12 +74,16 @@ ssh -i ~/.ssh/mpz-key.pem ubuntu@43.202.171.188  # prod
 mpz_app/
 ├── backend/               # Django 백엔드
 │   ├── cfehome/           # 프로젝트 설정 (settings.py, urls.py, asgi.py)
-│   ├── animals/           # 동물 모델, 공공데이터 동기화 API
+│   ├── animals/           # 동물 모델, 공공데이터 동기화
+│   │   └── management/commands/  # sync_public_data, run_scheduler, cleanup_invalid_animals
+│   ├── storage_service/   # Supabase Storage 클라이언트 (S3 호환)
 │   ├── adoptions/         # 입양 신청/프로세스
 │   ├── centers/           # 보호센터 관리
 │   ├── user/              # 사용자 인증
 │   ├── notifications/     # 알림 (FCM + WebSocket)
 │   ├── ai/                # AI 매칭 서비스
+│   ├── paracord_runner.sh # 웹서버 엔트리포인트 (gunicorn)
+│   ├── worker_entrypoint.sh # 워커 엔트리포인트 (스케줄러)
 │   ├── .env.dev           # dev 환경변수 (gitignore)
 │   ├── .env.prod          # prod 환경변수 (gitignore)
 │   └── Dockerfile
@@ -87,14 +91,30 @@ mpz_app/
 │   ├── src/app/           # App Router 페이지
 │   ├── src/components/    # UI 컴포넌트
 │   ├── src/hooks/         # Query/Mutation hooks
+│   ├── src/lib/           # 유틸리티 (animal-utils, auth, filter 등)
 │   └── Dockerfile
 ├── nginx/
 │   ├── dev.conf           # dev nginx 설정
 │   └── prod.conf          # prod nginx 설정
-├── docker-compose.prod.yml # dev/prod 공용 컴포즈 파일 (APP_ENV로 분기)
+├── docker-compose.prod.yml # dev/prod 공용 컴포즈 (backend, worker, frontend, nginx, redis)
 └── .github/workflows/
-    └── deploy.yml         # CI/CD 파이프라인
+    └── deploy.yml         # CI/CD (worker 재시작 제외)
 ```
+
+---
+
+## Docker 컨테이너 구성
+
+| 서비스 | 역할 | 배포 시 재시작 |
+|--------|------|--------------|
+| backend | 웹서버 (gunicorn) | ✅ 재시작 |
+| frontend | Next.js SSR | ✅ 재시작 |
+| nginx | 리버스 프록시 | ✅ 재시작 |
+| redis | 캐시/채널 레이어 | ✅ 재시작 |
+| **worker** | **공공데이터 동기화 스케줄러** | **❌ 재시작 안 함** |
+
+Worker는 배포 시 재시작하지 않아 진행 중인 동기화가 중단되지 않음.
+Worker 코드 변경 시: `APP_ENV=prod docker compose -f docker-compose.prod.yml up -d --force-recreate worker`
 
 ---
 
@@ -111,8 +131,8 @@ upstream  → git@github.com:mypetguardians/mpz_app.git (조직 원본 repo)
 
 ### 자동 배포 (GitHub Actions)
 ```bash
-git push origin main   # → Prod EC2 자동 배포
-git push origin dev    # → Dev EC2 자동 배포
+git push origin main   # → Prod EC2 자동 배포 (worker 제외)
+git push origin dev    # → Dev EC2 자동 배포 (worker 제외)
 ```
 
 GitHub Secrets: `PROD_EC2_HOST`, `DEV_EC2_HOST`, `EC2_SSH_KEY`
@@ -125,16 +145,12 @@ cd ~/mpz_app
 APP_ENV=prod docker compose -f docker-compose.prod.yml up -d
 APP_ENV=dev docker compose -f docker-compose.prod.yml up -d
 
-# 재빌드 (⚠️ NEXT_PUBLIC_* 환경변수 반드시 커맨드라인으로 전달)
-NEXT_PUBLIC_API_BASE_URL=https://api.mpz.kr/v1/ NEXT_PUBLIC_KAKAO_CLIENT_ID=e87b92ff4188fc038238a9a22eb0bf35 APP_ENV=prod docker compose -f docker-compose.prod.yml up -d --build
-NEXT_PUBLIC_API_BASE_URL=https://dev-api.mpz.kr/v1/ NEXT_PUBLIC_KAKAO_CLIENT_ID=e87b92ff4188fc038238a9a22eb0bf35 APP_ENV=dev docker compose -f docker-compose.prod.yml up -d --build
-
 # 상태 확인
 APP_ENV=prod docker compose -f docker-compose.prod.yml ps
 
 # 로그
 APP_ENV=prod docker compose -f docker-compose.prod.yml logs backend --tail=50
-APP_ENV=prod docker compose -f docker-compose.prod.yml logs nginx --tail=20
+APP_ENV=prod docker compose -f docker-compose.prod.yml logs worker --tail=50
 
 # 마이그레이션
 APP_ENV=prod docker compose -f docker-compose.prod.yml exec backend python manage.py migrate
@@ -153,7 +169,11 @@ REDIS_URL             # redis://redis:6379
 KAKAO_SOCIAL_LOGIN_CLIENT_ID/SECRET
 NEXT_PUBLIC_KAKAO_REDIRECT_URI
 
-# Cloudflare R2
+# Supabase Storage (S3 호환)
+STORAGE_ACCESS_KEY, STORAGE_SECRET_KEY, STORAGE_BUCKET
+STORAGE_ENDPOINT, STORAGE_PUBLIC_BASE_URL, STORAGE_REGION
+
+# Cloudflare R2 (레거시 — 마이그레이션 완료 후 제거 예정)
 R2_ACCOUNT_ID, R2_ACCESS_KEY, R2_SECRET_KEY, R2_BUCKET, R2_ENDPOINT, R2_PUBLIC_BASE_URL
 
 # Firebase
@@ -164,8 +184,8 @@ FCM_PROJECT_ID=mpz-app-b2e01
 OPENAI_API_KEY, LANGCHAIN_API_KEY, LANGCHAIN_TRACING_V2, LANGCHAIN_PROJECT
 
 # 공공데이터
-PUBLIC_DATA_SERVICE_KEY          # 농림축산검역본부 API 키
-SYNC_API_KEY                     # 동기화 엔드포인트 인증 키 (PUBLIC_DATA_SERVICE_KEY와 별개)
+PUBLIC_DATA_SERVICE_KEY          # 농림축산검역본부 API 키 (data.go.kr Decoding 키)
+SYNC_API_KEY                     # 동기화 HTTP 엔드포인트 인증 키
 
 # 기타
 SMS_API_KEY                      # Blink SMS relay 서비스 키
@@ -176,66 +196,69 @@ FRONTEND_URL, CORS_ALLOWED_ORIGINS
 
 ## 공공데이터 동기화
 
-- 농림축산검역본부 API → Django `animals` 앱에서 동기화
-- 동기화 엔드포인트: `POST /v1/animals/sync-public-data`
+### 아키텍처
+- 농림축산검역본부 API → Worker 컨테이너에서 Django management command로 실행
+- 이미지는 공공 API에서 다운로드 → Supabase Storage에 업로드 → URL을 DB에 저장
+- `SyncLog` 모델로 실행 이력 추적 (admin 페이지에서 조회 가능)
+
+### 동기화 전략
+
+| 전략 | 스케줄 | 공공 API 조회 범위 | 이미지 처리 |
+|------|--------|------------------|------------|
+| incremental | 매일 03:00 KST | 어제~오늘 | 다운로드 + 업로드 |
+| status_sync | 매주 일 04:00 KST | 보호중 전체 | 스킵 (상태만 업데이트) |
+| full | 매월 1일 05:00 KST | 전체 (최근 90일) | 다운로드 + 업로드 |
+
+### 수동 실행
+```bash
+# worker 컨테이너에서 실행 (배포 영향 없음)
+APP_ENV=prod docker compose -f docker-compose.prod.yml exec worker python manage.py sync_public_data --strategy incremental --days 2
+APP_ENV=prod docker compose -f docker-compose.prod.yml exec worker python manage.py sync_public_data --strategy full --days 204
+```
+
+### HTTP 엔드포인트 (레거시, 수동 트리거용)
+- `GET /v1/animals/public-data/sync`
 - 인증: `X-API-Key: {SYNC_API_KEY}` 헤더
-- `SyncLog` 모델로 실행 이력 추적 (`sync_logs` 테이블)
-- 스케줄러: Supabase Cron (pg_cron + pg_net) — EC2와 독립적
+
+---
+
+## Django Admin
+
+| 환경 | URL | 계정 |
+|------|-----|------|
+| dev | `https://dev-api.mpz.kr/admin/` | admintest |
+| prod | `https://api.mpz.kr/admin/` | mpzadmin |
 
 ---
 
 ## 주요 주의사항
 
-1. **git push는 SSH로**: `git remote set-url origin git@github.com:WaterMinCho/mpz_app.git` (HTTPS 401 에러)
-2. **.env 파일은 gitignore**: EC2에 직접 업로드해야 함. CI/CD 파이프라인은 코드만 전송, env는 EC2에 이미 존재해야 함.
-3. **docker compose vs docker-compose**: EC2에서는 `docker compose` (v2) 사용.
-4. **마이그레이션**: 배포 후 반드시 `python manage.py migrate` 실행 (CI/CD에 포함됨).
-5. **SMS**: Blink SMS relay 서비스 (`https://blink-production-37f6.up.railway.app`) 사용 중.
-6. **Docker 빌드 시 NEXT_PUBLIC_* 환경변수**: `.env` 파일 방식은 안 먹힘. 반드시 커맨드라인으로 직접 전달해야 함.
-7. **Nginx 재시작**: 컨테이너 재생성 후 nginx가 IP 캐시 문제로 502를 줄 수 있음. `docker compose restart nginx` 필요.
-8. **로컬 개발**: 프론트엔드 포트 3001 사용, 백엔드는 dev-api.mpz.kr 연결 (`frontend/.env.local` 참고).
+1. **git push는 SSH로**: `git remote set-url origin git@github.com:WaterMinCho/mpz_app.git`
+2. **.env 파일은 gitignore**: EC2에 직접 관리. CI/CD는 코드만 전송.
+3. **docker compose** (v2) 사용.
+4. **마이그레이션**: 배포 시 CI/CD에서 자동 실행.
+5. **SMS**: Blink SMS relay (`https://blink-production-37f6.up.railway.app`) 사용 중.
+6. **Docker 빌드 시 NEXT_PUBLIC_* 환경변수**: `.env` 파일 방식은 안 먹힘. 커맨드라인으로 직접 전달.
+7. **Nginx 재시작**: 컨테이너 재생성 후 `docker compose restart nginx` 필요.
+8. **로컬 개발**: `make dev`로 FE(3001)+BE(8000) 동시 실행.
+9. **Worker 재시작 주의**: 동기화 진행 중 worker를 재시작하면 중단됨. `--force-recreate` 필요 시 동기화 완료 확인 후 진행.
 
 ---
 
-## 미완료 항목
+## 이미지 아키텍처
 
-### 🔴 우선 수정
-- [ ] **dev 카카오 로그인 127.0.0.1:3000 리다이렉트 버그** — deploy.yml 수정 완료, dev에 push하면 재빌드로 해결 예상
-- [ ] 로그아웃 쿠키 삭제 동작 검증 (dev/prod 실제 테스트)
+### 현재 (Supabase Storage)
+- 공공데이터 이미지: 공공 API → 다운로드 → Supabase Storage 업로드 → public URL 저장
+- 센터 직접 업로드: 프론트엔드 → `/v1/storage/upload` API → Supabase Storage
+- URL 형식: `https://{project-ref}.supabase.co/storage/v1/object/public/animal-images/{key}`
 
-### 🟡 인프라 정리
-- [ ] 구 EC2 인스턴스 종료 + 구 VPC 삭제 + 테스트 EC2 종료
-- [ ] 모니터링 구축 (Freshping + Sentry + GitHub Actions Slack 배포 알림)
-
-### 🟡 기능 개선
-- [ ] R2 `.bin` Content-Type 일괄 수정 (현재 proxy-image로 우회 중)
-- [ ] 이미지 성능 최적화 (현재 `unoptimized: true` 상태 — 임시)
-- [ ] Supabase Storage 이관 + 무중단 배포 시스템 구축
-
-### 🟢 환경변수 수령 (대표님/이전 개발사)
-- [ ] `FIREBASE_ADMIN_CREDENTIALS_JSON`
-- [ ] `OPENAI_API_KEY`
-- [ ] `LANGCHAIN_API_KEY`
-- [ ] `PUBLIC_DATA_SERVICE_KEY`
-
-### ✅ 최근 완료
-- [x] prod 카카오 로그인 정상 동작 확인
-- [x] local 카카오 로그인 localhost:3001 리다이렉트 정상
-- [x] 로그아웃 쿠키 삭제 코드 수정 (samesite/secure 매칭)
-- [x] deploy.yml NEXT_PUBLIC_KAKAO_CLIENT_ID 자동 매핑 추가
-
----
-
-## 이미지 아키텍처 현황
-
-R2에 이미지가 `.bin` 확장자로 저장됨 (`Content-Type: application/octet-stream`).
-브라우저가 직접 fetch하면 이미지로 인식 못 함.
-
-**현재 동작:** `/api/proxy-image` 라우트가 바이트 시그니처 감지 → 올바른 Content-Type으로 서빙 (EC2 아웃바운드 정상화로 동작 중)
+### 레거시 (Cloudflare R2)
+- 일부 이미지가 아직 R2 URL(`pub-xxx.r2.dev`)이거나 공공 API 원본 URL(`openapi.animal.go.kr`)
+- `/api/proxy-image` 프록시가 Content-Type 변환 처리 (R2 `.bin` 확장자 대응)
 
 관련 파일:
-- `frontend/src/lib/getProxyImageUrl.ts` — 이미지 URL을 프록시로 변환
-- `frontend/src/app/api/proxy-image/route.ts` — 서버사이드 이미지 프록시 (Content-Type 변환 포함)
+- `backend/storage_service/services.py` — StorageClient (S3 호환 boto3)
+- `frontend/src/lib/getProxyImageUrl.ts` — 이미지 URL 프록시 변환
 - `frontend/src/components/ui/AnimalImage.tsx` — 이미지 렌더링 컴포넌트
 
 ---
@@ -245,7 +268,7 @@ R2에 이미지가 `.bin` 확장자로 저장됨 (`Content-Type: application/oct
 ### 웹 환경 (OAuth)
 1. 프론트엔드(`KakaoButton.tsx`)가 redirect_uri를 동적 생성: `{API_BASE_URL}/kakao/login/callback`
 2. state에 frontend URL 인코딩: `{uuid}_frontend_{encodeURIComponent(window.location.origin)}`
-3. 백엔드 콜백(`kakao_api.py`)이 state에서 frontend URL 추출 → 허용 목록 검증 → 해당 URL로 리다이렉트
+3. 백엔드 콜백(`kakao_api.py`)이 state에서 frontend URL 추출 → 허용 목록 검증 → 리다이렉트
 4. JWT를 쿠키에 설정 (samesite, secure, httponly)
 
 ### 네이티브 환경 (Capacitor)
@@ -255,3 +278,32 @@ R2에 이미지가 `.bin` 확장자로 저장됨 (`Content-Type: application/oct
 - JWT DB 삭제 + 쿠키 삭제 (`set_cookie(max_age=0)`)
 - 쿠키 삭제 시 samesite/secure/httponly 속성을 설정 시와 동일하게 매칭 필수
 - Safari ITP 대응: Safari는 `SameSite=Lax` 사용
+
+---
+
+## 미완료 항목
+
+### 🔄 진행 중
+- [ ] prod 공공데이터 동기화 진행 중
+
+### 🟡 인프라/서비스
+- [ ] proxy-image 제거 판단 (Supabase 이관 완료 후)
+- [ ] 모니터링 구축 (Freshping + Sentry + Slack 배포 알림)
+- [ ] 카카오 공유 — dev.mpz.kr / localhost:3001 도메인 등록 (카카오 개발자 콘솔)
+
+### 🟢 환경변수 수령 (대표님/이전 개발사)
+- [ ] `FIREBASE_ADMIN_CREDENTIALS_JSON`
+- [ ] `OPENAI_API_KEY`
+- [ ] `LANGCHAIN_API_KEY`
+
+### ✅ 완료
+- [x] Cloudflare R2 → Supabase Storage 코드 이관
+- [x] 공공데이터 동기화 + 이미지 Supabase 업로드 (dev 완료)
+- [x] Worker 컨테이너 분리 (배포 시 동기화 중단 방지)
+- [x] 동기화 전략 개선 (incremental/status_sync/full)
+- [x] Django admin UI 정적 파일 수정 (static_files named volume)
+- [x] Railway 레거시 코드/설정 제거
+- [x] dev/prod admin 계정 생성
+- [x] breed+name 조합 표시 (getDisplayBreedName 유틸)
+- [x] React key 중복 경고 해결
+- [x] 카카오 로그인/로그아웃 정상 동작

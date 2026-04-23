@@ -64,7 +64,8 @@ export function TopPetSection({
   useEffect(() => {
     setIsMounted(true);
     requestLocation();
-  }, [requestLocation]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // selectedLocation이 변경되면 자동 적용 플래그 업데이트
   useEffect(() => {

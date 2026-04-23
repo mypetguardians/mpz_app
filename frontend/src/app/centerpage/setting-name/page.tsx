@@ -356,7 +356,6 @@ export default function CenterSettingName() {
             variant="primary"
             label="책임비"
             placeholder="예)100,000"
-            required={true}
             value={adoptionPrice}
             onChange={(e) => handleAdoptionPriceChange(e.target.value)}
           />

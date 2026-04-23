@@ -76,7 +76,7 @@ export function TopPetSection({
       const region = getLocationBasedRegion(latitude, longitude);
       setUserLocation(region);
 
-      if (selectedLocation === "내 주변") {
+      if (isNearbyActive) {
         onLocationSelect?.(region);
       } else if (
         !selectedLocation &&
@@ -98,13 +98,20 @@ export function TopPetSection({
     onLocationSelect,
   ]);
 
+  const [isNearbyActive, setIsNearbyActive] = useState(false);
+
   // "내 주변" 버튼 클릭 시 위치정보 요청
   const handleNearbyClick = () => {
-    if (userLocation) {
-      onLocationSelect?.(userLocation);
+    if (isNearbyActive) {
+      setIsNearbyActive(false);
+      onLocationSelect?.("");
     } else {
-      onLocationSelect?.("내 주변");
-      requestLocation();
+      setIsNearbyActive(true);
+      if (userLocation) {
+        onLocationSelect?.(userLocation);
+      } else {
+        requestLocation();
+      }
     }
   };
 
@@ -212,12 +219,7 @@ export function TopPetSection({
             key="location"
             leftIcon={<MapPin size={16} />}
             text={isMounted && locationLoading ? "위치 확인 중..." : "내 주변"}
-            variant={
-              selectedLocation === "내 주변" ||
-              selectedLocation === userLocation
-                ? "filterOn"
-                : "filterOff"
-            }
+            variant={isNearbyActive ? "filterOn" : "filterOff"}
             onClick={handleNearbyClick}
             disabled={isMounted && locationLoading}
           />
@@ -235,10 +237,10 @@ export function TopPetSection({
                 text={displayName}
                 variant={isSelected ? "filterOn" : "filterOff"}
                 onClick={() => {
+                  setIsNearbyActive(false);
                   if (isSelected) {
                     onLocationSelect?.("");
                   } else {
-                    // 전체 이름으로 전달
                     onLocationSelect?.(fullName);
                   }
                 }}

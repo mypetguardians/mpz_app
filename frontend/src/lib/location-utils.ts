@@ -111,28 +111,15 @@ export function calculateDistance(
   return R * c;
 }
 
-// 주어진 위치에서 가장 가까운 지역을 찾는 함수
+// 주어진 위치에서 가장 가까운 지역을 찾는 함수 (거리 순 비교)
 export function findNearestRegion(
   latitude: number,
   longitude: number
 ): string | null {
-  // 1) 경기 먼저 검사
-  const gyeonggi = REGIONS.find((r) => r.name === "경기")!;
-  const distanceToGyeonggi = calculateDistance(
-    latitude,
-    longitude,
-    gyeonggi.center.latitude,
-    gyeonggi.center.longitude
-  );
-  if (distanceToGyeonggi <= gyeonggi.radius) {
-    return "경기";
-  }
-
-  // 2) 나머지 지역 검사
   let nearestRegion: string | null = null;
   let minDistance = Infinity;
 
-  for (const region of REGIONS.filter((r) => r.name !== "경기")) {
+  for (const region of REGIONS) {
     const distance = calculateDistance(
       latitude,
       longitude,

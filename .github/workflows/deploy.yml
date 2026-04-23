@@ -56,11 +56,21 @@ jobs:
             fi
 
             # 빌드 + 재시작 (worker 제외)
-            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --build frontend backend nginx redis
+            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --build frontend backend redis
 
             # worker는 최초 생성만 (기존 컨테이너 재시작 안 함)
             APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --no-recreate worker
 
+            # backend가 준비될 때까지 대기 후 nginx 재시작 (502 방지)
+            echo "⏳ Waiting for backend to be ready..."
+            for i in $(seq 1 30); do
+              if APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml exec -T backend python -c "import django" 2>/dev/null; then
+                break
+              fi
+              sleep 2
+            done
+
+            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml restart nginx
             APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml exec -T backend python manage.py migrate --noinput
             APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml exec -T backend python manage.py collectstatic --noinput --clear
             echo "✅ Deploy complete: $APP_ENV (worker 유지)"

@@ -6,6 +6,10 @@ on:
       - main   # prod 배포
       - dev    # dev 배포
 
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest

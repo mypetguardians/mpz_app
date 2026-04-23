@@ -16,10 +16,12 @@
 ### 3. SMS 인증
 - [ ] 프로필 휴대폰 번호 수정 시 SMS 인증 절차 추가
 
-### 4. AWS → Supabase 전면 이관 (분석 진행 중)
+### 4. AWS → Supabase 전면 이관 + 무중단 배포 (분석 진행 중)
 - 호스팅 옵션 비용/장단점 조사 필요
 - Supabase 미제공: Django/Next.js 커스텀 서버 호스팅
 - 후보: Vercel(FE) + Fly.io/Railway/Render(BE) 또는 Edge Functions 재작성
+- EC2 유지 가능성도 있음
+- **무중단 배포(zero-downtime) 세팅 포함**
 
 ### 5. doggy-school 프로젝트
 - repo: https://github.com/mypetguardians/doggy-school

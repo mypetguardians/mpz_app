@@ -63,7 +63,7 @@ export function TopPetSection({
   useEffect(() => {
     setIsMounted(true);
     requestLocation();
-  }, []);
+  }, [requestLocation]);
 
   // selectedLocation이 변경되면 자동 적용 플래그 업데이트
   useEffect(() => {
@@ -97,6 +97,7 @@ export function TopPetSection({
     locationLoading,
     locationError,
     onLocationSelect,
+    isNearbyActive,
   ]);
 
   const [isNearbyActive, setIsNearbyActive] = useState(true);

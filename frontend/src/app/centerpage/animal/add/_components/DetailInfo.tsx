@@ -116,16 +116,15 @@ export default function DetailInfo({
     </div>
   );
 
-  const handleTrainerCommentChange = (value: string) => {
-    if (!canEdit) return;
-
-    const now = new Date().toISOString();
-    onChange({
-      trainerComment: value,
-      updatedAt: now,
-      ...(data.createdAt ? {} : { createdAt: now }),
-    });
-  };
+  // const handleTrainerCommentChange = (value: string) => {
+  //   if (!canEdit) return;
+  //   const now = new Date().toISOString();
+  //   onChange({
+  //     trainerComment: value,
+  //     updatedAt: now,
+  //     ...(data.createdAt ? {} : { createdAt: now }),
+  //   });
+  // };
 
   return (
     <div className="flex flex-col w-full gap-4 px-4 pb-4">

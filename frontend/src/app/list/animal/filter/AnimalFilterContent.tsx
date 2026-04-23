@@ -95,7 +95,7 @@ export function AnimalFilterContent() {
     setSelectedAges([]);
     setSelectedGenders([]);
     setSelectedProtectionStatus(["입양가능"]);
-    setSelectedExpertOpinion([]);
+    // setSelectedExpertOpinion([]);
     setLastSelectedProtectionStatus("입양가능");
   };
 

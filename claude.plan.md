@@ -35,6 +35,7 @@
 
 ### 7. 모니터링
 - [ ] Freshping + Sentry + Slack 배포 알림
+- [ ] **필수**: GitHub Actions 배포 성공/실패 Slack 알림 (에러 로그 포함) — 수동 체크 제거
 
 ### 8. Django Admin UI
 - [ ] 모던 라이브러리 조사 (unfold/jazzmin/grappelli)

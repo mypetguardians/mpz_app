@@ -340,7 +340,6 @@ export default function CenterSettingName() {
             />
             <CustomInput
               variant="primary"
-              ㅍ
               placeholder="상세주소를 입력해주세요."
               value={addressDetail}
               onChange={(e) => setAddressDetail(e.target.value)}

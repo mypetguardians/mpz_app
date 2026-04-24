@@ -3,7 +3,6 @@
 ## 🔴 다음 작업
 
 ### 1. 이벤트 페이지 — 남은 사항
-- [ ] prod 서버 `backend/.env`에 EMAIL 앱 비밀번호 추가
 - [ ] 센터 신규 등록 시 `center_type` 자동 세팅 로직 확인
 
 ### 2. 카카오 개발자 콘솔 (코드 X, 콘솔 작업)
@@ -107,10 +106,8 @@
 
 ### 웹 표준화 · SEO 작업 및 보완
 - [ ] 시맨틱 HTML 태그 점검 (header, main, section, article, nav 등)
-- [ ] meta 태그 (title, description, og:image 등) 페이지별 세팅
-- [ ] Next.js Metadata API 활용 (generateMetadata)
-- [ ] 접근성 (alt, aria-label, 키보드 네비게이션)
-- [ ] robots.txt, sitemap.xml 생성
+- [ ] 접근성 (div onClick → button, aria-label, 키보드 네비게이션)
+- [ ] 동적 메타데이터 (동물/센터 상세 페이지별 OG)
 - [ ] Core Web Vitals 점검 (LCP, CLS, INP)
 
 ---

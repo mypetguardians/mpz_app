@@ -7,7 +7,7 @@ import { PetSectionError } from "@/components/ui/PetSectionError";
 import { RawAnimalResponse, transformRawAnimalToPetCard } from "@/types/animal";
 import { PetCardVariant } from "@/types/petcard";
 import { useGeolocation } from "@/hooks/useGeolocaiton";
-import { getLocationBasedRegion, isValidLocation } from "@/lib/location-utils";
+import { getLocationBasedRegion, isValidLocation, getRegionNameByGeocode } from "@/lib/location-utils";
 import {
   getFullLocationName,
   getShortLocationName,
@@ -57,7 +57,6 @@ export function TopPetSection({
   } = useGeolocation();
   const [userLocation, setUserLocation] = useState<string>("");
   const [isMounted, setIsMounted] = useState(false);
-  const [isNearbyActive, setIsNearbyActive] = useState(true);
   const hasAutoAppliedLocation = useRef(false);
 
   // 클라이언트 마운트 시 GPS 자동 요청
@@ -67,53 +66,31 @@ export function TopPetSection({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // selectedLocation이 변경되면 자동 적용 플래그 업데이트
+  // GPS 결과 → 역지오코딩 → 내 지역 태그 자동 활성화 (최초 1회)
   useEffect(() => {
-    if (selectedLocation) {
-      hasAutoAppliedLocation.current = true;
-    }
-  }, [selectedLocation]);
+    if (!latitude || !longitude || !isValidLocation(latitude, longitude)) return;
 
-  useEffect(() => {
-    if (latitude && longitude && isValidLocation(latitude, longitude)) {
-      const region = getLocationBasedRegion(latitude, longitude);
+    const resolveRegion = async () => {
+      // BigDataCloud 역지오코딩 우선, 실패 시 Haversine fallback
+      const region = await getRegionNameByGeocode(latitude, longitude);
       setUserLocation(region);
 
-      if (isNearbyActive) {
-        onLocationSelect?.(region);
-      } else if (
-        !selectedLocation &&
-        !locationLoading &&
-        !locationError &&
-        !hasAutoAppliedLocation.current
-      ) {
-        // 초기 로딩 시 위치 정보가 있고 선택된 지역이 없으면 자동으로 내 주변 필터 적용 (한 번만)
+      if (!hasAutoAppliedLocation.current) {
         hasAutoAppliedLocation.current = true;
         onLocationSelect?.(region);
       }
-    }
-  }, [
-    latitude,
-    longitude,
-    selectedLocation,
-    locationLoading,
-    locationError,
-    onLocationSelect,
-    isNearbyActive,
-  ]);
+    };
 
-  // "내 주변" 버튼 클릭 시 위치정보 요청
+    resolveRegion();
+  }, [latitude, longitude, onLocationSelect]);
+
+  // "내 주변" 버튼 클릭 시 GPS 재요청 → 내 지역 태그 활성화
   const handleNearbyClick = () => {
-    if (isNearbyActive) {
-      setIsNearbyActive(false);
-      onLocationSelect?.("");
+    if (userLocation) {
+      onLocationSelect?.(userLocation);
     } else {
-      setIsNearbyActive(true);
-      if (userLocation) {
-        onLocationSelect?.(userLocation);
-      } else {
-        requestLocation();
-      }
+      hasAutoAppliedLocation.current = false;
+      requestLocation();
     }
   };
 
@@ -221,14 +198,14 @@ export function TopPetSection({
             key="location"
             leftIcon={<MapPin size={16} />}
             text={isMounted && locationLoading ? "위치 확인 중..." : "내 주변"}
-            variant={isNearbyActive ? "filterOn" : "filterOff"}
+            variant="filterOff"
             onClick={handleNearbyClick}
             disabled={isMounted && locationLoading}
           />
           {locations.map((loc) => {
             const displayName = getShortLocationName(loc);
             const fullName = getFullLocationName(loc);
-            const isSelected = !isNearbyActive && selectedLocation
+            const isSelected = selectedLocation
               ? isLocationMatch(selectedLocation, loc) ||
                 isLocationMatch(selectedLocation, fullName)
               : false;
@@ -239,10 +216,7 @@ export function TopPetSection({
                 text={displayName}
                 variant={isSelected ? "filterOn" : "filterOff"}
                 onClick={() => {
-                  setIsNearbyActive(false);
-                  if (isSelected) {
-                    onLocationSelect?.("");
-                  } else {
+                  if (!isSelected) {
                     onLocationSelect?.(fullName);
                   }
                 }}

@@ -257,10 +257,9 @@ export default function ProfileEditPage() {
             <div className="space-y-3">
               <CustomInput
                 label="이름"
-                placeholder="이름을 입력해주세요."
                 value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
+                readOnly
+                disabled
               />
             </div>
 

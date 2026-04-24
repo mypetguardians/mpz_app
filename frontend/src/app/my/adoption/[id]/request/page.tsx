@@ -157,8 +157,7 @@ export default function AdoptionRequestPage({
 
             {/* 입양 신청 정보 */}
             <InfoCard className="mb-6">
-              센터가 입양 신청을 수락하면, 다음 단계로 넘어가 센터 입양 절차에
-              따라 진행해요.
+              입양 신청이 수락되면, 센터 입양 절차에 따라 입양이 진행돼요.
             </InfoCard>
 
             {/* Center Info */}

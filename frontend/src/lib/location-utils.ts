@@ -1,7 +1,5 @@
 // 위도/경도를 기반으로 주변 지역을 계산하는 유틸리티
 
-import { setKey, setLanguage, fromLatLng } from "react-geocode";
-
 interface Location {
   latitude: number;
   longitude: number;
@@ -14,17 +12,17 @@ interface RegionInfo {
 }
 
 // 한국의 주요 지역 정보 (위도, 경도, 반경)
-// 경기도를 먼저 배치하여 우선순위를 높임
+// 좁은 지역(서울, 세종 등)을 먼저 배치하여 정확도 우선
 const REGIONS: RegionInfo[] = [
-  {
-    name: "경기",
-    center: { latitude: 37.5, longitude: 127.3 }, // 경기도 중심을 더 북쪽으로 이동
-    radius: 90, // 반경을 더 늘려서 경기도 전체를 커버
-  },
   {
     name: "서울",
     center: { latitude: 37.5665, longitude: 126.978 },
     radius: 20,
+  },
+  {
+    name: "경기",
+    center: { latitude: 37.5, longitude: 127.3 },
+    radius: 90,
   },
   {
     name: "부산",
@@ -116,8 +114,8 @@ export function findNearestRegion(
   latitude: number,
   longitude: number
 ): string | null {
-  let nearestRegion: string | null = null;
-  let minDistance = Infinity;
+  // 반경 내에 있는 지역들을 모두 찾고, 그 중 가장 가까운 것 선택
+  const candidates: { name: string; distance: number }[] = [];
 
   for (const region of REGIONS) {
     const distance = calculateDistance(
@@ -127,13 +125,15 @@ export function findNearestRegion(
       region.center.longitude
     );
 
-    if (distance <= region.radius && distance < minDistance) {
-      minDistance = distance;
-      nearestRegion = region.name;
+    if (distance <= region.radius) {
+      candidates.push({ name: region.name, distance });
     }
   }
 
-  return nearestRegion;
+  if (candidates.length === 0) return null;
+
+  candidates.sort((a, b) => a.distance - b.distance);
+  return candidates[0].name;
 }
 
 // 주어진 위치에서 일정 반경 내의 모든 지역을 찾는 함수
@@ -195,40 +195,13 @@ export function isValidLocation(latitude: number, longitude: number): boolean {
 }
 
 // -----------------------------
-// Google Reverse Geocoding Utils
+// BigDataCloud Reverse Geocoding (무료, API 키 불필요)
 // -----------------------------
 
-let geocodeConfigured = false;
-
-function ensureGeocodeConfigured(): void {
-  if (geocodeConfigured) return;
-  if (typeof window === "undefined") return; // SSR 보호
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
-  if (!apiKey) return;
-  setKey(apiKey);
-  setLanguage("ko");
-  geocodeConfigured = true;
-}
-
-type GoogleAddressComponent = {
-  long_name: string;
-  short_name: string;
-  types: string[];
-};
-
-function extractAddressPart(
-  components: GoogleAddressComponent[] | undefined,
-  type: string
-): string | null {
-  if (!components) return null;
-  const comp = components.find((c) => c.types.includes(type));
-  return comp ? comp.long_name : null;
-}
-
 export type AdministrativeAddress = {
-  sido: string | null; // administrative_area_level_1
-  sigungu: string | null; // administrative_area_level_2 혹은 locality
-  fullAddress: string | null; // formatted_address
+  sido: string | null;
+  sigungu: string | null;
+  fullAddress: string | null;
 };
 
 export async function reverseGeocodeAdministrative(
@@ -237,35 +210,20 @@ export async function reverseGeocodeAdministrative(
 ): Promise<AdministrativeAddress | null> {
   if (!isValidLocation(latitude, longitude)) return null;
   if (typeof window === "undefined") return null;
-  ensureGeocodeConfigured();
+
   try {
-    type GeocodeResponse = {
-      results?: Array<{
-        address_components?: GoogleAddressComponent[];
-        formatted_address?: string;
-      }>;
+    const res = await fetch(
+      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=ko`
+    );
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    return {
+      sido: data.principalSubdivision || null,
+      sigungu: data.city !== data.principalSubdivision ? data.locality || null : data.locality || null,
+      fullAddress: [data.principalSubdivision, data.city, data.locality].filter(Boolean).join(" ") || null,
     };
-    const result: GeocodeResponse = await fromLatLng(latitude, longitude);
-    const top = result?.results?.[0];
-    const components: GoogleAddressComponent[] | undefined =
-      top?.address_components;
-    const formatted: string | null = top?.formatted_address ?? null;
-
-    // 행정구역 추출
-    const level1 =
-      extractAddressPart(components, "administrative_area_level_1") || null;
-    let level2 =
-      extractAddressPart(components, "administrative_area_level_2") || null;
-    if (!level2) {
-      // 일부 응답에서는 locality에 시/구가 담기는 경우가 있음
-      level2 = extractAddressPart(components, "locality") || null;
-    }
-
-    return { sido: level1, sigungu: level2, fullAddress: formatted };
-  } catch (err) {
-    if (process.env.NODE_ENV !== "production") {
-      console.warn("reverseGeocodeAdministrative error", err);
-    }
+  } catch {
     return null;
   }
 }

@@ -159,23 +159,15 @@ export default function BasicInfo({
       });
 
       if (files.length > 0) {
-        const newTotal = existingCount + images.length + files.length;
-
-        if (newTotal <= 5) {
-          if (onImageAdd) {
-            onImageAdd(files);
-          } else {
-            onImagesChange([...images, ...files]);
-          }
+        const filesToAdd = files.slice(0, remainingSlots);
+        if (onImageAdd) {
+          onImageAdd(filesToAdd);
         } else {
-          const filesToAdd = files.slice(0, remainingSlots);
-          if (onImageAdd) {
-            onImageAdd(filesToAdd);
-          } else {
-            onImagesChange([...images, ...filesToAdd]);
-          }
+          onImagesChange([...images, ...filesToAdd]);
+        }
+        if (files.length > remainingSlots) {
           showToastMessage(
-            `최대 5장까지만 업로드할 수 있습니다. ${remainingSlots}장만 추가되었습니다.`,
+            `최대 5장까지만 업로드할 수 있어요. ${remainingSlots}장만 추가됐어요.`,
             "error"
           );
         }
@@ -316,8 +308,8 @@ export default function BasicInfo({
             견종 <span className="text-brand">*</span>
           </h5>
           <div className="relative">
-            <SearchInput
-              variant="variant2"
+            <input
+              className="w-full bg-bg px-4 h-[44px] rounded-[8px] outline-none text-body placeholder:text-gr"
               placeholder="품종으로 검색해보세요."
               value={data.breed}
               onChange={handleSearchChange}
@@ -378,22 +370,35 @@ export default function BasicInfo({
             </div>
           )}
         </div>
-        <CustomInput
-          variant="primary"
-          label="나이"
-          placeholder="0~300개월 사이의 숫자를 입력해주세요."
-          value={data.age}
-          onChange={(e) => {
-            const value = e.target.value.replace(/[^0-9]/g, "");
-            if (
-              value === "" ||
-              (parseInt(value) >= 0 && parseInt(value) <= 300)
-            ) {
-              onChange({ age: value });
-            }
-          }}
-          required={true}
-        />
+        <div className="flex flex-col gap-2">
+          <CustomInput
+            variant="primary"
+            label="태어난 날 (추정)"
+            type="date"
+            placeholder="태어난 날을 선택해주세요"
+            value={data.age}
+            onChange={(e) => {
+              onChange({ age: e.target.value });
+            }}
+            required={true}
+          />
+          {data.age && /^\d{4}-\d{2}-\d{2}$/.test(data.age) && (
+            <p className="text-xs text-gr ml-1">
+              {(() => {
+                const birth = new Date(data.age);
+                const now = new Date();
+                const months =
+                  (now.getFullYear() - birth.getFullYear()) * 12 +
+                  (now.getMonth() - birth.getMonth());
+                if (months < 1) return "1개월 미만";
+                if (months < 12) return `약 ${months}개월`;
+                const years = Math.floor(months / 12);
+                const rem = months % 12;
+                return rem > 0 ? `약 ${years}년 ${rem}개월` : `약 ${years}년`;
+              })()}
+            </p>
+          )}
+        </div>
         <CustomInput
           variant="Variant7"
           label="성별"
@@ -415,18 +420,15 @@ export default function BasicInfo({
           label="무게"
           placeholder="0.01~100kg 사이의 값을 입력해주세요."
           value={data.weight}
+          inputMode="decimal"
           onChange={(e) => {
-            const value = e.target.value.replace(/[^0-9.]/g, ""); // 숫자와 소수점만 허용
+            const value = e.target.value.replace(/[^0-9.]/g, "");
             const dotCount = (value.match(/\./g) || []).length;
-            if (dotCount <= 1) {
-              const numValue = parseFloat(value);
-              if (
-                value === "" ||
-                (numValue >= 0.01 && numValue <= 100) ||
-                isNaN(numValue)
-              ) {
-                onChange({ weight: value });
-              }
+            if (dotCount > 1) return;
+            // 입력 중간 상태("0.", "1.") 허용, 완성된 값만 범위 체크
+            const numValue = parseFloat(value);
+            if (value === "" || value.endsWith(".") || isNaN(numValue) || numValue <= 100) {
+              onChange({ weight: value });
             }
           }}
           required={true}
@@ -454,7 +456,7 @@ export default function BasicInfo({
         <div className="flex flex-col gap-2">
           <h5 className="text-dg">성격</h5>
           <textarea
-            className="w-full px-4 py-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-3 border border-lg rounded-md resize-none focus:outline-none focus:border-brand"
             placeholder="예) 사람을 매우 잘따름"
             value={data.personality}
             onChange={(e) => onChange({ personality: e.target.value })}
@@ -464,7 +466,7 @@ export default function BasicInfo({
         <div className="flex flex-col gap-2">
           <h5 className="text-dg">특이사항</h5>
           <textarea
-            className="w-full px-4 py-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-3 border border-lg rounded-md resize-none focus:outline-none focus:border-brand"
             placeholder="예) 기다려, 앉아 가능"
             value={data.specialNotes}
             onChange={(e) => onChange({ specialNotes: e.target.value })}

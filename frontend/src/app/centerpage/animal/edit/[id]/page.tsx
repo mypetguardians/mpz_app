@@ -141,7 +141,13 @@ export default function EditAnimal({
           protection_status: animalData.protection_status || "",
           adoption_status: animalData.adoption_status || "",
           breed: animalData.breed || "",
-          age: animalData.age?.toString() || "",
+          age: (() => {
+            if (!animalData.age) return "";
+            // 기존 데이터(개월 수) → 추정 생년월일로 변환
+            const now = new Date();
+            const birth = new Date(now.getFullYear(), now.getMonth() - animalData.age, 1);
+            return `${birth.getFullYear()}-${String(birth.getMonth() + 1).padStart(2, "0")}-01`;
+          })(),
           gender: animalData.is_female ? "암컷" : "수컷",
           neutering:
             typeof animalData.neutering === "boolean"
@@ -258,7 +264,14 @@ export default function EditAnimal({
         name: basicInfo.name,
         is_female: basicInfo.gender === "암컷",
         neutering: basicInfo.neutering === "했어요",
-        age: parseInt(basicInfo.age),
+        age: (() => {
+          if (/^\d{4}-\d{2}-\d{2}$/.test(basicInfo.age)) {
+            const birth = new Date(basicInfo.age);
+            const now = new Date();
+            return Math.max(0, (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth()));
+          }
+          return parseInt(basicInfo.age);
+        })(),
         weight: parseFloat(basicInfo.weight),
         color: basicInfo.color,
         breed: basicInfo.breed,

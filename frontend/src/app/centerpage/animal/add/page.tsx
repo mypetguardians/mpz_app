@@ -394,7 +394,14 @@ export default function AddAnimal() {
         name: basicInfo.name,
         is_female: basicInfo.gender === "암컷",
         neutering: basicInfo.neutering === "했어요",
-        age: parseInt(basicInfo.age),
+        age: (() => {
+          if (/^\d{4}-\d{2}-\d{2}$/.test(basicInfo.age)) {
+            const birth = new Date(basicInfo.age);
+            const now = new Date();
+            return Math.max(0, (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth()));
+          }
+          return parseInt(basicInfo.age);
+        })(),
         weight: parseFloat(basicInfo.weight),
         color: basicInfo.color,
         breed: basicInfo.breed,

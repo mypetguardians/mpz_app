@@ -32,8 +32,9 @@ async def get_centers(
 ):
     """센터 목록을 조회합니다."""
     try:
-        # 기본 쿼리셋 (공개된 센터만)
-        queryset = Center.objects.filter(is_public=True).select_related('owner')
+        # 기본 쿼리셋 (is_public 파라미터로 필터링, 기본값 True)
+        is_public = filters.is_public if filters.is_public is not None else True
+        queryset = Center.objects.filter(is_public=is_public).select_related('owner')
         
         # 필터 적용
         if filters.region:

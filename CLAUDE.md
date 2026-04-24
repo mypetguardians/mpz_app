@@ -30,6 +30,13 @@ PR: `gh pr create --repo mypetguardians/mpz_app --base main --head WaterMinCho:m
 
 backend(gunicorn), frontend(Next.js), nginx, redis, **worker**(동기화 스케줄러)
 
+## Figma
+
+- MCP 서버: `figma-dev` (figma-developer-mcp, PAT 기반, 프로젝트 로컬 스코프)
+- 디자인 파일: https://www.figma.com/design/30IyUJvsyizlnUQ5urTx24/MPZ-기획?m=dev
+- 파일 키: `30IyUJvsyizlnUQ5urTx24`
+- UI 개발 시 Figma MCP 도구(`get_file`, `get_node`, `get_images`)로 디자인 참고
+
 ## 주의사항
 
 1. .env 파일은 gitignore — EC2에 직접 관리

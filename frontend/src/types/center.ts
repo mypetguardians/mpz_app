@@ -72,7 +72,7 @@ export interface CenterSearchParams {
   page?: number;
   page_size?: number;
   verified?: boolean;
-  isPublic?: boolean;
+  is_public?: boolean;
   hasMonitoring?: boolean;
   minPrice?: number;
   maxPrice?: number;

@@ -3,33 +3,34 @@
 ## 🔴 다음 세션
 
 ### ~~1. deploy.yml 재설계~~ ✅ 완료
-- concurrency 추가, 한 줄 통합, backend 상태 기반 대기
 
-### 2. 이벤트 페이지
+### 1.5. Figma MCP 연동 ✅ 완료
+- `figma-dev` MCP 서버 설정 (figma-developer-mcp, PAT 기반)
+- 디자인 파일: https://www.figma.com/design/30IyUJvsyizlnUQ5urTx24/MPZ-기획?m=dev
+- 세션 재시작 후 Figma 도구 사용 가능
+
+### 2. 이벤트 페이지 (진행 중)
 - 홈 배너 → 이벤트 페이지 연결
 - 스토리 블록 + 만화 패널 + 참여 센터 리스트 + 신청 폼
 - 기획안: /Users/jominsu/Downloads/배너.html
+- **Figma 디자인 참고하여 구현**
+
+#### 현재 상태 (2026-04-24)
+- FE: Figma 기획 반영 완료 — 이미지 영역 + 민간센터 리스트(DB) + 신청 폼(주소API, 셀렉트박스, 전체필수)
+- BE: `is_public` 필터 추가 완료, `/v1/event/apply` API 미구현
+- 센터 리스트: `useGetCenters({ is_public: false })` 연동 완료
 
 #### 확정된 사항
 - 경로: `/event/centers`
-- 센터 리스트: 기존 DB 민간센터 (`is_public=false`)
-- 신청 폼: 이메일 전송 (mypetguardians@naver.com, SMTP 네이버 — 비밀번호 필요)
-- 테마: 라이트
-- 홈 배너: 디자이너 이미지, BO에서 등록 (dev에 임시 등록 완료)
-- 만화 패널: 기획안 SVG 임시 사용, 추후 교체 가능
-- "더 많은 센터 보기": `/list/center`로 이동
-- pill 태그: 하드코딩 ("입양·임시보호 모두 가능", "전국 센터 한눈에")
-- 센터 카드 동물 수: DB 실시간 카운트
-- 센터 태그: DB에 필드 없음 — 추가 여부 대표님 확인 필요
+- 센터 리스트: 기존 DB 민간센터 (`is_public=false`) — API 연동 완료
+- 신청 폼: 센터명, 운영자이름, 연락처, 주소(다음API+상세), 동물수(셀렉트) — 전체 필수
+- 신청 완료 시: Alert "신청이 완료되었습니다. 담당자가 2영업일 내 문자로 연락드립니다." + 초기화
 - 센터 카드 클릭: `/list/center/{id}`로 이동
-- 신청 완료 후: 입력값 초기화 + 토스트 메시지
+- 홈 배너: BO에서 등록 (dev에 임시 등록 완료)
+- 이벤트 설명 영역: Figma 이미지 사용 (`event-screenshot.png`)
 
-#### 대표님 확인 대기
-1. "우리 아이들 만나러 가기" CTA → 어디로 이동?
-7. 로그인 필요 시점 — 어느 시점부터 로그인 필요?
-9. 센터 태그 (#소형견 등) — DB 필드 추가할지? 하드코딩?
-10. "NEW" 배지 기준 — 최근 N일?
-12. 신청 폼 필수값 범위
+#### 남은 작업
+- BE: `/v1/event/apply` API (SMTP 이메일 전송)
 
 #### SMTP 세팅 필요
 - 네이버 메일 POP3/SMTP 사용 허용 필요

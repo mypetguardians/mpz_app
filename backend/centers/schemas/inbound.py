@@ -61,6 +61,7 @@ class CenterListQueryIn(BaseModel):
     location: Optional[str] = None  # 위치 필터
     region: Optional[str] = None  # 지역 필터 (서울, 부산 등)
     verified: Optional[bool] = None  # 인증 여부
+    is_public: Optional[bool] = None  # 공개 여부 (민간센터 필터링)
     has_volunteer: Optional[bool] = None  # 봉사활동 여부
     has_foster_care: Optional[bool] = None  # 임시보호 여부
     search: Optional[str] = None  # 검색어 (센터명, 위치, 설명)

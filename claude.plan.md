@@ -103,6 +103,18 @@
 
 ---
 
+## 🔄 상시
+
+### 웹 표준화 · SEO 작업 및 보완
+- [ ] 시맨틱 HTML 태그 점검 (header, main, section, article, nav 등)
+- [ ] meta 태그 (title, description, og:image 등) 페이지별 세팅
+- [ ] Next.js Metadata API 활용 (generateMetadata)
+- [ ] 접근성 (alt, aria-label, 키보드 네비게이션)
+- [ ] robots.txt, sitemap.xml 생성
+- [ ] Core Web Vitals 점검 (LCP, CLS, INP)
+
+---
+
 ## 📝 완료 이력
 
 `history/` 폴더에서 날짜별 상세 확인 가능

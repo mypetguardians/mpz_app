@@ -102,7 +102,23 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ko">
-      <head />
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "마펫쯔",
+              url: "https://mpz.kr",
+              logo: "https://mpz.kr/img/op-image.png",
+              description:
+                "전국 유기동물 입양 플랫폼 - 보호센터 정보와 입양 절차를 한눈에",
+              sameAs: [],
+            }),
+          }}
+        />
+      </head>
       <body
         className={`${inter.className} bg-wh max-w-[420px] mx-auto shadow-md `}
       >

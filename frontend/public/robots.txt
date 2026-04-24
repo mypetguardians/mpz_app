@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /dev/
+Disallow: /centerpage/
+Disallow: /oauth/
+Disallow: /adoption/verification/
+
+Sitemap: https://mpz.kr/sitemap.xml

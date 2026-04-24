@@ -335,8 +335,8 @@ export default function EventCentersPage() {
                 />
               </div>
               <div className="absolute bottom-0 left-0 right-0">
-                <div className="bg-black/30 backdrop-blur-[1px] px-4 py-3 rounded-b-xl">
-                  <p className="text-xs text-orange-100 font-medium mb-0.5">
+                <div className="bg-[#1A1008]/60 backdrop-blur-[1px] px-4 py-3 rounded-b-xl">
+                  <p className="text-xs text-orange-100 font-semibold mb-0.5">
                     어린시절 전 매일 창밖을 보며
                   </p>
                   <p className="text-sm text-white/90 leading-relaxed">
@@ -356,8 +356,8 @@ export default function EventCentersPage() {
                 />
               </div>
               <div className="absolute bottom-0 left-0 right-0">
-                <div className="bg-black/30 backdrop-blur-[1px] px-4 py-3 rounded-b-xl">
-                  <p className="text-xs text-orange-100 font-medium mb-0.5">
+                <div className="bg-[#1A1008]/60 backdrop-blur-[1px] px-4 py-3 rounded-b-xl">
+                  <p className="text-xs text-orange-100 font-semibold mb-0.5">
                     10년 후, 같은 자리
                   </p>
                   <p className="text-sm text-white/90 leading-relaxed">

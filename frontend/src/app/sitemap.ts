@@ -2,6 +2,7 @@ import { MetadataRoute } from "next";
 
 const BASE_URL = "https://mpz.kr";
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.mpz.kr/v1/";
+const IS_PROD = process.env.NEXT_PUBLIC_API_BASE_URL?.includes("api.mpz.kr") ?? true;
 
 async function fetchAllAnimals(): Promise<string[]> {
   try {
@@ -66,6 +67,9 @@ async function fetchAllCenters(): Promise<string[]> {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // dev 환경에서는 빈 sitemap 반환 (SEO 차단)
+  if (!IS_PROD) return [];
+
   const [animalIds, centerIds] = await Promise.all([
     fetchAllAnimals(),
     fetchAllCenters(),

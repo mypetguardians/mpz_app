@@ -188,7 +188,7 @@ export default function EventCentersPage() {
 
   // 민간센터 목록 조회
   const { data: centersData, isLoading: centersLoading } = useGetCenters({
-    is_public: false,
+    center_type: "private",
   });
 
   const centers =

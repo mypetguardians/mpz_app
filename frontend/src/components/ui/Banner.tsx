@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { useGetBanners } from "@/hooks";
 
 type BannerVariant = "main" | "sub";
@@ -12,6 +13,7 @@ interface BannerProps {
 }
 
 export function Banner({ variant, className = "" }: BannerProps) {
+  const router = useRouter();
   const { data: banners, isLoading } = useGetBanners({ type: variant });
 
   const targetBanner = useMemo(() => {
@@ -63,8 +65,17 @@ export function Banner({ variant, className = "" }: BannerProps) {
             : "relative w-full aspect-[18/10] max-h-[232px] overflow-hidden cursor-pointer"
         }
         onClick={() => {
-          if (linkUrl) {
-            window.open(linkUrl, "_blank", "noopener,noreferrer");
+          if (!linkUrl) return;
+          try {
+            const url = new URL(linkUrl);
+            const isInternal = url.hostname === window.location.hostname;
+            if (isInternal) {
+              router.push(url.pathname + url.search + url.hash);
+            } else {
+              window.open(linkUrl, "_blank", "noopener,noreferrer");
+            }
+          } catch {
+            router.push(linkUrl);
           }
         }}
       >

@@ -69,9 +69,13 @@ async def get_centers(request: HttpRequest, filters: CenterListQueryIn = Query(C
     try:
         @sync_to_async
         def get_centers_list():
-            # 기본 쿼리셋 (모든 센터 노출)
+            # 기본 쿼리셋
             queryset = Center.objects.all().select_related('owner')
-            
+
+            # 센터 유형 필터 (private/public)
+            if filters.center_type:
+                queryset = queryset.filter(center_type=filters.center_type)
+
             # 센터명 필터링
             if filters.name:
                 queryset = queryset.filter(name__icontains=filters.name)

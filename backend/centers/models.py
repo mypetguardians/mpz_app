@@ -55,6 +55,11 @@ class Center(BaseModel):
         ('제주특별자치도', '제주특별자치도'),
     ]
     
+    CENTER_TYPE_CHOICES = [
+        ('private', '민간'),
+        ('public', '공공'),
+    ]
+
     # 센터 소유자/대표자 (1:1 관계 - 센터 최고관리자)
     owner = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, help_text="센터 소유자/대표자", related_name="owned_center", null=True, blank=True)
     name = models.CharField(max_length=100, help_text="센터명")
@@ -82,6 +87,9 @@ class Center(BaseModel):
     show_location = models.BooleanField(default=True, help_text="위치 노출 여부")
     call_available_time = models.CharField(max_length=200, blank=True, null=True, help_text="통화 가능 시간")
     
+    # 센터 유형 (민간/공공)
+    center_type = models.CharField(max_length=10, choices=CENTER_TYPE_CHOICES, default='public', help_text="센터 유형 (민간/공공)")
+
     # 공공데이터 관련 필드 (최소한만 유지)
     public_reg_no = models.CharField(max_length=50, blank=True, null=True, help_text="공공데이터 보호소번호", unique=True)
     

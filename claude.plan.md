@@ -1,75 +1,45 @@
 # MPZ 작업 계획 & 진행 상태
 
-## 🔴 다음 세션
+## 🔴 다음 작업
 
-### ~~1. deploy.yml 재설계~~ ✅ 완료
+### 1. 이벤트 페이지 — 남은 사항
+- [ ] prod 서버 `backend/.env`에 EMAIL 앱 비밀번호 추가
+- [ ] 센터 신규 등록 시 `center_type` 자동 세팅 로직 확인
 
-### 1.5. Figma MCP 연동 ✅ 완료
-- `figma-dev` MCP 서버 설정 (figma-developer-mcp, PAT 기반)
-- 디자인 파일: https://www.figma.com/design/30IyUJvsyizlnUQ5urTx24/MPZ-기획?m=dev
-- 세션 재시작 후 Figma 도구 사용 가능
-
-### 2. 이벤트 페이지 (진행 중)
-- 홈 배너 → 이벤트 페이지 연결
-- 스토리 블록 + 만화 패널 + 참여 센터 리스트 + 신청 폼
-- 기획안: /Users/jominsu/Downloads/배너.html
-- **Figma 디자인 참고하여 구현**
-
-#### 현재 상태 (2026-04-24)
-- FE: Figma 기획 반영 완료 — 이미지 영역 + 민간센터 리스트(DB) + 신청 폼(주소API, 셀렉트박스, 전체필수)
-- BE: `is_public` 필터 추가 완료, `/v1/event/apply` API 미구현
-- 센터 리스트: `useGetCenters({ is_public: false })` 연동 완료
-
-#### 확정된 사항
-- 경로: `/event/centers`
-- 센터 리스트: 기존 DB 민간센터 (`is_public=false`) — API 연동 완료
-- 신청 폼: 센터명, 운영자이름, 연락처, 주소(다음API+상세), 동물수(셀렉트) — 전체 필수
-- 신청 완료 시: Alert "신청이 완료되었습니다. 담당자가 2영업일 내 문자로 연락드립니다." + 초기화
-- 센터 카드 클릭: `/list/center/{id}`로 이동
-- 홈 배너: BO에서 등록 (dev에 임시 등록 완료)
-- 이벤트 설명 영역: Figma 이미지 사용 (`event-screenshot.png`)
-
-#### 남은 작업
-- BE: `/v1/event/apply` API (SMTP 이메일 전송)
-
-#### SMTP 세팅 필요
-- 네이버 메일 POP3/SMTP 사용 허용 필요
-- 네이버 계정 비밀번호 필요 (env에 설정)
-
-### 3. 카카오 개발자 콘솔 (코드 X, 콘솔 작업)
+### 2. 카카오 개발자 콘솔 (코드 X, 콘솔 작업)
 - [ ] 공유: dev.mpz.kr / localhost:3001 도메인 등록
 - [ ] 로그인: localhost:8000 Redirect URI 등록
 
-### 4. SMS 인증
+### 3. SMS 인증
 - [ ] 프로필 휴대폰 번호 수정 시 SMS 인증 절차 추가
 
-### 5. AWS → Supabase 전면 이관 + 무중단 배포 (분석 진행 중)
+### 4. AWS → Supabase 전면 이관 + 무중단 배포 (분석 진행 중)
 - 호스팅 옵션 비용/장단점 조사 필요
 - Supabase 미제공: Django/Next.js 커스텀 서버 호스팅
 - 후보: Vercel(FE) + Fly.io/Railway/Render(BE) 또는 Edge Functions 재작성
 - EC2 유지 가능성도 있음
 - **무중단 배포(zero-downtime) 세팅 포함**
 
-### 7. doggy-school 프로젝트
+### 5. doggy-school 프로젝트
 - repo: https://github.com/mypetguardians/doggy-school
 - fork → clone → 분석 → Supabase 위에 배포
 - DB: mpz prod/dev Supabase DB 확장 사용 (integration, 별도 DB 아님)
 
-### 8. WebSocket 지원
+### 6. WebSocket 지원
 - 원인: Railway → EC2 이관 시 WebSocket 지원 누락
 - gunicorn은 HTTP만 처리, WebSocket은 Daphne 등 ASGI 서버 필요
 - prod/로컬에서 무한 재연결 시도 발생 중
 
-### 9. deploy.yml 고도화 (검토)
+### 7. deploy.yml 고도화 (검토)
 - [ ] GitHub Actions에서 빌드 테스트 먼저 → 실패 시 EC2 배포 안 함
 - [ ] 또는 Actions에서 이미지 빌드 → Docker Registry push → EC2에서 pull만 (더 효율적)
 - [ ] 시간 2배 문제 vs 안정성 트레이드오프 검토
 
-### 10. 모니터링
+### 8. 모니터링
 - [ ] Freshping + Sentry + Slack 배포 알림
 - [ ] **필수**: GitHub Actions 배포 성공/실패 Slack 알림 (에러 로그 포함) — 수동 체크 제거
 
-### 10. Django Admin UI
+### 9. Django Admin UI
 - [ ] 모던 라이브러리 조사 (unfold/jazzmin/grappelli)
 - [ ] 블로그, 공식문서, 리뷰 기반 선정 후 적용
 

@@ -73,6 +73,7 @@ export interface CenterSearchParams {
   page_size?: number;
   verified?: boolean;
   is_public?: boolean;
+  center_type?: string; // 센터 유형 (private/public)
   hasMonitoring?: boolean;
   minPrice?: number;
   maxPrice?: number;

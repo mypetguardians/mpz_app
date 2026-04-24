@@ -20,14 +20,14 @@ export function NavbarBtn({
   onClick,
 }: NavbarBtnProps) {
   const iconWithColor = React.cloneElement(icon, {
-    className: cn("w-5 h-5 transition-colors", active ? "text-dg" : "text-lg"),
+    className: cn("w-5 h-5 transition-colors", active ? "text-dg" : "text-[#e3e3e3]"),
   });
 
   return (
     <div
       className={cn(
         "flex flex-col gap-1 items-center justify-center w-full h-16 bg-wh cursor-pointer",
-        active ? "text-dg" : "text-lg"
+        active ? "text-dg" : "text-[#e3e3e3]"
       )}
       onClick={onClick}
     >

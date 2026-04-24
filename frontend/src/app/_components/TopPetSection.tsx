@@ -149,7 +149,7 @@ export function TopPetSection({
       return (
         <MainSection className="pb-0">
           <div className="flex items-center justify-center h-32">
-            <div className="text-lg text-error">
+            <div className="text-[18px] text-error">
               동물 정보를 불러오는데 실패했습니다.
             </div>
           </div>

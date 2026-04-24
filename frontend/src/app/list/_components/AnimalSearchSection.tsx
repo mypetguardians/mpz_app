@@ -483,7 +483,7 @@ function SearchAnimalCardWithFavorite({
                       size={size}
                       className={cn(
                         className,
-                        isLiked ? "text-brand" : "text-lg",
+                        isLiked ? "text-brand" : "text-[#e3e3e3]",
                         isLiked && "fill-current"
                       )}
                       weight={isLiked ? "fill" : "regular"}

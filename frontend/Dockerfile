@@ -15,6 +15,8 @@ ENV NEXT_PUBLIC_KAKAO_CLIENT_ID=$NEXT_PUBLIC_KAKAO_CLIENT_ID
 # 3. 소스 복사 후 빌드 (CACHE_BUST로 캐시 무효화)
 ARG CACHE_BUST=0
 COPY . .
+# prod 빌드 시 /dev 페이지 제외 (팔레트, 테스트 등)
+RUN rm -rf src/app/dev
 RUN npm run build
 
 # ---- Runner stage ----

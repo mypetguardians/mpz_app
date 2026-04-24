@@ -52,15 +52,19 @@ export function Step4({ onNext }: StepProps) {
     }
   };
 
-  const isAddressValid = fullAddress.trim().length > 0;
+  const isAddressValid = roadAddress.trim().length > 0 && detailAddress.trim().length > 0;
   const isVisibilityValid =
     visibility === "공개함" || visibility === "공개안함";
   const isValid = isAddressValid && isVisibilityValid;
   const isSaving = updateProfileMutation.isPending;
 
   const handleNext = async () => {
-    if (!isAddressValid) {
-      showErrorToast("주소를 입력해주세요.");
+    if (!roadAddress.trim()) {
+      showErrorToast("주소를 검색해주세요.");
+      return;
+    }
+    if (!detailAddress.trim()) {
+      showErrorToast("상세주소를 입력해주세요.");
       return;
     }
     if (!isVisibilityValid) {
@@ -124,7 +128,7 @@ export function Step4({ onNext }: StepProps) {
       <div className="min-h-screen max-w-[420px] mx-auto w-full pb-28">
         <h2 className="text-bk mb-6">주소를 입력해주세요.</h2>
         <div className="flex flex-col w-full">
-          <h5 className="text-dg">주소</h5>
+          <h5 className="text-dg">주소 <span className="text-brand ml-1">*</span></h5>
           <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-1">
               <SearchInput
@@ -141,6 +145,7 @@ export function Step4({ onNext }: StepProps) {
                 onChange={(e) => setDetailAddress(e.target.value)}
                 inputMode="text"
                 maxLength={50}
+                required
               />
             </div>
             <CustomInput

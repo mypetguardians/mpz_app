@@ -12,6 +12,7 @@ import { useAuth } from "./AuthProvider";
 import { useToast } from "@/hooks/useToast";
 import { NotificationToast } from "@/components/ui/NotificationToast";
 import { useWebPushNotification } from "@/hooks/mutation/usePushToken";
+import { useQueryClient } from "@tanstack/react-query";
 import type { Notification } from "@/types/notifications";
 import Cookies from "js-cookie";
 
@@ -219,6 +220,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
   }, [isAuthenticated, user]); // requestPermissionAndRegisterToken은 안정적인 함수이므로 의존성에서 제외
 
   // Firebase 포그라운드 메시지 수신
+  const queryClient = useQueryClient();
   useEffect(() => {
     if (!isAuthenticated || !user) return;
 
@@ -230,14 +232,24 @@ export function SocketProvider({ children }: SocketProviderProps) {
         const { onMessage } = await import("firebase/messaging");
 
         const messaging = await getFirebaseMessaging();
-        if (!messaging) return;
+        if (!messaging) {
+          console.log("[FCM] 이 브라우저는 Firebase Messaging을 지원하지 않습니다.");
+          return;
+        }
+
+        console.log("[FCM] 포그라운드 메시지 리스너 등록 완료");
 
         unsubscribe = onMessage(messaging, (payload) => {
+          console.log("[FCM] 포그라운드 메시지 수신:", payload.notification?.title, payload.notification?.body);
+
           const body = payload.notification?.body || "";
           if (body) showToast(body, "success");
+
+          // 알림 쿼리 갱신 → 뱃지 카운트 실시간 업데이트
+          queryClient.invalidateQueries({ queryKey: ["notifications"] });
         });
-      } catch {
-        // Firebase 미지원 브라우저에서는 무시
+      } catch (error) {
+        console.error("[FCM] 포그라운드 메시지 설정 실패:", error);
       }
     };
 
@@ -246,7 +258,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
     return () => {
       if (unsubscribe) unsubscribe();
     };
-  }, [isAuthenticated, user, showToast]);
+  }, [isAuthenticated, user, showToast, queryClient]);
 
   // 알림 추가 함수
   const addNotification = useCallback((notification: Notification) => {

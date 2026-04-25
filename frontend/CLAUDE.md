@@ -32,7 +32,22 @@ Next.js 15 (App Router), React 19, Capacitor 7 (iOS/Android/Web), Tailwind CSS, 
 - **`<a href>`**: JS 호출(`onClick` 등) 대신 실제 URL href 사용. 검색로봇 링크 추출용
 - **dev 환경 SEO 차단**: robots Disallow + sitemap 빈 배열
 
+## Provider 순서 주의
+- `useQueryClient`/`useQuery`는 `QueryClientProvider` 하위에서만 사용 가능
+- SocketProvider 등 상위 Provider에서 직접 사용 시 에러 → CustomEvent 기반 통신으로 우회
+- Auth 상태(`isAuthenticated`) 조건부 렌더링 시 반드시 `isLoading` 체크 먼저. 안 하면 깜빡임 발생
+
+## FCM 웹 푸시
+- Capacitor 네이티브 vs 웹 브라우저 FCM 로직 완전 분리 (`detectPlatform()` 기반)
+- 네이티브 앱에서 웹 푸시 로직 절대 안 탐
+- Firebase 웹 config(apiKey 등)는 공개 키. GitHub secret alert은 false positive
+
+## "use client" 페이지 패턴
+- "use client" page.tsx에는 `export const metadata` 사용 불가
+- 메타데이터 필요 시: 같은 폴더에 서버 컴포넌트 layout.tsx를 만들어 metadata export
+- 동적 메타데이터 필요 시: page.tsx를 서버 컴포넌트로 만들고 클라이언트 로직은 `_components/`로 분리
+
 ## 빌드 주의
-- NEXT_PUBLIC_* 환경변수는 Docker ARG로 전달 필수
+- NEXT_PUBLIC_* 환경변수는 Docker ARG로 전달 필수 (Dockerfile, deploy.yml build-args, docker-compose env 3곳 동기화)
 - ESLint strict — 미사용 import/변수 있으면 빌드 실패
 - Dockerfile에 CACHE_BUST ARG로 캐시 무효화

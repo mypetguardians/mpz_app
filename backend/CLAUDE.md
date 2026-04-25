@@ -32,6 +32,15 @@ SyncLog 모델로 이력 추적. admin에서 조회 가능.
 ## 카카오 로그인
 KakaoButton → state에 frontend URL + returnpath 인코딩 → 백엔드 콜백에서 파싱 → 리다이렉트. JWT 쿠키 설정 시 samesite/secure 매칭 필수.
 
+## FCM 푸시
+- FCM TTL 1시간(3600초) + 타입별 collapse_key — 밀린 알림 폭탄 방지
+- iOS: apns-expiration + apns-collapse-id / Android: ttl + collapse_key / Web: TTL + Topic
+- web 플랫폼 FCM 페이로드에 아이콘, 클릭 링크 포함
+
+## API 수정 시 주의
+- `centers/api.py`(레거시)와 `centers/api/center_api.py`(실제 사용) 같이 파일명만 보고 판단하지 말 것
+- `urls.py` → `__init__.py` → 실제 로직 파일까지 import 체인 추적 필수
+
 ## SEO 연동 주의
 - 프론트 `sitemap.ts`가 `GET /v1/animals`, `GET /v1/centers` API를 호출하여 동적 사이트맵 생성
 - 프론트 `generateMetadata`가 `GET /v1/animals/{id}`, `GET /v1/centers/{id}`로 OG 메타데이터 생성 (SSR)

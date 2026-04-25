@@ -323,7 +323,7 @@ export function BottomSheet<T = string>({
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-end justify-center bg-black/40 transition-all">
+    <div className="fixed inset-0 z-[9999] flex items-end justify-center bg-black/40 transition-all" role="dialog" aria-modal="true" aria-label={title || "바텀시트"}>
       <div className="absolute inset-0" onClick={onClose} aria-label="닫기" />
       <div
         className="relative w-full max-w-[420px] bg-white rounded-t-2xl py-3.5 px-4 shadow-xl animate-slideup"

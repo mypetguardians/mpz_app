@@ -23,7 +23,8 @@ export function Toast({
     <div
       className={cn(baseClasses, className)}
       onClick={disabled ? undefined : onClick}
-      role={onClick ? "button" : undefined}
+      role={onClick ? "button" : "status"}
+      aria-live={onClick ? undefined : "polite"}
       tabIndex={onClick && !disabled ? 0 : undefined}
       onKeyDown={
         onClick && !disabled

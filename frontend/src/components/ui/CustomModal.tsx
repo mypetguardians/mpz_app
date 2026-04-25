@@ -184,7 +184,7 @@ export function CustomModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 transition-all">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 transition-all" role="dialog" aria-modal="true" aria-label={title || "모달"}>
       <div className="absolute inset-0" onClick={onClose} aria-label="닫기" />
       <div
         className={cn(

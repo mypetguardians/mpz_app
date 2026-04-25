@@ -45,6 +45,8 @@ export function NotificationToast({
 
   return (
     <div
+      role="alert"
+      aria-live="assertive"
       className={cn(
         "fixed left-1/2 transform -translate-x-1/2 z-[9999]",
         "flex items-center px-4 py-3 rounded-lg shadow-md shadow-black/15",
@@ -67,6 +69,7 @@ export function NotificationToast({
           setTimeout(onClose, 300);
         }}
         className="text-gr hover:text-dg transition-colors ml-2 flex-shrink-0"
+        aria-label="알림 닫기"
       >
         <X size={16} />
       </button>

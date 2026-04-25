@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import {
   ImageCard,
   CustomInput,
-  SearchInput,
   CustomModal,
   AddButton,
 } from "@/components/ui";

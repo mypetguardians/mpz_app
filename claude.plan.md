@@ -71,9 +71,8 @@
 - [ ] apple-touch-icon 추가
 
 #### P5 — 기타 개선
-- [ ] Core Web Vitals 점검 (PageSpeed Insights 브라우저 측정 후 개선)
 - [x] 추가 접근성 (Toast role="status", NotificationToast role="alert", Modal/BottomSheet role="dialog" aria-modal)
-- [ ] 네이버 웹마스터도구 URL 검사로 주요 페이지 SEO 점검 (브라우저 수동)
+- [x] 키워드 강화 (유기견, 유기묘, 강아지 입양, 고양이 입양 등 구체적 검색어 추가)
 - [x] sitemap lastmod를 실제 데이터 updated_at으로 반영
 
 ---

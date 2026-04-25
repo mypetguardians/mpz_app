@@ -34,15 +34,24 @@ export const metadata: Metadata = {
     template: "%s | 마펫쯔",
   },
   description:
-    "전국 유기동물 입양! 마펫쯔와 편하게 - 유기동물 입양 • 사후 관리 플랫폼",
+    "유기견 입양은 마펫쯔! 전국 보호센터 유기동물 정보와 입양 절차를 한눈에 확인하세요.",
   keywords: [
     "마펫쯔",
     "유기동물",
+    "유기견",
+    "유기견 입양",
+    "유기동물 입양",
+    "강아지 입양",
+    "반려동물 입양",
     "동물보호",
     "입양",
     "반려동물",
     "보호소",
+    "동물보호센터",
+    "강아지 훈련",
+    "반려견 훈련",
     "동물병원",
+    "반려동물 관리",
   ],
   authors: [{ name: "마펫쯔" }],
   creator: "마펫쯔",
@@ -62,7 +71,7 @@ export const metadata: Metadata = {
       template: "%s | 마펫쯔",
     },
     description:
-      "전국 유기동물 보호센터 정보와 입양 절차를 한눈에 확인하기! 반려동물 입양 플랫폼",
+      "유기견 입양은 마펫쯔! 전국 보호센터 유기동물 정보와 입양 절차를 한눈에 확인하세요.",
     images: [
       {
         url: "https://mpz.kr/img/op-image.png",
@@ -79,7 +88,7 @@ export const metadata: Metadata = {
       template: "%s | 마펫쯔",
     },
     description:
-      "전국 유기동물 보호센터 정보와 입양 절차를 한눈에 확인하기! 반려동물 입양 플랫폼",
+      "유기견 입양은 마펫쯔! 전국 보호센터 유기동물 정보와 입양 절차를 한눈에 확인하세요.",
     images: ["https://mpz.kr/img/op-image.png"],
     creator: "@mapetz_official",
   },
@@ -120,7 +129,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               url: "https://mpz.kr",
               logo: "https://mpz.kr/img/op-image.png",
               description:
-                "전국 유기동물 입양 플랫폼 - 보호센터 정보와 입양 절차를 한눈에",
+                "유기견 입양은 마펫쯔! 전국 보호센터 유기동물 정보와 입양 절차를 한눈에 확인하세요.",
               sameAs: [],
             }),
           }}

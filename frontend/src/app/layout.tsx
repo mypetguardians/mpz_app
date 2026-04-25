@@ -25,6 +25,10 @@ export const viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://mpz.kr"),
+  alternates: {
+    canonical: "/",
+  },
   title: {
     default: "마펫쯔",
     template: "%s | 마펫쯔",

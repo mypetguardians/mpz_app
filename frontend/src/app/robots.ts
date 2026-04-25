@@ -14,11 +14,34 @@ export default function robots(): MetadataRoute.Robots {
   }
 
   return {
-    rules: {
-      userAgent: "*",
-      allow: "/",
-      disallow: ["/dev/", "/centerpage/", "/oauth/", "/adoption/verification/"],
-    },
+    rules: [
+      {
+        userAgent: "*",
+        allow: "/",
+        disallow: [
+          "/dev/",
+          "/centerpage/",
+          "/oauth/",
+          "/adoption/",
+          "/my/",
+          "/login/",
+          "/favorite/",
+        ],
+      },
+      {
+        userAgent: "Yeti",
+        allow: "/",
+        disallow: [
+          "/dev/",
+          "/centerpage/",
+          "/oauth/",
+          "/adoption/",
+          "/my/",
+          "/login/",
+          "/favorite/",
+        ],
+      },
+    ],
     sitemap: "https://mpz.kr/sitemap.xml",
   };
 }

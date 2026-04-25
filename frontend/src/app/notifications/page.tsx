@@ -377,12 +377,13 @@ export default function Notification() {
             </div>
           }
           right={
-            <h6
-              className="text-gr cursor-pointer hover:text-dg transition-colors"
+            <button
+              type="button"
+              className="text-gr cursor-pointer hover:text-dg transition-colors text-[12px] bg-transparent border-none"
               onClick={handleMarkAllAsRead}
             >
               전체읽음
-            </h6>
+            </button>
           }
         />
         <div className="flex items-center justify-center h-64">
@@ -417,12 +418,13 @@ export default function Notification() {
             </div>
           }
           right={
-            <h6
-              className="text-gr cursor-pointer hover:text-dg transition-colors"
+            <button
+              type="button"
+              className="text-gr cursor-pointer hover:text-dg transition-colors text-[12px] bg-transparent border-none"
               onClick={handleMarkAllAsRead}
             >
               전체읽음
-            </h6>
+            </button>
           }
         />
         <div className="flex items-center justify-center h-64">
@@ -449,12 +451,13 @@ export default function Notification() {
             </div>
           }
           right={
-            <h6
-              className="text-gr cursor-pointer hover:text-dg transition-colors"
+            <button
+              type="button"
+              className="text-gr cursor-pointer hover:text-dg transition-colors text-[12px] bg-transparent border-none"
               onClick={handleMarkAllAsRead}
             >
               전체읽음
-            </h6>
+            </button>
           }
         />
         <div className="flex items-center justify-center h-64">

@@ -40,6 +40,10 @@ function CenterCard({
         "flex items-center justify-between w-full min-w-0 cursor-pointer"
       )}
       onClick={handleCardClick}
+      role="link"
+      tabIndex={0}
+      aria-label={`${name} 보호센터 상세 보기`}
+      onKeyDown={(e) => { if (e.key === "Enter") handleCardClick(); }}
     >
       <div className="flex items-center gap-3">
         <div className="relative w-[63px] h-[63px] rounded-md border border-lg overflow-hidden flex-shrink-0 bg-gray-300 flex items-center justify-center">

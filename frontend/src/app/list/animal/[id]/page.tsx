@@ -36,6 +36,9 @@ export async function generateMetadata({
     return {
       title,
       description,
+      alternates: {
+        canonical: `/list/animal/${id}`,
+      },
       openGraph: {
         title: `${title} | 마펫쯔`,
         description,
@@ -53,7 +56,42 @@ export async function generateMetadata({
   }
 }
 
+async function getAnimalData(id: string) {
+  try {
+    const res = await fetch(`${API_URL}animals/${id}`, {
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
+}
+
 export default async function AnimalDetailPage({ params }: PageProps) {
   const { id } = await params;
-  return <AnimalDetailClient id={id} />;
+  const animal = await getAnimalData(id);
+
+  const jsonLd = animal
+    ? {
+        "@context": "https://schema.org",
+        "@type": "Thing",
+        name: animal.name || animal.breed || "유기동물",
+        description: `${animal.breed || "유기동물"} · ${animal.age < 12 ? `${animal.age}개월` : `${Math.floor(animal.age / 12)}살 추정`} · ${animal.is_female ? "암컷" : "수컷"}`,
+        image: animal.animal_images?.[0]?.image_url,
+        url: `https://mpz.kr/list/animal/${id}`,
+      }
+    : null;
+
+  return (
+    <>
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
+      <AnimalDetailClient id={id} />
+    </>
+  );
 }

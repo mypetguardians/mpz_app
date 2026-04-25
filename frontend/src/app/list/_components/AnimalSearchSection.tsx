@@ -448,7 +448,7 @@ function SearchAnimalCardWithFavorite({
       : false);
 
   return (
-    <div className={className} onClick={onNavigate}>
+    <div className={className} onClick={onNavigate} role="link" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter") onNavigate(); }}>
       <div className="relative">
         <PetCard
           pet={{

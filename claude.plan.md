@@ -2,37 +2,27 @@
 
 ## 🔴 다음 작업
 
-### 1. Auth 상태 깜빡임(flash) 해결
-- [ ] HomeHeader — isLoading 중 스켈레톤/placeholder 처리
-- [ ] NavBar — 인증 필요 탭 로딩 보호
-- [ ] MyPage/CenterPage — 프로필 영역 로딩 처리
-- [ ] FavoriteLayout/ListLayout — TopBar 조건부 렌더링 로딩 보호
-- 참고: PetSection, Banner, AnimalTab, Notifications는 이미 스켈레톤 적용됨
-
-### 2. env/시크릿 관리 개선 (GitHub Secrets 통합)
+### 1. env/시크릿 관리 개선 (GitHub Secrets 통합)
 - [ ] backend/.env.example 파일 git 커밋 (키만, 값 없이)
 - [ ] Firebase JSON 별도 파일 마운트 (docker-compose volume)
 - [ ] BE 환경변수 GitHub Secrets로 이관
 - [ ] deploy.yml에서 .env 파일 자동 생성
 - [ ] EC2 직접 .env 수정 패턴 폐기
 
-### 3. SMS 인증
+### 2. SMS 인증
 - [ ] 프로필 휴대폰 번호 수정 시 SMS 인증 절차 추가
 
-### 4. WebSocket 지원
-- 원인: gunicorn은 HTTP만 처리, WebSocket은 Daphne 등 ASGI 서버 필요
-- prod/로컬에서 무한 재연결 시도 발생 중
-- 현재 FCM 웹 푸시로 알림 기능은 대체 가능, WebSocket은 채팅/실시간 상태용
+### 3. WebSocket 지원
+- gunicorn → Daphne(ASGI) 전환
+- 현재 FCM 웹 푸시로 알림 기능 대체 가능, WebSocket은 채팅/실시간 상태용
 
-### 5. doggy-school 프로젝트
-- repo: https://github.com/mypetguardians/doggy-school
+### 4. doggy-school 프로젝트
 - fork → clone → 분석 → Supabase 위에 배포
-- DB: mpz prod/dev Supabase DB 확장 사용 (integration, 별도 DB 아님)
 
 ---
 
 ## 🟢 환경변수 수령 (대표님/이전 개발사)
-- [x] FIREBASE_ADMIN_CREDENTIALS_JSON — 새 프로젝트(mypetguardians-a8ad3) 직접 생성
+- [x] FIREBASE_ADMIN_CREDENTIALS_JSON — 새 프로젝트 직접 생성 완료
 - [ ] OPENAI_API_KEY
 - [ ] LANGCHAIN_API_KEY
 
@@ -40,54 +30,81 @@
 
 ## 🔄 상시
 
-### 웹 표준화 · SEO 작업 및 보완
-- [x] sitemap.xml / robots.txt (prod 정상 동작 확인)
-- [ ] **Google Search Console 등록** — 사이트 소유권 인증 + sitemap 제출
-- [ ] **네이버 서치어드바이저 등록** — 사이트 등록 + sitemap 제출
-- [ ] 소유권 인증 메타태그 삽입 (Google/Naver 각각 발급 → layout.tsx에 추가)
-- [ ] 시맨틱 HTML 태그 점검 (header, main, section, article, nav 등)
-- [ ] 접근성 (div onClick → button, aria-label, 키보드 네비게이션)
-- [ ] 동적 메타데이터: 센터 상세 페이지별 OG (동물 상세는 완료)
-- [ ] Core Web Vitals 점검 (LCP, CLS, INP)
+### SEO (네이버 서치어드바이저 + Google 공통 기준)
+
+#### 완료
+- [x] Google Search Console 인증 + sitemap 제출 (8,112 페이지)
+- [x] 네이버 서치어드바이저 인증 + sitemap 제출
+- [x] robots.txt (prod/dev 분기, sitemap 명시, 관리자 페이지 Disallow)
+- [x] sitemap.xml (동적 — 정적페이지 + 동물 + 센터)
+- [x] 전역 메타데이터 (title template, description, OG, Twitter)
+- [x] 동물/센터 상세 generateMetadata (동적 OG + Twitter)
+- [x] JSON-LD 구조화 데이터 (Organization, AnimalShelter, Thing)
+- [x] 시맨틱 HTML (Container main, NavBar button, 접근성)
+- [x] viewport meta (width=device-width)
+- [x] SSR (Next.js App Router — 네이버 SPA 가이드 충족)
+- [x] 커스텀 404 페이지
+- [x] HTTPS 프로토콜
+- [x] 반응형 웹 (모바일 우선)
+
+#### P1 — canonical URL 설정 (중복 URL 방지, 네이버 핵심 권장)
+- [ ] 전역 layout.tsx에 metadataBase 설정 (`https://mpz.kr`)
+- [ ] 동물 상세 generateMetadata에 `alternates.canonical` 추가
+- [ ] 센터 상세 generateMetadata에 `alternates.canonical` 추가
+- [ ] 주요 공개 페이지 layout/page에 canonical 추가 (list/animal, list/center, community, matching 등)
+
+#### P2 — 공개 페이지별 고유 메타데이터
+- [ ] `/list/animal` — 고유 title + description (e.g. "입양 가능한 유기동물 | 마펫쯔")
+- [ ] `/list/center` — 고유 title + description
+- [ ] `/community` — 고유 title + description
+- [ ] `/matching` — 고유 title + description
+- [ ] `/event/centers` — 고유 title + description
+- [ ] `/community/[id]` — 동적 메타데이터 (게시글 제목, 내용 요약)
+
+#### P3 — robots.txt 강화
+- [ ] 네이버 Yeti 명시 허용 규칙 추가 (User-agent: Yeti / Allow: /)
+- [ ] favicon 경로 수집 허용 확인
+- [ ] 로그인 필요 페이지 Disallow 추가 (/my/, /login/, /favorite/)
+
+#### P4 — 파비콘 개선
+- [ ] 전용 favicon.ico 제작 (현재 op-image.png 사용 중)
+- [ ] 절대경로로 변경 (`https://mpz.kr/favicon.ico`)
+- [ ] apple-touch-icon 추가
+
+#### P5 — 기타 개선
+- [ ] Core Web Vitals 점검 (PageSpeed Insights 측정 후 개선)
+- [ ] 추가 접근성 (배경 오버레이 role, toast role="alert" 등)
+- [ ] 네이버 웹마스터도구 URL 검사로 주요 페이지 SEO 점검
+- [ ] sitemap lastmod를 실제 데이터 수정일로 반영 (현재 new Date() 고정)
 
 ---
 
 ## 🔵 후순위
 
 ### AWS → Supabase 전면 이관 + 무중단 배포
-- 호스팅 옵션 비용/장단점 조사 필요
-- EC2 유지 가능성도 있음
-
 ### 모니터링
 - [ ] Freshping + Sentry + Slack 배포 알림
-- [ ] **필수**: GitHub Actions 배포 성공/실패 Slack 알림 (에러 로그 포함)
-
 ### Django Admin UI
-- [ ] 모던 라이브러리 조사 (unfold/jazzmin/grappelli)
-
 ### 보안 검수
-- [ ] OWASP Top 10 기준 점검
 - [ ] release-key.jks git 추적 제거
-
-### 테스트 시스템 구축
-- [ ] Jest/Vitest + React Testing Library
-- [ ] Backend: Django test / pytest
-
+### 테스트 시스템
 ### 데이터 분석/시각화
-- GA4 / Mixpanel 등
 
 ---
 
 ## ✅ 완료
 
 ### 2026-04-26
-- [x] 불필요 코드/리소스 정리 (views.py 14개, 패키지 6개, 스크립트 9개 등)
-- [x] Firebase 새 프로젝트 생성 + dev 서버 환경변수 세팅
-- [x] Firebase 웹 푸시 알림 구현 (포그라운드 toast + 백그라운드 브라우저 알림)
-- [x] FCM TTL 1시간 + collapse_key 설정
-- [x] 알림 UI 개선 (toast 애니메이션, NotificationCard 아이콘, 뱃지 실시간 업데이트)
-- [x] GPS 위치 확인 대기시간 단축 (12초→5초)
-- [x] env/시크릿 관리 연구 + 방향 결정 (GitHub Secrets 통합)
+- [x] 불필요 코드/리소스 정리 (1,522줄 삭제)
+- [x] Firebase 새 프로젝트 생성 + 웹 푸시 전체 구현
+- [x] FCM TTL 1시간 + collapse_key
+- [x] 알림 UI 개선 (toast 애니메이션, NotificationCard, 뱃지 실시간)
+- [x] Auth 상태 깜빡임 해결 (6개 컴포넌트)
+- [x] GPS 위치 확인 대기시간 단축
+- [x] SEO (Google/네이버 인증, 센터 OG, JSON-LD, 시맨틱 HTML, 접근성)
+- [x] 지역 태그 스크롤 포커싱
+- [x] env/시크릿 관리 연구 + 방향 결정
+- [x] prod 배포 (PR #16)
 
 ### 이전
 `history/` 폴더에서 날짜별 상세 확인 가능

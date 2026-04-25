@@ -1,89 +1,100 @@
-"use client";
+import type { Metadata } from "next";
+import CenterDetailClient from "./_components/CenterDetailClient";
 
-import { useState, useEffect } from "react";
-import { useSearchParams, useParams } from "next/navigation";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.mpz.kr/v1/";
 
-import { useGetCenterById } from "@/hooks/query/useGetCenters";
-import { useToggleCenterFavorite, useCheckCenterFavorite } from "@/hooks";
-import { useKakaoSDK } from "@/hooks/useKakaoSDK";
-import { Container } from "@/components/common/Container";
-import { CenterDetailHeader, CenterDetailTabs } from "./_components";
-import type { TabType } from "./_components/types";
-import { CenterFilterOverlay } from "./filter/CenterFilterOverlay";
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
 
-export default function CenterDetailPage() {
-  const params = useParams();
-  const id = params.id as string;
-  const searchParams = useSearchParams();
-  const { isLoaded, isInitialized } = useKakaoSDK();
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { id } = await params;
 
-  // API 호출
-  const { data: center, isLoading: centerLoading } = useGetCenterById(id);
-  const { data: favoriteStatus } = useCheckCenterFavorite(id);
-  const toggleCenterFavorite = useToggleCenterFavorite();
+  try {
+    const res = await fetch(`${API_URL}centers/${id}`, {
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return {};
 
-  // 상태 관리
-  const [activeTab, setActiveTab] = useState<TabType>("animals");
+    const center = await res.json();
+    const name = center.name || "보호센터";
+    const region = center.region || "";
+    const description = center.description
+      ? `${center.description.slice(0, 100)}${center.description.length > 100 ? "..." : ""}`
+      : `${name} — 마펫쯔에서 보호센터 정보를 확인하세요`;
+    const title = region ? `${name} (${region})` : name;
+    const imageUrl = center.image_url || "https://mpz.kr/img/op-image.png";
 
-  // URL 쿼리 파라미터에서 탭 설정
-  useEffect(() => {
-    const tabParam = searchParams.get("tab");
-    if (tabParam === "animals") {
-      setActiveTab("animals");
-    }
-  }, [searchParams]);
-
-  // 데이터 준비
-  const isFavorite = favoriteStatus?.is_favorited || false;
-
-  // 이벤트 핸들러
-  const handleFavoriteToggle = () => {
-    toggleCenterFavorite.mutate({ centerId: id });
-  };
-
-  const handleTabChange = (tab: TabType) => {
-    setActiveTab(tab);
-  };
-
-  // 로딩 상태 처리
-  if (centerLoading) {
-    return (
-      <Container className="min-h-screen">
-        <div className="text-center py-8">로딩 중...</div>
-      </Container>
-    );
+    return {
+      title,
+      description,
+      alternates: {
+        canonical: `/list/center/${id}`,
+      },
+      openGraph: {
+        title: `${title} | 마펫쯔`,
+        description,
+        images: [{ url: imageUrl, width: 800, height: 800, alt: title }],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `${title} | 마펫쯔`,
+        description,
+        images: [imageUrl],
+      },
+    };
+  } catch {
+    return {};
   }
+}
 
-  // 에러 상태 처리
-  if (!center) {
-    return (
-      <Container className="min-h-screen">
-        <div className="text-center py-8">보호센터를 찾을 수 없습니다.</div>
-      </Container>
-    );
+async function getCenterData(id: string) {
+  try {
+    const res = await fetch(`${API_URL}centers/${id}`, {
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
   }
+}
+
+export default async function CenterDetailPage({ params }: PageProps) {
+  const { id } = await params;
+  const center = await getCenterData(id);
+
+  const jsonLd = center
+    ? {
+        "@context": "https://schema.org",
+        "@type": "AnimalShelter",
+        name: center.name,
+        description: center.description,
+        image: center.image_url,
+        url: `https://mpz.kr/list/center/${id}`,
+        address: center.location
+          ? {
+              "@type": "PostalAddress",
+              addressLocality: center.region,
+              streetAddress: center.location,
+            }
+          : undefined,
+        telephone: center.phone_number,
+      }
+    : null;
 
   return (
-    <Container className="min-h-screen">
-      <CenterDetailHeader
-        centerName={center.name}
-        centerId={id}
-        verified={center.verified}
-        centerDescription={center.description}
-        centerImageUrl={center.imageUrl}
-        centerRegion={center.region}
-        isKakaoLoaded={isLoaded}
-        isKakaoInitialized={isInitialized}
-      />
-
-      <CenterDetailTabs
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        center={center}
-        isFavorite={isFavorite}
-        onFavoriteToggle={handleFavoriteToggle}
-      />
-      <CenterFilterOverlay />
-    </Container>
+    <>
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
+      <CenterDetailClient id={id} />
+    </>
   );
 }

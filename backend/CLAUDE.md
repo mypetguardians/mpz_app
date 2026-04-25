@@ -31,3 +31,9 @@ SyncLog 모델로 이력 추적. admin에서 조회 가능.
 
 ## 카카오 로그인
 KakaoButton → state에 frontend URL + returnpath 인코딩 → 백엔드 콜백에서 파싱 → 리다이렉트. JWT 쿠키 설정 시 samesite/secure 매칭 필수.
+
+## SEO 연동 주의
+- 프론트 `sitemap.ts`가 `GET /v1/animals`, `GET /v1/centers` API를 호출하여 동적 사이트맵 생성
+- 프론트 `generateMetadata`가 `GET /v1/animals/{id}`, `GET /v1/centers/{id}`로 OG 메타데이터 생성 (SSR)
+- 이 API들이 느리거나 5xx 응답하면 사이트맵/메타데이터 생성 실패 → 검색 노출 저하
+- API 응답 필드 변경 시 프론트 SEO 코드도 확인: `breed`, `name`, `age`, `is_female`, `animal_images`, `region`, `description`, `image_url`, `phone_number`, `location`

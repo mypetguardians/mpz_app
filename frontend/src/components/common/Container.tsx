@@ -8,12 +8,12 @@ interface ContainerProps {
 
 function Container({ children, className = "", style }: ContainerProps) {
   return (
-    <div
+    <main
       className={`max-w-[420px] mx-auto w-full bg-wh min-h-full ${className}`}
       style={style}
     >
       {children}
-    </div>
+    </main>
   );
 }
 

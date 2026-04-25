@@ -60,6 +60,8 @@ export function TopPetSection({
   const [isMounted, setIsMounted] = useState(false);
   const hasAutoAppliedLocation = useRef(false);
   const [locationToastMsg, setLocationToastMsg] = useState("");
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const tagRefsMap = useRef<Map<string, HTMLElement>>(new Map());
 
   // 클라이언트 마운트 시 GPS 자동 요청
   useEffect(() => {
@@ -95,6 +97,22 @@ export function TopPetSection({
       requestLocation();
     }
   };
+
+  // 선택된 지역 태그로 스크롤 포커싱
+  useEffect(() => {
+    if (!selectedLocation || !scrollContainerRef.current) return;
+    const matchedKey = locations.find(
+      (loc) =>
+        isLocationMatch(selectedLocation, loc) ||
+        isLocationMatch(selectedLocation, getFullLocationName(loc))
+    );
+    if (!matchedKey) return;
+    const el = tagRefsMap.current.get(matchedKey);
+    if (!el) return;
+    const container = scrollContainerRef.current;
+    const scrollLeft = el.offsetLeft - container.offsetLeft - 16;
+    container.scrollTo({ left: scrollLeft, behavior: "smooth" });
+  }, [selectedLocation, locations]);
 
   // 위치정보 에러가 있는 경우 처리
   useEffect(() => {
@@ -194,7 +212,7 @@ export function TopPetSection({
     >
       {/* 지역 필터 */}
       {showLocationFilter && (
-        <div className="flex items-center overflow-x-auto scrollbar-hide space-x-[6px] -mx-4 px-4">
+        <div ref={scrollContainerRef} className="flex items-center overflow-x-auto scrollbar-hide space-x-[6px] -mx-4 px-4">
           <MiniButton
             key="location"
             leftIcon={<MapPin size={16} />}
@@ -212,16 +230,22 @@ export function TopPetSection({
               : false;
 
             return (
-              <MiniButton
+              <div
                 key={loc}
-                text={displayName}
-                variant={isSelected ? "filterOn" : "filterOff"}
-                onClick={() => {
-                  if (!isSelected) {
-                    onLocationSelect?.(fullName);
-                  }
+                ref={(el) => {
+                  if (el) tagRefsMap.current.set(loc, el);
                 }}
-              />
+              >
+                <MiniButton
+                  text={displayName}
+                  variant={isSelected ? "filterOn" : "filterOff"}
+                  onClick={() => {
+                    if (!isSelected) {
+                      onLocationSelect?.(fullName);
+                    }
+                  }}
+                />
+              </div>
             );
           })}
         </div>

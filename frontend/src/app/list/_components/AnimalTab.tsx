@@ -358,7 +358,7 @@ function AnimalCardWithFavorite({
       : false);
 
   return (
-    <div className="w-[calc(50%-4px)]" onClick={onNavigate}>
+    <div className="w-[calc(50%-4px)]" onClick={onNavigate} role="link" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter") onNavigate(); }}>
       <div className="relative">
         <PetCard
           pet={transformRawAnimalToPetCard(animal)}

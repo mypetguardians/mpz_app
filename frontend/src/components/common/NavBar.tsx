@@ -24,23 +24,26 @@ export function NavbarBtn({
   });
 
   return (
-    <div
+    <button
+      type="button"
       className={cn(
-        "flex flex-col gap-1 items-center justify-center w-full h-16 bg-wh cursor-pointer",
+        "flex flex-col gap-1 items-center justify-center w-full h-16 bg-wh cursor-pointer border-none outline-none",
         active ? "text-dg" : "text-[#cccccc]"
       )}
       onClick={onClick}
+      aria-label={label}
+      aria-current={active ? "page" : undefined}
     >
       {iconWithColor}
-      <h6
+      <span
         className={cn(
-          "text-xs cursor-pointer leading-tight",
+          "text-xs leading-tight",
           active ? "text-dg font-bold" : "font-medium"
         )}
       >
         {label}
-      </h6>
-    </div>
+      </span>
+    </button>
   );
 }
 

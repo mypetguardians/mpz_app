@@ -168,10 +168,11 @@ export default function CreateCenterAdminPage() {
 
             <CustomInput
               label="닉네임"
-              placeholder="닉네임을 입력해주세요. (1-50자)"
+              placeholder="닉네임을 입력해주세요. (최대 100자)"
               value={nickname}
               required={true}
-              onChange={(e) => setNickname(e.target.value)}
+              maxLength={100}
+              onChange={(e) => setNickname(e.target.value.slice(0, 100))}
             />
 
             {/* 전화번호 섹션 */}

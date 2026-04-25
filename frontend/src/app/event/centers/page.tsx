@@ -94,7 +94,7 @@ function CenterThumbnail({
   const hasValidImage = imageUrl && imageUrl.trim() !== "" && !hasError;
 
   return (
-    <div className="relative w-[63px] h-[63px] rounded-md border border-lg overflow-hidden flex-shrink-0 bg-gray-300 flex items-center justify-center mr-3">
+    <div className="relative w-[63px] h-[63px] rounded-md border border-lg overflow-hidden flex-shrink-0 bg-lg flex items-center justify-center mr-3">
       {hasValidImage ? (
         <Image
           src={imageUrl}
@@ -105,7 +105,7 @@ function CenterThumbnail({
           onError={() => setHasError(true)}
         />
       ) : (
-        <UsersThree size={32} className="text-gray-500" weight="light" />
+        <UsersThree size={32} className="text-gr" weight="light" />
       )}
     </div>
   );
@@ -370,7 +370,7 @@ export default function EventCentersPage() {
 
           {/* 섹션 분리 헤더 */}
           <section className="mt-8 mb-6 bg-[#1A1008] px-5 py-6">
-            <h3 className="text-[18px] font-semibold text-white leading-relaxed">
+            <h3 className="text-[18px] font-bold text-white leading-relaxed">
               평생을 바쳐 이 아이들을 돌보는
               <br />
               사람들이 있어요.
@@ -427,7 +427,7 @@ export default function EventCentersPage() {
 
           {/* 보호센터 서비스 신청 폼 */}
           <section className="px-4">
-            <h3 className="text-[18px] font-semibold text-bk mb-1">
+            <h3 className="text-[18px] font-bold text-bk mb-1">
               우리 센터 아이들을 더 많은 분께 알리고 싶으신가요?
             </h3>
             <p className="body2 text-gr leading-relaxed mb-6">
@@ -474,7 +474,7 @@ export default function EventCentersPage() {
                 />
               </div>
 
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col space-y-2">
                 <h5
                   className={`text-dg ${
                     formErrors.address ? "text-error" : ""
@@ -484,7 +484,7 @@ export default function EventCentersPage() {
                 </h5>
                 <SearchInput
                   variant="variant2"
-                  className="!bg-gray-200"
+                  className="!bg-lg"
                   placeholder="센터 주소를 검색해주세요."
                   value={formData.address}
                   onChange={(e) => handleFormChange("address", e.target.value)}

@@ -24,9 +24,9 @@
 - gunicorn은 HTTP만 처리, WebSocket은 Daphne 등 ASGI 서버 필요
 - prod/로컬에서 무한 재연결 시도 발생 중
 
-### 6. deploy.yml 고도화 ✅ (dev 적용 완료, prod 대기)
+### 6. deploy.yml 고도화 ✅
 - [x] GitHub Actions에서 Docker 이미지 빌드 → GHCR push → EC2에서 pull만
-- [ ] prod 적용 (dev → main 머지 후 push)
+- [x] prod 적용 완료 (PR #15)
 
 ### 7. doggy-school 프로젝트
 - repo: https://github.com/mypetguardians/doggy-school

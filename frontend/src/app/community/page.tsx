@@ -440,7 +440,7 @@ export default function CommunityPage() {
         />
         <div className="w-full overflow-x-auto scrollbar-hide">
           {/* 탭 스켈레톤 */}
-          <div className="flex gap-2 px-4 py-3">
+          <div className="flex space-x-2 px-4 py-3">
             <div className="w-20 h-10 bg-gray-200 rounded-lg animate-pulse" />
             <div className="w-24 h-10 bg-gray-200 rounded-lg animate-pulse" />
             <div className="w-20 h-10 bg-gray-200 rounded-lg animate-pulse" />
@@ -495,12 +495,12 @@ export default function CommunityPage() {
         />
         <div className="flex items-center justify-center flex-1">
           <div className="text-center">
-            <p className="mb-2 text-red-500">
+            <p className="mb-2 text-error">
               데이터를 불러오는데 실패했습니다.
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
+              className="px-4 py-2 text-white bg-brand rounded hover:opacity-90"
             >
               다시 시도
             </button>
@@ -558,7 +558,7 @@ export default function CommunityPage() {
         <Banner variant="sub" />
         {isLoading ? (
           // 로딩 중일 때 스켈레톤 표시
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col space-y-4">
             {[...Array(5)].map((_, index) => (
               <div key={index}>
                 {(index + 1) % 10 === 0 && <Banner variant="sub" />}
@@ -570,7 +570,7 @@ export default function CommunityPage() {
           </div>
         ) : filteredPosts.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full">
-            <h5 className="text-sm text-lg text-center">
+            <h5 className="text-sm text-gr text-center">
               아직 업로드된 게시글이 없어요.
               <br />첫 번째 게시글을 작성해보세요!
             </h5>

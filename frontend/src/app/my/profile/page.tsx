@@ -249,7 +249,8 @@ export default function ProfileEditPage() {
                 label="닉네임"
                 placeholder="닉네임을 설정해보세요."
                 value={nickname}
-                onChange={(e) => setNickname(e.target.value)}
+                maxLength={100}
+                onChange={(e) => setNickname(e.target.value.slice(0, 100))}
               />
             </div>
 

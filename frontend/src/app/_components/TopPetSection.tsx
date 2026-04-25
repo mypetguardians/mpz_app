@@ -107,7 +107,7 @@ export function TopPetSection({
     if (isLoading) {
       return (
         <MainSection className="pb-0">
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col space-y-3">
             {[...Array(3)].map((_, index) => (
               <PetCardSkeleton key={index} variant="primary" />
             ))}
@@ -146,7 +146,7 @@ export function TopPetSection({
 
     return (
       <MainSection className="pb-0">
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col space-y-3">
           {analysisAnimals.map((animal) => (
             <PetCard
               key={animal.id}
@@ -193,7 +193,7 @@ export function TopPetSection({
     >
       {/* 지역 필터 */}
       {showLocationFilter && (
-        <div className="flex items-center overflow-x-auto scrollbar-hide gap-[6px] -mx-4 px-4">
+        <div className="flex items-center overflow-x-auto scrollbar-hide space-x-[6px] -mx-4 px-4">
           <MiniButton
             key="location"
             leftIcon={<MapPin size={16} />}
@@ -228,13 +228,13 @@ export function TopPetSection({
 
       {/* 동물 카드 목록 */}
       {isLoading ? (
-        <div className="flex gap-3 overflow-x-auto scrollbar-hide flex-nowrap -mx-4 px-4">
+        <div className="flex space-x-3 overflow-x-auto scrollbar-hide flex-nowrap -mx-4 px-4">
           {[...Array(10)].map((_, index) => (
             <PetCardSkeleton key={index} variant="primary" />
           ))}
         </div>
       ) : displayAnimals.length > 0 ? (
-        <div className="flex gap-3 overflow-x-auto scrollbar-hide flex-nowrap -mx-4 px-4">
+        <div className="flex space-x-3 overflow-x-auto scrollbar-hide flex-nowrap -mx-4 px-4">
           {displayAnimals.map((animal) => (
             <PetCard
               key={animal.id}

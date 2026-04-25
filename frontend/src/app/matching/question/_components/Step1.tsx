@@ -56,7 +56,7 @@ export function Step1({ onNext }: StepProps) {
         <h4 className="text-brand-light">Q1.</h4>
         <h2 className="text-bk mb-6">평소 얼마나 활동적인 편인가요?</h2>
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col space-y-3">
           {activityOptions.map((option) => (
             <SelectButton
               key={option.id}

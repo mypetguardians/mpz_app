@@ -33,7 +33,7 @@ export function PetSection({
     if (isExpertAnalysis) {
       return (
         <MainSection className="pb-0">
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col space-y-3">
             {[...Array(3)].map((_, index) => (
               <PetCardSkeleton key={index} variant="variant2" />
             ))}
@@ -54,13 +54,13 @@ export function PetSection({
           <h2 className="text-xl font-bold">{title}</h2>
           <Link href="/list/animal">
             {rightSlot && (
-              <span className="text-sm text-gray-500">{rightSlot}</span>
+              <span className="text-sm text-gr">{rightSlot}</span>
             )}
           </Link>
         </div>
 
         {showLocationFilter && (
-          <div className="flex items-center overflow-x-auto scrollbar-hide gap-[6px]">
+          <div className="flex items-center overflow-x-auto scrollbar-hide space-x-[6px]">
             {locations.map((loc) => (
               <MiniButton key={loc} text={loc} variant="outline" />
             ))}
@@ -116,7 +116,7 @@ export function PetSection({
 
     return (
       <MainSection className="pb-0">
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col space-y-3">
           {analysisAnimals.map((animal) => (
             <PetCard
               key={animal.id}
@@ -139,7 +139,7 @@ export function PetSection({
   return (
     <MainSection title={title} rightSlot={rightSlot} className="pb-0">
       {showLocationFilter && (
-        <div className="flex items-center overflow-x-auto scrollbar-hide gap-[6px] -mx-4 px-4">
+        <div className="flex items-center overflow-x-auto scrollbar-hide space-x-[6px] -mx-4 px-4">
           {locations.map((loc) => (
             <MiniButton
               key={loc}

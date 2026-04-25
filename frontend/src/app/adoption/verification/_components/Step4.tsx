@@ -129,8 +129,8 @@ export function Step4({ onNext }: StepProps) {
         <h2 className="text-bk mb-6">주소를 입력해주세요.</h2>
         <div className="flex flex-col w-full">
           <h5 className="text-dg">주소 <span className="text-brand ml-1">*</span></h5>
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-col gap-1">
+          <div className="flex flex-col space-y-3">
+            <div className="flex flex-col space-y-1">
               <SearchInput
                 variant="variant2"
                 placeholder="도로명 주소로 검색해주세요."

@@ -2,33 +2,29 @@
 
 ## 🔴 다음 작업
 
-### 1. 이벤트 페이지 ✅
-- [x] 센터 신규 등록 시 `center_type` 자동 세팅 (public_reg_no 유무로 save 시 자동 판별)
+### 1. Auth 상태 깜빡임(flash) 해결
+- [ ] HomeHeader — isLoading 중 스켈레톤/placeholder 처리
+- [ ] NavBar — 인증 필요 탭 로딩 보호
+- [ ] MyPage/CenterPage — 프로필 영역 로딩 처리
+- [ ] FavoriteLayout/ListLayout — TopBar 조건부 렌더링 로딩 보호
+- 참고: PetSection, Banner, AnimalTab, Notifications는 이미 스켈레톤 적용됨
 
-### 2. 카카오 개발자 콘솔 ✅
-- [x] 로그인 Redirect URI: localhost:8000 추가, 불필요 URI 정리
-- [x] JS SDK 도메인: dev.mpz.kr, localhost:3001 추가, 불필요 도메인 정리
-- [x] JS 키 Redirect URI: localhost:8000 추가, 불필요 URI 정리
+### 2. env/시크릿 관리 개선 (GitHub Secrets 통합)
+- [ ] backend/.env.example 파일 git 커밋 (키만, 값 없이)
+- [ ] Firebase JSON 별도 파일 마운트 (docker-compose volume)
+- [ ] BE 환경변수 GitHub Secrets로 이관
+- [ ] deploy.yml에서 .env 파일 자동 생성
+- [ ] EC2 직접 .env 수정 패턴 폐기
 
 ### 3. SMS 인증
 - [ ] 프로필 휴대폰 번호 수정 시 SMS 인증 절차 추가
 
-### 4. Firebase 확인 + 웹 푸시 알림
-- [ ] 대표님께 Firebase 프로젝트(`mpz-app-b2e01`) 계정 소유 확인
-- [ ] `FIREBASE_ADMIN_CREDENTIALS_JSON` 서비스 계정 키 수령 → env 세팅
-- [ ] 웹 푸시: Service Worker + FCM Web Push + VAPID 키 세팅
-- [ ] 네이티브/웹 분기 처리 (Capacitor 네이티브 vs Web Push API)
-
-### 5. WebSocket 지원
-- 원인: Railway → EC2 이관 시 WebSocket 지원 누락
-- gunicorn은 HTTP만 처리, WebSocket은 Daphne 등 ASGI 서버 필요
+### 4. WebSocket 지원
+- 원인: gunicorn은 HTTP만 처리, WebSocket은 Daphne 등 ASGI 서버 필요
 - prod/로컬에서 무한 재연결 시도 발생 중
+- 현재 FCM 웹 푸시로 알림 기능은 대체 가능, WebSocket은 채팅/실시간 상태용
 
-### 6. deploy.yml 고도화 ✅
-- [x] GitHub Actions에서 Docker 이미지 빌드 → GHCR push → EC2에서 pull만
-- [x] prod 적용 완료 (PR #15)
-
-### 7. doggy-school 프로젝트
+### 5. doggy-school 프로젝트
 - repo: https://github.com/mypetguardians/doggy-school
 - fork → clone → 분석 → Supabase 위에 배포
 - DB: mpz prod/dev Supabase DB 확장 사용 (integration, 별도 DB 아님)
@@ -36,7 +32,7 @@
 ---
 
 ## 🟢 환경변수 수령 (대표님/이전 개발사)
-- [ ] FIREBASE_ADMIN_CREDENTIALS_JSON
+- [x] FIREBASE_ADMIN_CREDENTIALS_JSON — 새 프로젝트(mypetguardians-a8ad3) 직접 생성
 - [ ] OPENAI_API_KEY
 - [ ] LANGCHAIN_API_KEY
 
@@ -60,39 +56,38 @@
 
 ### AWS → Supabase 전면 이관 + 무중단 배포
 - 호스팅 옵션 비용/장단점 조사 필요
-- Supabase 미제공: Django/Next.js 커스텀 서버 호스팅
-- 후보: Vercel(FE) + Fly.io/Railway/Render(BE) 또는 Edge Functions 재작성
 - EC2 유지 가능성도 있음
-- **무중단 배포(zero-downtime) 세팅 포함**
 
 ### 모니터링
 - [ ] Freshping + Sentry + Slack 배포 알림
-- [ ] **필수**: GitHub Actions 배포 성공/실패 Slack 알림 (에러 로그 포함) — 수동 체크 제거
+- [ ] **필수**: GitHub Actions 배포 성공/실패 Slack 알림 (에러 로그 포함)
 
 ### Django Admin UI
 - [ ] 모던 라이브러리 조사 (unfold/jazzmin/grappelli)
-- [ ] 블로그, 공식문서, 리뷰 기반 선정 후 적용
 
 ### 보안 검수
-- [ ] OWASP Top 10 기준 크리티컬 수준 분류 및 점검
-- [ ] XSS, CSRF, SQL Injection, 인증/인가 취약점 검토
-- [ ] 환경변수/시크릿 노출 여부 확인
-- [ ] **release-key.jks가 git에 올라가 있음** — git 추적 제거 + gitignore 추가 필요
-- [ ] API 엔드포인트 권한 검증 (인증 없이 접근 가능한 API 점검)
-- [ ] 크리티컬 → 긴급 수정, 중간 → 일정 내 수정, 낮음 → 백로그
+- [ ] OWASP Top 10 기준 점검
+- [ ] release-key.jks git 추적 제거
 
 ### 테스트 시스템 구축
 - [ ] Jest/Vitest + React Testing Library
 - [ ] Backend: Django test / pytest
 
 ### 데이터 분석/시각화
-- 퍼널 분석, 데이터 추론
-- MAU / WAU / DAU 분석
-- GA(Google Analytics) 사용 의사 있음
-- 후보: Google Analytics 4 / Mixpanel / Amplitude / 자체 대시보드
+- GA4 / Mixpanel 등
 
 ---
 
-## 📝 완료 이력
+## ✅ 완료
 
+### 2026-04-26
+- [x] 불필요 코드/리소스 정리 (views.py 14개, 패키지 6개, 스크립트 9개 등)
+- [x] Firebase 새 프로젝트 생성 + dev 서버 환경변수 세팅
+- [x] Firebase 웹 푸시 알림 구현 (포그라운드 toast + 백그라운드 브라우저 알림)
+- [x] FCM TTL 1시간 + collapse_key 설정
+- [x] 알림 UI 개선 (toast 애니메이션, NotificationCard 아이콘, 뱃지 실시간 업데이트)
+- [x] GPS 위치 확인 대기시간 단축 (12초→5초)
+- [x] env/시크릿 관리 연구 + 방향 결정 (GitHub Secrets 통합)
+
+### 이전
 `history/` 폴더에서 날짜별 상세 확인 가능

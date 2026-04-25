@@ -6,9 +6,14 @@ const BASE_URL = "https://mpz.kr";
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.mpz.kr/v1/";
 const IS_PROD = process.env.NEXT_PUBLIC_API_BASE_URL?.includes("api.mpz.kr") ?? true;
 
-async function fetchAllAnimals(): Promise<string[]> {
+interface SitemapItem {
+  id: string;
+  updatedAt: string;
+}
+
+async function fetchAllAnimals(): Promise<SitemapItem[]> {
   try {
-    const ids: string[] = [];
+    const items: SitemapItem[] = [];
     let page = 1;
     const pageSize = 100;
 
@@ -24,22 +29,27 @@ async function fetchAllAnimals(): Promise<string[]> {
       if (animals.length === 0) break;
 
       for (const animal of animals) {
-        if (animal.id) ids.push(animal.id);
+        if (animal.id) {
+          items.push({
+            id: animal.id,
+            updatedAt: animal.updated_at || animal.created_at || "",
+          });
+        }
       }
 
       if (animals.length < pageSize) break;
       page++;
     }
 
-    return ids;
+    return items;
   } catch {
     return [];
   }
 }
 
-async function fetchAllCenters(): Promise<string[]> {
+async function fetchAllCenters(): Promise<SitemapItem[]> {
   try {
-    const ids: string[] = [];
+    const items: SitemapItem[] = [];
     let page = 1;
     const pageSize = 100;
 
@@ -55,14 +65,19 @@ async function fetchAllCenters(): Promise<string[]> {
       if (centers.length === 0) break;
 
       for (const center of centers) {
-        if (center.id) ids.push(center.id);
+        if (center.id) {
+          items.push({
+            id: center.id,
+            updatedAt: center.updated_at || center.created_at || "",
+          });
+        }
       }
 
       if (centers.length < pageSize) break;
       page++;
     }
 
-    return ids;
+    return items;
   } catch {
     return [];
   }
@@ -72,60 +87,62 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // dev 환경에서는 빈 sitemap 반환 (SEO 차단)
   if (!IS_PROD) return [];
 
-  const [animalIds, centerIds] = await Promise.all([
+  const [animals, centers] = await Promise.all([
     fetchAllAnimals(),
     fetchAllCenters(),
   ]);
 
+  const now = new Date();
+
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: BASE_URL,
-      lastModified: new Date(),
+      lastModified: now,
       changeFrequency: "daily",
       priority: 1,
     },
     {
       url: `${BASE_URL}/list/animal`,
-      lastModified: new Date(),
+      lastModified: now,
       changeFrequency: "daily",
       priority: 0.9,
     },
     {
       url: `${BASE_URL}/list/center`,
-      lastModified: new Date(),
+      lastModified: now,
       changeFrequency: "weekly",
       priority: 0.8,
     },
     {
       url: `${BASE_URL}/matching`,
-      lastModified: new Date(),
+      lastModified: now,
       changeFrequency: "weekly",
       priority: 0.7,
     },
     {
       url: `${BASE_URL}/event/centers`,
-      lastModified: new Date(),
+      lastModified: now,
       changeFrequency: "weekly",
       priority: 0.6,
     },
     {
       url: `${BASE_URL}/community`,
-      lastModified: new Date(),
+      lastModified: now,
       changeFrequency: "daily",
       priority: 0.6,
     },
   ];
 
-  const animalPages: MetadataRoute.Sitemap = animalIds.map((id) => ({
-    url: `${BASE_URL}/list/animal/${id}`,
-    lastModified: new Date(),
+  const animalPages: MetadataRoute.Sitemap = animals.map((item) => ({
+    url: `${BASE_URL}/list/animal/${item.id}`,
+    lastModified: item.updatedAt ? new Date(item.updatedAt) : now,
     changeFrequency: "daily" as const,
     priority: 0.8,
   }));
 
-  const centerPages: MetadataRoute.Sitemap = centerIds.map((id) => ({
-    url: `${BASE_URL}/list/center/${id}`,
-    lastModified: new Date(),
+  const centerPages: MetadataRoute.Sitemap = centers.map((item) => ({
+    url: `${BASE_URL}/list/center/${item.id}`,
+    lastModified: item.updatedAt ? new Date(item.updatedAt) : now,
     changeFrequency: "weekly" as const,
     priority: 0.7,
   }));

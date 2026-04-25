@@ -138,6 +138,9 @@ class FCMPushNotificationService:
                 stringified[key] = str(value)
         return stringified
 
+    # FCM 메시지 TTL (초) — 1시간 후 미전달 메시지 폐기
+    FCM_TTL_SECONDS = 3600
+
     def _build_message_payload(
         self,
         token: str,
@@ -146,6 +149,9 @@ class FCMPushNotificationService:
         data: Optional[Dict],
         platform: Optional[str],
     ) -> Dict:
+        # notification_type 기반 collapse key (같은 타입 알림은 최신 1개만 전달)
+        notification_type = data.get("notification_type", "default") if data else "default"
+
         payload: Dict = {
             "message": {
                 "token": token,
@@ -156,11 +162,14 @@ class FCMPushNotificationService:
         if data:
             payload["message"]["data"] = self._stringify_data(data)
 
-        # 플랫폼별 옵션 (필요 시 확장 가능)
+        # 플랫폼별 옵션
         if platform == "ios":
+            import time
             payload["message"]["apns"] = {
                 "headers": {
                     "apns-priority": "10",
+                    "apns-expiration": str(int(time.time()) + self.FCM_TTL_SECONDS),
+                    "apns-collapse-id": f"mpz-{notification_type}",
                 },
                 "payload": {
                     "aps": {
@@ -177,6 +186,8 @@ class FCMPushNotificationService:
         elif platform == "android":
             payload["message"]["android"] = {
                 "priority": "HIGH",
+                "ttl": f"{self.FCM_TTL_SECONDS}s",
+                "collapse_key": f"mpz-{notification_type}",
                 "notification": {
                     "icon": "ic_notification",
                     "color": "#FF6B35",
@@ -185,6 +196,10 @@ class FCMPushNotificationService:
         elif platform == "web":
             frontend_url = os.getenv("FRONTEND_URL", "https://mpz.kr")
             payload["message"]["webpush"] = {
+                "headers": {
+                    "TTL": str(self.FCM_TTL_SECONDS),
+                    "Topic": f"mpz-{notification_type}",
+                },
                 "notification": {
                     "icon": f"{frontend_url}/img/op-image.png",
                 },

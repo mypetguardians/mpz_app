@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft, Heart, MapPin, MagnifyingGlass, Bell,
-  Plus, CaretDown, Share, Trash,
+  ArrowLeft, Heart, MapPin, Bell,
 } from "@phosphor-icons/react";
 
 import { Container } from "@/components/common/Container";
@@ -183,7 +182,7 @@ export default function PalettePage() {
       <Section title="BigButton" desc="주요 액션 버튼 · 클릭 가능">
         <div className="space-y-3">
           <BigButton variant="primary" onClick={() => { setToastType("success"); setShowToast(true); }}>Primary (클릭해보세요)</BigButton>
-          <BigButton variant="variant2" onClick={() => { setToastType("error"); setShowToast(true); }}>Variant 2</BigButton>
+          <BigButton variant="variant4" onClick={() => { setToastType("error"); setShowToast(true); }}>Variant 4</BigButton>
           <BigButton variant="variant3">Variant 3</BigButton>
           <BigButton variant="primary" disabled>Disabled</BigButton>
         </div>
@@ -242,7 +241,7 @@ export default function PalettePage() {
             <SelectButton
               key={v}
               variant="1"
-              isSelected={selectedBtn === v}
+              selected={selectedBtn === v}
               onClick={() => setSelectedBtn(v)}
               className={i > 0 ? "ml-2" : ""}
             >
@@ -289,7 +288,7 @@ export default function PalettePage() {
       </Section>
 
       <Section title="LinearProgressBar" desc="선형 프로그레스 · 클릭으로 조절">
-        <LinearProgressBar progress={progressPercent} />
+        <LinearProgressBar value={progressPercent} />
         <div className="flex items-center mt-3">
           <MiniButton text="-20" variant="outline" onClick={() => setProgressPercent(Math.max(0, progressPercent - 20))} />
           <MiniButton text="+20" variant="filterOn" onClick={() => setProgressPercent(Math.min(100, progressPercent + 20))} className="ml-2" />
@@ -304,7 +303,7 @@ export default function PalettePage() {
 
       {/* ===== CustomModal ===== */}
       <Section title="CustomModal" desc="모달 · 버튼으로 열기">
-        <BigButton variant="variant2" onClick={() => setShowModal(true)}>Modal 열기</BigButton>
+        <BigButton variant="variant4" onClick={() => setShowModal(true)}>Modal 열기</BigButton>
       </Section>
 
       {/* ===== Toast ===== */}
@@ -374,7 +373,7 @@ export default function PalettePage() {
         onClose={() => setShowModal(false)}
         title="Modal 예시"
         description="중앙에 표시되는 모달입니다."
-        variant="variant2"
+        variant="variant4"
         ctaText="확인"
         onCtaClick={() => setShowModal(false)}
       />

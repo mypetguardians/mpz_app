@@ -1,5 +1,7 @@
 import { MetadataRoute } from "next";
 
+export const dynamic = "force-dynamic";
+
 const BASE_URL = "https://mpz.kr";
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.mpz.kr/v1/";
 const IS_PROD = process.env.NEXT_PUBLIC_API_BASE_URL?.includes("api.mpz.kr") ?? true;

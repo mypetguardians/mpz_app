@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Bell } from "@phosphor-icons/react";
 import { useNotificationSocket } from "@/hooks/useNotificationSocket";
 import { useGetNotifications } from "@/hooks/query/useGetNotifications";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
 
@@ -20,6 +21,7 @@ export function NotificationBadge({
 }: NotificationBadgeProps) {
   const { unreadCount: socketUnreadCount } = useNotificationSocket();
   const { isAuthenticated } = useAuth();
+  const queryClient = useQueryClient();
   const router = useRouter();
 
   // API에서도 읽지 않은 개수 가져오기 (탭 복귀 시 갱신)
@@ -28,6 +30,15 @@ export function NotificationBadge({
     page_size: 1,
     enabled: isAuthenticated,
   });
+
+  // FCM 포그라운드 메시지 수신 시 쿼리 갱신
+  useEffect(() => {
+    const handler = () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    };
+    window.addEventListener("fcm-notification-received", handler);
+    return () => window.removeEventListener("fcm-notification-received", handler);
+  }, [queryClient]);
 
   // API 응답에서 읽지 않은 개수 계산
   const apiUnreadCount = notificationsData?.data?.filter((n) => !n.is_read).length ?? 0;

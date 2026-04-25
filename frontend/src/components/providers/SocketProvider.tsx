@@ -228,7 +228,6 @@ export function SocketProvider({ children }: SocketProviderProps) {
       try {
         const { getFirebaseMessaging } = await import("@/lib/firebase");
         const { onMessage } = await import("firebase/messaging");
-        const { QueryClient } = await import("@tanstack/react-query");
 
         const messaging = await getFirebaseMessaging();
         if (!messaging) {

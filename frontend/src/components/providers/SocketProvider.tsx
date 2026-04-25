@@ -218,6 +218,36 @@ export function SocketProvider({ children }: SocketProviderProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, user]); // requestPermissionAndRegisterToken은 안정적인 함수이므로 의존성에서 제외
 
+  // Firebase 포그라운드 메시지 수신
+  useEffect(() => {
+    if (!isAuthenticated || !user) return;
+
+    let unsubscribe: (() => void) | null = null;
+
+    const setup = async () => {
+      try {
+        const { getFirebaseMessaging } = await import("@/lib/firebase");
+        const { onMessage } = await import("firebase/messaging");
+
+        const messaging = await getFirebaseMessaging();
+        if (!messaging) return;
+
+        unsubscribe = onMessage(messaging, (payload) => {
+          const body = payload.notification?.body || "";
+          if (body) showToast(body, "success");
+        });
+      } catch {
+        // Firebase 미지원 브라우저에서는 무시
+      }
+    };
+
+    setup();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [isAuthenticated, user, showToast]);
+
   // 알림 추가 함수
   const addNotification = useCallback((notification: Notification) => {
     setNotifications((prev: Notification[]) => [notification, ...prev]);

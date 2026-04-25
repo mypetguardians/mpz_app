@@ -224,7 +224,49 @@ export async function getIOSFCMToken(): Promise<string | null> {
   });
 }
 
-// 푸시 알림 권한 요청 및 토큰 등록 (네이티브 FCM 전용)
+// 웹 FCM 토큰 가져오기
+export async function getWebFCMToken(): Promise<string | null> {
+  if (typeof window === "undefined") return null;
+
+  const capWindow = window as CapacitorWindow;
+  if (capWindow.Capacitor && capWindow.Capacitor.getPlatform() !== "web") {
+    return null;
+  }
+
+  try {
+    const { getFirebaseMessaging } = await import("@/lib/firebase");
+    const { getToken } = await import("firebase/messaging");
+
+    const messaging = await getFirebaseMessaging();
+    if (!messaging) return null;
+
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") {
+      console.warn("알림 권한이 거부되��습니다.");
+      return null;
+    }
+
+    const registration = await navigator.serviceWorker.register(
+      "/firebase-messaging-sw.js"
+    );
+
+    const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
+    const token = await getToken(messaging, {
+      vapidKey,
+      serviceWorkerRegistration: registration,
+    });
+
+    if (token) return token;
+
+    console.warn("웹 FCM ���큰을 받을 수 없습니다.");
+    return null;
+  } catch (error) {
+    console.error("웹 FCM 토큰 발급 실패:", error);
+    return null;
+  }
+}
+
+// 푸시 알림 권한 요청 및 토큰 등록 (네이티브 + 웹 FCM)
 export function useWebPushNotification() {
   const registerPushToken = useRegisterPushToken();
   const isRegisteringRef = useRef(false);
@@ -388,8 +430,30 @@ export function useWebPushNotification() {
           return result;
         }
 
-        // 웹 플랫폼은 네이티브 푸시를 지원하지 않음
-        console.log("웹 플랫폼에서는 네이티브 푸시 알림을 지원하지 않습니다.");
+        // 웹 플랫폼 — Firebase Web Push
+        const webToken = await getWebFCMToken();
+        if (webToken) {
+          try {
+            await registerPushToken.mutateAsync({
+              token: webToken,
+              platform: "web",
+            });
+            hasRegisteredRef.current = true;
+            errorCountRef.current = 0;
+            isRegisteringRef.current = false;
+            return true;
+          } catch (err: unknown) {
+            const errMsg =
+              (err as { response?: { data?: { detail?: string } } })?.response
+                ?.data?.detail || String(err);
+            if (errMsg.includes("get() returned more than one PushToken")) {
+              hasRegisteredRef.current = true;
+              isRegisteringRef.current = false;
+              return true;
+            }
+            throw err;
+          }
+        }
         isRegisteringRef.current = false;
         return false;
       } catch (error: unknown) {

@@ -182,6 +182,16 @@ class FCMPushNotificationService:
                     "color": "#FF6B35",
                 },
             }
+        elif platform == "web":
+            frontend_url = os.getenv("FRONTEND_URL", "https://mpz.kr")
+            payload["message"]["webpush"] = {
+                "notification": {
+                    "icon": f"{frontend_url}/img/op-image.png",
+                },
+                "fcm_options": {
+                    "link": data.get("action_url", frontend_url) if data else frontend_url,
+                },
+            }
 
         return payload
 

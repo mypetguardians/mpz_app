@@ -58,6 +58,14 @@ jobs:
             echo "NEXT_PUBLIC_KAKAO_REDIRECT_URI=https://dev-api.mpz.kr/v1/kakao/login/callback" >> $GITHUB_ENV
           fi
           echo "NEXT_PUBLIC_KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}" >> $GITHUB_ENV
+          # Firebase (dev/prod 동일 프로젝트)
+          echo "NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyDMPEJwSDwlV7st46yAZzxLFKp1b2qMfrY" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=mypetguardians-a8ad3.firebaseapp.com" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_FIREBASE_PROJECT_ID=mypetguardians-a8ad3" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=mypetguardians-a8ad3.firebasestorage.app" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=273159148866" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_FIREBASE_APP_ID=1:273159148866:web:ccd09e378ab7cf15eee4db" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_FIREBASE_VAPID_KEY=BPmzNRJ7LXtpCF75MJ8PyvQ8AHIWCBck33GoWmuvIJijGLDv6mgccdS5HZQ7160FtiYh7K9CxvxAfBE6PBG-VA8" >> $GITHUB_ENV
 
       # ── Frontend 이미지 빌드 + push ──
       - name: Build & push frontend
@@ -72,6 +80,13 @@ jobs:
             NEXT_PUBLIC_API_BASE_URL=${{ env.NEXT_PUBLIC_API_BASE_URL }}
             NEXT_PUBLIC_KAKAO_CLIENT_ID=${{ env.NEXT_PUBLIC_KAKAO_CLIENT_ID }}
             NEXT_PUBLIC_KAKAO_REDIRECT_URI=${{ env.NEXT_PUBLIC_KAKAO_REDIRECT_URI }}
+            NEXT_PUBLIC_FIREBASE_API_KEY=${{ env.NEXT_PUBLIC_FIREBASE_API_KEY }}
+            NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+            NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ env.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+            NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${{ env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
+            NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
+            NEXT_PUBLIC_FIREBASE_APP_ID=${{ env.NEXT_PUBLIC_FIREBASE_APP_ID }}
+            NEXT_PUBLIC_FIREBASE_VAPID_KEY=${{ env.NEXT_PUBLIC_FIREBASE_VAPID_KEY }}
             CACHE_BUST=${{ github.run_number }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

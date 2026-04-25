@@ -10,8 +10,86 @@ concurrency:
   group: deploy-${{ github.ref_name }}
   cancel-in-progress: true
 
+env:
+  REGISTRY: ghcr.io
+
 jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set environment variables
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "APP_ENV=prod" >> $GITHUB_ENV
+            echo "EC2_HOST=${{ secrets.PROD_EC2_HOST }}" >> $GITHUB_ENV
+          else
+            echo "APP_ENV=dev" >> $GITHUB_ENV
+            echo "EC2_HOST=${{ secrets.DEV_EC2_HOST }}" >> $GITHUB_ENV
+          fi
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          echo "IMAGE_PREFIX=ghcr.io/${OWNER}/mpz" >> $GITHUB_ENV
+          echo "TAG=${{ github.ref_name }}-$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_ENV
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # ── FE 빌드용 환경변수 준비 ──
+      - name: Prepare FE build args
+        run: |
+          if [ "${{ env.APP_ENV }}" = "prod" ]; then
+            echo "NEXT_PUBLIC_API_BASE_URL=https://api.mpz.kr/v1/" >> $GITHUB_ENV
+            echo "NEXT_PUBLIC_KAKAO_REDIRECT_URI=https://api.mpz.kr/v1/kakao/login/callback" >> $GITHUB_ENV
+          else
+            echo "NEXT_PUBLIC_API_BASE_URL=https://dev-api.mpz.kr/v1/" >> $GITHUB_ENV
+            echo "NEXT_PUBLIC_KAKAO_REDIRECT_URI=https://dev-api.mpz.kr/v1/kakao/login/callback" >> $GITHUB_ENV
+          fi
+          echo "NEXT_PUBLIC_KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}" >> $GITHUB_ENV
+
+      # ── Frontend 이미지 빌드 + push ──
+      - name: Build & push frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-frontend:${{ env.TAG }}
+            ${{ env.IMAGE_PREFIX }}-frontend:${{ github.ref_name }}-latest
+          build-args: |
+            NEXT_PUBLIC_API_BASE_URL=${{ env.NEXT_PUBLIC_API_BASE_URL }}
+            NEXT_PUBLIC_KAKAO_CLIENT_ID=${{ env.NEXT_PUBLIC_KAKAO_CLIENT_ID }}
+            NEXT_PUBLIC_KAKAO_REDIRECT_URI=${{ env.NEXT_PUBLIC_KAKAO_REDIRECT_URI }}
+            CACHE_BUST=${{ github.run_number }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # ── Backend 이미지 빌드 + push ──
+      - name: Build & push backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-backend:${{ env.TAG }}
+            ${{ env.IMAGE_PREFIX }}-backend:${{ github.ref_name }}-latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
   deploy:
+    needs: build-and-push
     runs-on: ubuntu-latest
 
     steps:
@@ -21,53 +99,59 @@ jobs:
       - name: Set environment variables
         run: |
           if [ "${{ github.ref_name }}" = "main" ]; then
-            echo "EC2_HOST=${{ secrets.PROD_EC2_HOST }}" >> $GITHUB_ENV
             echo "APP_ENV=prod" >> $GITHUB_ENV
+            echo "EC2_HOST=${{ secrets.PROD_EC2_HOST }}" >> $GITHUB_ENV
           else
-            echo "EC2_HOST=${{ secrets.DEV_EC2_HOST }}" >> $GITHUB_ENV
             echo "APP_ENV=dev" >> $GITHUB_ENV
+            echo "EC2_HOST=${{ secrets.DEV_EC2_HOST }}" >> $GITHUB_ENV
           fi
-
-      - name: Copy files to EC2
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ env.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          source: "."
-          target: "~/mpz_app"
-          rm: false
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          echo "IMAGE_PREFIX=ghcr.io/${OWNER}/mpz" >> $GITHUB_ENV
+          echo "TAG=${{ github.ref_name }}-latest" >> $GITHUB_ENV
 
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USER: ${{ github.actor }}
         with:
           host: ${{ env.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: APP_ENV
-          command_timeout: 20m
+          envs: APP_ENV,TAG,GHCR_TOKEN,GHCR_USER
+          command_timeout: 10m
           script: |
             cd ~/mpz_app
 
-            # .env 생성 (NEXT_PUBLIC_* 빌드 변수 + CACHE_BUST)
-            echo "APP_ENV=$APP_ENV" > .env
-            echo "CACHE_BUST=$(date +%s)" >> .env
-            grep '^NEXT_PUBLIC_' backend/.env.$APP_ENV >> .env || true
-            if ! grep -q 'NEXT_PUBLIC_KAKAO_CLIENT_ID' .env; then
-              KAKAO_ID=$(grep '^KAKAO_SOCIAL_LOGIN_CLIENT_ID=' backend/.env.$APP_ENV | cut -d= -f2)
-              [ -n "$KAKAO_ID" ] && echo "NEXT_PUBLIC_KAKAO_CLIENT_ID=$KAKAO_ID" >> .env
-            fi
+            # 최신 코드 pull (compose 파일, nginx 설정 등)
+            git fetch origin ${{ github.ref_name }} && git reset --hard origin/${{ github.ref_name }}
 
-            # 빌드 + 재시작 한 줄 (worker 제외)
-            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --build --force-recreate frontend backend nginx redis
+            # GHCR 로그인
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+
+            # 이미지 pull (빌드 없음!)
+            OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+            docker pull ghcr.io/${OWNER}/mpz-frontend:$TAG
+            docker pull ghcr.io/${OWNER}/mpz-backend:$TAG
+
+            # 이미지 태그를 compose에서 사용할 이름으로 변환
+            docker tag ghcr.io/${OWNER}/mpz-frontend:$TAG mpz_app-frontend:latest
+            docker tag ghcr.io/${OWNER}/mpz-backend:$TAG mpz_app-backend:latest
+
+            # 컨테이너 교체 (빌드 없이 pull된 이미지 사용)
+            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --no-build --force-recreate frontend backend nginx redis
 
             # worker 최초 생성만
-            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --no-recreate worker
+            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --no-build --no-recreate worker
 
-            # backend 준비 대기 후 마이그레이션 + 정적 파일
+            # backend 준비 대기 후 마이그레이션
             until APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml exec -T backend python -c "import django" 2>/dev/null; do
               sleep 2
             done
             APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml exec -T backend python manage.py migrate --noinput
             APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml exec -T backend python manage.py collectstatic --noinput
+
+            # 오래된 이미지 정리
+            docker image prune -f
+
             echo "✅ Deploy complete: $APP_ENV"

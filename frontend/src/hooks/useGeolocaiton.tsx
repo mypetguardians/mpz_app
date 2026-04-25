@@ -56,8 +56,8 @@ export const useGeolocation = (options: UseGeolocationOptions = {}) => {
     bestPositionRef.current = null;
 
     const isNative = Capacitor.isNativePlatform();
-    const accuracyThreshold = options.accuracyThresholdMeters ?? 50; // 미터
-    const watchTimeout = options.watchTimeoutMs ?? 12000; // ms
+    const accuracyThreshold = options.accuracyThresholdMeters ?? 200; // 미터 (Wi-Fi 기반 브라우저 대응)
+    const watchTimeout = options.watchTimeoutMs ?? 5000; // ms
 
     // Capacitor 네이티브 앱 환경
     if (isNative) {

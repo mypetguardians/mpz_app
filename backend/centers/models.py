@@ -93,6 +93,14 @@ class Center(BaseModel):
     # 공공데이터 관련 필드 (최소한만 유지)
     public_reg_no = models.CharField(max_length=50, blank=True, null=True, help_text="공공데이터 보호소번호", unique=True)
     
+    def save(self, *args, **kwargs):
+        # public_reg_no 유무로 center_type 자동 판별
+        if self.public_reg_no:
+            self.center_type = 'public'
+        else:
+            self.center_type = 'private'
+        super().save(*args, **kwargs)
+
     class Meta:
         db_table = 'centers'
         verbose_name = '센터'

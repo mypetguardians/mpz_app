@@ -113,9 +113,9 @@ class Command(BaseCommand):
         update_only = strategy == 'status_sync'
         result = await public_data_service.process_abandoned_animals(animals_data, update_only=update_only)
 
-        # status_sync: 공공데이터에 없는 기존 "보호중" 동물 → 보호 종료 처리
+        # status_sync/full: 공공데이터에 없는 기존 "보호중" 동물 → 보호 종료 처리
         expired_count = 0
-        if strategy == 'status_sync':
+        if strategy in ('status_sync', 'full'):
             api_notice_numbers = {a.notice_no for a in animals_data if a.notice_no}
             expired_count = await self._expire_missing_animals(api_notice_numbers)
 

@@ -24,15 +24,38 @@ def kst_now():
 class Command(BaseCommand):
     help = '공공데이터 동기화 스케줄러 (worker 컨테이너용)'
 
+    def _get_last_sync_date(self, strategy):
+        """SyncLog에서 해당 전략의 마지막 성공 날짜 조회 (중복 실행 방지)"""
+        from animals.models import SyncLog
+        try:
+            last = SyncLog.objects.filter(
+                strategy=strategy, status__in=['success', 'partial']
+            ).order_by('-started_at').first()
+            if last:
+                from datetime import timedelta
+                kst_time = last.started_at + timedelta(hours=9)
+                return kst_time.strftime('%Y-%m-%d')
+        except Exception:
+            pass
+        return None
+
     def handle(self, *args, **options):
         self.stdout.write('[scheduler] 스케줄러 시작')
         self.stdout.write('[scheduler] 매일 03:00 KST incremental')
         self.stdout.write('[scheduler] 매주 일 04:00 KST status_sync')
         self.stdout.write('[scheduler] 매월 1일 05:00 KST full')
 
-        last_daily = None
-        last_weekly = None
-        last_monthly = None
+        # SyncLog에서 마지막 실행 날짜 복원 (컨테이너 재시작 시 중복 방지)
+        last_daily = self._get_last_sync_date('incremental')
+        last_weekly = self._get_last_sync_date('status_sync')
+        last_monthly = self._get_last_sync_date('full')
+
+        if last_daily:
+            self.stdout.write(f'[scheduler] incremental 마지막 실행: {last_daily}')
+        if last_weekly:
+            self.stdout.write(f'[scheduler] status_sync 마지막 실행: {last_weekly}')
+        if last_monthly:
+            self.stdout.write(f'[scheduler] full 마지막 실행: {last_monthly}')
 
         while True:
             now = kst_now()

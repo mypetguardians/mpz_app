@@ -89,8 +89,8 @@ class Command(BaseCommand):
         if skip_images:
             public_data_service._skip_images = True
 
-        # 상태 필터
-        state = 'protect' if bgnde else None
+        # 상태 필터: status_sync는 보호중만 조회, incremental은 날짜 필터가 있으면 보호중만
+        state = 'protect' if (bgnde or strategy == 'status_sync') else None
 
         animals_data = await public_data_service.fetch_abandoned_animals(
             bgnde=bgnde,

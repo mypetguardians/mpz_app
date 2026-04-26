@@ -124,14 +124,14 @@ jobs:
           echo "IMAGE_PREFIX=ghcr.io/${OWNER}/mpz" >> $GITHUB_ENV
           echo "TAG=${{ github.ref_name }}-latest" >> $GITHUB_ENV
 
-      # BE 환경변수 파일을 SCP로 EC2에 전송 (.gitignore 파일이라 git reset에 안전)
+      # BE 환경변수 파일을 SCP로 EC2에 전송 (base64 인코딩으로 특수문자 안전)
       - name: Upload BE env file
         env:
-          BE_ENV_CONTENT: ${{ github.ref_name == 'main' && secrets.BE_ENV_PROD || secrets.BE_ENV_DEV }}
+          BE_ENV_B64: ${{ github.ref_name == 'main' && secrets.BE_ENV_PROD_B64 || secrets.BE_ENV_DEV_B64 }}
         run: |
           echo "${{ secrets.EC2_SSH_KEY }}" > /tmp/ssh_key
           chmod 600 /tmp/ssh_key
-          printenv BE_ENV_CONTENT > /tmp/be_env
+          echo "$BE_ENV_B64" | base64 -d > /tmp/be_env
           scp -o StrictHostKeyChecking=no -i /tmp/ssh_key /tmp/be_env ubuntu@${{ env.EC2_HOST }}:~/mpz_app/backend/.env.${{ env.APP_ENV }}
           rm -f /tmp/ssh_key /tmp/be_env
 

@@ -180,18 +180,12 @@ async def logout(request):
     is_safari = 'Safari' in user_agent and 'Chrome' not in user_agent
     samesite = 'Lax' if is_safari else getattr(settings, 'SESSION_COOKIE_SAMESITE', 'None')
 
-    # 쿠키 삭제: Django delete_cookie() + 수동 max_age=0 병행 (브라우저 호환성 최대화)
-    from datetime import datetime
-    expired = datetime(1970, 1, 1)
+    # 쿠키 삭제: max_age=0으로 즉시 만료 (Django 5에서 expires+max_age 동시 사용 금지)
     for cookie_name in ("access", "refresh", "reset"):
         httponly = cookie_name != "access"
-        # Django 기본 delete_cookie
-        response.delete_cookie(cookie_name, path="/", domain=domain, samesite=samesite)
-        # 명시적 속성 일치 삭제 (Set-Cookie 헤더 덮어쓰기)
         response.set_cookie(
             key=cookie_name,
             value="",
-            expires=expired,
             max_age=0,
             domain=domain,
             path="/",

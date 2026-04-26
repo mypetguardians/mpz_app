@@ -223,27 +223,32 @@ class PublicDataService:
             logger.error(f"XML 파싱 오류: {e}")
             return []
     
-    async def process_abandoned_animals(self, animals_data: List[PublicDataAnimalOut], batch_size: int = 1000) -> Dict:
-        """유기동물 데이터 처리 및 DB 저장 (배치 단위로 처리)"""
+    async def process_abandoned_animals(self, animals_data: List[PublicDataAnimalOut], batch_size: int = 1000, update_only: bool = False) -> Dict:
+        """유기동물 데이터 처리 및 DB 저장 (배치 단위로 처리)
+
+        Args:
+            update_only: True이면 기존 동물만 업데이트, 신규 생성 안 함 (status_sync용)
+        """
         created_count = 0
         updated_count = 0
         deleted_count = 0
         error_count = 0
+        skipped_count = 0
         total = len(animals_data)
-        
+
         # 배치 단위로 처리
         for i in range(0, total, batch_size):
             batch = animals_data[i:i + batch_size]
             batch_num = (i // batch_size) + 1
             total_batches = (total + batch_size - 1) // batch_size
-            
+
             logger.info(f"배치 처리 중: {batch_num}/{total_batches} ({len(batch)}개)")
-            
+
             for animal_data in batch:
                 try:
                     # 공고번호로 기존 동물 확인
                     existing_animal = await self._get_existing_animal(animal_data)
-                    
+
                     if existing_animal:
                         # process_state가 없거나 빈 문자열인 경우 (데이터없음) - 삭제
                         if not animal_data.process_state or not animal_data.process_state.strip():
@@ -251,16 +256,21 @@ class PublicDataService:
                             await sync_to_async(existing_animal.delete)()
                             deleted_count += 1
                             continue
-                        
+
                         # 기존 동물 업데이트 (상태 변경 등)
                         was_updated = await self._update_animal(existing_animal, animal_data)
                         if was_updated:
                             updated_count += 1
                     else:
+                        # update_only 모드에서는 신규 생성하지 않음
+                        if update_only:
+                            skipped_count += 1
+                            continue
+
                         # process_state가 없거나 빈 문자열인 경우 - 생성하지 않음
                         if not animal_data.process_state or not animal_data.process_state.strip():
                             continue
-                        
+
                         # 새 동물 생성 (중복되지 않는 경우만)
                         await self._create_animal(animal_data)
                         created_count += 1
@@ -273,10 +283,14 @@ class PublicDataService:
             processed = min(i + batch_size, total)
             logger.info(f"배치 {batch_num} 완료: {processed}/{total}")
         
+        if skipped_count > 0:
+            logger.info(f"update_only 모드: {skipped_count}개 신규 동물 생성 스킵")
+
         return {
             'created': created_count,
             'updated': updated_count,
             'deleted': deleted_count,
+            'skipped': skipped_count,
             'errors': error_count,
             'total': total
         }

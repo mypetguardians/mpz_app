@@ -124,26 +124,34 @@ jobs:
           echo "IMAGE_PREFIX=ghcr.io/${OWNER}/mpz" >> $GITHUB_ENV
           echo "TAG=${{ github.ref_name }}-latest" >> $GITHUB_ENV
 
+      # BE 환경변수 파일을 SCP로 EC2에 전송
+      - name: Upload BE env file
+        env:
+          SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          BE_ENV_CONTENT: ${{ github.ref_name == 'main' && secrets.BE_ENV_PROD || secrets.BE_ENV_DEV }}
+        run: |
+          echo "$SSH_KEY" > /tmp/ssh_key
+          chmod 600 /tmp/ssh_key
+          printenv BE_ENV_CONTENT > /tmp/be_env
+          scp -o StrictHostKeyChecking=no -i /tmp/ssh_key /tmp/be_env ubuntu@${{ env.EC2_HOST }}:~/mpz_app/backend/.env.${{ env.APP_ENV }}
+          rm -f /tmp/ssh_key /tmp/be_env
+
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.0.3
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GHCR_USER: ${{ github.actor }}
-          BE_ENV_FILE: ${{ github.ref_name == 'main' && secrets.BE_ENV_PROD || secrets.BE_ENV_DEV }}
         with:
           host: ${{ env.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: APP_ENV,TAG,GHCR_TOKEN,GHCR_USER,BE_ENV_FILE
+          envs: APP_ENV,TAG,GHCR_TOKEN,GHCR_USER
           command_timeout: 10m
           script: |
             cd ~/mpz_app
 
             # 최신 코드 pull (compose 파일, nginx 설정 등)
             git fetch origin ${{ github.ref_name }} && git reset --hard origin/${{ github.ref_name }}
-
-            # GitHub Secrets에서 BE 환경변수 파일 생성
-            echo "$BE_ENV_FILE" > ./backend/.env.${APP_ENV}
 
             # GHCR 로그인
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin

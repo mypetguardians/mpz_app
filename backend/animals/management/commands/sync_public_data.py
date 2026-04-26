@@ -110,7 +110,8 @@ class Command(BaseCommand):
 
         self.stdout.write(f'[sync] {len(animals_data):,}개 동물 데이터 수신')
 
-        result = await public_data_service.process_abandoned_animals(animals_data)
+        update_only = strategy == 'status_sync'
+        result = await public_data_service.process_abandoned_animals(animals_data, update_only=update_only)
         duration = (timezone.now() - started_at).total_seconds()
 
         sync_status = 'partial' if result['errors'] > 0 else 'success'

@@ -3,7 +3,7 @@
 
 cron 대신 Python으로 스케줄 관리. worker 컨테이너에서 실행.
 - 매일 03:00 KST: incremental (어제~오늘)
-- 매주 일요일 04:00 KST: status_sync (상태만)
+- 매주 수/일 03:00 KST: status_sync (상태 업데이트 + 보호종료 감지)
 - 매월 1일 05:00 KST: full (전체, 최근 90일)
 """
 import time
@@ -42,7 +42,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write('[scheduler] 스케줄러 시작')
         self.stdout.write('[scheduler] 매일 03:00 KST incremental')
-        self.stdout.write('[scheduler] 매주 일 04:00 KST status_sync')
+        self.stdout.write('[scheduler] 매주 수/일 03:00 KST status_sync')
         self.stdout.write('[scheduler] 매월 1일 05:00 KST full')
 
         # SyncLog에서 마지막 실행 날짜 복원 (컨테이너 재시작 시 중복 방지)
@@ -70,8 +70,8 @@ class Command(BaseCommand):
                 last_daily = today
                 self._run_sync('incremental', '--days', '2')
 
-            # 매주 일요일 04:00 KST — status_sync
-            if weekday == 6 and hour == 4 and minute < 5 and last_weekly != today:
+            # 매주 수/일 03:00 KST — status_sync (incremental 완료 후 실행되도록 03:10 이후)
+            if weekday in (2, 6) and hour == 3 and 10 <= minute < 15 and last_weekly != today:
                 last_weekly = today
                 self._run_sync('status_sync')
 

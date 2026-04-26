@@ -2,7 +2,11 @@
 
 ## 🔴 다음 작업
 
-### 1. SMS 인증
+### 1. 목록 성능 최적화
+- [ ] 버추얼 스크롤: react-window 또는 @tanstack/react-virtual (DOM 가상화)
+- [ ] 이미지 최적화: lazy loading, placeholder blur, 적절한 사이즈 요청, 뷰포트 밖 이미지 언로드
+
+### 2. SMS 인증
 - [ ] 프로필 휴대폰 번호 수정 시 SMS 인증 절차 추가
 
 ### 2. WebSocket 지원

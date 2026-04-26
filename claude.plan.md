@@ -26,11 +26,7 @@
 
 ### SEO
 - 완료 항목은 `history/2026-04-26.md` 참고
-- [ ] 파비콘 전용 ico 제작 + apple-touch-icon (디자인 필요)
 - [ ] 네이버/Google 색인 상태 모니터링 (서치어드바이저 + Search Console)
-
-### 디스크 관리
-- [ ] prod 디스크 83% 사용 — Docker 이미지/로그 정리 필요
 
 ---
 
@@ -59,9 +55,12 @@
 - [x] SEO 전면 강화 (canonical, 메타데이터, robots.txt, sitemap, 키워드, JSON-LD)
 - [x] 입양 신청 분기 복원 (구독센터: 앱 내 신청, 비구독: 전화 연결)
 - [x] 접근성 강화 (Toast/Modal/BottomSheet ARIA 속성)
-- [x] GitHub Secrets 기반 BE 환경변수 관리 (printenv + SCP)
+- [x] GitHub Secrets 기반 BE 환경변수 관리 (base64 인코딩 + SCP)
 - [x] 워커 버그 수정 (status_sync 데이터 오염 + 보호종료 감지 + 중복 실행 방지)
 - [x] 워커 스케줄 조정 (status_sync 주 2회 수/일 03:10 KST)
+- [x] Git 흐름 조직 repo 중심 전환 (fork Actions 비활성, 조직 Secrets 등록)
+- [x] logout API 버그 발견 (cookie expires/max_age 충돌 — 미수정, 다음 작업)
+- [x] Docker 디스크 정리 (dev 79→61%, prod 83→55%)
 - [x] prod 배포 (PR #16, #17, #18)
 
 ### 이전

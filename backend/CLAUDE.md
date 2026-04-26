@@ -15,12 +15,18 @@ Django 5, Django Ninja (REST), Gunicorn + UvicornWorker, Supabase Storage (boto3
 DJANGO_SECRET_KEY, DATABASE_URL(Supabase 6543), REDIS_URL, KAKAO_*, STORAGE_*(S3 호환), FIREBASE_*, PUBLIC_DATA_SERVICE_KEY, SYNC_API_KEY, SMS_API_KEY
 
 ## 공공데이터 동기화
-Worker 컨테이너에서 management command로 실행:
-- `sync_public_data --strategy incremental --days 2` (매일)
-- `sync_public_data --strategy status_sync` (매주)
-- `sync_public_data --strategy full --days 90` (매월)
+Worker 컨테이너에서 management command로 실행 (run_scheduler.py):
 
-SyncLog 모델로 이력 추적. admin에서 조회 가능.
+| 전략 | 스케줄 | 조회 범위 | 동작 |
+|------|--------|----------|------|
+| incremental | 매일 03:00 KST | 최근 2일 접수 | 신규 생성 + 업데이트 |
+| status_sync | 매주 수/일 03:10 KST | 보호중 전체 | 기존 동물 상태 업데이트 + 보호종료 감지 (신규 생성 안 함) |
+| full | 매월 1일 05:00 KST | 최근 90일 | 전체 재동기화 + 보호종료 감지 |
+
+- SyncLog 모델로 이력 추적 + 컨테이너 재시작 시 중복 실행 방지
+- status_sync는 `update_only=True` — 신규 동물 생성 차단, incremental이 담당
+- 보호종료 감지: API에서 안 내려온 기존 "보호중" 동물 → 자동 전환
+- 직접등록 동물(is_public_data=False)은 동기화 영향 받지 않음
 
 ## 이미지 업로드
 `/v1/storage/upload` — base64 → Pillow 리사이징(profiles 512px, 일반 1080px) + EXIF 보정 → Supabase Storage

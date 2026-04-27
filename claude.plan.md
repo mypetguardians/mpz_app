@@ -56,6 +56,8 @@
 - [x] CenterCard 이미지 lazy loading (처음 3개만 priority)
 - [x] SEO og:title 이중 적용 수정 (7개 파일)
 - [x] SEO 색인 현황 점검 (Google/Naver 0건 확인, 기술적 SEO 정상)
+- [x] 이미지 최적화 (AVIF, 모바일 deviceSizes, 24h 캐시, blur placeholder)
+- [x] dev 배포 (PR #23, #24)
 
 ### 2026-04-26
 - [x] 불필요 코드/리소스 정리 (1,522줄 삭제)

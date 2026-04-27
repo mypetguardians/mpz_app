@@ -123,16 +123,14 @@ function AnimalTab() {
   } = useGetAnimals(apiParams);
 
   // 스크롤 컨테이너 ref
-  const scrollContainerRef = useRef<HTMLElement | null>(null);
-
-  useEffect(() => {
-    scrollContainerRef.current = document.getElementById("list-scroll-container");
+  const getScrollElement = useCallback(() => {
+    return document.getElementById("list-scroll-container");
   }, []);
 
   // 필터가 변경될 때 스크롤 위치 초기화
   useEffect(() => {
-    scrollContainerRef.current?.scrollTo(0, 0);
-  }, [apiParams]);
+    getScrollElement()?.scrollTo(0, 0);
+  }, [apiParams, getScrollElement]);
 
   // React Query 데이터에서 직접 동물 목록 추출 (페이지 간 중복 제거)
   const allAnimals = useMemo(() => {
@@ -171,7 +169,7 @@ function AnimalTab() {
     estimateSize: () => 256,
     gap: 8,
     overscan: 5,
-    getScrollElement: () => scrollContainerRef.current,
+    getScrollElement,
   });
 
   const virtualItems = virtualizer.getVirtualItems();

@@ -2,10 +2,9 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { CaretDown, Heart } from "@phosphor-icons/react";
+import { Heart } from "@phosphor-icons/react";
 
 import { SearchInput } from "@/components/ui/SearchInput";
-import { MiniButton } from "@/components/ui/MiniButton";
 import { PetCard } from "@/components/ui/PetCard";
 import { IconButton } from "@/components/ui/IconButton";
 import { useGetAnimals } from "@/hooks/query/useGetAnimals";
@@ -15,7 +14,6 @@ import { useCheckAnimalFavorite } from "@/hooks/query/useCheckAnimalFavorite";
 import { cn } from "@/lib/utils";
 
 import { FilterState, getFilterCounts } from "@/lib/filter-utils";
-import { useAnimalFilterOverlayStore } from "@/stores/animalFilterOverlay";
 import { useAnimalFiltersStore } from "@/stores/animalFilters";
 import type { RawAnimalResponse } from "@/types/animal";
 
@@ -52,8 +50,6 @@ export function AnimalSearchSection({
   const [localFavorites, setLocalFavorites] = useState<Record<string, boolean>>(
     {}
   );
-  const { open: openFilterOverlay } = useAnimalFilterOverlayStore();
-
   // URL 파라미터와 스토어 값 동기화
   useEffect(() => {
     if (searchFromUrl && searchFromUrl !== storedSearchValue) {
@@ -189,45 +185,6 @@ export function AnimalSearchSection({
     };
   }, [loadMoreSearchResults, showSearchResults]);
 
-  // 필터 옵션들
-  const filterOptions = [
-    {
-      label: "지역",
-      count: filterCounts.regions,
-      hasFilters: filterCounts.regions > 0,
-    },
-    {
-      label: "품종",
-      count: filterCounts.breed,
-      hasFilters: filterCounts.breed > 0,
-    },
-    {
-      label: "체중",
-      count: filterCounts.weights,
-      hasFilters: filterCounts.weights > 0,
-    },
-    {
-      label: "성별",
-      count: filterCounts.genders,
-      hasFilters: filterCounts.genders > 0,
-    },
-    {
-      label: "나이",
-      count: filterCounts.ages,
-      hasFilters: filterCounts.ages > 0,
-    },
-    {
-      label: "보호상태",
-      count: filterCounts.protectionStatus,
-      hasFilters: filterCounts.protectionStatus > 0,
-    },
-    // {
-    //   label: "전문가 분석",
-    //   count: filterCounts.expertOpinion,
-    //   hasFilters: filterCounts.expertOpinion > 0,
-    // },
-  ];
-
   const handleSearch = () => {
     const trimmedValue = localSearchValue.trim();
     if (trimmedValue) {
@@ -310,24 +267,6 @@ export function AnimalSearchSection({
           variant="primary"
           readOnly={false}
         />
-      </div>
-
-      {/* 필터 미니버튼들은 항상 표시 */}
-      <div className="px-4 pb-4">
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-          {filterOptions.map((option) => (
-            <MiniButton
-              key={option.label}
-              text={`${option.label}${
-                option.count > 0 ? ` ${option.count}` : ""
-              }`}
-              rightIcon={<CaretDown size={12} />}
-              variant={option.hasFilters ? "filterOn" : "filterOff"}
-              onClick={openFilterOverlay}
-              className="flex-shrink-0"
-            />
-          ))}
-        </div>
       </div>
 
       {/* 검색 결과 표시 - 텍스트 검색만 */}

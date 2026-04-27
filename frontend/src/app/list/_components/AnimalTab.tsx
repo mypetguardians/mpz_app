@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useCallback, useState, useRef } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useWindowVirtualizer } from "@tanstack/react-virtual";
+import { useVirtualizer } from "@tanstack/react-virtual";
 
 import { PetCard, PetCardSkeleton } from "@/components/ui";
 import { useGetAnimals } from "@/hooks/query/useGetAnimals";
@@ -13,7 +13,7 @@ import {
 } from "@/types/animal";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useToggleAnimalFavorite } from "@/hooks/mutation/useToggleAnimalFavorite";
-import { useCheckAnimalFavorite } from "@/hooks/query/useCheckAnimalFavorite";
+import { useBatchAnimalFavorites } from "@/hooks/query/useBatchAnimalFavorites";
 import { IconButton } from "@/components/ui/IconButton";
 import { Heart } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
@@ -123,9 +123,16 @@ function AnimalTab() {
     isFetchingNextPage,
   } = useGetAnimals(apiParams);
 
+  // 스크롤 컨테이너 ref
+  const scrollContainerRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    scrollContainerRef.current = document.getElementById("list-scroll-container");
+  }, []);
+
   // 필터가 변경될 때 스크롤 위치 초기화
   useEffect(() => {
-    window.scrollTo(0, 0);
+    scrollContainerRef.current?.scrollTo(0, 0);
   }, [apiParams]);
 
   // React Query 데이터에서 직접 동물 목록 추출 (페이지 간 중복 제거)
@@ -142,6 +149,13 @@ function AnimalTab() {
       });
   }, [data]);
 
+  // 찜 상태 일괄 조회 (개별 API 대신 1콜로 처리)
+  const animalIds = useMemo(() => allAnimals.map((a) => a.id), [allAnimals]);
+  const { data: batchFavorites } = useBatchAnimalFavorites(
+    animalIds,
+    isAuthenticated && animalIds.length > 0
+  );
+
   // 2열 그리드를 위해 row 단위로 묶기
   const rows = useMemo(() => {
     const filtered = allAnimals.filter((a) => a && a.id);
@@ -152,13 +166,13 @@ function AnimalTab() {
     return result;
   }, [allAnimals]);
 
-  // 버추얼 스크롤 (window 스크롤 기반, row 단위 가상화)
-  const virtualizer = useWindowVirtualizer({
+  // 버추얼 스크롤 (스크롤 컨테이너 기반, row 단위 가상화)
+  const virtualizer = useVirtualizer({
     count: rows.length,
     estimateSize: () => 256,
     gap: 8,
     overscan: 5,
-    scrollMargin: listRef.current?.offsetTop ?? 0,
+    getScrollElement: () => scrollContainerRef.current,
   });
 
   const virtualItems = virtualizer.getVirtualItems();
@@ -223,11 +237,16 @@ function AnimalTab() {
   // 필터 초기화 함수
   const handleClearFilters = useCallback(() => {
     resetAnimalFilters();
-  }, [resetAnimalFilters]);
+    if (searchFromUrl) {
+      router.push(pathname);
+    }
+  }, [resetAnimalFilters, searchFromUrl, router, pathname]);
 
   // 현재 적용된 필터가 있는지 확인
   const hasActiveFilters = useMemo(() => {
-    return (
+    return !!(
+      searchValue ||
+      searchFromUrl ||
       filters.breed ||
       filters.weights.length > 0 ||
       filters.regions.length > 0 ||
@@ -268,22 +287,6 @@ function AnimalTab() {
 
   return (
     <div>
-      {/* 활성 필터 표시 */}
-      {hasActiveFilters && (
-        <div className="mx-4 mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-gray-600">
-              {filters.protectionStatus.length > 0
-                ? "필터링된 결과"
-                : "전체 결과"}
-            </span>
-            <button onClick={handleClearFilters} className="text-sm text-gr">
-              전체 해제
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* 데이터가 없는 경우 */}
       {allAnimals.length === 0 && !isLoading && (
         <div className="text-center py-8">
@@ -311,7 +314,7 @@ function AnimalTab() {
                   left: 0,
                   width: "100%",
                   height: `${virtualRow.size}px`,
-                  transform: `translateY(${virtualRow.start - virtualizer.options.scrollMargin}px)`,
+                  transform: `translateY(${virtualRow.start}px)`,
                 }}
               >
                 <div className="flex cursor-pointer space-x-2">
@@ -321,6 +324,7 @@ function AnimalTab() {
                       animal={animal}
                       isAuthenticated={isAuthenticated}
                       localFavorite={localFavorites[animal.id]}
+                      batchFavorite={batchFavorites?.[animal.id]}
                       onLikeToggle={handleLikeToggle}
                       onNavigate={() =>
                         router.push(`/list/animal/${animal.id}`)
@@ -363,6 +367,7 @@ function AnimalCardWithFavorite({
   isAuthenticated,
   onLikeToggle,
   localFavorite,
+  batchFavorite,
   onNavigate,
   imagePriority,
 }: {
@@ -370,21 +375,15 @@ function AnimalCardWithFavorite({
   isAuthenticated: boolean;
   onLikeToggle: (animalId: string) => void;
   localFavorite?: boolean;
+  batchFavorite?: boolean;
   onNavigate: () => void;
   imagePriority?: boolean;
 }) {
-  const { data: favoriteData } = useCheckAnimalFavorite(
-    animal.id,
-    isAuthenticated && localFavorite === undefined
-  );
-
   const isLiked =
     isAuthenticated &&
     (localFavorite !== undefined
       ? localFavorite
-      : favoriteData
-      ? favoriteData.is_favorited
-      : false);
+      : batchFavorite ?? false);
 
   return (
     <div className="w-[calc(50%-4px)]" onClick={onNavigate} role="link" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter") onNavigate(); }}>

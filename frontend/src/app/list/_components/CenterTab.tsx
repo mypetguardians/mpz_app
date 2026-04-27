@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams } from "next/navigation";
+import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { CenterCard } from "@/components/ui/CenterCard";
 import { useGetCenters } from "@/hooks/query/useGetCenters";
 import { useCheckCenterFavorite } from "@/hooks/query/useCheckCenterFavorite";
@@ -14,14 +15,14 @@ import { useRouter } from "next/navigation";
 
 function CenterTab() {
   const searchParams = useSearchParams();
-  const [allCenters, setAllCenters] = useState<Center[]>([]);
   const [localFavorites, setLocalFavorites] = useState<Record<string, boolean>>(
     {}
   );
-  const [showLoginModal, setShowLoginModal] = useState(false); // 로그인 모달 상태 추가
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const { isAuthenticated } = useAuth();
   const router = useRouter();
   const toggleFavorite = useToggleCenterFavorite();
+  const listRef = useRef<HTMLDivElement>(null);
 
   // URL에서 region 파라미터 읽기
   const regionFromUrl = searchParams.get("region");
@@ -29,8 +30,6 @@ function CenterTab() {
   // 검색 쿼리 파라미터를 sessionStorage에 저장 (센터 상세페이지 뒤로가기 시 사용)
   useEffect(() => {
     const searchString = searchParams.toString();
-
-    // 모든 검색 파라미터를 저장 (빈 문자열도 포함하여 현재 상태 보존)
     const paramsToStore = searchString ? `?${searchString}` : "";
     sessionStorage.setItem("centerListSearchParams", paramsToStore);
   }, [searchParams]);
@@ -46,69 +45,51 @@ function CenterTab() {
     region: regionFromUrl || undefined,
   });
 
-  // 데이터가 로드되면 상태 업데이트
-  useEffect(() => {
-    if (data) {
-      const allCentersData = data.pages
-        .flatMap((page) => {
-          // API 응답 구조에 따라 data 필드에서 센터 데이터 추출
-          return page.data || [];
-        })
-        .filter((center) => center && typeof center === "object")
-        .map(transformRawCenterToCenter);
-      setAllCenters(allCentersData);
-    }
+  // React Query 데이터에서 센터 목록 추출
+  const allCenters = useMemo(() => {
+    if (!data) return [];
+    return data.pages
+      .flatMap((page) => page.data || [])
+      .filter((center) => center && typeof center === "object")
+      .map(transformRawCenterToCenter);
   }, [data]);
 
-  const loadMoreCenters = useCallback(() => {
-    if (isFetchingNextPage || !hasNextPage) return;
-    fetchNextPage();
-  }, [isFetchingNextPage, hasNextPage, fetchNextPage]);
+  // 버추얼 스크롤 (window 스크롤 기반)
+  const virtualizer = useWindowVirtualizer({
+    count: allCenters.length,
+    estimateSize: () => 63,
+    gap: 16,
+    overscan: 10,
+    scrollMargin: listRef.current?.offsetTop ?? 0,
+  });
 
-  // 스크롤 이벤트 처리 (디바운싱 적용)
+  const virtualItems = virtualizer.getVirtualItems();
+
+  // 마지막 가상 아이템 근처 도달 시 다음 페이지 로드
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-
-    const handleScroll = () => {
-      // 기존 타이머 클리어
-      clearTimeout(timeoutId);
-
-      // 100ms 후에 스크롤 처리 실행
-      timeoutId = setTimeout(() => {
-        const scrollTop =
-          window.pageYOffset || document.documentElement.scrollTop;
-        const windowHeight = window.innerHeight;
-        const documentHeight = document.documentElement.scrollHeight;
-
-        // 페이지 하단에서 800px 이내에 도달하면 다음 페이지 로드
-        if (scrollTop + windowHeight >= documentHeight - 800) {
-          loadMoreCenters();
-        }
-      }, 100);
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      clearTimeout(timeoutId);
-    };
-  }, [loadMoreCenters]);
+    const lastItem = virtualItems[virtualItems.length - 1];
+    if (!lastItem) return;
+    if (
+      lastItem.index >= allCenters.length - 1 &&
+      hasNextPage &&
+      !isFetchingNextPage
+    ) {
+      fetchNextPage();
+    }
+  }, [virtualItems, allCenters.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   // 좋아요 토글 핸들러
   const handleLikeToggle = (centerId: string) => {
     if (!isAuthenticated) {
-      // 미로그인 시 로그인 모달 표시
       setShowLoginModal(true);
       return;
     }
 
-    // 현재 찜하기 상태 확인 (로컬 상태 또는 API 응답)
     const currentFavorite =
       localFavorites[centerId] !== undefined
         ? localFavorites[centerId]
         : allCenters.find((c) => c.id === centerId)?.isFavorited || false;
 
-    // 즉시 로컬 상태 업데이트 (optimistic update) - 현재 상태의 반대
     setLocalFavorites((prev) => ({
       ...prev,
       [centerId]: !currentFavorite,
@@ -118,7 +99,6 @@ function CenterTab() {
       { centerId },
       {
         onSuccess: (data: { is_favorited: boolean }) => {
-          // 성공 시 로컬 상태를 서버 응답으로 업데이트
           const isFavorited = data.is_favorited ?? false;
           setLocalFavorites((prev) => ({
             ...prev,
@@ -126,7 +106,6 @@ function CenterTab() {
           }));
         },
         onError: () => {
-          // 실패 시 원래 상태로 되돌리기
           setLocalFavorites((prev) => ({
             ...prev,
             [centerId]: currentFavorite,
@@ -139,7 +118,7 @@ function CenterTab() {
   // 로딩 상태 처리 - 스켈레톤 표시
   if (isLoading && allCenters.length === 0) {
     return (
-      <div className="flex flex-col gap-4 px-4">
+      <div className="flex flex-col space-y-4 px-4">
         {[...Array(5)].map((_, index) => (
           <CenterCardSkeleton key={index} />
         ))}
@@ -167,23 +146,46 @@ function CenterTab() {
 
   return (
     <div>
-      <div className="flex flex-col gap-4 px-4">
-        {allCenters
-          .filter((center) => center && center.id)
-          .map((center, idx) => (
-            <CenterCardWithFavorite
-              key={center.id ?? idx}
-              center={center}
-              isAuthenticated={isAuthenticated}
-              onLikeToggle={handleLikeToggle}
-              localFavorite={localFavorites[center.id]}
-            />
-          ))}
+      {/* 버추얼 스크롤 리스트 */}
+      <div ref={listRef} className="px-4">
+        <div
+          style={{
+            height: `${virtualizer.getTotalSize()}px`,
+            width: "100%",
+            position: "relative",
+          }}
+        >
+          {virtualItems.map((virtualRow) => {
+            const center = allCenters[virtualRow.index];
+            if (!center || !center.id) return null;
+            return (
+              <div
+                key={virtualRow.key}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: `${virtualRow.size}px`,
+                  transform: `translateY(${virtualRow.start - virtualizer.options.scrollMargin}px)`,
+                }}
+              >
+                <CenterCardWithFavorite
+                  center={center}
+                  isAuthenticated={isAuthenticated}
+                  onLikeToggle={handleLikeToggle}
+                  localFavorite={localFavorites[center.id]}
+                  imagePriority={virtualRow.index < 3}
+                />
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* 추가 로딩 스켈레톤 */}
       {isFetchingNextPage && (
-        <div className="flex flex-col gap-4 px-4 mt-4">
+        <div className="flex flex-col space-y-4 px-4 mt-4">
           {[...Array(3)].map((_, index) => (
             <CenterCardSkeleton key={`loading-${index}`} />
           ))}
@@ -200,7 +202,6 @@ function CenterTab() {
         ctaText="카카오톡으로 로그인하기"
         onCtaClick={() => {
           setShowLoginModal(false);
-          // 현재 URL을 redirect 파라미터로 포함하여 로그인 페이지로 이동
           const currentUrl = `${window.location.pathname}${window.location.search}`;
           router.push(`/login?redirect=${encodeURIComponent(currentUrl)}`);
         }}
@@ -217,11 +218,13 @@ function CenterCardWithFavorite({
   isAuthenticated,
   onLikeToggle,
   localFavorite,
+  imagePriority,
 }: {
   center: Center;
   isAuthenticated: boolean;
   onLikeToggle: (centerId: string) => void;
   localFavorite?: boolean;
+  imagePriority?: boolean;
 }) {
   // 로컬 상태가 있으면 API 호출을 비활성화
   const { data: favoriteData } = useCheckCenterFavorite(
@@ -247,6 +250,7 @@ function CenterCardWithFavorite({
       isLiked={isLiked}
       onLikeToggle={() => onLikeToggle(center.id)}
       centerId={center.id}
+      imagePriority={imagePriority}
     />
   );
 }

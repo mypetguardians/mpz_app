@@ -2,7 +2,11 @@
 
 ## 🔴 다음 작업
 
-### 1. SMS 인증
+### 1. 목록 성능 최적화
+- [ ] 버추얼 스크롤: react-window 또는 @tanstack/react-virtual (DOM 가상화)
+- [ ] 이미지 최적화: lazy loading, placeholder blur, 적절한 사이즈 요청, 뷰포트 밖 이미지 언로드
+
+### 2. SMS 인증
 - [ ] 프로필 휴대폰 번호 수정 시 SMS 인증 절차 추가
 
 ### 2. WebSocket 지원
@@ -59,9 +63,11 @@
 - [x] 워커 버그 수정 (status_sync 데이터 오염 + 보호종료 감지 + 중복 실행 방지)
 - [x] 워커 스케줄 조정 (status_sync 주 2회 수/일 03:10 KST)
 - [x] Git 흐름 조직 repo 중심 전환 (fork Actions 비활성, 조직 Secrets 등록)
-- [x] logout API 버그 발견 (cookie expires/max_age 충돌 — 미수정, 다음 작업)
+- [x] logout API 버그 수정 (cookie expires/max_age 충돌)
 - [x] Docker 디스크 정리 (dev 79→61%, prod 83→55%)
-- [x] prod 배포 (PR #16, #17, #18)
+- [x] 인수인계 문서 4개 현행화 (FE/BE/DB/서버)
+- [x] 새 Git 배포 흐름 검증 (PR #19~#22)
+- [x] prod 배포 (PR #16~#22)
 
 ### 이전
 

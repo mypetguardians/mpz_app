@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useCallback, useState } from "react";
+import { useEffect, useMemo, useCallback, useState, useRef } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useWindowVirtualizer } from "@tanstack/react-virtual";
 
 import { PetCard, PetCardSkeleton } from "@/components/ui";
 import { useGetAnimals } from "@/hooks/query/useGetAnimals";
@@ -29,6 +30,7 @@ function AnimalTab() {
   const [localFavorites, setLocalFavorites] = useState<Record<string, boolean>>(
     {}
   );
+  const listRef = useRef<HTMLDivElement>(null);
 
   const {
     filters,
@@ -140,40 +142,39 @@ function AnimalTab() {
       });
   }, [data]);
 
-  const loadMoreAnimals = useCallback(() => {
-    if (isFetchingNextPage || !hasNextPage) return;
-    fetchNextPage();
-  }, [isFetchingNextPage, hasNextPage, fetchNextPage]);
+  // 2열 그리드를 위해 row 단위로 묶기
+  const rows = useMemo(() => {
+    const filtered = allAnimals.filter((a) => a && a.id);
+    const result: RawAnimalResponse[][] = [];
+    for (let i = 0; i < filtered.length; i += 2) {
+      result.push(filtered.slice(i, i + 2));
+    }
+    return result;
+  }, [allAnimals]);
 
-  // 스크롤 이벤트 처리 (디바운싱 적용)
+  // 버추얼 스크롤 (window 스크롤 기반, row 단위 가상화)
+  const virtualizer = useWindowVirtualizer({
+    count: rows.length,
+    estimateSize: () => 256,
+    gap: 8,
+    overscan: 5,
+    scrollMargin: listRef.current?.offsetTop ?? 0,
+  });
+
+  const virtualItems = virtualizer.getVirtualItems();
+
+  // 마지막 가상 아이템 근처 도달 시 다음 페이지 로드
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-
-    const handleScroll = () => {
-      // 기존 타이머 클리어
-      clearTimeout(timeoutId);
-
-      // 100ms 후에 스크롤 처리 실행
-      timeoutId = setTimeout(() => {
-        const scrollTop =
-          window.pageYOffset || document.documentElement.scrollTop;
-        const windowHeight = window.innerHeight;
-        const documentHeight = document.documentElement.scrollHeight;
-
-        // 페이지 하단에서 800px 이내에 도달하면 다음 페이지 로드
-        const isNearBottom = scrollTop + windowHeight >= documentHeight - 600;
-        if (isNearBottom) {
-          loadMoreAnimals();
-        }
-      }, 100);
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      clearTimeout(timeoutId);
-    };
-  }, [loadMoreAnimals]);
+    const lastItem = virtualItems[virtualItems.length - 1];
+    if (!lastItem) return;
+    if (
+      lastItem.index >= rows.length - 1 &&
+      hasNextPage &&
+      !isFetchingNextPage
+    ) {
+      fetchNextPage();
+    }
+  }, [virtualItems, rows.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   // 좋아요 토글 핸들러 (동물)
   const handleLikeToggle = useCallback(
@@ -290,20 +291,48 @@ function AnimalTab() {
         </div>
       )}
 
-      <div className="flex flex-wrap justify-start gap-2 cursor-pointer mx-4">
-        {allAnimals
-          .filter((animal) => animal && animal.id)
-          .map((animal, index) => (
-            <AnimalCardWithFavorite
-              key={animal.id}
-              animal={animal}
-              isAuthenticated={isAuthenticated}
-              localFavorite={localFavorites[animal.id]}
-              onLikeToggle={handleLikeToggle}
-              onNavigate={() => router.push(`/list/animal/${animal.id}`)}
-              imagePriority={index < 2}
-            />
-          ))}
+      {/* 버추얼 스크롤 그리드 */}
+      <div ref={listRef} className="mx-4">
+        <div
+          style={{
+            height: `${virtualizer.getTotalSize()}px`,
+            width: "100%",
+            position: "relative",
+          }}
+        >
+          {virtualItems.map((virtualRow) => {
+            const row = rows[virtualRow.index];
+            return (
+              <div
+                key={virtualRow.key}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: `${virtualRow.size}px`,
+                  transform: `translateY(${virtualRow.start - virtualizer.options.scrollMargin}px)`,
+                }}
+              >
+                <div className="flex cursor-pointer space-x-2">
+                  {row.map((animal) => (
+                    <AnimalCardWithFavorite
+                      key={animal.id}
+                      animal={animal}
+                      isAuthenticated={isAuthenticated}
+                      localFavorite={localFavorites[animal.id]}
+                      onLikeToggle={handleLikeToggle}
+                      onNavigate={() =>
+                        router.push(`/list/animal/${animal.id}`)
+                      }
+                      imagePriority={virtualRow.index === 0}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* 추가 로딩 스켈레톤 */}

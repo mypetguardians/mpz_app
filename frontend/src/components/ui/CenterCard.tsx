@@ -13,6 +13,7 @@ interface CenterCardProps {
   isLiked?: boolean;
   onLikeToggle?: () => void;
   centerId?: string;
+  imagePriority?: boolean;
 }
 
 function CenterCard({
@@ -23,6 +24,7 @@ function CenterCard({
   isLiked = false,
   onLikeToggle,
   centerId,
+  imagePriority = false,
 }: CenterCardProps) {
   const router = useRouter();
   const [hasImageError, setHasImageError] = useState(false);
@@ -54,7 +56,7 @@ function CenterCard({
               fill
               sizes="63px"
               className="object-cover"
-              priority
+              priority={imagePriority}
               onError={() => {
                 setHasImageError(true);
               }}

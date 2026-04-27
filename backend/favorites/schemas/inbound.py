@@ -1,11 +1,16 @@
 from ninja import Schema, Field
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 
 class FavoriteListQueryIn(Schema):
     """찜 목록 조회 쿼리 스키마"""
     # @paginate 데코레이터가 page, limit을 자동으로 처리하므로 제거
     pass
+
+
+class BatchAnimalFavoriteIn(Schema):
+    """동물 찜 상태 일괄 조회 입력 스키마"""
+    animal_ids: List[str] = Field(..., description="동물 ID 목록 (최대 100개)")
 
 
 class PersonalityTestIn(Schema):

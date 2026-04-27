@@ -14,6 +14,7 @@ interface SearchInputProps {
   readOnly?: boolean;
   autoFocus?: boolean;
   triggerOnContainerClick?: boolean;
+  hideSearchIcon?: boolean;
 }
 
 export function SearchInput({
@@ -27,6 +28,7 @@ export function SearchInput({
   readOnly = false,
   autoFocus = false,
   triggerOnContainerClick = true,
+  hideSearchIcon = false,
 }: SearchInputProps) {
   const isPrimaryGroup = variant === "primary" || variant === "variant2";
 
@@ -66,20 +68,22 @@ export function SearchInput({
         readOnly={readOnly}
         autoFocus={autoFocus}
       />
-      <button
-        type="button"
-        className={cn(
-          "ml-1 p-1 rounded-full flex items-center justify-center",
-          textColor
-        )}
-        onClick={(e) => {
-          e.stopPropagation();
-          onSearch?.();
-        }}
-        tabIndex={-1}
-      >
-        <MagnifyingGlass size={16} weight="bold" />
-      </button>
+      {!hideSearchIcon && (
+        <button
+          type="button"
+          className={cn(
+            "ml-1 p-1 rounded-full flex items-center justify-center",
+            textColor
+          )}
+          onClick={(e) => {
+            e.stopPropagation();
+            onSearch?.();
+          }}
+          tabIndex={-1}
+        >
+          <MagnifyingGlass size={16} weight="bold" />
+        </button>
+      )}
     </div>
   );
 }

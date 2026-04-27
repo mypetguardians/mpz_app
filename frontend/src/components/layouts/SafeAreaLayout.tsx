@@ -227,7 +227,7 @@ export function SafeAreaLayout({ children }: SafeAreaLayoutProps) {
 
   return (
     <div
-      className="relative flex min-h-screen flex-col bg-wh"
+      className="relative flex h-screen flex-col overflow-hidden bg-wh"
       style={{
         paddingTop: safeAreaTopStyle,
         // 네비게이션 높이 + safe-area bottom 합산

@@ -9,7 +9,7 @@ interface ContainerProps {
 function Container({ children, className = "", style }: ContainerProps) {
   return (
     <main
-      className={`max-w-[420px] mx-auto w-full bg-wh min-h-full ${className}`}
+      className={`max-w-[420px] mx-auto w-full bg-wh flex-1 overflow-y-auto ${className}`}
       style={style}
     >
       {children}

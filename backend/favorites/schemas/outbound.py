@@ -69,6 +69,11 @@ class AnimalFavoriteListOut(Schema):
     hasPrev: bool = Field(..., description="이전 페이지 존재 여부")
 
 
+class BatchFavoriteStatusOut(Schema):
+    """동물 찜 상태 일괄 조회 출력 스키마"""
+    statuses: Dict[str, bool] = Field(..., description="동물 ID별 찜 상태")
+
+
 class ErrorOut(Schema):
     """에러 응답 스키마"""
     error: str = Field(..., description="에러 메시지")

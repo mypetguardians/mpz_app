@@ -10,10 +10,12 @@ from animals.models import Animal, AnimalImage
 from favorites.schemas.inbound import (
     FavoriteListQueryIn,
     PersonalityTestIn,
+    BatchAnimalFavoriteIn,
 )
 from favorites.schemas.outbound import (
     FavoriteToggleOut,
     FavoriteStatusOut,
+    BatchFavoriteStatusOut,
     CenterFavoriteOut,
     CenterFavoriteListOut,
     AnimalFavoriteOut,
@@ -187,6 +189,47 @@ async def get_center_favorites(request: HttpRequest, filters: FavoriteListQueryI
         raise
     except Exception as e:
         raise HttpError(500, f"찜한 센터 목록 조회 중 오류가 발생했습니다: {str(e)}")
+
+
+@router.post(
+    "/animals/batch-status",
+    summary="[R] 동물 찜 상태 일괄 조회",
+    description="여러 동물의 찜 상태를 한 번에 조회합니다. (최대 100개)",
+    response={
+        200: BatchFavoriteStatusOut,
+        401: ErrorOut,
+    },
+    auth=jwt_auth,
+)
+async def batch_check_animal_favorite_status(request: HttpRequest, data: BatchAnimalFavoriteIn):
+    """동물 찜 상태를 일괄 조회합니다."""
+    try:
+        if not hasattr(request, 'auth') or not request.auth:
+            raise HttpError(401, "로그인이 필요합니다")
+
+        current_user = request.auth
+        if hasattr(current_user, '__await__'):
+            current_user = await current_user
+
+        animal_ids = data.animal_ids[:100]
+
+        @sync_to_async
+        def check_batch():
+            favorited_ids = set(
+                AnimalFavorite.objects.filter(
+                    user=current_user,
+                    animal_id__in=animal_ids
+                ).values_list("animal_id", flat=True)
+            )
+            return {aid: (aid in favorited_ids) for aid in animal_ids}
+
+        statuses = await check_batch()
+        return {"statuses": statuses}
+
+    except HttpError:
+        raise
+    except Exception as e:
+        raise HttpError(500, f"찜 상태 일괄 조회 중 오류가 발생했습니다: {str(e)}")
 
 
 @router.post(

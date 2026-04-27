@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Heart } from "@phosphor-icons/react";
 
@@ -29,7 +29,10 @@ export function AnimalSearchSection({
   filters,
   filterCounts,
   onSearchStateChange,
-}: AnimalSearchSectionProps) {
+  children,
+}: AnimalSearchSectionProps & {
+  children?: (searchResults: React.ReactNode) => React.ReactNode;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -43,27 +46,24 @@ export function AnimalSearchSection({
   // URL 파라미터에서 검색 값 읽기
   const searchFromUrl = searchParams.get("search") || "";
 
-  // 검색 값 우선순위: URL > 스토어
-  const searchValue = searchFromUrl || storedSearchValue;
-  const [localSearchValue, setLocalSearchValue] = useState(searchValue);
-  const [isSearching, setIsSearching] = useState(!!searchValue);
+  const [localSearchValue, setLocalSearchValue] = useState(searchFromUrl || storedSearchValue);
+  const [isSearching, setIsSearching] = useState(!!(searchFromUrl || storedSearchValue));
   const [localFavorites, setLocalFavorites] = useState<Record<string, boolean>>(
     {}
   );
-  // URL 파라미터와 스토어 값 동기화
+
+  // URL 파라미터 변경 시에만 동기화 (최초 진입 or 외부 URL 변경)
+  const prevSearchFromUrl = useRef(searchFromUrl);
   useEffect(() => {
-    if (searchFromUrl && searchFromUrl !== storedSearchValue) {
-      setStoredSearchValue(searchFromUrl);
-      setLocalSearchValue(searchFromUrl);
-      setIsSearching(true);
-    } else if (storedSearchValue && !searchFromUrl) {
-      setLocalSearchValue(storedSearchValue);
-      setIsSearching(!!storedSearchValue);
-    } else if (searchValue) {
-      setLocalSearchValue(searchValue);
-      setIsSearching(true);
+    if (searchFromUrl !== prevSearchFromUrl.current) {
+      prevSearchFromUrl.current = searchFromUrl;
+      if (searchFromUrl) {
+        setLocalSearchValue(searchFromUrl);
+        setStoredSearchValue(searchFromUrl);
+        setIsSearching(true);
+      }
     }
-  }, [searchFromUrl, storedSearchValue, searchValue, setStoredSearchValue]);
+  }, [searchFromUrl, setStoredSearchValue]);
 
   // 보호상태 필터 기본값 처리 (비어있으면 "입양가능"을 기본값으로 사용)
   const effectiveProtectionStatus =
@@ -192,20 +192,22 @@ export function AnimalSearchSection({
       setIsSearching(true);
       router.push(`${pathname}?search=${encodeURIComponent(trimmedValue)}`);
       onSearchStateChange(true);
+    } else {
+      // 빈 값이면 검색 초기화
+      handleSearchClear();
     }
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setLocalSearchValue(value);
-    setStoredSearchValue(value);
   };
 
   const handleSearchClear = () => {
     setLocalSearchValue("");
     setStoredSearchValue("");
     setIsSearching(false);
-    // URL에서 검색 파라미터 제거
+    prevSearchFromUrl.current = "";
     router.push(pathname);
     onSearchStateChange(false);
   };
@@ -254,6 +256,88 @@ export function AnimalSearchSection({
     ]
   );
 
+  const searchResultsElement = showSearchResults ? (
+    <div className="px-4 pt-4">
+      <div className="flex items-center justify-between mb-3">
+        <h5 className="text-dg">
+          {isSearching && localSearchValue.trim().length > 0
+            ? `"${localSearchValue}" 검색 결과`
+            : "검색 결과"}
+          {searchData && ` (${searchTotal}건)`}
+        </h5>
+        <button
+          onClick={handleSearchClear}
+          className="text-sm text-gray-500 cursor-pointer hover:text-gray-700"
+        >
+          검색 초기화
+        </button>
+      </div>
+
+      {isSearchLoading && (
+        <div className="py-8 text-center">
+          <div className="text-gray-500">검색 중...</div>
+        </div>
+      )}
+
+      {searchError && (
+        <div className="py-8 text-center">
+          <div className="text-red-500">검색 중 오류가 발생했습니다</div>
+        </div>
+      )}
+
+      {!isSearchLoading && !searchError && !hasSearchResults && (
+        <div className="py-8 text-center">
+          <div className="text-gray-500">
+            &ldquo;{localSearchValue}&rdquo;에 해당하는 동물을 찾을 수
+            없습니다
+          </div>
+        </div>
+      )}
+
+      {hasSearchResults && (
+        <div
+          className={
+            filters.expertOpinion.includes("포함")
+              ? "flex flex-col gap-3 cursor-pointer"
+              : "flex flex-wrap justify-start gap-2 cursor-pointer"
+          }
+        >
+          {searchAnimals
+            .filter(
+              (animal): animal is NonNullable<typeof animal> =>
+                animal !== null &&
+                animal !== undefined &&
+                typeof animal === "object"
+            )
+            .map((animal, idx) => (
+              <SearchAnimalCardWithFavorite
+                key={animal.id ?? idx}
+                animal={animal}
+                isAuthenticated={isAuthenticated}
+                localFavorite={localFavorites[animal.id]}
+                onLikeToggle={handleLikeToggle}
+                onNavigate={() => router.push(`/list/animal/${animal.id}`)}
+                variant={
+                  filters.expertOpinion.includes("포함")
+                    ? "variant2"
+                    : "primary"
+                }
+                className={
+                  filters.expertOpinion.includes("포함")
+                    ? "w-full cursor-pointer"
+                    : "w-[calc(50%-4px)] cursor-pointer"
+                }
+              />
+            ))}
+        </div>
+      )}
+
+      {isFetchingNextSearchPage && (
+        <div className="py-4 text-center text-gray-500">불러오는 중...</div>
+      )}
+    </div>
+  ) : null;
+
   return (
     <>
       {/* 검색 입력 */}
@@ -269,88 +353,8 @@ export function AnimalSearchSection({
         />
       </div>
 
-      {/* 검색 결과 표시 - 텍스트 검색만 */}
-      {showSearchResults && (
-        <div className="px-4 pt-4">
-          <div className="flex items-center justify-between mb-3">
-            <h5 className="text-dg">
-              {isSearching && localSearchValue.trim().length > 0
-                ? `"${localSearchValue}" 검색 결과`
-                : "검색 결과"}
-              {searchData && ` (${searchTotal}건)`}
-            </h5>
-            <button
-              onClick={handleSearchClear}
-              className="text-sm text-gray-500 cursor-pointer hover:text-gray-700"
-            >
-              검색 초기화
-            </button>
-          </div>
-
-          {isSearchLoading && (
-            <div className="py-8 text-center">
-              <div className="text-gray-500">검색 중...</div>
-            </div>
-          )}
-
-          {searchError && (
-            <div className="py-8 text-center">
-              <div className="text-red-500">검색 중 오류가 발생했습니다</div>
-            </div>
-          )}
-
-          {!isSearchLoading && !searchError && !hasSearchResults && (
-            <div className="py-8 text-center">
-              <div className="text-gray-500">
-                &ldquo;{localSearchValue}&rdquo;에 해당하는 동물을 찾을 수
-                없습니다
-              </div>
-            </div>
-          )}
-
-          {hasSearchResults && (
-            <div
-              className={
-                filters.expertOpinion.includes("포함")
-                  ? "flex flex-col gap-3 cursor-pointer"
-                  : "flex flex-wrap justify-start gap-2 cursor-pointer"
-              }
-            >
-              {searchAnimals
-                .filter(
-                  (animal): animal is NonNullable<typeof animal> =>
-                    animal !== null &&
-                    animal !== undefined &&
-                    typeof animal === "object"
-                )
-                .map((animal, idx) => (
-                  <SearchAnimalCardWithFavorite
-                    key={animal.id ?? idx}
-                    animal={animal}
-                    isAuthenticated={isAuthenticated}
-                    localFavorite={localFavorites[animal.id]}
-                    onLikeToggle={handleLikeToggle}
-                    onNavigate={() => router.push(`/list/animal/${animal.id}`)}
-                    variant={
-                      filters.expertOpinion.includes("포함")
-                        ? "variant2"
-                        : "primary"
-                    }
-                    className={
-                      filters.expertOpinion.includes("포함")
-                        ? "w-full cursor-pointer"
-                        : "w-[calc(50%-4px)] cursor-pointer"
-                    }
-                  />
-                ))}
-            </div>
-          )}
-
-          {isFetchingNextSearchPage && (
-            <div className="py-4 text-center text-gray-500">불러오는 중...</div>
-          )}
-        </div>
-      )}
+      {/* 검색 결과를 children을 통해 외부에 위치시킴 */}
+      {children?.(searchResultsElement)}
     </>
   );
 }

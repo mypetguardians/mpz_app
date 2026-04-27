@@ -2,18 +2,19 @@
 
 ## 🔴 다음 작업
 
-### 1. 목록 성능 최적화
-- [ ] 버추얼 스크롤: react-window 또는 @tanstack/react-virtual (DOM 가상화)
-- [ ] 이미지 최적화: lazy loading, placeholder blur, 적절한 사이즈 요청, 뷰포트 밖 이미지 언로드
+### 1. 검색 콘솔 sitemap 제출 + 색인 요청
+- [ ] Google Search Console → `https://mpz.kr/sitemap.xml` 제출 + 주요 5페이지 색인 요청
+- [ ] Naver 서치어드바이저 → sitemap 제출 + 웹 페이지 수집 요청
+- Google/Naver 색인 현재 0건 (2026-04-27 확인)
 
 ### 2. SMS 인증
 - [ ] 프로필 휴대폰 번호 수정 시 SMS 인증 절차 추가
 
-### 2. WebSocket 지원
+### 3. WebSocket 지원
 - gunicorn → Daphne(ASGI) 전환
 - 현재 FCM 웹 푸시로 알림 기능 대체 가능, WebSocket은 채팅/실시간 상태용
 
-### 3. doggy-school 프로젝트
+### 4. doggy-school 프로젝트
 - fork → clone → 분석 → Supabase 위에 배포
 
 ---
@@ -29,8 +30,9 @@
 ## 🔄 상시
 
 ### SEO
-- 완료 항목은 `history/2026-04-26.md` 참고
-- [ ] 네이버/Google 색인 상태 모니터링 (서치어드바이저 + Search Console)
+- 완료 항목은 `history/2026-04-26.md`, `history/2026-04-27.md` 참고
+- [ ] 색인 상태 주기적 확인 (`site:mpz.kr` Google/Naver)
+- [ ] 홈페이지 `<h1>` 태그 추가 (현재 없음)
 
 ---
 
@@ -48,6 +50,14 @@
 ---
 
 ## ✅ 완료
+
+### 2026-04-27
+- [x] 목록 버추얼 스크롤 (@tanstack/react-virtual, AnimalTab 2열 + CenterTab 1열)
+- [x] CenterCard 이미지 lazy loading (처음 3개만 priority)
+- [x] SEO og:title 이중 적용 수정 (7개 파일)
+- [x] SEO 색인 현황 점검 (Google/Naver 0건 확인, 기술적 SEO 정상)
+- [x] 이미지 최적화 (AVIF, 모바일 deviceSizes, 24h 캐시, blur placeholder)
+- [x] dev 배포 (PR #23, #24)
 
 ### 2026-04-26
 - [x] 불필요 코드/리소스 정리 (1,522줄 삭제)

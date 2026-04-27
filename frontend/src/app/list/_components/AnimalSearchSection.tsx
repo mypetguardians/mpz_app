@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { Heart } from "@phosphor-icons/react";
 
 import { SearchInput } from "@/components/ui/SearchInput";
@@ -23,18 +24,16 @@ interface AnimalSearchSectionProps {
   filterSlot?: React.ReactNode;
   hasActiveFilters?: boolean;
   onClearFilters?: () => void;
-  searchVisible?: boolean;
 }
 
 type SearchAnimal = RawAnimalResponse;
 
-export function AnimalSearchSection({
+export function useAnimalSearch({
   filters,
   onSearchStateChange,
   filterSlot,
   hasActiveFilters,
   onClearFilters,
-  searchVisible = true,
 }: AnimalSearchSectionProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -50,7 +49,7 @@ export function AnimalSearchSection({
   const [localSearchValue, setLocalSearchValue] = useState(searchFromUrl);
   const [isSearching, setIsSearching] = useState(!!searchFromUrl);
   const [localFavorites, setLocalFavorites] = useState<Record<string, boolean>>(
-    {}
+    {},
   );
 
   // URL 파라미터 변경 시에만 동기화 (최초 진입 or 외부 URL 변경)
@@ -82,7 +81,7 @@ export function AnimalSearchSection({
     isFetchingNextPage: isFetchingNextSearchPage,
   } = useGetAnimals({
     search: localSearchValue.trim() || undefined,
-    breed: localSearchValue.trim() || filters.breed || undefined,
+    breed: filters.breed || undefined,
     page_size: 20,
     // 체중 필터
     ...(filters.weights.length > 0 && {
@@ -148,54 +147,68 @@ export function AnimalSearchSection({
   const searchAnimals = searchData?.pages.flatMap((page) => page.data) || [];
   const searchTotal = searchData?.pages[0]?.totalCnt || 0;
 
+  // 중복 제거 + 유효한 동물만 필터
+  const validSearchAnimals = useMemo(() => {
+    const seen = new Set<string>();
+    return searchAnimals
+      .filter((a): a is NonNullable<typeof a> => !!a?.id)
+      .filter((a) => {
+        if (seen.has(a.id)) return false;
+        seen.add(a.id);
+        return true;
+      });
+  }, [searchAnimals]);
+
+  // 2열 그리드를 위해 row 단위로 묶기
+  const searchRows = useMemo(() => {
+    const result: RawAnimalResponse[][] = [];
+    for (let i = 0; i < validSearchAnimals.length; i += 2) {
+      result.push(validSearchAnimals.slice(i, i + 2));
+    }
+    return result;
+  }, [validSearchAnimals]);
+
   // 찜 상태 일괄 조회
-  const searchAnimalIds = React.useMemo(
-    () => searchAnimals.filter((a): a is NonNullable<typeof a> => !!a?.id).map((a) => a.id),
-    [searchAnimals]
+  const searchAnimalIds = useMemo(
+    () => validSearchAnimals.map((a) => a.id),
+    [validSearchAnimals],
   );
   const { data: batchFavorites } = useBatchAnimalFavorites(
     searchAnimalIds,
-    isAuthenticated && searchAnimalIds.length > 0
+    isAuthenticated && searchAnimalIds.length > 0,
   );
 
-  const loadMoreSearchResults = useCallback(() => {
-    if (!showSearchResults) return;
-    if (isFetchingNextSearchPage || !hasNextSearchPage) return;
-    fetchNextSearchPage();
-  }, [
-    fetchNextSearchPage,
-    hasNextSearchPage,
-    isFetchingNextSearchPage,
-    showSearchResults,
-  ]);
-
+  // 스크롤 컨테이너 ref (버추얼 스크롤 + 무한스크롤용)
+  const searchScrollRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
-    if (!showSearchResults) return;
+    searchScrollRef.current = document.getElementById("list-scroll-container");
+  }, []);
 
-    let timeoutId: ReturnType<typeof setTimeout>;
+  // 버추얼 스크롤
+  const searchVirtualizer = useVirtualizer({
+    count: searchRows.length,
+    estimateSize: () => 256,
+    gap: 8,
+    overscan: 5,
+    getScrollElement: () => searchScrollRef.current,
+  });
 
-    const handleScroll = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        const scrollTop =
-          window.pageYOffset || document.documentElement.scrollTop;
-        const windowHeight = window.innerHeight;
-        const documentHeight = document.documentElement.scrollHeight;
+  const searchVirtualItems = searchVirtualizer.getVirtualItems();
 
-        const isNearBottom = scrollTop + windowHeight >= documentHeight - 600;
-        if (isNearBottom) {
-          loadMoreSearchResults();
-        }
-      }, 100);
-    };
+  // 무한스크롤: 마지막 가상 아이템 근처 도달 시 다음 페이지 로드
+  useEffect(() => {
+    const lastItem = searchVirtualItems[searchVirtualItems.length - 1];
+    if (!lastItem) return;
+    if (
+      lastItem.index >= searchRows.length - 1 &&
+      hasNextSearchPage &&
+      !isFetchingNextSearchPage
+    ) {
+      fetchNextSearchPage();
+    }
+  }, [searchVirtualItems, searchRows.length, hasNextSearchPage, isFetchingNextSearchPage, fetchNextSearchPage]);
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      clearTimeout(timeoutId);
-    };
-  }, [loadMoreSearchResults, showSearchResults]);
+  // 무한스크롤은 searchVirtualItems의 useEffect에서 처리
 
   const handleSearch = () => {
     const trimmedValue = localSearchValue.trim();
@@ -260,7 +273,7 @@ export function AnimalSearchSection({
               [animalId]: currentFavorite,
             }));
           },
-        }
+        },
       );
     },
     [
@@ -270,7 +283,7 @@ export function AnimalSearchSection({
       pathname,
       router,
       searchParams,
-    ]
+    ],
   );
 
   // 결과 헤더 (검색 결과 N건 + 초기화 버튼들) - 접히는 영역에 포함
@@ -283,7 +296,10 @@ export function AnimalSearchSection({
         <div className="flex items-center">
           {hasActiveFilters && onClearFilters && (
             <>
-              <button onClick={onClearFilters} className="text-sm text-gr cursor-pointer">
+              <button
+                onClick={onClearFilters}
+                className="text-sm text-gr cursor-pointer"
+              >
                 필터 초기화
               </button>
               <span className="mx-2 h-3 w-px bg-gray-300" />
@@ -302,7 +318,6 @@ export function AnimalSearchSection({
 
   const searchResultsElement = showSearchResults ? (
     <div className="px-4 pt-2">
-
       {isSearchLoading && (
         <div className="py-8 text-center">
           <div className="text-gray-500">검색 중...</div>
@@ -318,48 +333,51 @@ export function AnimalSearchSection({
       {!isSearchLoading && !searchError && !hasSearchResults && (
         <div className="flex items-center justify-center min-h-[40vh]">
           <div className="text-gray-500">
-            &ldquo;{localSearchValue}&rdquo;에 해당하는 동물을 찾을 수
-            없습니다
+            &ldquo;{localSearchValue}&rdquo;에 해당하는 동물을 찾을 수 없습니다
           </div>
         </div>
       )}
 
       {hasSearchResults && (
         <div
-          className={
-            filters.expertOpinion.includes("포함")
-              ? "flex flex-col gap-3 cursor-pointer"
-              : "flex flex-wrap justify-start gap-2 cursor-pointer"
-          }
+          style={{
+            height: `${searchVirtualizer.getTotalSize()}px`,
+            width: "100%",
+            position: "relative",
+          }}
         >
-          {searchAnimals
-            .filter(
-              (animal): animal is NonNullable<typeof animal> =>
-                animal !== null &&
-                animal !== undefined &&
-                typeof animal === "object"
-            )
-            .map((animal, idx) => (
-              <SearchAnimalCardWithFavorite
-                key={animal.id ?? idx}
-                animal={animal}
-                isAuthenticated={isAuthenticated}
-                localFavorite={localFavorites[animal.id]}
-                batchFavorite={batchFavorites?.[animal.id]}
-                onLikeToggle={handleLikeToggle}
-                onNavigate={() => router.push(`/list/animal/${animal.id}`)}
-                variant={
-                  filters.expertOpinion.includes("포함")
-                    ? "variant2"
-                    : "primary"
-                }
-                className={
-                  filters.expertOpinion.includes("포함")
-                    ? "w-full cursor-pointer"
-                    : "w-[calc(50%-4px)] cursor-pointer"
-                }
-              />
-            ))}
+          {searchVirtualItems.map((virtualRow) => {
+            const row = searchRows[virtualRow.index];
+            return (
+              <div
+                key={virtualRow.key}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: `${virtualRow.size}px`,
+                  transform: `translateY(${virtualRow.start}px)`,
+                }}
+              >
+                <div className="flex cursor-pointer space-x-2">
+                  {row.map((animal) => (
+                    <SearchAnimalCardWithFavorite
+                      key={animal.id}
+                      animal={animal}
+                      isAuthenticated={isAuthenticated}
+                      localFavorite={localFavorites[animal.id]}
+                      batchFavorite={batchFavorites?.[animal.id]}
+                      onLikeToggle={handleLikeToggle}
+                      onNavigate={() => router.push(`/list/animal/${animal.id}`)}
+                      variant="primary"
+                      className="w-[calc(50%-4px)] cursor-pointer"
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -369,42 +387,29 @@ export function AnimalSearchSection({
     </div>
   ) : null;
 
-  // 접히는 영역에 포함될 콘텐츠 (검색 입력 + 필터 + 헤더)
-  return (
+  // 두 영역을 분리해서 반환 — ListLayout에서 다른 위치에 배치
+  const controlArea = (
     <>
-      {/* 스크롤 시 hide/show 되는 영역 */}
-      <div
-        className="transition-all duration-300 ease-in-out overflow-hidden"
-        style={{
-          maxHeight: searchVisible ? "500px" : "0px",
-        }}
-      >
-        {/* 검색 입력 */}
-        <div className="px-4 py-4">
-          <SearchInput
-            value={localSearchValue}
-            onChange={handleSearchChange}
-            onSearch={handleSearch}
-            onClear={handleSearchClear}
-            triggerOnContainerClick={false}
-            placeholder="품종, 이름, 지역으로 검색해보세요."
-            variant="primary"
-            readOnly={false}
-          />
-        </div>
-
-        {/* 필터 버튼 */}
-        {filterSlot}
-
-        {/* 검색 헤더 (결과 건수 + 초기화 버튼들) */}
-        {searchHeaderElement}
-
+      <div className="px-4 py-4">
+        <SearchInput
+          value={localSearchValue}
+          onChange={handleSearchChange}
+          onSearch={handleSearch}
+          onClear={handleSearchClear}
+          triggerOnContainerClick={false}
+          placeholder="품종, 이름 또는 발견 지역으로 검색해보세요."
+          variant="primary"
+          readOnly={false}
+        />
       </div>
-
-      {/* 검색 결과 카드 - hide/show 영역 밖 */}
-      {searchResultsElement}
+      {filterSlot}
+      {searchHeaderElement}
     </>
   );
+
+  const resultsArea = searchResultsElement;
+
+  return { controlArea, resultsArea };
 }
 
 // 검색 결과용 동물 카드 컴포넌트 (찜 버튼 포함)
@@ -429,12 +434,18 @@ function SearchAnimalCardWithFavorite({
 }) {
   const isLiked =
     isAuthenticated &&
-    (localFavorite !== undefined
-      ? localFavorite
-      : batchFavorite ?? false);
+    (localFavorite !== undefined ? localFavorite : batchFavorite ?? false);
 
   return (
-    <div className={className} onClick={onNavigate} role="link" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter") onNavigate(); }}>
+    <div
+      className={className}
+      onClick={onNavigate}
+      role="link"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") onNavigate();
+      }}
+    >
       <div className="relative">
         <PetCard
           pet={{
@@ -470,7 +481,7 @@ function SearchAnimalCardWithFavorite({
                       className={cn(
                         className,
                         isLiked ? "text-brand" : "text-[#e3e3e3]",
-                        isLiked && "fill-current"
+                        isLiked && "fill-current",
                       )}
                       weight={isLiked ? "fill" : "regular"}
                     />

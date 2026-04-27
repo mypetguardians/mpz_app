@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { CenterCard } from "@/components/ui/CenterCard";
 import { useGetCenters } from "@/hooks/query/useGetCenters";
-import { useCheckCenterFavorite } from "@/hooks/query/useCheckCenterFavorite";
+import { useBatchCenterFavorites } from "@/hooks/query/useBatchCenterFavorites";
 import { useToggleCenterFavorite } from "@/hooks/mutation/useToggleCenterFavorite";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { Center, transformRawCenterToCenter } from "@/types/center";
@@ -54,6 +54,13 @@ function CenterTab() {
       .map(transformRawCenterToCenter);
   }, [data]);
 
+  // 찜 상태 일괄 조회
+  const centerIds = useMemo(() => allCenters.map((c) => c.id), [allCenters]);
+  const { data: batchFavorites } = useBatchCenterFavorites(
+    centerIds,
+    isAuthenticated && centerIds.length > 0
+  );
+
   // 스크롤 컨테이너 ref
   const scrollContainerRef = useRef<HTMLElement | null>(null);
 
@@ -95,7 +102,7 @@ function CenterTab() {
     const currentFavorite =
       localFavorites[centerId] !== undefined
         ? localFavorites[centerId]
-        : allCenters.find((c) => c.id === centerId)?.isFavorited || false;
+        : batchFavorites?.[centerId] ?? false;
 
     setLocalFavorites((prev) => ({
       ...prev,
@@ -182,6 +189,7 @@ function CenterTab() {
                   isAuthenticated={isAuthenticated}
                   onLikeToggle={handleLikeToggle}
                   localFavorite={localFavorites[center.id]}
+                  batchFavorite={batchFavorites?.[center.id]}
                   imagePriority={virtualRow.index < 3}
                 />
               </div>
@@ -225,28 +233,21 @@ function CenterCardWithFavorite({
   isAuthenticated,
   onLikeToggle,
   localFavorite,
+  batchFavorite,
   imagePriority,
 }: {
   center: Center;
   isAuthenticated: boolean;
   onLikeToggle: (centerId: string) => void;
   localFavorite?: boolean;
+  batchFavorite?: boolean;
   imagePriority?: boolean;
 }) {
-  // 로컬 상태가 있으면 API 호출을 비활성화
-  const { data: favoriteData } = useCheckCenterFavorite(
-    center.id,
-    isAuthenticated && localFavorite === undefined
-  );
-
-  // 로컬 상태가 있으면 로컬 상태 사용, 없으면 API 응답 사용
   const isLiked =
     isAuthenticated &&
     (localFavorite !== undefined
       ? localFavorite
-      : favoriteData
-      ? favoriteData.is_favorited
-      : false);
+      : batchFavorite ?? false);
 
   return (
     <CenterCard

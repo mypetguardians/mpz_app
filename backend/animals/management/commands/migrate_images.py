@@ -94,7 +94,7 @@ class Command(BaseCommand):
         from asgiref.sync import sync_to_async
         from django.db.models import Q
 
-        service = PublicDataService()
+        service = PublicDataService(service_key="")
         storage_client = service._get_storage_client()
         if not storage_client:
             self.stdout.write(self.style.ERROR("Storage 클라이언트 초기화 실패"))

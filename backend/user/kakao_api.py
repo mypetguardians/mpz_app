@@ -96,11 +96,31 @@ def parse_kakao_profile(profile_data: Dict) -> Dict[str, str]:
             "카카오 사용자 정보를 가져오는데 실패했습니다. 잠시 후 다시 시도해주세요.",
         )
 
+    # 카카오 프로필 이미지 → Supabase 경량화 업로드
+    final_image = kakao_user_image or ""
+    if kakao_user_image:
+        try:
+            from storage_service.services import StorageClient
+            from animals.services import PublicDataService
+
+            with httpx.Client(timeout=10) as sync_client:
+                img_resp = sync_client.get(kakao_user_image)
+                if img_resp.status_code == 200 and len(img_resp.content) > 500:
+                    optimized, ct = PublicDataService._optimize_image(
+                        img_resp.content, max_size=512
+                    )
+                    storage = StorageClient()
+                    key = f"profiles/kakao_{kakao_user_id}.jpg"
+                    storage.upload_file(key=key, data=optimized, content_type=ct)
+                    final_image = f"{storage.public_base_url}/{key}"
+        except Exception as exc:
+            logger.warning(f"카카오 프로필 이미지 업로드 실패: {exc}")
+
     return {
         "id": kakao_user_id,
         "email": kakao_user_email,
         "name": kakao_user_name,
-        "image": kakao_user_image if kakao_user_image else "",
+        "image": final_image,
     }
 
 

@@ -233,6 +233,47 @@ async def batch_check_animal_favorite_status(request: HttpRequest, data: BatchAn
 
 
 @router.post(
+    "/centers/batch-status",
+    summary="[R] 센터 찜 상태 일괄 조회",
+    description="여러 센터의 찜 상태를 한 번에 조회합니다. (최대 100개)",
+    response={
+        200: BatchFavoriteStatusOut,
+        401: ErrorOut,
+    },
+    auth=jwt_auth,
+)
+async def batch_check_center_favorite_status(request: HttpRequest, data: BatchAnimalFavoriteIn):
+    """센터 찜 상태를 일괄 조회합니다."""
+    try:
+        if not hasattr(request, 'auth') or not request.auth:
+            raise HttpError(401, "로그인이 필요합니다")
+
+        current_user = request.auth
+        if hasattr(current_user, '__await__'):
+            current_user = await current_user
+
+        center_ids = data.animal_ids[:100]
+
+        @sync_to_async
+        def check_batch():
+            favorited_ids = set(
+                str(uid) for uid in CenterFavorite.objects.filter(
+                    user=current_user,
+                    center_id__in=center_ids
+                ).values_list("center_id", flat=True)
+            )
+            return {cid: (cid in favorited_ids) for cid in center_ids}
+
+        statuses = await check_batch()
+        return {"statuses": statuses}
+
+    except HttpError:
+        raise
+    except Exception as e:
+        raise HttpError(500, f"센터 찜 상태 일괄 조회 중 오류가 발생했습니다: {str(e)}")
+
+
+@router.post(
     "/animals/{animal_id}/toggle",
     summary="[C/D] 동물 찜 토글",
     description="동물을 찜하거나 찜을 해제합니다.",

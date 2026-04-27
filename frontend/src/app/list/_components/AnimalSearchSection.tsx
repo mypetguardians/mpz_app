@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Heart } from "@phosphor-icons/react";
@@ -176,7 +176,7 @@ export function useAnimalSearch({
     count: searchRows.length,
     estimateSize: () => 256,
     gap: 8,
-    overscan: 5,
+    overscan: 2,
     getScrollElement: getSearchScrollElement,
   });
 

@@ -211,6 +211,7 @@ export default function Home() {
   return (
     <Container>
       <div className="flex flex-col min-h-screen">
+        <h1 className="sr-only">마펫쯔 - 유기동물 입양 플랫폼</h1>
         <HomeHeader isLoggedIn={isAuthenticated} isAuthLoading={authLoading} />
 
         {/* 매칭 완료 알림 */}

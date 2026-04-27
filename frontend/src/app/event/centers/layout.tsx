@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     canonical: "/event/centers",
   },
   openGraph: {
-    title: "이벤트 참여 센터 | 마펫쯔",
+    title: "이벤트 참여 센터",
     description:
       "마펫쯔 이벤트에 참여 중인 보호센터를 확인하세요. 특별 입양 행사와 할인 혜택 정보를 만나보세요.",
   },

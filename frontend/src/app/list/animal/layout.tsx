@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     canonical: "/list/animal",
   },
   openGraph: {
-    title: "입양 가능한 유기동물 | 마펫쯔",
+    title: "입양 가능한 유기��물",
     description:
       "전국 보호센터의 입양 가능한 유기동물을 확인하세요. 새 가족을 찾는 아이들이 기다리고 있어요.",
   },

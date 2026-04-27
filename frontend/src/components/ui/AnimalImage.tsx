@@ -5,6 +5,9 @@ import Image, { type ImageProps } from "next/image";
 import { getProxyImageUrl } from "@/lib/getProxyImageUrl";
 import { cn } from "@/lib/utils";
 
+const BLUR_PLACEHOLDER =
+  "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2UyZThlMCIvPjwvc3ZnPg==";
+
 type ForwardImageProps = Omit<ImageProps, "src" | "alt" | "className">;
 
 interface AnimalImageProps extends ForwardImageProps {
@@ -26,13 +29,11 @@ export default function AnimalImage({
   onError,
   ...imageProps
 }: AnimalImageProps) {
-  const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const proxiedImageUrl = useMemo(() => getProxyImageUrl(imageUrl), [imageUrl]);
   const shouldShowFallback = !proxiedImageUrl || hasError;
 
   useEffect(() => {
-    setIsLoading(true);
     setHasError(false);
   }, [proxiedImageUrl]);
 
@@ -40,7 +41,7 @@ export default function AnimalImage({
     return (
       <div
         className={cn(
-          "bg-gray-200 flex items-center justify-center text-gray-400",
+          "bg-gray-200 flex items-center justify-center text-gray-400 rounded-[10px] overflow-hidden",
           containerClassName
         )}
       >
@@ -58,9 +59,6 @@ export default function AnimalImage({
 
   return (
     <div className={cn("relative overflow-hidden", containerClassName)}>
-      {isLoading && (
-        <div className="absolute inset-0 animate-pulse bg-gray-200" />
-      )}
       <Image
         {...imageProps}
         key={proxiedImageUrl}
@@ -68,14 +66,13 @@ export default function AnimalImage({
         alt={alt}
         className={cn("object-cover", imageClassName)}
         sizes={imageProps.sizes || "(max-width: 420px) 50vw, 33vw"}
+        placeholder="blur"
+        blurDataURL={BLUR_PLACEHOLDER}
         onLoad={(event) => {
-          setIsLoading(false);
-          setHasError(false);
           onLoad?.(event);
         }}
         onError={(event) => {
           setHasError(true);
-          setIsLoading(false);
           onError?.(event);
         }}
       />

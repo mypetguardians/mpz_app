@@ -1,73 +1,57 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { CaretDown, Heart } from "@phosphor-icons/react";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { Heart } from "@phosphor-icons/react";
 
 import { SearchInput } from "@/components/ui/SearchInput";
-import { MiniButton } from "@/components/ui/MiniButton";
 import { PetCard } from "@/components/ui/PetCard";
 import { IconButton } from "@/components/ui/IconButton";
 import { useGetAnimals } from "@/hooks/query/useGetAnimals";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useToggleAnimalFavorite } from "@/hooks/mutation/useToggleAnimalFavorite";
-import { useCheckAnimalFavorite } from "@/hooks/query/useCheckAnimalFavorite";
+import { useBatchAnimalFavorites } from "@/hooks/query/useBatchAnimalFavorites";
 import { cn } from "@/lib/utils";
 
-import { FilterState, getFilterCounts } from "@/lib/filter-utils";
-import { useAnimalFilterOverlayStore } from "@/stores/animalFilterOverlay";
-import { useAnimalFiltersStore } from "@/stores/animalFilters";
+import { FilterState } from "@/lib/filter-utils";
+// useAnimalFiltersStore는 ListLayout에서 사용
 import type { RawAnimalResponse } from "@/types/animal";
 
 interface AnimalSearchSectionProps {
   filters: FilterState;
-  filterCounts: ReturnType<typeof getFilterCounts>;
   onSearchStateChange: (isSearching: boolean) => void;
+  filterSlot?: React.ReactNode;
+  hasActiveFilters?: boolean;
+  onClearFilters?: () => void;
 }
 
 type SearchAnimal = RawAnimalResponse;
 
-export function AnimalSearchSection({
+export function useAnimalSearch({
   filters,
-  filterCounts,
   onSearchStateChange,
+  filterSlot,
+  hasActiveFilters,
+  onClearFilters,
 }: AnimalSearchSectionProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { isAuthenticated } = useAuth();
   const toggleFavorite = useToggleAnimalFavorite();
-  const {
-    searchValue: storedSearchValue,
-    setSearchValue: setStoredSearchValue,
-  } = useAnimalFiltersStore();
-
-  // URL 파라미터에서 검색 값 읽기
-  const searchFromUrl = searchParams.get("search") || "";
-
-  // 검색 값 우선순위: URL > 스토어
-  const searchValue = searchFromUrl || storedSearchValue;
-  const [localSearchValue, setLocalSearchValue] = useState(searchValue);
-  const [isSearching, setIsSearching] = useState(!!searchValue);
+  // sessionStorage로 뒤로가기 시 검색값 유지
+  const [localSearchValue, setLocalSearchValue] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return sessionStorage.getItem("animalSearchValue") || "";
+  });
+  const [isSearching, setIsSearching] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return !!sessionStorage.getItem("animalSearchValue");
+  });
   const [localFavorites, setLocalFavorites] = useState<Record<string, boolean>>(
-    {}
+    {},
   );
-  const { open: openFilterOverlay } = useAnimalFilterOverlayStore();
-
-  // URL 파라미터와 스토어 값 동기화
-  useEffect(() => {
-    if (searchFromUrl && searchFromUrl !== storedSearchValue) {
-      setStoredSearchValue(searchFromUrl);
-      setLocalSearchValue(searchFromUrl);
-      setIsSearching(true);
-    } else if (storedSearchValue && !searchFromUrl) {
-      setLocalSearchValue(storedSearchValue);
-      setIsSearching(!!storedSearchValue);
-    } else if (searchValue) {
-      setLocalSearchValue(searchValue);
-      setIsSearching(true);
-    }
-  }, [searchFromUrl, storedSearchValue, searchValue, setStoredSearchValue]);
 
   // 보호상태 필터 기본값 처리 (비어있으면 "입양가능"을 기본값으로 사용)
   const effectiveProtectionStatus =
@@ -84,7 +68,8 @@ export function AnimalSearchSection({
     hasNextPage: hasNextSearchPage,
     isFetchingNextPage: isFetchingNextSearchPage,
   } = useGetAnimals({
-    breed: localSearchValue.trim() || filters.breed || undefined,
+    search: localSearchValue.trim() || undefined,
+    breed: filters.breed || undefined,
     page_size: 20,
     // 체중 필터
     ...(filters.weights.length > 0 && {
@@ -150,106 +135,95 @@ export function AnimalSearchSection({
   const searchAnimals = searchData?.pages.flatMap((page) => page.data) || [];
   const searchTotal = searchData?.pages[0]?.totalCnt || 0;
 
-  const loadMoreSearchResults = useCallback(() => {
-    if (!showSearchResults) return;
-    if (isFetchingNextSearchPage || !hasNextSearchPage) return;
-    fetchNextSearchPage();
-  }, [
-    fetchNextSearchPage,
-    hasNextSearchPage,
-    isFetchingNextSearchPage,
-    showSearchResults,
-  ]);
+  // 중복 제거 + 유효한 동물만 필터
+  const validSearchAnimals = useMemo(() => {
+    const seen = new Set<string>();
+    return searchAnimals
+      .filter((a): a is NonNullable<typeof a> => !!a?.id)
+      .filter((a) => {
+        if (seen.has(a.id)) return false;
+        seen.add(a.id);
+        return true;
+      });
+  }, [searchAnimals]);
 
+  // 2열 그리드를 위해 row 단위로 묶기
+  const searchRows = useMemo(() => {
+    const result: RawAnimalResponse[][] = [];
+    for (let i = 0; i < validSearchAnimals.length; i += 2) {
+      result.push(validSearchAnimals.slice(i, i + 2));
+    }
+    return result;
+  }, [validSearchAnimals]);
+
+  // 찜 상태 일괄 조회
+  const searchAnimalIds = useMemo(
+    () => validSearchAnimals.map((a) => a.id),
+    [validSearchAnimals],
+  );
+  const { data: batchFavorites } = useBatchAnimalFavorites(
+    searchAnimalIds,
+    isAuthenticated && searchAnimalIds.length > 0,
+  );
+
+  // 스크롤 컨테이너 ref (버추얼 스크롤 + 무한스크롤용)
+  const searchScrollRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
-    if (!showSearchResults) return;
+    searchScrollRef.current = document.getElementById("list-scroll-container");
+  }, []);
 
-    let timeoutId: ReturnType<typeof setTimeout>;
+  // 버추얼 스크롤
+  const searchVirtualizer = useVirtualizer({
+    count: searchRows.length,
+    estimateSize: () => 256,
+    gap: 8,
+    overscan: 5,
+    getScrollElement: () => searchScrollRef.current,
+  });
 
-    const handleScroll = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        const scrollTop =
-          window.pageYOffset || document.documentElement.scrollTop;
-        const windowHeight = window.innerHeight;
-        const documentHeight = document.documentElement.scrollHeight;
+  const searchVirtualItems = searchVirtualizer.getVirtualItems();
 
-        const isNearBottom = scrollTop + windowHeight >= documentHeight - 600;
-        if (isNearBottom) {
-          loadMoreSearchResults();
-        }
-      }, 100);
-    };
+  // 무한스크롤: 마지막 가상 아이템 근처 도달 시 다음 페이지 로드
+  useEffect(() => {
+    const lastItem = searchVirtualItems[searchVirtualItems.length - 1];
+    if (!lastItem) return;
+    if (
+      lastItem.index >= searchRows.length - 1 &&
+      hasNextSearchPage &&
+      !isFetchingNextSearchPage
+    ) {
+      fetchNextSearchPage();
+    }
+  }, [searchVirtualItems, searchRows.length, hasNextSearchPage, isFetchingNextSearchPage, fetchNextSearchPage]);
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      clearTimeout(timeoutId);
-    };
-  }, [loadMoreSearchResults, showSearchResults]);
-
-  // 필터 옵션들
-  const filterOptions = [
-    {
-      label: "지역",
-      count: filterCounts.regions,
-      hasFilters: filterCounts.regions > 0,
-    },
-    {
-      label: "품종",
-      count: filterCounts.breed,
-      hasFilters: filterCounts.breed > 0,
-    },
-    {
-      label: "체중",
-      count: filterCounts.weights,
-      hasFilters: filterCounts.weights > 0,
-    },
-    {
-      label: "성별",
-      count: filterCounts.genders,
-      hasFilters: filterCounts.genders > 0,
-    },
-    {
-      label: "나이",
-      count: filterCounts.ages,
-      hasFilters: filterCounts.ages > 0,
-    },
-    {
-      label: "보호상태",
-      count: filterCounts.protectionStatus,
-      hasFilters: filterCounts.protectionStatus > 0,
-    },
-    // {
-    //   label: "전문가 분석",
-    //   count: filterCounts.expertOpinion,
-    //   hasFilters: filterCounts.expertOpinion > 0,
-    // },
-  ];
+  // 무한스크롤은 searchVirtualItems의 useEffect에서 처리
 
   const handleSearch = () => {
     const trimmedValue = localSearchValue.trim();
     if (trimmedValue) {
-      setStoredSearchValue(trimmedValue);
       setIsSearching(true);
-      router.push(`${pathname}?search=${encodeURIComponent(trimmedValue)}`);
       onSearchStateChange(true);
+    } else {
+      handleSearchClear();
     }
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setLocalSearchValue(value);
-    setStoredSearchValue(value);
+    if (value.trim()) {
+      setIsSearching(true);
+      sessionStorage.setItem("animalSearchValue", value.trim());
+    } else {
+      setIsSearching(false);
+      sessionStorage.removeItem("animalSearchValue");
+    }
   };
 
   const handleSearchClear = () => {
     setLocalSearchValue("");
-    setStoredSearchValue("");
     setIsSearching(false);
-    // URL에서 검색 파라미터 제거
-    router.push(pathname);
+    sessionStorage.removeItem("animalSearchValue");
     onSearchStateChange(false);
   };
 
@@ -266,7 +240,7 @@ export function AnimalSearchSection({
       const currentFavorite =
         localFavorites[animalId] !== undefined
           ? localFavorites[animalId]
-          : false;
+          : batchFavorites?.[animalId] ?? false;
 
       // optimistic update
       setLocalFavorites((prev) => ({ ...prev, [animalId]: !currentFavorite }));
@@ -284,7 +258,7 @@ export function AnimalSearchSection({
               [animalId]: currentFavorite,
             }));
           },
-        }
+        },
       );
     },
     [
@@ -294,126 +268,142 @@ export function AnimalSearchSection({
       pathname,
       router,
       searchParams,
-    ]
+    ],
   );
 
-  return (
+  // 결과 헤더 (검색 결과 N건 + 초기화 버튼들) - 접히는 영역에 포함
+  const searchHeaderElement = showSearchResults ? (
+    <div className="px-4 pb-2">
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-dg font-medium">
+          검색 결과{searchData ? ` (${searchTotal}건)` : ""}
+        </span>
+        <div className="flex items-center">
+          {hasActiveFilters && onClearFilters && (
+            <>
+              <button
+                onClick={onClearFilters}
+                className="text-xs text-gr cursor-pointer"
+              >
+                필터 초기화
+              </button>
+              <span className="mx-1.5 h-3 w-px bg-gray-300" />
+            </>
+          )}
+          <button
+            onClick={handleSearchClear}
+            className="text-xs text-gr cursor-pointer"
+          >
+            검색 초기화
+          </button>
+        </div>
+      </div>
+    </div>
+  ) : null;
+
+  const searchResultsElement = showSearchResults ? (
+    <div className="px-4 pt-2">
+      {isSearchLoading && (
+        <div className="py-8 text-center">
+          <div className="text-gray-500">검색 중...</div>
+        </div>
+      )}
+
+      {searchError && (
+        <div className="py-8 text-center">
+          <div className="text-red-500">검색 중 오류가 발생했습니다</div>
+        </div>
+      )}
+
+      {!isSearchLoading && !searchError && !hasSearchResults && (
+        <div className="flex items-center justify-center min-h-[40vh]">
+          <div className="text-gray-500">
+            &ldquo;{localSearchValue}&rdquo;에 해당하는 동물을 찾을 수 없습니다
+          </div>
+        </div>
+      )}
+
+      {hasSearchResults && (
+        <div
+          style={{
+            height: `${searchVirtualizer.getTotalSize()}px`,
+            width: "100%",
+            position: "relative",
+          }}
+        >
+          {searchVirtualItems.map((virtualRow) => {
+            const row = searchRows[virtualRow.index];
+            return (
+              <div
+                key={virtualRow.key}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: `${virtualRow.size}px`,
+                  transform: `translateY(${virtualRow.start}px)`,
+                }}
+              >
+                <div className="flex cursor-pointer space-x-2">
+                  {row.map((animal) => (
+                    <SearchAnimalCardWithFavorite
+                      key={animal.id}
+                      animal={animal}
+                      isAuthenticated={isAuthenticated}
+                      localFavorite={localFavorites[animal.id]}
+                      batchFavorite={batchFavorites?.[animal.id]}
+                      onLikeToggle={handleLikeToggle}
+                      onNavigate={() => router.push(`/list/animal/${animal.id}`)}
+                      variant="primary"
+                      className="w-[calc(50%-4px)] cursor-pointer"
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {isFetchingNextSearchPage && (
+        <div className="py-4 text-center text-gray-500">불러오는 중...</div>
+      )}
+    </div>
+  ) : null;
+
+  // 두 영역을 분리해서 반환 — ListLayout에서 다른 위치에 배치
+  const controlArea = (
     <>
-      {/* 검색 입력 */}
       <div className="px-4 py-4">
         <SearchInput
           value={localSearchValue}
           onChange={handleSearchChange}
           onSearch={handleSearch}
+          onClear={handleSearchClear}
           triggerOnContainerClick={false}
-          placeholder="품종으로 검색해보세요."
+          placeholder="품종, 이름 또는 발견 지역으로 검색해보세요."
           variant="primary"
           readOnly={false}
         />
       </div>
-
-      {/* 필터 미니버튼들은 항상 표시 */}
-      <div className="px-4 pb-4">
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-          {filterOptions.map((option) => (
-            <MiniButton
-              key={option.label}
-              text={`${option.label}${
-                option.count > 0 ? ` ${option.count}` : ""
-              }`}
-              rightIcon={<CaretDown size={12} />}
-              variant={option.hasFilters ? "filterOn" : "filterOff"}
-              onClick={openFilterOverlay}
-              className="flex-shrink-0"
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* 검색 결과 표시 - 텍스트 검색만 */}
-      {showSearchResults && (
-        <div className="px-4 pt-4">
-          <div className="flex items-center justify-between mb-3">
-            <h5 className="text-dg">
-              {isSearching && localSearchValue.trim().length > 0
-                ? `"${localSearchValue}" 검색 결과`
-                : "검색 결과"}
-              {searchData && ` (${searchTotal}건)`}
-            </h5>
-            <button
-              onClick={handleSearchClear}
-              className="text-sm text-gray-500 cursor-pointer hover:text-gray-700"
-            >
-              검색 초기화
+      {filterSlot}
+      {/* 검색 중이면 searchHeader에 포함, 아니면 단독 표시 */}
+      {showSearchResults ? searchHeaderElement : (
+        hasActiveFilters && onClearFilters && (
+          <div className="flex justify-end px-4 pb-2">
+            <button onClick={onClearFilters} className="text-xs text-gr cursor-pointer">
+              필터 초기화
             </button>
           </div>
-
-          {isSearchLoading && (
-            <div className="py-8 text-center">
-              <div className="text-gray-500">검색 중...</div>
-            </div>
-          )}
-
-          {searchError && (
-            <div className="py-8 text-center">
-              <div className="text-red-500">검색 중 오류가 발생했습니다</div>
-            </div>
-          )}
-
-          {!isSearchLoading && !searchError && !hasSearchResults && (
-            <div className="py-8 text-center">
-              <div className="text-gray-500">
-                &ldquo;{localSearchValue}&rdquo;에 해당하는 동물을 찾을 수
-                없습니다
-              </div>
-            </div>
-          )}
-
-          {hasSearchResults && (
-            <div
-              className={
-                filters.expertOpinion.includes("포함")
-                  ? "flex flex-col gap-3 cursor-pointer"
-                  : "flex flex-wrap justify-start gap-2 cursor-pointer"
-              }
-            >
-              {searchAnimals
-                .filter(
-                  (animal): animal is NonNullable<typeof animal> =>
-                    animal !== null &&
-                    animal !== undefined &&
-                    typeof animal === "object"
-                )
-                .map((animal, idx) => (
-                  <SearchAnimalCardWithFavorite
-                    key={animal.id ?? idx}
-                    animal={animal}
-                    isAuthenticated={isAuthenticated}
-                    localFavorite={localFavorites[animal.id]}
-                    onLikeToggle={handleLikeToggle}
-                    onNavigate={() => router.push(`/list/animal/${animal.id}`)}
-                    variant={
-                      filters.expertOpinion.includes("포함")
-                        ? "variant2"
-                        : "primary"
-                    }
-                    className={
-                      filters.expertOpinion.includes("포함")
-                        ? "w-full cursor-pointer"
-                        : "w-[calc(50%-4px)] cursor-pointer"
-                    }
-                  />
-                ))}
-            </div>
-          )}
-
-          {isFetchingNextSearchPage && (
-            <div className="py-4 text-center text-gray-500">불러오는 중...</div>
-          )}
-        </div>
+        )
       )}
     </>
   );
+
+  const resultsArea = searchResultsElement;
+
+  return { controlArea, resultsArea };
 }
 
 // 검색 결과용 동물 카드 컴포넌트 (찜 버튼 포함)
@@ -422,6 +412,7 @@ function SearchAnimalCardWithFavorite({
   isAuthenticated,
   onLikeToggle,
   localFavorite,
+  batchFavorite,
   onNavigate,
   variant,
   className,
@@ -430,25 +421,25 @@ function SearchAnimalCardWithFavorite({
   isAuthenticated: boolean;
   onLikeToggle: (animalId: string) => void;
   localFavorite?: boolean;
+  batchFavorite?: boolean;
   onNavigate: () => void;
   variant: "primary" | "variant2";
   className: string;
 }) {
-  const { data: favoriteData } = useCheckAnimalFavorite(
-    animal.id,
-    isAuthenticated && localFavorite === undefined
-  );
-
   const isLiked =
     isAuthenticated &&
-    (localFavorite !== undefined
-      ? localFavorite
-      : favoriteData
-      ? favoriteData.is_favorited
-      : false);
+    (localFavorite !== undefined ? localFavorite : batchFavorite ?? false);
 
   return (
-    <div className={className} onClick={onNavigate} role="link" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter") onNavigate(); }}>
+    <div
+      className={className}
+      onClick={onNavigate}
+      role="link"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") onNavigate();
+      }}
+    >
       <div className="relative">
         <PetCard
           pet={{
@@ -484,7 +475,7 @@ function SearchAnimalCardWithFavorite({
                       className={cn(
                         className,
                         isLiked ? "text-brand" : "text-[#e3e3e3]",
-                        isLiked && "fill-current"
+                        isLiked && "fill-current",
                       )}
                       weight={isLiked ? "fill" : "regular"}
                     />

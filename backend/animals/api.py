@@ -343,6 +343,13 @@ async def get_animals(
             queryset = queryset.filter(adoption_status=filters.adoption_status)
         if filters.breed:
             queryset = queryset.filter(breed__icontains=filters.breed)
+        if filters.search:
+            search_term = filters.search.strip()
+            queryset = queryset.filter(
+                Q(breed__icontains=search_term) |
+                Q(name__icontains=search_term) |
+                Q(found_location__icontains=search_term)
+            )
         if filters.region:
             # 지역별 필터링 (두 글자와 전체 이름 모두 지원)
             from centers.utils import get_region_search_variants

@@ -5,6 +5,9 @@ import { IconButton } from "./IconButton";
 import { SealCheck, Heart, UsersThree } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
+const BLUR_PLACEHOLDER =
+  "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2UyZThlMCIvPjwvc3ZnPg==";
+
 interface CenterCardProps {
   imageUrl: string;
   name: string;
@@ -13,6 +16,7 @@ interface CenterCardProps {
   isLiked?: boolean;
   onLikeToggle?: () => void;
   centerId?: string;
+  imagePriority?: boolean;
 }
 
 function CenterCard({
@@ -23,6 +27,7 @@ function CenterCard({
   isLiked = false,
   onLikeToggle,
   centerId,
+  imagePriority = false,
 }: CenterCardProps) {
   const router = useRouter();
   const [hasImageError, setHasImageError] = useState(false);
@@ -45,7 +50,7 @@ function CenterCard({
       aria-label={`${name} 보호센터 상세 보기`}
       onKeyDown={(e) => { if (e.key === "Enter") handleCardClick(); }}
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-center flex-1 min-w-0 mr-3 space-x-3">
         <div className="relative w-[63px] h-[63px] rounded-md border border-lg overflow-hidden flex-shrink-0 bg-gray-300 flex items-center justify-center">
           {hasValidImage ? (
             <Image
@@ -54,7 +59,9 @@ function CenterCard({
               fill
               sizes="63px"
               className="object-cover"
-              priority
+              priority={imagePriority}
+              placeholder="blur"
+              blurDataURL={BLUR_PLACEHOLDER}
               onError={() => {
                 setHasImageError(true);
               }}
@@ -63,14 +70,14 @@ function CenterCard({
             <UsersThree size={40} className="text-gray-500" weight="light" />
           )}
         </div>
-        <div className="flex flex-col justify-center min-w-0 gap-1">
-          <div className="flex items-center gap-1">
-            <h4 className="text-bk">{name}</h4>
+        <div className="flex flex-col justify-center min-w-0 py-2 space-y-1">
+          <div className="flex items-center space-x-1 min-w-0">
+            <span className="font-semibold text-[15px] leading-snug text-bk line-clamp-2 min-w-0">{name}</span>
             {isSubscribed && (
-              <SealCheck size={14} className="text-brand-light" weight="fill" />
+              <SealCheck size={16} className="text-brand-light flex-shrink-0" weight="fill" />
             )}
           </div>
-          <h6 className="text-dg">{location}</h6>
+          <span className="text-sm text-dg leading-tight line-clamp-1">{location}</span>
         </div>
       </div>
       {/* 오른쪽: 하트 버튼 - 로그인한 경우에만 표시 */}

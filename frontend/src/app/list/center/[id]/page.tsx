@@ -35,13 +35,13 @@ export async function generateMetadata({
         canonical: `/list/center/${id}`,
       },
       openGraph: {
-        title: `${title} | 마펫쯔`,
+        title,
         description,
         images: [{ url: imageUrl, width: 800, height: 800, alt: title }],
       },
       twitter: {
         card: "summary_large_image",
-        title: `${title} | 마펫쯔`,
+        title,
         description,
         images: [imageUrl],
       },

@@ -2,8 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { SearchInput } from "@/components/ui/SearchInput";
-import { CaretDown } from "@phosphor-icons/react";
+import { CaretDown, X } from "@phosphor-icons/react";
 
 interface BreedFilterProps {
   breedList: string[];
@@ -64,8 +63,12 @@ export default function BreedFilter({
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const nextValue = e.target.value;
-    setSelectedBreed(nextValue);
     setLocalSearchTerm(nextValue);
+    // 입력값이 비면 선택도 해제
+    if (!nextValue.trim()) {
+      setSelectedBreed("");
+      setBreedSearchTerm("");
+    }
     if (!isDropdownOpen) {
       setIsDropdownOpen(true);
     }
@@ -88,25 +91,42 @@ export default function BreedFilter({
   return (
     <div className="flex flex-col gap-3 relative" ref={dropdownRef}>
       <h5 className="text-dg">품종</h5>
-      <div className="relative">
-        <SearchInput
-          variant="variant2"
+      <div className="flex items-center w-full bg-bg rounded-[8px] px-4 h-[44px]">
+        <input
+          className="flex-1 outline-none bg-transparent text-body placeholder:text-gr"
           placeholder="품종명을 검색해보세요"
-          value={selectedBreed}
+          value={isDropdownOpen ? localSearchTerm : selectedBreed}
           onChange={handleSearchChange}
-          onFocus={() => setIsDropdownOpen(true)}
+          onFocus={() => {
+            setLocalSearchTerm(selectedBreed);
+            setIsDropdownOpen(true);
+          }}
         />
-        <span
-          className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 cursor-pointer"
-          onClick={handleBreedSearchClick}
-        >
-          <CaretDown
-            size={18}
-            className={`transition-transform ${
-              isDropdownOpen ? "rotate-180" : ""
-            }`}
-          />
-        </span>
+        <div className="flex items-center space-x-2 ml-2 text-gray-400">
+          {(selectedBreed || localSearchTerm) && (
+            <span
+              className="cursor-pointer"
+              onClick={() => {
+                setSelectedBreed("");
+                setBreedSearchTerm("");
+                setLocalSearchTerm("");
+              }}
+            >
+              <X size={16} weight="bold" />
+            </span>
+          )}
+          <span
+            className="cursor-pointer"
+            onClick={handleBreedSearchClick}
+          >
+            <CaretDown
+              size={18}
+              className={`transition-transform ${
+                isDropdownOpen ? "rotate-180" : ""
+              }`}
+            />
+          </span>
+        </div>
 
         {isDropdownOpen && (
           <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50">

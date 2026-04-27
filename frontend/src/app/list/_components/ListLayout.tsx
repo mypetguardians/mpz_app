@@ -70,6 +70,29 @@ export function ListLayout({ children }: ListLayoutProps) {
     return () => el.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
+  // hide/show on scroll
+  const [searchVisible, setSearchVisible] = useState(true);
+  const lastScrollTop = useRef(0);
+
+  const handleScroll = useCallback(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const currentScrollTop = el.scrollTop;
+    if (currentScrollTop > 10) {
+      setSearchVisible(currentScrollTop < lastScrollTop.current);
+    } else {
+      setSearchVisible(true);
+    }
+    lastScrollTop.current = currentScrollTop;
+  }, []);
+
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    el.addEventListener("scroll", handleScroll, { passive: true });
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, [handleScroll]);
+
   const activeTab = pathname.includes("/center") ? "center" : "animal";
 
   const tabs = [

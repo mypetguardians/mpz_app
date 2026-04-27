@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { CenterCard } from "@/components/ui/CenterCard";
@@ -61,11 +61,8 @@ function CenterTab() {
     isAuthenticated && centerIds.length > 0
   );
 
-  // 스크롤 컨테이너 ref
-  const scrollContainerRef = useRef<HTMLElement | null>(null);
-
-  useEffect(() => {
-    scrollContainerRef.current = document.getElementById("list-scroll-container");
+  const getScrollElement = useCallback(() => {
+    return document.getElementById("list-scroll-container");
   }, []);
 
   // 버추얼 스크롤 (스크롤 컨테이너 기반)
@@ -74,7 +71,7 @@ function CenterTab() {
     estimateSize: () => 79,
     gap: 16,
     overscan: 10,
-    getScrollElement: () => scrollContainerRef.current,
+    getScrollElement,
   });
 
   const virtualItems = virtualizer.getVirtualItems();

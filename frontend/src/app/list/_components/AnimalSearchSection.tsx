@@ -167,9 +167,8 @@ export function useAnimalSearch({
   );
 
   // 스크롤 컨테이너 ref (버추얼 스크롤 + 무한스크롤용)
-  const searchScrollRef = useRef<HTMLElement | null>(null);
-  useEffect(() => {
-    searchScrollRef.current = document.getElementById("list-scroll-container");
+  const getSearchScrollElement = useCallback(() => {
+    return document.getElementById("list-scroll-container");
   }, []);
 
   // 버추얼 스크롤
@@ -178,7 +177,7 @@ export function useAnimalSearch({
     estimateSize: () => 256,
     gap: 8,
     overscan: 5,
-    getScrollElement: () => searchScrollRef.current,
+    getScrollElement: getSearchScrollElement,
   });
 
   const searchVirtualItems = searchVirtualizer.getVirtualItems();

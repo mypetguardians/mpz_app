@@ -14,10 +14,12 @@ import { isRegionKeyword } from "@/lib/region-utils";
 
 interface CenterSearchSectionProps {
   onSearchStateChange: (isSearching: boolean) => void;
+  scrollContainerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 export function CenterSearchSection({
   onSearchStateChange,
+  scrollContainerRef,
 }: CenterSearchSectionProps) {
   const searchParams = useSearchParams();
 
@@ -92,32 +94,29 @@ export function CenterSearchSection({
     fetchNextRegionPage();
   }, [isFetchingNextRegionPage, hasNextRegionPage, fetchNextRegionPage]);
 
-  // 스크롤 이벤트 처리 (디바운싱 적용)
+  // 스크롤 이벤트 처리 (scrollContainerRef 기반)
   useEffect(() => {
-    if (!showSearchResults) return;
+    const el = scrollContainerRef?.current;
+    if (!el) return;
 
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: ReturnType<typeof setTimeout>;
 
     const handleScroll = () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
-        const scrollTop =
-          window.pageYOffset || document.documentElement.scrollTop;
-        const windowHeight = window.innerHeight;
-        const documentHeight = document.documentElement.scrollHeight;
-
-        if (scrollTop + windowHeight >= documentHeight - 800) {
+        const { scrollTop, scrollHeight, clientHeight } = el;
+        if (scrollTop + clientHeight >= scrollHeight - 800) {
           loadMoreCenters();
         }
       }, 100);
     };
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    el.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
-      window.removeEventListener("scroll", handleScroll);
+      el.removeEventListener("scroll", handleScroll);
       clearTimeout(timeoutId);
     };
-  }, [loadMoreCenters, showSearchResults]);
+  }, [loadMoreCenters, scrollContainerRef]);
 
   // 검색 상태가 변경될 때마다 부모 컴포넌트에 알림
   React.useEffect(() => {
@@ -169,6 +168,7 @@ export function CenterSearchSection({
           value={searchValue}
           onChange={(e) => setSearchValue(e.target.value)}
           onSearch={handleSearch}
+          onClear={handleSearchClear}
           placeholder="지역 또는 이름으로 검색해보세요."
           variant="primary"
         />
@@ -209,7 +209,7 @@ export function CenterSearchSection({
           )}
 
           {hasSearchResults && (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col space-y-4">
               {searchCenters.map((center: Center, idx: number) => (
                 <div key={center.id ?? idx}>
                   <CenterCard
@@ -226,7 +226,7 @@ export function CenterSearchSection({
 
               {/* 무한스크롤 로딩 스켈레톤 */}
               {isFetchingNextRegionPage && (
-                <div className="flex flex-col gap-4 mt-4">
+                <div className="flex flex-col space-y-4 mt-4">
                   {[...Array(3)].map((_, index) => (
                     <CenterCardSkeleton key={`loading-${index}`} />
                   ))}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams } from "next/navigation";
-import { useWindowVirtualizer } from "@tanstack/react-virtual";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { CenterCard } from "@/components/ui/CenterCard";
 import { useGetCenters } from "@/hooks/query/useGetCenters";
 import { useCheckCenterFavorite } from "@/hooks/query/useCheckCenterFavorite";
@@ -54,13 +54,20 @@ function CenterTab() {
       .map(transformRawCenterToCenter);
   }, [data]);
 
-  // 버추얼 스크롤 (window 스크롤 기반)
-  const virtualizer = useWindowVirtualizer({
+  // 스크롤 컨테이너 ref
+  const scrollContainerRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    scrollContainerRef.current = document.getElementById("list-scroll-container");
+  }, []);
+
+  // 버추얼 스크롤 (스크롤 컨테이너 기반)
+  const virtualizer = useVirtualizer({
     count: allCenters.length,
-    estimateSize: () => 63,
+    estimateSize: () => 79,
     gap: 16,
     overscan: 10,
-    scrollMargin: listRef.current?.offsetTop ?? 0,
+    getScrollElement: () => scrollContainerRef.current,
   });
 
   const virtualItems = virtualizer.getVirtualItems();
@@ -167,7 +174,7 @@ function CenterTab() {
                   left: 0,
                   width: "100%",
                   height: `${virtualRow.size}px`,
-                  transform: `translateY(${virtualRow.start - virtualizer.options.scrollMargin}px)`,
+                  transform: `translateY(${virtualRow.start}px)`,
                 }}
               >
                 <CenterCardWithFavorite

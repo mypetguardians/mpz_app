@@ -13,13 +13,12 @@ import { useToggleAnimalFavorite } from "@/hooks/mutation/useToggleAnimalFavorit
 import { useBatchAnimalFavorites } from "@/hooks/query/useBatchAnimalFavorites";
 import { cn } from "@/lib/utils";
 
-import { FilterState, getFilterCounts } from "@/lib/filter-utils";
+import { FilterState } from "@/lib/filter-utils";
 import { useAnimalFiltersStore } from "@/stores/animalFilters";
 import type { RawAnimalResponse } from "@/types/animal";
 
 interface AnimalSearchSectionProps {
   filters: FilterState;
-  filterCounts: ReturnType<typeof getFilterCounts>;
   onSearchStateChange: (isSearching: boolean) => void;
   filterSlot?: React.ReactNode;
   hasActiveFilters?: boolean;
@@ -31,7 +30,6 @@ type SearchAnimal = RawAnimalResponse;
 
 export function AnimalSearchSection({
   filters,
-  filterCounts,
   onSearchStateChange,
   filterSlot,
   hasActiveFilters,
@@ -43,10 +41,7 @@ export function AnimalSearchSection({
   const searchParams = useSearchParams();
   const { isAuthenticated } = useAuth();
   const toggleFavorite = useToggleAnimalFavorite();
-  const {
-    searchValue: storedSearchValue,
-    setSearchValue: setStoredSearchValue,
-  } = useAnimalFiltersStore();
+  const { setSearchValue: setStoredSearchValue } = useAnimalFiltersStore();
 
   // URL 파라미터에서 검색 값 읽기
   const searchFromUrl = searchParams.get("search") || "";

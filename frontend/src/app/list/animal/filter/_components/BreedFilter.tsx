@@ -63,8 +63,12 @@ export default function BreedFilter({
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const nextValue = e.target.value;
-    setSelectedBreed(nextValue);
     setLocalSearchTerm(nextValue);
+    // 입력값이 비면 선택도 해제
+    if (!nextValue.trim()) {
+      setSelectedBreed("");
+      setBreedSearchTerm("");
+    }
     if (!isDropdownOpen) {
       setIsDropdownOpen(true);
     }
@@ -91,9 +95,12 @@ export default function BreedFilter({
         <input
           className="flex-1 outline-none bg-transparent text-body placeholder:text-gr"
           placeholder="품종명을 검색해보세요"
-          value={selectedBreed}
+          value={isDropdownOpen ? localSearchTerm : selectedBreed}
           onChange={handleSearchChange}
-          onFocus={() => setIsDropdownOpen(true)}
+          onFocus={() => {
+            setLocalSearchTerm(selectedBreed);
+            setIsDropdownOpen(true);
+          }}
         />
         <div className="flex items-center space-x-2 ml-2 text-gray-400">
           <MagnifyingGlass size={16} weight="bold" />

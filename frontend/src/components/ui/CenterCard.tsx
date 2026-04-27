@@ -5,6 +5,9 @@ import { IconButton } from "./IconButton";
 import { SealCheck, Heart, UsersThree } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
+const BLUR_PLACEHOLDER =
+  "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2UyZThlMCIvPjwvc3ZnPg==";
+
 interface CenterCardProps {
   imageUrl: string;
   name: string;
@@ -57,6 +60,8 @@ function CenterCard({
               sizes="63px"
               className="object-cover"
               priority={imagePriority}
+              placeholder="blur"
+              blurDataURL={BLUR_PLACEHOLDER}
               onError={() => {
                 setHasImageError(true);
               }}

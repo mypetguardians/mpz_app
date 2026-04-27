@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     canonical: "/matching",
   },
   openGraph: {
-    title: "나와 맞는 반려동물 찾기 | 마펫쯔",
+    title: "나와 맞는 반려동물 찾기",
     description:
       "간단한 질문으로 나에게 딱 맞는 반려동물을 찾아보세요. 마펫쯔의 매칭 서비스가 도와드려요.",
   },

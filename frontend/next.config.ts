@@ -24,6 +24,13 @@ const nextConfig = {
       { hostname: "*.kakaocdn.net" },
       { protocol: "https", hostname: "images.unsplash.com" },
     ],
+    // 모바일 앱 전용: 불필요한 대형 이미지 생성 방지
+    deviceSizes: [384, 420, 640, 750, 1080],
+    imageSizes: [64, 128, 200, 256],
+    // AVIF 우선 (WebP 대비 20~30% 작음), 미지원 브라우저는 WebP 폴백
+    formats: ["image/avif", "image/webp"],
+    // 최적화된 이미지 24시간 캐시 (동물 이미지는 거의 변경 안 됨)
+    minimumCacheTTL: 86400,
   },
 };
 

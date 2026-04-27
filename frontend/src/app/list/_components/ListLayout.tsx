@@ -46,6 +46,7 @@ export function ListLayout({ children }: ListLayoutProps) {
 
   // 검색 상태 관리
   const [isSearching, setIsSearching] = useState(false);
+  const [searchResultsNode, setSearchResultsNode] = useState<React.ReactNode>(null);
   const { filters, searchValue, reset: resetAnimalFilters } = useAnimalFiltersStore();
 
   // 현재 경로에서 활성 탭 결정
@@ -124,10 +125,10 @@ export function ListLayout({ children }: ListLayoutProps) {
   }, [handleScroll]);
 
   // 검색 상태 변경 핸들러
-  const handleSearchStateChange = (searching: boolean) => {
+  const handleSearchStateChange = useCallback((searching: boolean) => {
     setIsSearching(searching);
     if (searching) setSearchVisible(true);
-  };
+  }, []);
 
   return (
     <Container className="flex flex-col !overflow-hidden">
@@ -183,7 +184,15 @@ export function ListLayout({ children }: ListLayoutProps) {
             filters={filters}
             filterCounts={filterCounts}
             onSearchStateChange={handleSearchStateChange}
-          />
+          >
+            {(results) => {
+              // 검색 결과를 스크롤 컨테이너에 전달하기 위해 state에 저장
+              if (results !== searchResultsNode) {
+                setTimeout(() => setSearchResultsNode(results), 0);
+              }
+              return null;
+            }}
+          </AnimalSearchSection>
         ) : (
           <CenterSearchSection onSearchStateChange={handleSearchStateChange} />
         )}
@@ -217,7 +226,7 @@ export function ListLayout({ children }: ListLayoutProps) {
 
       {/* 콘텐츠 영역만 스크롤 */}
       <div id="list-scroll-container" className="flex-1 overflow-y-auto">
-        {!isSearching && children}
+        {isSearching ? searchResultsNode : children}
       </div>
       {activeTab === "animal" && <AnimalFilterOverlay />}
       <NavBar />

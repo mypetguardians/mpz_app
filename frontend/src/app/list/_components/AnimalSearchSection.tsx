@@ -40,15 +40,18 @@ export function useAnimalSearch({
   const searchParams = useSearchParams();
   const { isAuthenticated } = useAuth();
   const toggleFavorite = useToggleAnimalFavorite();
-  // sessionStorage로 뒤로가기 시 검색값 유지
-  const [localSearchValue, setLocalSearchValue] = useState(() => {
-    if (typeof window === "undefined") return "";
-    return sessionStorage.getItem("animalSearchValue") || "";
-  });
-  const [isSearching, setIsSearching] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return !!sessionStorage.getItem("animalSearchValue");
-  });
+  const [localSearchValue, setLocalSearchValue] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+
+  // 마운트 시 sessionStorage에서 검색값 복원 (뒤로가기 대응)
+  useEffect(() => {
+    const saved = sessionStorage.getItem("animalSearchValue");
+    if (saved) {
+      setLocalSearchValue(saved);
+      setIsSearching(true);
+      onSearchStateChange(true);
+    }
+  }, [onSearchStateChange]);
   const [localFavorites, setLocalFavorites] = useState<Record<string, boolean>>(
     {},
   );

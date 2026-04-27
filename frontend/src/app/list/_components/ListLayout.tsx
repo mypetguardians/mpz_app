@@ -69,18 +69,21 @@ export function ListLayout({ children }: ListLayoutProps) {
   const accumulatedDelta = useRef(0);
 
   const handleScroll = useCallback(() => {
-    if (isAnimating.current) return;
     const el = scrollContainerRef.current;
     if (!el) return;
     const currentScrollTop = el.scrollTop;
     const delta = currentScrollTop - lastScrollTop.current;
     lastScrollTop.current = currentScrollTop;
 
+    // 최상단에서는 잠금 무시하고 무조건 표시
     if (currentScrollTop <= 10) {
       accumulatedDelta.current = 0;
+      isAnimating.current = false;
       setSearchVisible(true);
       return;
     }
+
+    if (isAnimating.current) return;
 
     // 방향 전환 시 누적 리셋
     if ((accumulatedDelta.current > 0 && delta < 0) || (accumulatedDelta.current < 0 && delta > 0)) {

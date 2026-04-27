@@ -35,7 +35,6 @@ function AnimalTab() {
   const {
     filters,
     searchValue,
-    reset: resetAnimalFilters,
   } = useAnimalFiltersStore();
 
   // URL 파라미터에서 검색 값 읽기
@@ -233,29 +232,6 @@ function AnimalTab() {
       searchParams,
     ]
   );
-
-  // 필터 초기화 함수
-  const handleClearFilters = useCallback(() => {
-    resetAnimalFilters();
-    if (searchFromUrl) {
-      router.push(pathname);
-    }
-  }, [resetAnimalFilters, searchFromUrl, router, pathname]);
-
-  // 현재 적용된 필터가 있는지 확인
-  const hasActiveFilters = useMemo(() => {
-    return !!(
-      searchValue ||
-      searchFromUrl ||
-      filters.breed ||
-      filters.weights.length > 0 ||
-      filters.regions.length > 0 ||
-      filters.ages.length > 0 ||
-      filters.genders.length > 0 ||
-      filters.protectionStatus.length > 0 ||
-      filters.expertOpinion.length > 0
-    );
-  }, [filters]);
 
   // 로딩 상태 처리 - 스켈레톤 표시
   if (isLoading && allAnimals.length === 0) {

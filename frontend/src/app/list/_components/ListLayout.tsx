@@ -164,7 +164,6 @@ export function ListLayout({ children }: ListLayoutProps) {
           <>
             <AnimalSearchSection
               filters={filters}
-              filterCounts={filterCounts}
               onSearchStateChange={handleSearchStateChange}
               hasActiveFilters={hasActiveFilters}
               onClearFilters={handleClearAllFilters}

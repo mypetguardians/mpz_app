@@ -11,7 +11,7 @@ import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
 import { TabButton } from "@/components/ui/TabButton";
 import { MiniButton } from "@/components/ui/MiniButton";
-import { AnimalSearchSection } from "./AnimalSearchSection";
+import { useAnimalSearch } from "./AnimalSearchSection";
 import { CenterSearchSection } from "./CenterSearchSection";
 
 import { getFilterCounts } from "@/lib/filter-utils";
@@ -117,6 +117,37 @@ export function ListLayout({ children }: ListLayoutProps) {
     setIsSearching(searching);
   }, []);
 
+  // 동물 검색 훅 (항상 호출 — React 규칙 준수)
+  const animalSearch = useAnimalSearch({
+    filters,
+    onSearchStateChange: handleSearchStateChange,
+    hasActiveFilters,
+    onClearFilters: handleClearAllFilters,
+    filterSlot: (
+      <div className="px-4 pb-3">
+        <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
+          {filterOptions.map((option) => (
+            <MiniButton
+              key={option.label}
+              text={`${option.label}${option.count > 0 ? ` ${option.count}` : ""}`}
+              rightIcon={<CaretDown size={12} />}
+              variant={option.hasFilters ? "filterOn" : "filterOff"}
+              onClick={openFilterOverlay}
+              className="flex-shrink-0"
+            />
+          ))}
+        </div>
+        {hasActiveFilters && (
+          <div className="flex justify-end mt-3">
+            <button onClick={handleClearAllFilters} className="text-sm text-gr cursor-pointer">
+              필터 초기화
+            </button>
+          </div>
+        )}
+      </div>
+    ),
+  });
+
   return (
     <Container className="flex flex-col !overflow-hidden">
       <TopBar
@@ -158,40 +189,27 @@ export function ListLayout({ children }: ListLayoutProps) {
         <div className="border-b-2 border-lg -mt-0.5" />
       </div>
 
-      {/* 스크롤 영역 - 검색/필터/결과/목록 모두 자연스럽게 스크롤 */}
+      {/* 검색+필터 영역 — 스크롤 컨테이너 밖, 스크롤 방향에 따라 슬라이드 */}
+      {activeTab === "animal" && (
+        <div
+          className="overflow-hidden"
+          style={{
+            maxHeight: searchVisible ? "500px" : "0px",
+            opacity: searchVisible ? 1 : 0,
+            transition: searchVisible
+              ? "max-height 350ms ease-out, opacity 300ms ease-out"
+              : "max-height 250ms ease-in, opacity 200ms ease-in",
+          }}
+        >
+          {animalSearch.controlArea}
+        </div>
+      )}
+
+      {/* 스크롤 영역 — 결과 카드 + 기본 목록 */}
       <div ref={scrollContainerRef} id="list-scroll-container" className="flex-1 overflow-y-auto">
         {activeTab === "animal" ? (
           <>
-            <AnimalSearchSection
-              filters={filters}
-              onSearchStateChange={handleSearchStateChange}
-              hasActiveFilters={hasActiveFilters}
-              onClearFilters={handleClearAllFilters}
-              searchVisible={searchVisible}
-              filterSlot={
-                <div className="px-4 pb-3">
-                  <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
-                    {filterOptions.map((option) => (
-                      <MiniButton
-                        key={option.label}
-                        text={`${option.label}${option.count > 0 ? ` ${option.count}` : ""}`}
-                        rightIcon={<CaretDown size={12} />}
-                        variant={option.hasFilters ? "filterOn" : "filterOff"}
-                        onClick={openFilterOverlay}
-                        className="flex-shrink-0"
-                      />
-                    ))}
-                  </div>
-                  {hasActiveFilters && (
-                    <div className="flex justify-end mt-3">
-                      <button onClick={handleClearAllFilters} className="text-sm text-gr cursor-pointer">
-                        필터 초기화
-                      </button>
-                    </div>
-                  )}
-                </div>
-              }
-            />
+            {animalSearch.resultsArea}
             {!isSearching && children}
           </>
         ) : (

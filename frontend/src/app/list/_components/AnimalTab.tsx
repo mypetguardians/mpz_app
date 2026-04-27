@@ -168,7 +168,7 @@ function AnimalTab() {
     count: rows.length,
     estimateSize: () => 256,
     gap: 8,
-    overscan: 5,
+    overscan: 2,
     getScrollElement,
   });
 

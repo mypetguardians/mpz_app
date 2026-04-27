@@ -216,7 +216,7 @@ async def batch_check_animal_favorite_status(request: HttpRequest, data: BatchAn
         @sync_to_async
         def check_batch():
             favorited_ids = set(
-                AnimalFavorite.objects.filter(
+                str(uid) for uid in AnimalFavorite.objects.filter(
                     user=current_user,
                     animal_id__in=animal_ids
                 ).values_list("animal_id", flat=True)

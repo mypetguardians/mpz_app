@@ -242,7 +242,7 @@ export function AnimalSearchSection({
       const currentFavorite =
         localFavorites[animalId] !== undefined
           ? localFavorites[animalId]
-          : false;
+          : batchFavorites?.[animalId] ?? false;
 
       // optimistic update
       setLocalFavorites((prev) => ({ ...prev, [animalId]: !currentFavorite }));

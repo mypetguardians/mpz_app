@@ -289,7 +289,7 @@ function AnimalTab() {
     <div>
       {/* 데이터가 없는 경우 */}
       {allAnimals.length === 0 && !isLoading && (
-        <div className="text-center py-8">
+        <div className="flex items-center justify-center min-h-[40vh]">
           <div className="text-gray-500">등록된 동물이 없습니다</div>
         </div>
       )}

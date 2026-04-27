@@ -102,6 +102,7 @@ class AnimalListQueryIn(Schema):
     age_min: Optional[int] = Field(None, description="최소 나이 (개월)")
     age_max: Optional[int] = Field(None, description="최대 나이 (개월)")
     breed: Optional[str] = Field(None, description="품종 필터")
+    search: Optional[str] = Field(None, description="통합 검색 (품종, 이름, 발견장소)")
     region: Optional[str] = Field(None, description="지역 필터")
     city: Optional[str] = Field(None, description="시/군 필터 (예: 서울시, 수원시)")
     has_trainer_comment: Optional[str] = Field(None, description="훈련사 코멘트 존재 여부 (true/false)")

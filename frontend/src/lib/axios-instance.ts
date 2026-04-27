@@ -5,14 +5,42 @@ import axios, {
 } from "axios";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.mpz.kr/v1/";
-//const BASE_URL = "http://127.0.0.1:8000/v1/";
 
-const IS_DEV = BASE_URL.includes("dev-api");
+const IS_PROD = BASE_URL.includes("api.mpz.kr") && !BASE_URL.includes("dev-api");
+const IS_DEV = !IS_PROD;
 
 if (typeof window !== "undefined") {
-  const env = IS_DEV ? "DEV" : "PROD";
-  const color = IS_DEV ? "#f59e0b" : "#3e93fa";
-  console.log(`%c[MPZ ${env}] API: ${BASE_URL}`, `color:${color};font-weight:bold`);
+  if (IS_PROD) {
+    const messages = [
+      "오늘도 새 가족을 기다리는 아이들이 있어요 🐶",
+      "당신의 작은 관심이 한 생명을 구할 수 있어요 🐾",
+      "입양은 사랑의 시작이에요 💛",
+      "보호소의 아이들이 당신을 기다리고 있어요 🏠",
+      "세상에서 가장 따뜻한 선택, 입양 🤗",
+    ];
+    const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+
+    console.log(
+      `%c
+  ╭━━━━━━━━━━━━━━━━━━━━━━━━━━╮
+  ┃                            ┃
+  ┃    ∩＿∩                    ┃
+  ┃   (・ᴥ・ )  ＜ 멍!         ┃
+  ┃   ⊃    つ                  ┃
+  ┃   ∪  ∪                    ┃
+  ┃                            ┃
+  ┃   M  P  Z  -  마 펫 쯔    ┃
+  ┃━━━━━━━━━━━━━━━━━━━━━━━━━━┃
+  ┃                            ┃
+  ┃   ${randomMsg.padEnd(22)}  ┃
+  ┃                            ┃
+  ╰━━━━━━━━━━━━━━━━━━━━━━━━━━╯
+`,
+      "color:#ff6b35;font-size:13px;font-weight:bold"
+    );
+  } else {
+    console.log(`%c[MPZ DEV] API: ${BASE_URL}`, "color:#f59e0b;font-weight:bold");
+  }
 }
 
 const instance: AxiosInstance = axios.create({
@@ -22,7 +50,7 @@ const instance: AxiosInstance = axios.create({
 
 instance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    if (typeof window !== "undefined") {
+    if (IS_DEV && typeof window !== "undefined") {
       const method = (config.method || "GET").toUpperCase();
       const url = `${config.baseURL || ""}${config.url || ""}`;
       console.log(
@@ -40,7 +68,7 @@ instance.interceptors.request.use(
 
 instance.interceptors.response.use(
   (response) => {
-    if (typeof window !== "undefined") {
+    if (IS_DEV && typeof window !== "undefined") {
       const method = (response.config.method || "GET").toUpperCase();
       const url = `${response.config.baseURL || ""}${response.config.url || ""}`;
       console.log(
@@ -52,7 +80,7 @@ instance.interceptors.response.use(
     return response;
   },
   (error: AxiosError) => {
-    if (typeof window !== "undefined") {
+    if (IS_DEV && typeof window !== "undefined") {
       const method = (error.config?.method || "GET").toUpperCase();
       const url = `${error.config?.baseURL || ""}${error.config?.url || ""}`;
       console.log(

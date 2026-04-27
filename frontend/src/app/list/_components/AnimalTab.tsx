@@ -202,7 +202,7 @@ function AnimalTab() {
       const currentFavorite =
         localFavorites[animalId] !== undefined
           ? localFavorites[animalId]
-          : false;
+          : batchFavorites?.[animalId] ?? false;
 
       // optimistic update
       setLocalFavorites((prev) => ({ ...prev, [animalId]: !currentFavorite }));
@@ -226,6 +226,7 @@ function AnimalTab() {
     [
       isAuthenticated,
       localFavorites,
+      batchFavorites,
       toggleFavorite,
       pathname,
       router,

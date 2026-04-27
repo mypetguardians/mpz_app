@@ -47,20 +47,27 @@ export function ListLayout({ children }: ListLayoutProps) {
   const { filters, reset: resetAnimalFilters } = useAnimalFiltersStore();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // hide/show on scroll
+  // hide/show on scroll (debounced)
   const [searchVisible, setSearchVisible] = useState(true);
   const lastScrollTop = useRef(0);
+  const scrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleScroll = useCallback(() => {
-    const el = scrollContainerRef.current;
-    if (!el) return;
-    const currentScrollTop = el.scrollTop;
-    if (currentScrollTop > 10) {
-      setSearchVisible(currentScrollTop < lastScrollTop.current);
-    } else {
-      setSearchVisible(true);
-    }
-    lastScrollTop.current = currentScrollTop;
+    if (scrollTimer.current) clearTimeout(scrollTimer.current);
+    scrollTimer.current = setTimeout(() => {
+      const el = scrollContainerRef.current;
+      if (!el) return;
+      const currentScrollTop = el.scrollTop;
+      const delta = currentScrollTop - lastScrollTop.current;
+      // 최소 5px 이상 움직여야 반응 (미세 스크롤 무시)
+      if (Math.abs(delta) < 5) return;
+      if (currentScrollTop <= 10) {
+        setSearchVisible(true);
+      } else {
+        setSearchVisible(delta < 0);
+      }
+      lastScrollTop.current = currentScrollTop;
+    }, 50);
   }, []);
 
   useEffect(() => {

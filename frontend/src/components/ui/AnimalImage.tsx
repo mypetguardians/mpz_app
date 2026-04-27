@@ -41,7 +41,7 @@ export default function AnimalImage({
     return (
       <div
         className={cn(
-          "bg-gray-200 flex items-center justify-center text-gray-400",
+          "bg-gray-200 flex items-center justify-center text-gray-400 rounded-[10px] overflow-hidden",
           containerClassName
         )}
       >

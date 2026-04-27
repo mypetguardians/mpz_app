@@ -70,7 +70,7 @@ function CenterTab() {
     count: allCenters.length,
     estimateSize: () => 79,
     gap: 16,
-    overscan: 10,
+    overscan: 3,
     getScrollElement,
   });
 

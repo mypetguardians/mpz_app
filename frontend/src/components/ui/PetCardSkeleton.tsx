@@ -45,7 +45,7 @@ export function PetCardSkeleton({
       <div className={cn("flex gap-4 items-center h-[154px]", className)}>
         <div className="flex-shrink-0">
           <div className="relative w-[120px] h-[154px] overflow-hidden">
-            <div className="w-full h-full bg-gray-200 animate-pulse rounded-lg" />
+            <div className="w-full h-full bg-gray-200 animate-pulse rounded-[10px]" />
           </div>
         </div>
         <div className="flex flex-col flex-1 min-w-0">

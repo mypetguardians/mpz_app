@@ -870,8 +870,9 @@ class PublicDataService:
                     original_url=url,
                 )
                 
-                final_url = uploaded_url or url
-                
+                # 업로드 성공 시만 저장 (실패 시 빈 URL → fallback 이미지 표시)
+                final_url = uploaded_url or ""
+
                 images.append(AnimalImage(
                     animal=animal,
                     image_url=final_url,

@@ -150,18 +150,10 @@ function AnimalTab() {
 
   // 찜 상태 일괄 조회 (개별 API 대신 1콜로 처리)
   const animalIds = useMemo(() => allAnimals.map((a) => a.id), [allAnimals]);
-  const { data: batchFavorites, isLoading: batchLoading, error: batchError } = useBatchAnimalFavorites(
+  const { data: batchFavorites } = useBatchAnimalFavorites(
     animalIds,
     isAuthenticated && animalIds.length > 0
   );
-
-  console.log("[AnimalTab] batchFavorites:", {
-    data: batchFavorites,
-    loading: batchLoading,
-    error: batchError,
-    isAuthenticated,
-    animalIdsCount: animalIds.length
-  });
 
   // 2열 그리드를 위해 row 단위로 묶기
   const rows = useMemo(() => {
@@ -212,14 +204,6 @@ function AnimalTab() {
           ? localFavorites[animalId]
           : batchFavorites?.[animalId] ?? false;
 
-      console.log("[AnimalTab] 찜 토글:", {
-        animalId,
-        localFavorite: localFavorites[animalId],
-        batchFavorite: batchFavorites?.[animalId],
-        currentFavorite,
-        nextValue: !currentFavorite,
-      });
-
       // optimistic update
       setLocalFavorites((prev) => ({ ...prev, [animalId]: !currentFavorite }));
 
@@ -228,7 +212,6 @@ function AnimalTab() {
         {
           onSuccess: (data) => {
             const isFavorited = data.is_favorited ?? false;
-            console.log("[AnimalTab] 찜 토글 성공:", { animalId, isFavorited });
             setLocalFavorites((prev) => ({ ...prev, [animalId]: isFavorited }));
           },
           onError: () => {

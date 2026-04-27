@@ -15,7 +15,7 @@ import { useBatchAnimalFavorites } from "@/hooks/query/useBatchAnimalFavorites";
 import { cn } from "@/lib/utils";
 
 import { FilterState } from "@/lib/filter-utils";
-import { useAnimalFiltersStore } from "@/stores/animalFilters";
+// useAnimalFiltersStore는 ListLayout에서 사용
 import type { RawAnimalResponse } from "@/types/animal";
 
 interface AnimalSearchSectionProps {
@@ -40,30 +40,18 @@ export function useAnimalSearch({
   const searchParams = useSearchParams();
   const { isAuthenticated } = useAuth();
   const toggleFavorite = useToggleAnimalFavorite();
-  const { setSearchValue: setStoredSearchValue } = useAnimalFiltersStore();
-
-  // URL 파라미터에서 검색 값 읽기
-  const searchFromUrl = searchParams.get("search") || "";
-
-  // 새로고침 시 URL 파라미터만 사용 (persist된 값 무시)
-  const [localSearchValue, setLocalSearchValue] = useState(searchFromUrl);
-  const [isSearching, setIsSearching] = useState(!!searchFromUrl);
+  // sessionStorage로 뒤로가기 시 검색값 유지
+  const [localSearchValue, setLocalSearchValue] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return sessionStorage.getItem("animalSearchValue") || "";
+  });
+  const [isSearching, setIsSearching] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return !!sessionStorage.getItem("animalSearchValue");
+  });
   const [localFavorites, setLocalFavorites] = useState<Record<string, boolean>>(
     {},
   );
-
-  // URL 파라미터 변경 시에만 동기화 (최초 진입 or 외부 URL 변경)
-  const prevSearchFromUrl = useRef(searchFromUrl);
-  useEffect(() => {
-    if (searchFromUrl !== prevSearchFromUrl.current) {
-      prevSearchFromUrl.current = searchFromUrl;
-      if (searchFromUrl) {
-        setLocalSearchValue(searchFromUrl);
-        setStoredSearchValue(searchFromUrl);
-        setIsSearching(true);
-      }
-    }
-  }, [searchFromUrl, setStoredSearchValue]);
 
   // 보호상태 필터 기본값 처리 (비어있으면 "입양가능"을 기본값으로 사용)
   const effectiveProtectionStatus =
@@ -213,12 +201,9 @@ export function useAnimalSearch({
   const handleSearch = () => {
     const trimmedValue = localSearchValue.trim();
     if (trimmedValue) {
-      setStoredSearchValue(trimmedValue);
       setIsSearching(true);
-      router.push(`${pathname}?search=${encodeURIComponent(trimmedValue)}`);
       onSearchStateChange(true);
     } else {
-      // 빈 값이면 검색 초기화
       handleSearchClear();
     }
   };
@@ -228,17 +213,17 @@ export function useAnimalSearch({
     setLocalSearchValue(value);
     if (value.trim()) {
       setIsSearching(true);
+      sessionStorage.setItem("animalSearchValue", value.trim());
     } else {
       setIsSearching(false);
+      sessionStorage.removeItem("animalSearchValue");
     }
   };
 
   const handleSearchClear = () => {
     setLocalSearchValue("");
-    setStoredSearchValue("");
     setIsSearching(false);
-    prevSearchFromUrl.current = "";
-    router.push(pathname);
+    sessionStorage.removeItem("animalSearchValue");
     onSearchStateChange(false);
   };
 
@@ -288,7 +273,7 @@ export function useAnimalSearch({
 
   // 결과 헤더 (검색 결과 N건 + 초기화 버튼들) - 접히는 영역에 포함
   const searchHeaderElement = showSearchResults ? (
-    <div className="px-4 pt-3 pb-2">
+    <div className="px-4 pb-2">
       <div className="flex items-center justify-between">
         <span className="text-sm text-dg font-medium">
           검색 결과{searchData ? ` (${searchTotal}건)` : ""}
@@ -298,16 +283,16 @@ export function useAnimalSearch({
             <>
               <button
                 onClick={onClearFilters}
-                className="text-sm text-gr cursor-pointer"
+                className="text-xs text-gr cursor-pointer"
               >
                 필터 초기화
               </button>
-              <span className="mx-2 h-3 w-px bg-gray-300" />
+              <span className="mx-1.5 h-3 w-px bg-gray-300" />
             </>
           )}
           <button
             onClick={handleSearchClear}
-            className="text-sm text-gr cursor-pointer"
+            className="text-xs text-gr cursor-pointer"
           >
             검색 초기화
           </button>
@@ -403,7 +388,16 @@ export function useAnimalSearch({
         />
       </div>
       {filterSlot}
-      {searchHeaderElement}
+      {/* 검색 중이면 searchHeader에 포함, 아니면 단독 표시 */}
+      {showSearchResults ? searchHeaderElement : (
+        hasActiveFilters && onClearFilters && (
+          <div className="flex justify-end px-4 pb-2">
+            <button onClick={onClearFilters} className="text-xs text-gr cursor-pointer">
+              필터 초기화
+            </button>
+          </div>
+        )
+      )}
     </>
   );
 

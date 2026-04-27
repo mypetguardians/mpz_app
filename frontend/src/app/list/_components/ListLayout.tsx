@@ -49,18 +49,57 @@ export function ListLayout({ children }: ListLayoutProps) {
 
   // hide/show on scroll
   const [searchVisible, setSearchVisible] = useState(true);
+  const [controlHeight, setControlHeight] = useState(0);
+  const controlRef = useRef<HTMLDivElement>(null);
   const lastScrollTop = useRef(0);
+  const isAnimating = useRef(false);
+
+  // 실제 높이 측정
+  useEffect(() => {
+    if (controlRef.current) {
+      setControlHeight(controlRef.current.scrollHeight);
+    }
+  });
+
+  // 애니메이션 끝나면 잠금 해제
+  const handleTransitionEnd = useCallback(() => {
+    isAnimating.current = false;
+  }, []);
+
+  const accumulatedDelta = useRef(0);
 
   const handleScroll = useCallback(() => {
+    if (isAnimating.current) return;
     const el = scrollContainerRef.current;
     if (!el) return;
     const currentScrollTop = el.scrollTop;
-    if (currentScrollTop > 10) {
-      setSearchVisible(currentScrollTop < lastScrollTop.current);
-    } else {
-      setSearchVisible(true);
-    }
+    const delta = currentScrollTop - lastScrollTop.current;
     lastScrollTop.current = currentScrollTop;
+
+    if (currentScrollTop <= 10) {
+      accumulatedDelta.current = 0;
+      setSearchVisible(true);
+      return;
+    }
+
+    // 방향 전환 시 누적 리셋
+    if ((accumulatedDelta.current > 0 && delta < 0) || (accumulatedDelta.current < 0 && delta > 0)) {
+      accumulatedDelta.current = 0;
+    }
+    accumulatedDelta.current += delta;
+
+    // 같은 방향으로 40px 이상 누적돼야 반응
+    if (Math.abs(accumulatedDelta.current) < 40) return;
+
+    const nextVisible = accumulatedDelta.current < 0;
+    accumulatedDelta.current = 0;
+
+    // 이미 같은 상태면 무시
+    setSearchVisible((prev) => {
+      if (prev === nextVisible) return prev;
+      isAnimating.current = true;
+      return nextVisible;
+    });
   }, []);
 
   useEffect(() => {
@@ -137,13 +176,6 @@ export function ListLayout({ children }: ListLayoutProps) {
             />
           ))}
         </div>
-        {hasActiveFilters && (
-          <div className="flex justify-end mt-3">
-            <button onClick={handleClearAllFilters} className="text-sm text-gr cursor-pointer">
-              필터 초기화
-            </button>
-          </div>
-        )}
       </div>
     ),
   });
@@ -189,24 +221,26 @@ export function ListLayout({ children }: ListLayoutProps) {
         <div className="border-b-2 border-lg -mt-0.5" />
       </div>
 
-      {/* 검색+필터 영역 — 스크롤 컨테이너 밖, 스크롤 방향에 따라 슬라이드 */}
-      {activeTab === "animal" && (
-        <div
-          className="overflow-hidden"
-          style={{
-            maxHeight: searchVisible ? "500px" : "0px",
-            opacity: searchVisible ? 1 : 0,
-            transition: searchVisible
-              ? "max-height 350ms ease-out, opacity 300ms ease-out"
-              : "max-height 250ms ease-in, opacity 200ms ease-in",
-          }}
-        >
-          {animalSearch.controlArea}
-        </div>
-      )}
-
       {/* 스크롤 영역 — 결과 카드 + 기본 목록 */}
-      <div ref={scrollContainerRef} id="list-scroll-container" className="flex-1 overflow-y-auto">
+      <div ref={scrollContainerRef} id="list-scroll-container" className="relative flex-1 overflow-y-auto">
+        {/* 검색+필터 영역 — sticky로 탭 아래 고정, opacity로 fade */}
+        {activeTab === "animal" && (
+          <>
+            <div
+              ref={controlRef}
+              className="sticky top-0 z-10 bg-white"
+              onTransitionEnd={handleTransitionEnd}
+              style={{
+                opacity: searchVisible ? 1 : 0,
+                pointerEvents: searchVisible ? "auto" : "none",
+                transition: "opacity 200ms ease-in-out",
+                marginBottom: searchVisible ? "0px" : `-${controlHeight}px`,
+              }}
+            >
+              {animalSearch.controlArea}
+            </div>
+          </>
+        )}
         {activeTab === "animal" ? (
           <>
             {animalSearch.resultsArea}

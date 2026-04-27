@@ -241,7 +241,7 @@ export function PetCard({
         onClick={handleCardClick}
       >
         <div className="flex-shrink-0">
-          <div className="relative w-[120px] h-[154px] overflow-hidden">
+          <div className="relative w-[120px] h-[154px] overflow-hidden rounded-[10px]">
             {rank && (
               <div className="absolute z-10 top-2 left-2">
                 <Image

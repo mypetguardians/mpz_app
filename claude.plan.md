@@ -1,25 +1,32 @@
 # MPZ 작업 계획 & 진행 상태
 
-## 🔴 다음 작업
+## 🔴 진행 중
 
-### 1. 검색 콘솔 sitemap 제출 + 색인 요청
-- [ ] Google Search Console → `https://mpz.kr/sitemap.xml` 제출 + 주요 5페이지 색인 요청
-- [ ] Naver 서치어드바이저 → sitemap 제출 + 웹 페이지 수집 요청
-- Google/Naver 색인 현재 0건 (2026-04-27 확인)
+### 1. 이미지 경량화 + 마이그레이션
+- [x] 동기화 시 자동 경량화 (`_optimize_image`, 1080px JPEG 85%)
+- [x] `migrate_images` 커맨드 구현
+- [ ] 배포 + 기존 공공API URL 이미지 788개 마이그레이션 실행
+- [ ] 기존 Supabase 이미지도 경량화 (14,600개) — 로드 시간 개선
 
-### 2. SMS 인증
-- [ ] 프로필 휴대폰 번호 수정 시 SMS 인증 절차 추가
-
-### 3. WebSocket 지원
-- gunicorn → Daphne(ASGI) 전환
-- 현재 FCM 웹 푸시로 알림 기능 대체 가능, WebSocket은 채팅/실시간 상태용
-
-### 4. doggy-school 프로젝트
-- fork → clone → 분석 → Supabase 위에 배포
+### 2. 검색 콘솔 sitemap 제출 + 색인 요청
+- [x] Naver 서치어드바이저 → sitemap 제출 완료
+- [x] Google Search Console → 도메인 소유권 확인 필요 (DNS TXT 레코드)
+- [ ] Google → sitemap 제출 + 주요 페이지 색인 요청
+- 색인 소요: 수일~수주 대기
 
 ---
 
-## 🟢 환경변수 수령 (대표님/이전 개발사)
+## 🟡 다음 작업
+
+### SMS 인증
+- [ ] 프로필 휴대폰 번호 수정 시 SMS 인증 절차 추가
+
+### 모니터링
+- [ ] Freshping + Sentry + Slack 배포 알림
+
+---
+
+## 🟢 환경변수 수령 (대표님)
 
 - [x] FIREBASE_ADMIN_CREDENTIALS_JSON — 새 프로젝트 직접 생성 완료
 - [ ] OPENAI_API_KEY
@@ -30,55 +37,44 @@
 ## 🔄 상시
 
 ### SEO
-- 완료 항목은 `history/2026-04-26.md`, `history/2026-04-27.md` 참고
+- [x] 홈페이지 `<h1>` 태그 추가 완료
 - [ ] 색인 상태 주기적 확인 (`site:mpz.kr` Google/Naver)
-- [ ] 홈페이지 `<h1>` 태그 추가 (현재 없음)
 
 ---
 
 ## 🔵 후순위
 
-### AWS → Supabase 전면 이관 + 무중단 배포
-### 모니터링
-- [ ] Freshping + Sentry + Slack 배포 알림
-### Django Admin UI
-### 보안 검수
-- [ ] release-key.jks git 추적 제거
-### 테스트 시스템
-### 데이터 분석/시각화
+- WebSocket (gunicorn → ASGI, 채팅/실시간용)
+- doggy-school (fork → 분석 → Supabase 배포)
+- AWS → Supabase 전면 이관
+- Django Admin UI 교체
+- 보안 검수 (release-key.jks)
+- 테스트 시스템
+- 데이터 분석/시각화
 
 ---
 
 ## ✅ 완료
 
-### 2026-04-27
-- [x] 목록 버추얼 스크롤 (@tanstack/react-virtual, AnimalTab 2열 + CenterTab 1열)
-- [x] CenterCard 이미지 lazy loading (처음 3개만 priority)
-- [x] SEO og:title 이중 적용 수정 (7개 파일)
-- [x] SEO 색인 현황 점검 (Google/Naver 0건 확인, 기술적 SEO 정상)
-- [x] 이미지 최적화 (AVIF, 모바일 deviceSizes, 24h 캐시, blur placeholder)
-- [x] dev 배포 (PR #23, #24)
+### 2026-04-27~28
+- [x] 홈페이지 SEO h1 태그 추가
+- [x] 스크롤바 콘텐츠 영역 제한
+- [x] 입양 목록 검색 영역 hide/show + 실시간 검색 + 통합검색
+- [x] 보호센터 탭 무한스크롤 수정 (useVirtualizer 전환)
+- [x] 찜 상태 Batch API (개별 N콜 → 1콜)
+- [x] Batch API UUID 타입 불일치 수정
+- [x] 필터 UI 개선 (초기화, 품종 아이콘, SearchInput X버튼)
+- [x] CenterCard 겹침/인증마크 수정
+- [x] CONN_MAX_AGE=0 (dev+prod, DB 연결 풀 안정화)
+- [x] axios 요청/응답 로그 추가
+- [x] numberWithComma 유틸 함수
+- [x] 코드 자체 검토 (FE/BE/인프라)
+- [x] dev 배포 (PR #25~#29)
 
-### 2026-04-26
-- [x] 불필요 코드/리소스 정리 (1,522줄 삭제)
-- [x] Firebase 새 프로젝트 생성 + 웹 푸시 전체 구현
-- [x] FCM TTL 1시간 + collapse_key
-- [x] 알림 UI 개선 (toast 애니메이션, NotificationCard, 뱃지 실시간)
-- [x] Auth 상태 깜빡임 해결 (6개 컴포넌트)
-- [x] GPS 위치 확인 대기시간 단축
-- [x] SEO 전면 강화 (canonical, 메타데이터, robots.txt, sitemap, 키워드, JSON-LD)
-- [x] 입양 신청 분기 복원 (구독센터: 앱 내 신청, 비구독: 전화 연결)
-- [x] 접근성 강화 (Toast/Modal/BottomSheet ARIA 속성)
-- [x] GitHub Secrets 기반 BE 환경변수 관리 (base64 인코딩 + SCP)
-- [x] 워커 버그 수정 (status_sync 데이터 오염 + 보호종료 감지 + 중복 실행 방지)
-- [x] 워커 스케줄 조정 (status_sync 주 2회 수/일 03:10 KST)
-- [x] Git 흐름 조직 repo 중심 전환 (fork Actions 비활성, 조직 Secrets 등록)
-- [x] logout API 버그 수정 (cookie expires/max_age 충돌)
-- [x] Docker 디스크 정리 (dev 79→61%, prod 83→55%)
-- [x] 인수인계 문서 4개 현행화 (FE/BE/DB/서버)
-- [x] 새 Git 배포 흐름 검증 (PR #19~#22)
-- [x] prod 배포 (PR #16~#22)
+### 2026-04-27
+- [x] 목록 버추얼 스크롤 + 이미지 최적화 (PR #23, #24)
+- [x] SEO og:title 이중 적용 수정
+- [x] SEO 색인 현황 점검
 
 ### 이전
-
 `history/` 폴더에서 날짜별 상세 확인 가능

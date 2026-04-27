@@ -789,6 +789,30 @@ class PublicDataService:
             logger.warning(f"공공데이터 이미지 다운로드 실패 ({image_url}): {exc}")
             return None, None
     
+    @staticmethod
+    def _optimize_image(image_bytes: bytes, max_size: int = 1080) -> Tuple[bytes, str]:
+        """이미지 리사이징 + JPEG 변환 (경량화)"""
+        try:
+            from PIL import Image as PILImage, ImageOps
+            import io
+
+            img = PILImage.open(io.BytesIO(image_bytes))
+            img = ImageOps.exif_transpose(img)
+
+            # 리사이징 (비율 유지)
+            img.thumbnail((max_size, max_size), PILImage.LANCZOS)
+
+            # RGBA/P → RGB
+            if img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")
+
+            buf = io.BytesIO()
+            img.save(buf, format="JPEG", quality=85, optimize=True)
+            return buf.getvalue(), "image/jpeg"
+        except Exception as exc:
+            logger.warning(f"이미지 경량화 실패: {exc}")
+            return image_bytes, "image/jpeg"
+
     async def _upload_image_to_storage(
         self,
         image_bytes: Optional[bytes],
@@ -801,14 +825,19 @@ class PublicDataService:
         storage_client = self._get_storage_client()
         if not storage_client:
             return None
-        normalized_ct = (content_type or "image/jpeg").split(";")[0].strip() or "image/jpeg"
-        extension = self._guess_extension(original_url, normalized_ct)
+
+        # 이미지 경량화 (1080px, JPEG 85%)
+        optimized_bytes, optimized_ct = await sync_to_async(
+            self._optimize_image
+        )(image_bytes)
+
+        extension = ".jpg"
         key = self._build_public_image_key(storage_prefix, extension)
         try:
             result = await sync_to_async(storage_client.upload_file)(
                 key=key,
-                data=image_bytes,
-                content_type=normalized_ct,
+                data=optimized_bytes,
+                content_type=optimized_ct,
             )
             return result.get("url")
         except Exception as exc:

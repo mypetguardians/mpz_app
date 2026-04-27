@@ -93,6 +93,7 @@ export interface GetAnimalsParams {
   age_min?: number;
   age_max?: number;
   breed?: string;
+  search?: string;
   region?: string;
   city?: string;
   has_trainer_comment?: "true" | "false";

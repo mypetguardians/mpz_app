@@ -3,18 +3,17 @@
 import React, { useMemo, useState, useRef, useEffect, useCallback } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Bell } from "@phosphor-icons/react";
+import { Bell, CaretDown } from "@phosphor-icons/react";
 
 import { Container } from "@/components/common/Container";
 import { NavBar } from "@/components/common/NavBar";
 import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
 import { TabButton } from "@/components/ui/TabButton";
+import { MiniButton } from "@/components/ui/MiniButton";
 import { AnimalSearchSection } from "./AnimalSearchSection";
 import { CenterSearchSection } from "./CenterSearchSection";
 
-import { CaretDown } from "@phosphor-icons/react";
-import { MiniButton } from "@/components/ui/MiniButton";
 import { getFilterCounts } from "@/lib/filter-utils";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useGetNotifications } from "@/hooks/query/useGetNotifications";
@@ -44,12 +43,33 @@ export function ListLayout({ children }: ListLayoutProps) {
     return list.some((n) => n.is_read === false);
   }, [isAuthenticated, isConnected, socketUnreadCount, notificationsData]);
 
-  // 검색 상태 관리
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResultsNode, setSearchResultsNode] = useState<React.ReactNode>(null);
-  const { filters, searchValue, reset: resetAnimalFilters } = useAnimalFiltersStore();
+  const { filters, reset: resetAnimalFilters } = useAnimalFiltersStore();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // 현재 경로에서 활성 탭 결정
+  // hide/show on scroll
+  const [searchVisible, setSearchVisible] = useState(true);
+  const lastScrollTop = useRef(0);
+
+  const handleScroll = useCallback(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const currentScrollTop = el.scrollTop;
+    if (currentScrollTop > 10) {
+      setSearchVisible(currentScrollTop < lastScrollTop.current);
+    } else {
+      setSearchVisible(true);
+    }
+    lastScrollTop.current = currentScrollTop;
+  }, []);
+
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    el.addEventListener("scroll", handleScroll, { passive: true });
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, [handleScroll]);
+
   const activeTab = pathname.includes("/center") ? "center" : "animal";
 
   const tabs = [
@@ -72,11 +92,9 @@ export function ListLayout({ children }: ListLayoutProps) {
   const searchFromUrl = searchParams.get("search") || "";
 
   const hasActiveFilters = useMemo(() => {
-    // protectionStatus가 ["입양가능"]만 있으면 기본값이므로 필터 활성으로 보지 않음
     const hasNonDefaultProtectionStatus =
       filters.protectionStatus.length > 0 &&
       !(filters.protectionStatus.length === 1 && filters.protectionStatus[0] === "입양가능");
-
     return !!(
       filters.breed ||
       filters.weights.length > 0 ||
@@ -95,39 +113,8 @@ export function ListLayout({ children }: ListLayoutProps) {
     }
   }, [resetAnimalFilters, searchFromUrl, router, pathname]);
 
-  // 검색 영역 hide/show on scroll
-  const [searchVisible, setSearchVisible] = useState(true);
-  const [searchHeight, setSearchHeight] = useState(300);
-  const searchRef = useRef<HTMLDivElement>(null);
-  const lastScrollTop = useRef(0);
-
-  // 내용 변경 시 높이 재측정
-  useEffect(() => {
-    if (searchRef.current && searchVisible) {
-      setSearchHeight(searchRef.current.scrollHeight);
-    }
-  }, [hasActiveFilters, searchVisible, filters]);
-
-  const handleScroll = useCallback(() => {
-    const el = document.getElementById("list-scroll-container");
-    if (!el) return;
-    const currentScrollTop = el.scrollTop;
-    const isScrollingDown = currentScrollTop > lastScrollTop.current && currentScrollTop > 10;
-    setSearchVisible(!isScrollingDown);
-    lastScrollTop.current = currentScrollTop;
-  }, []);
-
-  useEffect(() => {
-    const el = document.getElementById("list-scroll-container");
-    if (!el) return;
-    el.addEventListener("scroll", handleScroll, { passive: true });
-    return () => el.removeEventListener("scroll", handleScroll);
-  }, [handleScroll]);
-
-  // 검색 상태 변경 핸들러
   const handleSearchStateChange = useCallback((searching: boolean) => {
     setIsSearching(searching);
-    if (searching) setSearchVisible(true);
   }, []);
 
   return (
@@ -152,7 +139,7 @@ export function ListLayout({ children }: ListLayoutProps) {
             </Link>
           ) : (
             <Link href="/login">
-              <div className="flex items-center gap-2 cursor-pointer">
+              <div className="flex items-center cursor-pointer">
                 <button>로그인</button>
               </div>
             </Link>
@@ -160,7 +147,7 @@ export function ListLayout({ children }: ListLayoutProps) {
         }
       />
 
-      {/* 탭 버튼 - 고정 영역 */}
+      {/* 탭 - 고정 */}
       <div className="z-10 bg-white w-full px-3.5">
         <TabButton
           value={activeTab}
@@ -171,62 +158,52 @@ export function ListLayout({ children }: ListLayoutProps) {
         <div className="border-b-2 border-lg -mt-0.5" />
       </div>
 
-      {/* 검색 영역 전체 - 스크롤 방향에 따라 접힘/펼침 */}
-      <div
-        ref={searchRef}
-        className="overflow-hidden transition-all duration-300 ease-in-out"
-        style={{
-          maxHeight: searchVisible ? searchHeight + "px" : "0px",
-        }}
-      >
+      {/* 스크롤 영역 - 검색/필터/결과/목록 모두 자연스럽게 스크롤 */}
+      <div ref={scrollContainerRef} id="list-scroll-container" className="flex-1 overflow-y-auto">
         {activeTab === "animal" ? (
-          <AnimalSearchSection
-            filters={filters}
-            filterCounts={filterCounts}
-            onSearchStateChange={handleSearchStateChange}
-          >
-            {(results) => {
-              // 검색 결과를 스크롤 컨테이너에 전달하기 위해 state에 저장
-              if (results !== searchResultsNode) {
-                setTimeout(() => setSearchResultsNode(results), 0);
+          <>
+            <AnimalSearchSection
+              filters={filters}
+              filterCounts={filterCounts}
+              onSearchStateChange={handleSearchStateChange}
+              hasActiveFilters={hasActiveFilters}
+              onClearFilters={handleClearAllFilters}
+              searchVisible={searchVisible}
+              filterSlot={
+                <div className="px-4 pb-3">
+                  <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
+                    {filterOptions.map((option) => (
+                      <MiniButton
+                        key={option.label}
+                        text={`${option.label}${option.count > 0 ? ` ${option.count}` : ""}`}
+                        rightIcon={<CaretDown size={12} />}
+                        variant={option.hasFilters ? "filterOn" : "filterOff"}
+                        onClick={openFilterOverlay}
+                        className="flex-shrink-0"
+                      />
+                    ))}
+                  </div>
+                  {hasActiveFilters && (
+                    <div className="flex justify-end mt-3">
+                      <button onClick={handleClearAllFilters} className="text-sm text-gr cursor-pointer">
+                        필터 초기화
+                      </button>
+                    </div>
+                  )}
+                </div>
               }
-              return null;
-            }}
-          </AnimalSearchSection>
+            />
+            {!isSearching && children}
+          </>
         ) : (
-          <CenterSearchSection onSearchStateChange={handleSearchStateChange} />
+          <>
+            <CenterSearchSection
+              onSearchStateChange={handleSearchStateChange}
+              scrollContainerRef={scrollContainerRef}
+            />
+            {!isSearching && children}
+          </>
         )}
-
-        {/* 필터 버튼 */}
-        {activeTab === "animal" && (
-          <div className="px-4 pb-3">
-            <div className="flex space-x-2 overflow-x-auto scrollbar-hide">
-              {filterOptions.map((option) => (
-                <MiniButton
-                  key={option.label}
-                  text={`${option.label}${option.count > 0 ? ` ${option.count}` : ""}`}
-                  rightIcon={<CaretDown size={12} />}
-                  variant={option.hasFilters ? "filterOn" : "filterOff"}
-                  onClick={openFilterOverlay}
-                  className="flex-shrink-0"
-                />
-              ))}
-            </div>
-            {/* 필터 초기화 */}
-            {hasActiveFilters && (
-              <div className="flex justify-end mt-3">
-                <button onClick={handleClearAllFilters} className="text-sm text-gr">
-                  필터 초기화
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* 콘텐츠 영역만 스크롤 */}
-      <div id="list-scroll-container" className="flex-1 overflow-y-auto">
-        {isSearching ? searchResultsNode : children}
       </div>
       {activeTab === "animal" && <AnimalFilterOverlay />}
       <NavBar />

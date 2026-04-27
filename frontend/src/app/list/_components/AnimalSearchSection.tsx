@@ -10,7 +10,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { useGetAnimals } from "@/hooks/query/useGetAnimals";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useToggleAnimalFavorite } from "@/hooks/mutation/useToggleAnimalFavorite";
-import { useCheckAnimalFavorite } from "@/hooks/query/useCheckAnimalFavorite";
+import { useBatchAnimalFavorites } from "@/hooks/query/useBatchAnimalFavorites";
 import { cn } from "@/lib/utils";
 
 import { FilterState, getFilterCounts } from "@/lib/filter-utils";
@@ -21,6 +21,10 @@ interface AnimalSearchSectionProps {
   filters: FilterState;
   filterCounts: ReturnType<typeof getFilterCounts>;
   onSearchStateChange: (isSearching: boolean) => void;
+  filterSlot?: React.ReactNode;
+  hasActiveFilters?: boolean;
+  onClearFilters?: () => void;
+  searchVisible?: boolean;
 }
 
 type SearchAnimal = RawAnimalResponse;
@@ -29,10 +33,11 @@ export function AnimalSearchSection({
   filters,
   filterCounts,
   onSearchStateChange,
-  children,
-}: AnimalSearchSectionProps & {
-  children?: (searchResults: React.ReactNode) => React.ReactNode;
-}) {
+  filterSlot,
+  hasActiveFilters,
+  onClearFilters,
+  searchVisible = true,
+}: AnimalSearchSectionProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -46,8 +51,9 @@ export function AnimalSearchSection({
   // URL 파라미터에서 검색 값 읽기
   const searchFromUrl = searchParams.get("search") || "";
 
-  const [localSearchValue, setLocalSearchValue] = useState(searchFromUrl || storedSearchValue);
-  const [isSearching, setIsSearching] = useState(!!(searchFromUrl || storedSearchValue));
+  // 새로고침 시 URL 파라미터만 사용 (persist된 값 무시)
+  const [localSearchValue, setLocalSearchValue] = useState(searchFromUrl);
+  const [isSearching, setIsSearching] = useState(!!searchFromUrl);
   const [localFavorites, setLocalFavorites] = useState<Record<string, boolean>>(
     {}
   );
@@ -80,6 +86,7 @@ export function AnimalSearchSection({
     hasNextPage: hasNextSearchPage,
     isFetchingNextPage: isFetchingNextSearchPage,
   } = useGetAnimals({
+    search: localSearchValue.trim() || undefined,
     breed: localSearchValue.trim() || filters.breed || undefined,
     page_size: 20,
     // 체중 필터
@@ -146,6 +153,16 @@ export function AnimalSearchSection({
   const searchAnimals = searchData?.pages.flatMap((page) => page.data) || [];
   const searchTotal = searchData?.pages[0]?.totalCnt || 0;
 
+  // 찜 상태 일괄 조회
+  const searchAnimalIds = React.useMemo(
+    () => searchAnimals.filter((a): a is NonNullable<typeof a> => !!a?.id).map((a) => a.id),
+    [searchAnimals]
+  );
+  const { data: batchFavorites } = useBatchAnimalFavorites(
+    searchAnimalIds,
+    isAuthenticated && searchAnimalIds.length > 0
+  );
+
   const loadMoreSearchResults = useCallback(() => {
     if (!showSearchResults) return;
     if (isFetchingNextSearchPage || !hasNextSearchPage) return;
@@ -201,6 +218,11 @@ export function AnimalSearchSection({
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setLocalSearchValue(value);
+    if (value.trim()) {
+      setIsSearching(true);
+    } else {
+      setIsSearching(false);
+    }
   };
 
   const handleSearchClear = () => {
@@ -256,22 +278,35 @@ export function AnimalSearchSection({
     ]
   );
 
-  const searchResultsElement = showSearchResults ? (
-    <div className="px-4 pt-4">
-      <div className="flex items-center justify-between mb-3">
-        <h5 className="text-dg">
-          {isSearching && localSearchValue.trim().length > 0
-            ? `"${localSearchValue}" 검색 결과`
-            : "검색 결과"}
-          {searchData && ` (${searchTotal}건)`}
-        </h5>
-        <button
-          onClick={handleSearchClear}
-          className="text-sm text-gray-500 cursor-pointer hover:text-gray-700"
-        >
-          검색 초기화
-        </button>
+  // 결과 헤더 (검색 결과 N건 + 초기화 버튼들) - 접히는 영역에 포함
+  const searchHeaderElement = showSearchResults ? (
+    <div className="px-4 pt-3 pb-2">
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-dg font-medium">
+          검색 결과{searchData ? ` (${searchTotal}건)` : ""}
+        </span>
+        <div className="flex items-center">
+          {hasActiveFilters && onClearFilters && (
+            <>
+              <button onClick={onClearFilters} className="text-sm text-gr cursor-pointer">
+                필터 초기화
+              </button>
+              <span className="mx-2 h-3 w-px bg-gray-300" />
+            </>
+          )}
+          <button
+            onClick={handleSearchClear}
+            className="text-sm text-gr cursor-pointer"
+          >
+            검색 초기화
+          </button>
+        </div>
       </div>
+    </div>
+  ) : null;
+
+  const searchResultsElement = showSearchResults ? (
+    <div className="px-4 pt-2">
 
       {isSearchLoading && (
         <div className="py-8 text-center">
@@ -286,7 +321,7 @@ export function AnimalSearchSection({
       )}
 
       {!isSearchLoading && !searchError && !hasSearchResults && (
-        <div className="py-8 text-center">
+        <div className="flex items-center justify-center min-h-[40vh]">
           <div className="text-gray-500">
             &ldquo;{localSearchValue}&rdquo;에 해당하는 동물을 찾을 수
             없습니다
@@ -315,6 +350,7 @@ export function AnimalSearchSection({
                 animal={animal}
                 isAuthenticated={isAuthenticated}
                 localFavorite={localFavorites[animal.id]}
+                batchFavorite={batchFavorites?.[animal.id]}
                 onLikeToggle={handleLikeToggle}
                 onNavigate={() => router.push(`/list/animal/${animal.id}`)}
                 variant={
@@ -338,23 +374,40 @@ export function AnimalSearchSection({
     </div>
   ) : null;
 
+  // 접히는 영역에 포함될 콘텐츠 (검색 입력 + 필터 + 헤더)
   return (
     <>
-      {/* 검색 입력 */}
-      <div className="px-4 py-4">
-        <SearchInput
-          value={localSearchValue}
-          onChange={handleSearchChange}
-          onSearch={handleSearch}
-          triggerOnContainerClick={false}
-          placeholder="품종으로 검색해보세요."
-          variant="primary"
-          readOnly={false}
-        />
+      {/* 스크롤 시 hide/show 되는 영역 */}
+      <div
+        className="transition-all duration-300 ease-in-out overflow-hidden"
+        style={{
+          maxHeight: searchVisible ? "500px" : "0px",
+        }}
+      >
+        {/* 검색 입력 */}
+        <div className="px-4 py-4">
+          <SearchInput
+            value={localSearchValue}
+            onChange={handleSearchChange}
+            onSearch={handleSearch}
+            onClear={handleSearchClear}
+            triggerOnContainerClick={false}
+            placeholder="품종, 이름, 지역으로 검색해보세요."
+            variant="primary"
+            readOnly={false}
+          />
+        </div>
+
+        {/* 필터 버튼 */}
+        {filterSlot}
+
+        {/* 검색 헤더 (결과 건수 + 초기화 버튼들) */}
+        {searchHeaderElement}
+
       </div>
 
-      {/* 검색 결과를 children을 통해 외부에 위치시킴 */}
-      {children?.(searchResultsElement)}
+      {/* 검색 결과 카드 - hide/show 영역 밖 */}
+      {searchResultsElement}
     </>
   );
 }
@@ -365,6 +418,7 @@ function SearchAnimalCardWithFavorite({
   isAuthenticated,
   onLikeToggle,
   localFavorite,
+  batchFavorite,
   onNavigate,
   variant,
   className,
@@ -373,22 +427,16 @@ function SearchAnimalCardWithFavorite({
   isAuthenticated: boolean;
   onLikeToggle: (animalId: string) => void;
   localFavorite?: boolean;
+  batchFavorite?: boolean;
   onNavigate: () => void;
   variant: "primary" | "variant2";
   className: string;
 }) {
-  const { data: favoriteData } = useCheckAnimalFavorite(
-    animal.id,
-    isAuthenticated && localFavorite === undefined
-  );
-
   const isLiked =
     isAuthenticated &&
     (localFavorite !== undefined
       ? localFavorite
-      : favoriteData
-      ? favoriteData.is_favorited
-      : false);
+      : batchFavorite ?? false);
 
   return (
     <div className={className} onClick={onNavigate} role="link" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter") onNavigate(); }}>

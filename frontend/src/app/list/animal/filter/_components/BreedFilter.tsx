@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { CaretDown, MagnifyingGlass } from "@phosphor-icons/react";
+import { CaretDown, X } from "@phosphor-icons/react";
 
 interface BreedFilterProps {
   breedList: string[];
@@ -103,7 +103,18 @@ export default function BreedFilter({
           }}
         />
         <div className="flex items-center space-x-2 ml-2 text-gray-400">
-          <MagnifyingGlass size={16} weight="bold" />
+          {(selectedBreed || localSearchTerm) && (
+            <span
+              className="cursor-pointer"
+              onClick={() => {
+                setSelectedBreed("");
+                setBreedSearchTerm("");
+                setLocalSearchTerm("");
+              }}
+            >
+              <X size={16} weight="bold" />
+            </span>
+          )}
           <span
             className="cursor-pointer"
             onClick={handleBreedSearchClick}

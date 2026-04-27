@@ -1,4 +1,4 @@
-import { MagnifyingGlass } from "@phosphor-icons/react";
+import { MagnifyingGlass, X } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 type SearchInputVariant = "primary" | "variant2" | "variant3" | "variant4";
@@ -7,6 +7,7 @@ interface SearchInputProps {
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSearch?: () => void;
+  onClear?: () => void;
   onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
   placeholder?: string;
   variant?: SearchInputVariant;
@@ -21,8 +22,9 @@ export function SearchInput({
   value,
   onChange,
   onSearch,
+  onClear,
   onFocus,
-  placeholder = "품종으로 검색해보세요.",
+  placeholder = "품종, 이름, 지역으로 검색해보세요.",
   variant = "primary",
   className,
   readOnly = false,
@@ -69,20 +71,37 @@ export function SearchInput({
         autoFocus={autoFocus}
       />
       {!hideSearchIcon && (
-        <button
-          type="button"
-          className={cn(
-            "ml-1 p-1 rounded-full flex items-center justify-center",
-            textColor
-          )}
-          onClick={(e) => {
-            e.stopPropagation();
-            onSearch?.();
-          }}
-          tabIndex={-1}
-        >
-          <MagnifyingGlass size={16} weight="bold" />
-        </button>
+        value && onClear ? (
+          <button
+            type="button"
+            className={cn(
+              "ml-1 p-1 rounded-full flex items-center justify-center",
+              textColor
+            )}
+            onClick={(e) => {
+              e.stopPropagation();
+              onClear();
+            }}
+            tabIndex={-1}
+          >
+            <X size={16} weight="bold" />
+          </button>
+        ) : (
+          <button
+            type="button"
+            className={cn(
+              "ml-1 p-1 rounded-full flex items-center justify-center",
+              textColor
+            )}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSearch?.();
+            }}
+            tabIndex={-1}
+          >
+            <MagnifyingGlass size={16} weight="bold" />
+          </button>
+        )
       )}
     </div>
   );

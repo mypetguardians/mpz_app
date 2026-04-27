@@ -35,7 +35,7 @@ export const useAnimalFiltersStore = create<AnimalFilterStore>()(
     {
       name: "animalFilters",
       version: 2,
-      partialize: (state) => ({ filters: state.filters, searchValue: state.searchValue }),
+      partialize: (state) => ({ filters: state.filters }),
     }
   )
 );

@@ -202,15 +202,15 @@ jobs:
               FRONTEND_URL="https://dev.mpz.kr"
               BACKEND_URL="https://dev-api.mpz.kr/v1/"
             fi
-            for i in 1 2 3 4 5; do
+            for i in $(seq 1 10); do
               FE_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$FRONTEND_URL" || echo "000")
               BE_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BACKEND_URL" || echo "000")
               if [ "$FE_STATUS" = "200" ] && [ "$BE_STATUS" = "200" ]; then
                 echo "✅ Smoke test passed (FE: $FE_STATUS, BE: $BE_STATUS)"
                 break
               fi
-              echo "⏳ 대기 중... (FE: $FE_STATUS, BE: $BE_STATUS)"
-              sleep 5
+              echo "⏳ Attempt $i/10... (FE: $FE_STATUS, BE: $BE_STATUS)"
+              sleep 3
             done
 
             echo "✅ Deploy complete: $APP_ENV"

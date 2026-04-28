@@ -166,7 +166,17 @@ export function CenterSearchSection({
       <div className="px-4 py-4">
         <SearchInput
           value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
+          onChange={(e) => {
+            const value = e.target.value;
+            setSearchValue(value);
+            if (value.trim()) {
+              setLocalIsSearching(true);
+              onSearchStateChange(true);
+            } else {
+              setLocalIsSearching(false);
+              onSearchStateChange(false);
+            }
+          }}
           onSearch={handleSearch}
           onClear={handleSearchClear}
           placeholder="지역 또는 이름으로 검색해보세요."

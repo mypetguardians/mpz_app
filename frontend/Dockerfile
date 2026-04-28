@@ -41,10 +41,14 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
+RUN adduser --system --uid 1001 nextjs
+
 # standalone 출력물만 복사 (node_modules 불필요, 이미지 크기 대폭 감소)
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:0 /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:0 /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:0 /app/public ./public
+
+USER nextjs
 
 EXPOSE 3000
 CMD ["node", "server.js"]

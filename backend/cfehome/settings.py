@@ -385,5 +385,10 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
+        # 느린 쿼리 로깅 (느린 쿼리 디버깅 시 level을 DEBUG로 변경)
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+        },
     },
 }

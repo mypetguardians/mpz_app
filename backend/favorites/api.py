@@ -23,8 +23,11 @@ from favorites.schemas.outbound import (
     PersonalityTestOut,
     ErrorOut
 )
-from api.security import jwt_auth
+from api.security import jwt_auth, get_authenticated_user
 from django.db.models import Q
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = Router(tags=["Favorites"])
 
@@ -93,13 +96,7 @@ def _build_animal_favorite_response(favorite):
 async def toggle_center_favorite(request: HttpRequest, center_id: str):
     """센터 찜을 토글합니다."""
     try:
-        # JWT 토큰에서 사용자 정보 추출
-        if not hasattr(request, 'auth') or not request.auth:
-            raise HttpError(401, "로그인이 필요합니다")
-
-        current_user = request.auth
-        if hasattr(current_user, '__await__'):
-            current_user = await current_user
+        current_user = await get_authenticated_user(request)
 
         @sync_to_async
         def toggle_favorite():
@@ -141,8 +138,9 @@ async def toggle_center_favorite(request: HttpRequest, center_id: str):
 
     except HttpError:
         raise
-    except Exception as e:
-        raise HttpError(500, f"센터 찜 토글 중 오류가 발생했습니다: {str(e)}")
+    except Exception:
+        logger.exception("센터 찜 토글 중 오류")
+        raise HttpError(500, "서버 오류가 발생했습니다.")
 
 
 @router.get(
@@ -160,13 +158,7 @@ async def toggle_center_favorite(request: HttpRequest, center_id: str):
 async def get_center_favorites(request: HttpRequest, filters: FavoriteListQueryIn = Query(FavoriteListQueryIn())):
     """내가 찜한 센터 목록을 조회합니다."""
     try:
-        # JWT 토큰에서 사용자 정보 추출
-        if not hasattr(request, 'auth') or not request.auth:
-            raise HttpError(401, "로그인이 필요합니다")
-
-        current_user = request.auth
-        if hasattr(current_user, '__await__'):
-            current_user = await current_user
+        current_user = await get_authenticated_user(request)
 
         @sync_to_async
         def get_favorites_list():
@@ -187,8 +179,9 @@ async def get_center_favorites(request: HttpRequest, filters: FavoriteListQueryI
 
     except HttpError:
         raise
-    except Exception as e:
-        raise HttpError(500, f"찜한 센터 목록 조회 중 오류가 발생했습니다: {str(e)}")
+    except Exception:
+        logger.exception("찜한 센터 목록 조회 중 오류")
+        raise HttpError(500, "서버 오류가 발생했습니다.")
 
 
 @router.post(
@@ -204,12 +197,7 @@ async def get_center_favorites(request: HttpRequest, filters: FavoriteListQueryI
 async def batch_check_animal_favorite_status(request: HttpRequest, data: BatchAnimalFavoriteIn):
     """동물 찜 상태를 일괄 조회합니다."""
     try:
-        if not hasattr(request, 'auth') or not request.auth:
-            raise HttpError(401, "로그인이 필요합니다")
-
-        current_user = request.auth
-        if hasattr(current_user, '__await__'):
-            current_user = await current_user
+        current_user = await get_authenticated_user(request)
 
         animal_ids = data.animal_ids[:100]
 
@@ -228,8 +216,9 @@ async def batch_check_animal_favorite_status(request: HttpRequest, data: BatchAn
 
     except HttpError:
         raise
-    except Exception as e:
-        raise HttpError(500, f"찜 상태 일괄 조회 중 오류가 발생했습니다: {str(e)}")
+    except Exception:
+        logger.exception("동물 찜 상태 일괄 조회 중 오류")
+        raise HttpError(500, "서버 오류가 발생했습니다.")
 
 
 @router.post(
@@ -245,12 +234,7 @@ async def batch_check_animal_favorite_status(request: HttpRequest, data: BatchAn
 async def batch_check_center_favorite_status(request: HttpRequest, data: BatchAnimalFavoriteIn):
     """센터 찜 상태를 일괄 조회합니다."""
     try:
-        if not hasattr(request, 'auth') or not request.auth:
-            raise HttpError(401, "로그인이 필요합니다")
-
-        current_user = request.auth
-        if hasattr(current_user, '__await__'):
-            current_user = await current_user
+        current_user = await get_authenticated_user(request)
 
         center_ids = data.animal_ids[:100]
 
@@ -269,8 +253,9 @@ async def batch_check_center_favorite_status(request: HttpRequest, data: BatchAn
 
     except HttpError:
         raise
-    except Exception as e:
-        raise HttpError(500, f"센터 찜 상태 일괄 조회 중 오류가 발생했습니다: {str(e)}")
+    except Exception:
+        logger.exception("센터 찜 상태 일괄 조회 중 오류")
+        raise HttpError(500, "서버 오류가 발생했습니다.")
 
 
 @router.post(
@@ -288,13 +273,7 @@ async def batch_check_center_favorite_status(request: HttpRequest, data: BatchAn
 async def toggle_animal_favorite(request: HttpRequest, animal_id: str):
     """동물 찜을 토글합니다."""
     try:
-        # JWT 토큰에서 사용자 정보 추출
-        if not hasattr(request, 'auth') or not request.auth:
-            raise HttpError(401, "로그인이 필요합니다")
-
-        current_user = request.auth
-        if hasattr(current_user, '__await__'):
-            current_user = await current_user
+        current_user = await get_authenticated_user(request)
 
         @sync_to_async
         def toggle_favorite():
@@ -336,8 +315,9 @@ async def toggle_animal_favorite(request: HttpRequest, animal_id: str):
 
     except HttpError:
         raise
-    except Exception as e:
-        raise HttpError(500, f"동물 찜 토글 중 오류가 발생했습니다: {str(e)}")
+    except Exception:
+        logger.exception("동물 찜 토글 중 오류")
+        raise HttpError(500, "서버 오류가 발생했습니다.")
 
 
 @router.get(
@@ -354,25 +334,19 @@ async def toggle_animal_favorite(request: HttpRequest, animal_id: str):
 async def get_animal_favorites(request: HttpRequest, page: int = Query(1, ge=1), limit: int = Query(10, ge=1, le=100)):
     """내가 찜한 동물 목록을 조회합니다."""
     try:
-        # JWT 토큰에서 사용자 정보 추출
-        if not hasattr(request, 'auth') or not request.auth:
-            raise HttpError(401, "로그인이 필요합니다")
-
-        current_user = request.auth
-        if hasattr(current_user, '__await__'):
-            current_user = await current_user
+        current_user = await get_authenticated_user(request)
 
         @sync_to_async
         def get_favorites_list():
             # 전체 찜한 동물 수 조회
             total_count = AnimalFavorite.objects.filter(user=current_user).count()
-            
+
             # 총 페이지 수 계산
             total_pages = (total_count + limit - 1) // limit
-            
+
             # 페이징을 위한 오프셋 계산
             offset = (page - 1) * limit
-            
+
             # 찜한 동물 목록 조회 (동물, 센터, 이미지 정보와 함께)
             favorites = AnimalFavorite.objects.filter(
                 user=current_user
@@ -400,8 +374,9 @@ async def get_animal_favorites(request: HttpRequest, page: int = Query(1, ge=1),
 
     except HttpError:
         raise
-    except Exception as e:
-        raise HttpError(500, f"찜한 동물 목록 조회 중 오류가 발생했습니다: {str(e)}")
+    except Exception:
+        logger.exception("찜한 동물 목록 조회 중 오류")
+        raise HttpError(500, "서버 오류가 발생했습니다.")
 
 
 @router.get(
@@ -419,13 +394,7 @@ async def get_animal_favorites(request: HttpRequest, page: int = Query(1, ge=1),
 async def check_center_favorite_status(request: HttpRequest, center_id: str):
     """센터 찜 상태를 확인합니다."""
     try:
-        # JWT 토큰에서 사용자 정보 추출
-        if not hasattr(request, 'auth') or not request.auth:
-            raise HttpError(401, "로그인이 필요합니다")
-
-        current_user = request.auth
-        if hasattr(current_user, '__await__'):
-            current_user = await current_user
+        current_user = await get_authenticated_user(request)
 
         @sync_to_async
         def check_status():
@@ -453,8 +422,9 @@ async def check_center_favorite_status(request: HttpRequest, center_id: str):
 
     except HttpError:
         raise
-    except Exception as e:
-        raise HttpError(500, f"센터 찜 상태 확인 중 오류가 발생했습니다: {str(e)}")
+    except Exception:
+        logger.exception("센터 찜 상태 확인 중 오류")
+        raise HttpError(500, "서버 오류가 발생했습니다.")
 
 
 @router.get(
@@ -472,13 +442,7 @@ async def check_center_favorite_status(request: HttpRequest, center_id: str):
 async def check_animal_favorite_status(request: HttpRequest, animal_id: str):
     """동물 찜 상태를 확인합니다."""
     try:
-        # JWT 토큰에서 사용자 정보 추출
-        if not hasattr(request, 'auth') or not request.auth:
-            raise HttpError(401, "로그인이 필요합니다")
-
-        current_user = request.auth
-        if hasattr(current_user, '__await__'):
-            current_user = await current_user
+        current_user = await get_authenticated_user(request)
 
         @sync_to_async
         def check_status():
@@ -506,8 +470,9 @@ async def check_animal_favorite_status(request: HttpRequest, animal_id: str):
 
     except HttpError:
         raise
-    except Exception as e:
-        raise HttpError(500, f"동물 찜 상태 확인 중 오류가 발생했습니다: {str(e)}")
+    except Exception:
+        logger.exception("동물 찜 상태 확인 중 오류")
+        raise HttpError(500, "서버 오류가 발생했습니다.")
 
 
 @router.post(
@@ -525,13 +490,7 @@ async def check_animal_favorite_status(request: HttpRequest, animal_id: str):
 async def create_personality_test(request: HttpRequest, data: PersonalityTestIn):
     """성격 테스트 데이터를 생성합니다."""
     try:
-        # JWT 토큰에서 사용자 정보 추출
-        if not hasattr(request, 'auth') or not request.auth:
-            raise HttpError(401, "로그인이 필요합니다")
-
-        current_user = request.auth
-        if hasattr(current_user, '__await__'):
-            current_user = await current_user
+        current_user = await get_authenticated_user(request)
 
         @sync_to_async
         def create_test():
@@ -541,11 +500,11 @@ async def create_personality_test(request: HttpRequest, data: PersonalityTestIn)
                 test_type="basic",
                 answers=data.answers
             )
-            
+
             return personality_test
 
         personality_test = await create_test()
-        
+
         # 201 응답 반환
         return 201, {
             "id": str(personality_test.id),
@@ -553,9 +512,10 @@ async def create_personality_test(request: HttpRequest, data: PersonalityTestIn)
             "completed_at": personality_test.completed_at.isoformat(),
             "message": "성격 테스트가 성공적으로 저장되었습니다."
         }
-        
+
     except HttpError:
         raise
-    except Exception as e:
-        raise HttpError(500, f"성격 테스트 생성 중 오류가 발생했습니다: {str(e)}")
+    except Exception:
+        logger.exception("성격 테스트 생성 중 오류")
+        raise HttpError(500, "서버 오류가 발생했습니다.")
 

@@ -2,18 +2,17 @@
 
 ## 🔴 진행 중
 
-### 1. prod 배포 + 이미지 마이그레이션
-- [x] dev 배포 완료 (PR #25~#31)
-- [x] dev 이미지 마이그레이션 완료 (15,281개, 실패 0)
-- [ ] prod PR 생성 (upstream dev → main)
-- [ ] prod 이미지 마이그레이션 실행
+### 1. prod 이미지 마이그레이션
+- [x] dev 마이그레이션 완료 (15,281개, 실패 0, 공공API URL 빈값 처리)
+- [ ] prod 마이그레이션 진행 중 (15,401개 대상, 배포로 2회 중단 후 3차 실행)
+- [ ] prod 공공API URL 빈값 정리 (마이그레이션 완료 후)
 
 ### 2. Google Search Console
 - [ ] DNS TXT 레코드 등록 → 도메인 소유권 확인 → sitemap 제출
 
 ---
 
-## 🟡 코드 품질 개선 (검토 결과 기반)
+## 🟡 코드 품질 개선 (2차 검토 결과 기반)
 
 ### P0 — 즉시
 - [ ] Home 페이지 SSR 전환 (FCP -40%, SEO 개선)
@@ -30,8 +29,9 @@
 - [ ] BE 에러 응답 표준화 (str(e) 노출 제거)
 - [ ] JWT 토큰 만료 단축 (365일→1시간~1일)
 - [ ] 배치 API 스키마 분리 (animal_ids→center_ids)
-- [ ] Nginx gzip + HTTP/2 + 보안 헤더
+- [ ] Nginx HTTP/2 + 보안 헤더
 - [ ] Docker 헬스체크 + 메모리 제한
+- [ ] 무중단배포 (Blue-Green, Nginx upstream 전환)
 
 ### P2 — 다음 주
 - [ ] Server Actions 검색 이관
@@ -73,21 +73,29 @@
 ### 2026-04-27~28
 - [x] 홈페이지 SEO h1 태그
 - [x] 스크롤바 콘텐츠 영역 제한
-- [x] 검색 영역 hide/show (sticky + opacity + 누적 delta)
+- [x] 검색 영역 hide/show (sticky + opacity + 누적 delta + 최상단 복구)
 - [x] 실시간 검색 + 통합검색 (search 파라미터)
 - [x] 검색 결과 버추얼 스크롤
+- [x] 검색값 sessionStorage 유지 (URL 파라미터 제거)
 - [x] 동물/센터 찜 Batch API (N콜→1콜)
 - [x] Batch API UUID 타입 수정
 - [x] 보호센터 무한스크롤 수정
 - [x] CenterCard 겹침/인증마크 수정
-- [x] 필터 UI 개선 (초기화, 품종, SearchInput X버튼)
+- [x] 필터 UI 개선 (초기화, 품종, SearchInput X버튼, divider, 폰트)
 - [x] CONN_MAX_AGE=0 (dev+prod)
 - [x] 이미지 경량화 (동기화 자동 + 카카오 프로필 + 마이그레이션)
+- [x] 이미지 업로드 실패 시 빈 URL (404 방지)
 - [x] fallback 이미지 border-radius 통일
-- [x] axios 요청/응답 로그
+- [x] 뒤로가기 빈 화면 수정 (getScrollElement 콜백)
+- [x] Hydration 에러 수정 (sessionStorage → useEffect)
+- [x] prod 콘솔 정리 (ASCII 아트 + 랜덤 메시지)
+- [x] Nginx gzip 압축 (prod/dev)
+- [x] 버추얼 스크롤 overscan 최적화
+- [x] GitHub PR 라벨 체계
+- [x] axios 요청/응답 로그 (dev만)
 - [x] numberWithComma 유틸
 - [x] 코드 자체 검토 2차 (2026 트렌드 기준)
-- [x] dev 배포 (PR #25~#31)
+- [x] dev+prod 배포 (PR #25~#39)
 
 ### 이전
 `history/` 폴더에서 날짜별 상세 확인 가능

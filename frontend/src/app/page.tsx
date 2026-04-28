@@ -91,7 +91,7 @@ export default function Home() {
     isLoading: isTopSectionLoading,
     error: topSectionError,
   } = useGetAnimals({
-    page_size: 100,
+    page_size: 20,
     sort_by: "admission_date",
     sort_order: "asc",
     region: selectedLocation || undefined,
@@ -105,7 +105,7 @@ export default function Home() {
     isLoading: isPetSectionLoading,
     error: petSectionError,
   } = useGetAnimals({
-    page_size: 100,
+    page_size: 20,
     sort_by: "megaphone_count",
     sort_order: "desc",
     protection_status: "보호중",

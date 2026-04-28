@@ -11,6 +11,7 @@ const IS_DEV = !IS_PROD;
 
 if (typeof window !== "undefined") {
   if (IS_PROD) {
+    // 환영 메시지 먼저 출력
     const messages = [
       "오늘도 새 가족을 기다리는 아이들이 있어요 🐶",
       "당신의 작은 관심이 한 생명을 구할 수 있어요 🐾",
@@ -38,6 +39,14 @@ if (typeof window !== "undefined") {
 `,
       "color:#ff6b35;font-size:13px;font-weight:bold"
     );
+
+    // 환영 메시지 출력 후 모든 console 억제
+    const noop = () => {};
+    console.log = noop;
+    console.warn = noop;
+    console.error = noop;
+    console.info = noop;
+    console.debug = noop;
   } else {
     console.log(`%c[MPZ DEV] API: ${BASE_URL}`, "color:#f59e0b;font-weight:bold");
   }

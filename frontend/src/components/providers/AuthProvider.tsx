@@ -282,6 +282,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // requestPermissionAndRegisterToken은 안정적인 함수이므로 의존성에서 제외
 
+  // refresh 토큰 만료 시 자동 로그아웃
+  useEffect(() => {
+    const handleAuthExpired = () => {
+      logout();
+    };
+    window.addEventListener("auth:expired", handleAuthExpired);
+    return () => window.removeEventListener("auth:expired", handleAuthExpired);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // 로그아웃 - 쿼리 캐시 무효화 포함
   const logout = async () => {
     const disconnectKakaoSession = async () => {

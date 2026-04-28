@@ -1,62 +1,23 @@
 # MPZ 작업 계획 & 진행 상태
 
-## 🔴 진행 중
+## 🔴 대기 중
 
-### 1. prod 이미지 마이그레이션
-- [x] dev 마이그레이션 완료 (15,281개, 실패 0, 공공API URL 빈값 처리)
-- [ ] prod 마이그레이션 진행 중 (15,401개 대상, 배포로 2회 중단 후 3차 실행)
-- [ ] prod 공공API URL 빈값 정리 (마이그레이션 완료 후)
+### Cloudflare 제거 (이전 개발사 요청)
+- [ ] mpz.kr 도메인 Cloudflare 등록 해제 (또는 Bot Fight Mode OFF)
+- [ ] Railway 관련 프로젝트 삭제
+- 이전 개발사에 요청 완료, 처리 대기 중
 
-### 2. Google Search Console
+### Google Search Console
 - [ ] DNS TXT 레코드 등록 → 도메인 소유권 확인 → sitemap 제출
-
----
-
-## 🟡 코드 품질 개선 (2차 검토 결과 기반)
-
-### P0 — 즉시
-- [ ] Home 페이지 SSR 전환 (FCP -40%, SEO 개선)
-- [ ] PetCard 540줄 → Compound Components 분해
-- [ ] 카카오 로그인 이미지 async 전환 (동기 블로킹 I/O)
-- [ ] 동기화 센터 N+1 캐싱 (1000콜→수십콜)
-- [ ] Docker 로그 드라이버 설정 (디스크 부족 방지)
-
-### P1 — 이번 주
-- [ ] React.memo 적용 (AnimalCard, CenterCard)
-- [ ] useScrollVisibility Custom Hook 분리
-- [ ] TanStack Query 키 정규화 (캐시 히트율 개선)
-- [ ] BE 인증 로직 DI 패턴 추상화
-- [ ] BE 에러 응답 표준화 (str(e) 노출 제거)
-- [ ] JWT 토큰 만료 단축 (365일→1시간~1일)
-- [ ] 배치 API 스키마 분리 (animal_ids→center_ids)
-- [ ] Nginx HTTP/2 + 보안 헤더
-- [ ] Docker 헬스체크 + 메모리 제한
-- [ ] 무중단배포 (Blue-Green, Nginx upstream 전환)
-
-### P2 — 다음 주
-- [ ] Server Actions 검색 이관
-- [ ] FCM 리스너 전용 컴포넌트 분리
-- [ ] Pydantic v2 model_config 전환
-- [ ] Rate Limiting 도입
-- [ ] 느린 쿼리 로깅
-- [ ] Frontend Dockerfile non-root
-- [ ] 배포 롤백 전략 + smoke test
 
 ---
 
 ## 🔄 상시 (해당 페이지 작업 시 함께 적용)
 
 ### TopBar 콘텐츠 가림 수정
-- TopBar(fixed)가 콘텐츠 상단을 가리는 페이지에 `pt-[54px]` 추가
-- Container가 `overflow-y-auto`라서 TopBar 내부 spacer가 동작하지 않는 구조
-- 해당 페이지 작업 시 확인하고 적용 (한 번에 전체 수정 X, 점진적 적용)
+- TopBar(fixed) 아래 콘텐츠가 가려지는 페이지에 `pt-[54px]` 추가
 - [x] event/centers
 - [ ] 나머지 페이지 (작업 시 확인)
-
-### PetCard 분해 (점진적)
-- 내부 분리만, export Props 변경 없음
-- usePetCardData 훅 + variant별 서브 컴포넌트
-- 해당 variant 수정이 필요할 때 함께 분리
 
 ---
 
@@ -75,6 +36,9 @@
 ---
 
 ## 🔵 후순위
+- Rate Limiting (API 요청 제한)
+- 배포 롤백 전략 (migrate 실패 시 자동 복구)
+- 무중단배포 개선 (Blue-Green 재설계)
 - WebSocket (gunicorn → ASGI)
 - doggy-school (fork → 분석 → Supabase 배포)
 - AWS → Supabase 전면 이관
@@ -86,32 +50,38 @@
 
 ## ✅ 완료
 
+### 2026-04-28 (코드 개선 + 인프라)
+- [x] PetCard 540줄 → Compound Components 분해 (Props 변경 없음)
+- [x] React.memo (AnimalCard, CenterCard 커스텀 비교)
+- [x] useScrollVisibility Custom Hook 분리
+- [x] TanStack Query 키 정규화 (JSON.stringify 제거)
+- [x] BE 인증 DI 패턴 (get_authenticated_user 헬퍼)
+- [x] BE 에러 응답 표준화 (str(e) 노출 제거)
+- [x] JWT 만료 단축 (ACCESS 2시간, REFRESH 30일) + 자동 갱신
+- [x] 동시 401 refresh 중복 방지 (refreshPromise 싱글턴)
+- [x] auth:expired 자동 로그아웃
+- [x] 이미지 로딩 9배 개선 (unoptimized: true)
+- [x] 카카오 프로필 이미지 async 전환
+- [x] 동기화 센터 N+1 캐싱
+- [x] Nginx HTTP/2 + 보안 헤더 5종 + gzip
+- [x] Docker 헬스체크 + 메모리 제한 + 로그 드라이버
+- [x] Rolling 배포 (Blue-Green 실패 → 롤백)
+- [x] FCM 리스너 분리 (page.tsx → FCMTokenListener)
+- [x] Pydantic v2 model_config 전환
+- [x] 느린 쿼리 로깅
+- [x] Frontend Dockerfile non-root (nextjs user)
+- [x] 배포 후 smoke test
+- [x] prod 콘솔 전체 억제 (환영 메시지만)
+- [x] 보호센터 상세 보호동물 무한스크롤
+- [x] 검토 결과 반영 (메모리 상향, healthcheck, smoke test 강화)
+- [x] dev+prod 배포 (PR #42~#60)
+
 ### 2026-04-27~28
-- [x] 홈페이지 SEO h1 태그
-- [x] 스크롤바 콘텐츠 영역 제한
-- [x] 검색 영역 hide/show (sticky + opacity + 누적 delta + 최상단 복구)
-- [x] 실시간 검색 + 통합검색 (search 파라미터)
-- [x] 검색 결과 버추얼 스크롤
-- [x] 검색값 sessionStorage 유지 (URL 파라미터 제거)
-- [x] 동물/센터 찜 Batch API (N콜→1콜)
-- [x] Batch API UUID 타입 수정
-- [x] 보호센터 무한스크롤 수정
-- [x] CenterCard 겹침/인증마크 수정
-- [x] 필터 UI 개선 (초기화, 품종, SearchInput X버튼, divider, 폰트)
-- [x] CONN_MAX_AGE=0 (dev+prod)
-- [x] 이미지 경량화 (동기화 자동 + 카카오 프로필 + 마이그레이션)
-- [x] 이미지 업로드 실패 시 빈 URL (404 방지)
-- [x] fallback 이미지 border-radius 통일
-- [x] 뒤로가기 빈 화면 수정 (getScrollElement 콜백)
-- [x] Hydration 에러 수정 (sessionStorage → useEffect)
-- [x] prod 콘솔 정리 (ASCII 아트 + 랜덤 메시지)
-- [x] Nginx gzip 압축 (prod/dev)
-- [x] 버추얼 스크롤 overscan 최적화
-- [x] GitHub PR 라벨 체계
-- [x] axios 요청/응답 로그 (dev만)
-- [x] numberWithComma 유틸
-- [x] 코드 자체 검토 2차 (2026 트렌드 기준)
-- [x] dev+prod 배포 (PR #25~#39)
+- [x] 홈페이지 SEO h1 + 실시간 검색 + 통합검색
+- [x] 동물/센터 Batch API + 이미지 경량화 + 마이그레이션
+- [x] 검색 영역 hide/show + 버추얼 스크롤 + 필터 UI
+- [x] CONN_MAX_AGE=0 + CenterCard 수정 + axios 로그
+- 상세: history/2026-04-27-28.md
 
 ### 이전
 `history/` 폴더에서 날짜별 상세 확인 가능

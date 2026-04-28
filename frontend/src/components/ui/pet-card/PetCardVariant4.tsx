@@ -9,7 +9,7 @@ export function PetCardVariant4(data: PetCardCommonData) {
   const {
     pet, mainImageUrl, breed, imagePriority, isFemale,
     statusInfo, displayBreedName, foundLocation,
-    showLocation, showUpdatedAt, adoptionStatus,
+    showLocation, showUpdatedAt,
     handleCardClick, headingLevel, className,
   } = data;
 

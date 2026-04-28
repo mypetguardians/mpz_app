@@ -88,7 +88,31 @@ instance.interceptors.response.use(
     }
     return response;
   },
-  (error: AxiosError) => {
+  async (error: AxiosError) => {
+    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+
+    // 401 + 아직 재시도 안 한 경우 → refresh token으로 갱신
+    if (
+      error.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retry &&
+      !originalRequest.url?.includes("refresh-token") &&
+      !originalRequest.url?.includes("login")
+    ) {
+      originalRequest._retry = true;
+      try {
+        await instance.post("/auth/refresh-token", {});
+        // 쿠키가 자동 갱신되므로 원래 요청 재시도
+        return instance(originalRequest);
+      } catch {
+        // refresh도 실패하면 로그아웃 처리
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("auth:expired"));
+        }
+        return Promise.reject(error);
+      }
+    }
+
     if (IS_DEV && typeof window !== "undefined") {
       const method = (error.config?.method || "GET").toUpperCase();
       const url = `${error.config?.baseURL || ""}${error.config?.url || ""}`;

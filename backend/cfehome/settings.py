@@ -260,8 +260,8 @@ NINJA_PAGINATION_CLASS = "api.pagination.CustomPageNumberPagination"
 PAGINATION_PER_PAGE = 10
 
 # login jwt token expiration
-ACCESS_TOKEN_EXPIRATION_TIME = 365 * 60 * 60 * 24  # 1 years
-REFRESH_TOKEN_EXPIRATION_TIME = 2 * 365 * 60 * 60 * 24  # 100 years
+ACCESS_TOKEN_EXPIRATION_TIME = 120  # 2시간 (분 단위)
+REFRESH_TOKEN_EXPIRATION_TIME = 30 * 24 * 60  # 30일 (분 단위)
 
 # Kakao Social Login Settings
 KAKAO_SOCIAL_LOGIN_CLIENT_ID = config("KAKAO_SOCIAL_LOGIN_CLIENT_ID", default="")

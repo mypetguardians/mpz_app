@@ -16,9 +16,10 @@ Next.js 15 (App Router), React 19, Capacitor 7 (iOS/Android/Web), Tailwind CSS, 
 - `getProxyImageUrl(url)` — 이미지 URL 정규화 (현재 passthrough)
 
 ## 이미지
-- Supabase URL은 직접 서빙 (프록시 제거됨)
+- Supabase URL은 직접 서빙 (프록시 제거됨, unoptimized: true)
 - `next.config.ts` remotePatterns: *.supabase.co, *.kakaocdn.net, openapi.animal.go.kr
 - AnimalImage 컴포넌트가 에러 시 fallback 이미지 표시
+- imagePriority prop: 뷰포트 내 첫 화면 이미지만 priority=true (LCP 최적화)
 
 ## SEO 규칙
 - **metadataBase**: `layout.tsx`에 `https://mpz.kr` 설정됨 — canonical 등 상대경로 자동 해석
@@ -45,6 +46,25 @@ Next.js 15 (App Router), React 19, Capacitor 7 (iOS/Android/Web), Tailwind CSS, 
 - Capacitor 네이티브 vs 웹 브라우저 FCM 로직 완전 분리 (`detectPlatform()` 기반)
 - 네이티브 앱에서 웹 푸시 로직 절대 안 탐
 - Firebase 웹 config(apiKey 등)는 공개 키. GitHub secret alert은 false positive
+
+## 목록 페이지 패턴 (list/)
+- **레이아웃**: ListLayout > 스크롤 컨테이너(`#list-scroll-container`) > 탭별 콘텐츠
+- **버추얼 스크롤**: `@tanstack/react-virtual` useVirtualizer (not useWindowVirtualizer)
+  - `getScrollElement`: useCallback(() => document.getElementById("list-scroll-container"), [])
+  - useEffect + useRef 방식은 Next.js App Router 캐시 복원 시 미실행되므로 금지
+  - AnimalTab: 2열 row 단위 가상화 (estimateSize 256, gap 8, overscan 2)
+  - CenterTab: 1열 measureElement (estimateSize 95, gap 16, overscan 3)
+- **검색/필터 hide/show**: opacity + negative margin transition (sticky, useScrollVisibility 훅)
+  - 뒤로가기 시: useLayoutEffect로 초기 visible=false 설정 + initialized 전까지 transition 없음
+  - 프로그래밍적 scrollTo의 큰 delta(>300px)는 방향 감지에서 무시
+- **스크롤 위치 복원**: sessionStorage에 scrollTop 저장 → 뒤로가기 시 복원
+  - 필터 변경 시 위치 초기화하되, 초기 마운트는 skip (apiParamsInitRef)
+  - sessionStorage 삭제는 `scrollTop > 0` 확인 후에만 (부모 리렌더 재마운트 대비)
+  - 레이아웃 영향 요소(controlHeight)는 useLayoutEffect로 측정 (scrollTo보다 먼저 확정)
+- **카드 높이 균일화**: 높이가 균일하면 measureElement 사용 금지, 고정 estimateSize로 scrollTop 정확 매칭
+- **탭 전환**: isSearching 상태 반드시 리셋, 동물 검색 훅이 센터 탭에 간섭하지 않도록 가드
+- **찜 상태**: useBatchAnimalFavorites / useBatchCenterFavorites (N콜→1콜)
+  - localFavorites로 optimistic update, React.memo 커스텀 비교
 
 ## 빌드 주의
 - NEXT_PUBLIC_* 변경 시 Dockerfile ARG, deploy.yml build-args, docker-compose env 3곳 동기화 필수

@@ -130,7 +130,30 @@ function AnimalTab() {
   // 필터가 변경될 때 스크롤 위치 초기화
   useEffect(() => {
     getScrollElement()?.scrollTo(0, 0);
+    sessionStorage.removeItem("animalListScrollTop");
   }, [apiParams, getScrollElement]);
+
+  // 뒤로가기 시 스크롤 위치 복원
+  useEffect(() => {
+    const saved = sessionStorage.getItem("animalListScrollTop");
+    if (saved) {
+      const el = getScrollElement();
+      if (el) {
+        requestAnimationFrame(() => {
+          el.scrollTo(0, parseInt(saved));
+        });
+      }
+      sessionStorage.removeItem("animalListScrollTop");
+    }
+  }, [getScrollElement]);
+
+  // 상세 페이지 이동 전 스크롤 위치 저장
+  const saveScrollPosition = useCallback(() => {
+    const el = getScrollElement();
+    if (el) {
+      sessionStorage.setItem("animalListScrollTop", String(el.scrollTop));
+    }
+  }, [getScrollElement]);
 
   // React Query 데이터에서 직접 동물 목록 추출 (페이지 간 중복 제거)
   const allAnimals = useMemo(() => {
@@ -301,9 +324,10 @@ function AnimalTab() {
                       localFavorite={localFavorites[animal.id]}
                       batchFavorite={batchFavorites?.[animal.id]}
                       onLikeToggle={handleLikeToggle}
-                      onNavigate={() =>
-                        router.push(`/list/animal/${animal.id}`)
-                      }
+                      onNavigate={() => {
+                        saveScrollPosition();
+                        router.push(`/list/animal/${animal.id}`);
+                      }}
                       imagePriority={virtualRow.index === 0}
                     />
                   ))}

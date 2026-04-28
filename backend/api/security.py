@@ -51,3 +51,15 @@ class JWTAuth(HttpBearer):
 
 
 jwt_auth = JWTAuth()
+
+
+async def get_authenticated_user(request):
+    """request.auth에서 인증된 사용자를 꺼내 반환합니다. 미인증 시 401 에러."""
+    from ninja.errors import HttpError
+
+    if not hasattr(request, 'auth') or not request.auth:
+        raise HttpError(401, "로그인이 필요합니다")
+    current_user = request.auth
+    if hasattr(current_user, '__await__'):
+        current_user = await current_user
+    return current_user

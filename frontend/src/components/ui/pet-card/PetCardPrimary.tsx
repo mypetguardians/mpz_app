@@ -1,6 +1,6 @@
 import React from "react";
 import AnimalImage from "../AnimalImage";
-import { cn, getRelativeTime } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { StatusChip } from "./StatusChip";
 import { GenderBadge } from "./GenderBadge";
 import type { PetCardCommonData } from "./usePetCardData";

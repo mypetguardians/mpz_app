@@ -2,7 +2,6 @@
 
 import React from "react";
 import { Container } from "./Container";
-import { TopBar } from "./TopBar";
 import { NavBar } from "./NavBar";
 
 interface PageLayoutProps {

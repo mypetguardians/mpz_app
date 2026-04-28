@@ -31,7 +31,7 @@ function AnimalTab() {
     {}
   );
   const listRef = useRef<HTMLDivElement>(null);
-
+  const scrollRestoredRef = useRef(false);
   const {
     filters,
     searchValue,
@@ -127,25 +127,17 @@ function AnimalTab() {
     return document.getElementById("list-scroll-container");
   }, []);
 
-  // 필터가 변경될 때 스크롤 위치 초기화
+  // 필터가 변경될 때 스크롤 위치 초기화 (초기 마운트 제외)
+  const apiParamsInitRef = useRef(true);
   useEffect(() => {
+    if (apiParamsInitRef.current) {
+      apiParamsInitRef.current = false;
+      return;
+    }
     getScrollElement()?.scrollTo(0, 0);
     sessionStorage.removeItem("animalListScrollTop");
+    scrollRestoredRef.current = false;
   }, [apiParams, getScrollElement]);
-
-  // 뒤로가기 시 스크롤 위치 복원
-  useEffect(() => {
-    const saved = sessionStorage.getItem("animalListScrollTop");
-    if (saved) {
-      const el = getScrollElement();
-      if (el) {
-        requestAnimationFrame(() => {
-          el.scrollTo(0, parseInt(saved));
-        });
-      }
-      sessionStorage.removeItem("animalListScrollTop");
-    }
-  }, [getScrollElement]);
 
   // 상세 페이지 이동 전 스크롤 위치 저장
   const saveScrollPosition = useCallback(() => {
@@ -168,6 +160,29 @@ function AnimalTab() {
         return true;
       });
   }, [data]);
+
+  // 뒤로가기 시 스크롤 위치 복원 (데이터 로드 후)
+  useEffect(() => {
+    if (scrollRestoredRef.current) return;
+    if (allAnimals.length === 0) return;
+
+    const saved = sessionStorage.getItem("animalListScrollTop");
+    if (saved) {
+      const scrollTarget = parseInt(saved);
+      const el = getScrollElement();
+      if (el) {
+        el.scrollTo(0, scrollTarget);
+        requestAnimationFrame(() => {
+          el.scrollTo(0, scrollTarget);
+          // 복원 성공 확인 후에만 완료 처리 (ListLayout 리렌더로 리셋될 수 있음)
+          if (el.scrollTop > 0) {
+            scrollRestoredRef.current = true;
+            sessionStorage.removeItem("animalListScrollTop");
+          }
+        });
+      }
+    }
+  }, [allAnimals.length, getScrollElement]);
 
   // 찜 상태 일괄 조회 (개별 API 대신 1콜로 처리)
   const animalIds = useMemo(() => allAnimals.map((a) => a.id), [allAnimals]);

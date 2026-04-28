@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useCenterFilterOverlayStore } from "@/stores/centerFilterOverlay";
 import { PetCard } from "@/components/ui/PetCard";
@@ -42,9 +42,11 @@ export function CenterAnimalsTab({
     data: animalsData,
     isLoading,
     error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
   } = useGetAnimals({
     center_id: centerId,
-    page: 1,
     page_size: 50,
   });
 
@@ -55,6 +57,23 @@ export function CenterAnimalsTab({
       (page.data || []).map(transformRawAnimalToAnimal)
     );
   }, [animalsData]);
+
+  // 무한스크롤: 스크롤 컨테이너 하단 도달 시 다음 페이지 로드
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = loadMoreRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   // 필터는 zustand 전역 상태에서 읽음
   const activeFilters = useMemo(() => {
@@ -314,6 +333,13 @@ export function CenterAnimalsTab({
         : variant === "simple"
         ? renderSimpleView()
         : renderDetailedView()}
+
+      {/* 무한스크롤 트리거 */}
+      {hasNextPage && (
+        <div ref={loadMoreRef} className="py-4 text-center text-gray-400 text-sm">
+          {isFetchingNextPage ? "불러오는 중..." : ""}
+        </div>
+      )}
     </div>
   );
 }

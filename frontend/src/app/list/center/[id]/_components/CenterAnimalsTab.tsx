@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useCenterFilterOverlayStore } from "@/stores/centerFilterOverlay";
 import { PetCard } from "@/components/ui/PetCard";

@@ -315,7 +315,7 @@ export default function EventCentersPage() {
         <div className="min-h-screen" />
       ) : (
         <Container
-          className={`min-h-screen pb-20 !bg-transparent transition-all duration-1000 ease-out ${
+          className={`min-h-screen pb-20 pt-[54px] !bg-transparent transition-all duration-1000 ease-out ${
             introState === "done" || introState === "playing"
               ? "opacity-100 translate-y-0"
               : "opacity-0 translate-y-4"

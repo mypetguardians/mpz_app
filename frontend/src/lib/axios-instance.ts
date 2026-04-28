@@ -52,6 +52,9 @@ if (typeof window !== "undefined") {
   }
 }
 
+// 동시 401 요청 시 refresh 중복 호출 방지
+let refreshPromise: Promise<unknown> | null = null;
+
 const instance: AxiosInstance = axios.create({
   baseURL: BASE_URL,
   withCredentials: true,
@@ -100,12 +103,18 @@ instance.interceptors.response.use(
       !originalRequest.url?.includes("login")
     ) {
       originalRequest._retry = true;
+
+      // 동시 401 요청 → refresh 1회만 실행, 나머지는 대기
+      if (!refreshPromise) {
+        refreshPromise = instance.post("/auth/refresh-token", {}).finally(() => {
+          refreshPromise = null;
+        });
+      }
+
       try {
-        await instance.post("/auth/refresh-token", {});
-        // 쿠키가 자동 갱신되므로 원래 요청 재시도
+        await refreshPromise;
         return instance(originalRequest);
       } catch {
-        // refresh도 실패하면 로그아웃 처리
         if (typeof window !== "undefined") {
           window.dispatchEvent(new CustomEvent("auth:expired"));
         }

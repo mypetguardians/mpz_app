@@ -1,4 +1,5 @@
 from ninja import Schema, Field
+from pydantic import ConfigDict
 from typing import Optional, Dict, Any, List
 
 
@@ -15,15 +16,14 @@ class BatchAnimalFavoriteIn(Schema):
 
 class PersonalityTestIn(Schema):
     """성격 테스트 입력 스키마 (간단 버전)"""
-    answers: Dict[str, str] = Field(..., description="질문-답변 쌍")
-    
-    class Config:
-        schema_extra = {
-            "example": {
-                "answers": {
-                    "당신의 생활 공간에 더 가까운 것은 어떤 편인가요?": "조용한 분위기를 좋아해요",
-                    "평소 활동량은 어느 정도인가요?": "적당히 활동적이에요",
-                    "반려동물과 함께하는 시간은?": "매일 충분히 시간을 낼 수 있어요"
-                }
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "answers": {
+                "당신의 생활 공간에 더 가까운 것은 어떤 편인가요?": "조용한 분위기를 좋아해요",
+                "평소 활동량은 어느 정도인가요?": "적당히 활동적이에요",
+                "반려동물과 함께하는 시간은?": "매일 충분히 시간을 낼 수 있어요"
             }
         }
+    })
+
+    answers: Dict[str, str] = Field(..., description="질문-답변 쌍")

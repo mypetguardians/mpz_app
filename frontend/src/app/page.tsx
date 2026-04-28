@@ -26,48 +26,7 @@ import { Banner } from "@/components/ui/Banner";
 // import { BottomSheet } from "@/components/ui/BottomSheet";
 import { App } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
-
-// FCM 토큰 디버깅용 - 앱 시작 시점에 전역 리스너 등록
-if (typeof window !== "undefined") {
-  // 중복 등록 방지
-  const windowWithFlag = window as Window & {
-    __fcmTokenListenerAdded?: boolean;
-  };
-  if (!windowWithFlag.__fcmTokenListenerAdded) {
-    const handleFCMToken = (event: Event) => {
-      try {
-        const customEvent = event as CustomEvent;
-        const token = customEvent.detail;
-        console.log("=== FCM 토큰 수신 (전역) ===");
-        console.log("토큰:", token);
-        console.log("이벤트 타입:", event.type);
-        console.log("===================");
-        // 토큰을 localStorage에 저장 (디버깅용)
-        if (token && typeof token === "string") {
-          localStorage.setItem("fcm_token_debug", token);
-          console.log("✅ FCM 토큰을 localStorage에 저장했습니다");
-        } else {
-          console.warn("⚠️ 토큰이 유효하지 않습니다:", token);
-        }
-      } catch (error) {
-        console.error("❌ FCM 토큰 이벤트 처리 오류:", error);
-      }
-    };
-
-    window.addEventListener("fcmToken", handleFCMToken);
-    windowWithFlag.__fcmTokenListenerAdded = true;
-    console.log("✅ 전역 FCM 토큰 리스너 등록 완료");
-
-    // 이미 저장된 토큰 확인
-    const savedToken = localStorage.getItem("fcm_token_debug");
-    if (savedToken) {
-      console.log(
-        "ℹ️ 이미 저장된 FCM 토큰 발견:",
-        savedToken.substring(0, 30) + "..."
-      );
-    }
-  }
-}
+import FCMTokenListener from "@/components/common/FCMTokenListener";
 
 export default function Home() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -210,6 +169,7 @@ export default function Home() {
 
   return (
     <Container>
+      <FCMTokenListener />
       <div className="flex flex-col min-h-screen">
         <h1 className="sr-only">마펫쯔 - 유기동물 입양 플랫폼</h1>
         <HomeHeader isLoggedIn={isAuthenticated} isAuthLoading={authLoading} />

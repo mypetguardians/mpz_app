@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useRef, useEffect, useCallback } from "react";
+import React, { useMemo, useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Bell, CaretDown } from "@phosphor-icons/react";
@@ -51,15 +51,15 @@ export function ListLayout({ children }: ListLayoutProps) {
   const [controlHeight, setControlHeight] = useState(0);
   const controlRef = useRef<HTMLDivElement>(null);
 
-  // 실제 높이 측정
-  useEffect(() => {
+  // 실제 높이 측정 (페인트 전에 측정하여 스크롤 복원 시 올바른 레이아웃 보장)
+  useLayoutEffect(() => {
     if (controlRef.current) {
       setControlHeight(controlRef.current.scrollHeight);
     }
   });
 
   // 스크롤 방향에 따른 검색/필터 영역 숨기기
-  const { visible: searchVisible, handleTransitionEnd } = useScrollVisibility(scrollContainerRef);
+  const { visible: searchVisible, initialized: scrollInitialized, handleTransitionEnd } = useScrollVisibility(scrollContainerRef);
 
   const activeTab = pathname.includes("/center") ? "center" : "animal";
 
@@ -113,10 +113,16 @@ export function ListLayout({ children }: ListLayoutProps) {
     setIsSearching(searching);
   }, []);
 
+  // useAnimalSearch 훅의 sessionStorage 복원이 센터 탭에서 간섭하지 않도록
+  const handleAnimalSearchStateChange = useCallback((searching: boolean) => {
+    if (activeTab !== "animal") return;
+    setIsSearching(searching);
+  }, [activeTab]);
+
   // 동물 검색 훅 (항상 호출 — React 규칙 준수)
   const animalSearch = useAnimalSearch({
     filters,
-    onSearchStateChange: handleSearchStateChange,
+    onSearchStateChange: handleAnimalSearchStateChange,
     hasActiveFilters,
     onClearFilters: handleClearAllFilters,
     filterSlot: (
@@ -180,23 +186,21 @@ export function ListLayout({ children }: ListLayoutProps) {
 
       {/* 스크롤 영역 — 결과 카드 + 기본 목록 */}
       <div ref={scrollContainerRef} id="list-scroll-container" className="relative flex-1 overflow-y-auto">
-        {/* 검색+필터 영역 — sticky로 탭 아래 고정, opacity로 fade */}
+        {/* 검색+필터 영역 — sticky로 탭 아래 고정, opacity+margin으로 접기 */}
         {activeTab === "animal" && (
-          <>
-            <div
-              ref={controlRef}
-              className="sticky top-0 z-20 bg-white"
-              onTransitionEnd={handleTransitionEnd}
-              style={{
-                opacity: searchVisible ? 1 : 0,
-                pointerEvents: searchVisible ? "auto" : "none",
-                transition: "opacity 200ms ease-in-out",
-                marginBottom: searchVisible ? "0px" : `-${controlHeight}px`,
-              }}
-            >
-              {animalSearch.controlArea}
-            </div>
-          </>
+          <div
+            ref={controlRef}
+            className="sticky top-0 z-20 bg-white"
+            onTransitionEnd={handleTransitionEnd}
+            style={{
+              opacity: searchVisible ? 1 : 0,
+              pointerEvents: searchVisible ? "auto" : "none",
+              marginBottom: searchVisible ? "0px" : `-${controlHeight}px`,
+              transition: scrollInitialized ? "opacity 200ms ease-in-out" : "none",
+            }}
+          >
+            {animalSearch.controlArea}
+          </div>
         )}
         {activeTab === "animal" ? (
           <>

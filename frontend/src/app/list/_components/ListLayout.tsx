@@ -163,7 +163,7 @@ export function ListLayout({ children }: ListLayoutProps) {
       />
 
       {/* 탭 - 고정 */}
-      <div className="z-10 bg-white w-full px-3.5">
+      <div className="z-20 bg-white w-full px-3.5">
         <TabButton
           value={activeTab}
           tabs={tabs}
@@ -180,7 +180,7 @@ export function ListLayout({ children }: ListLayoutProps) {
           <>
             <div
               ref={controlRef}
-              className="sticky top-0 z-10 bg-white"
+              className="sticky top-0 z-20 bg-white"
               onTransitionEnd={handleTransitionEnd}
               style={{
                 opacity: searchVisible ? 1 : 0,

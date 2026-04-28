@@ -164,18 +164,31 @@ jobs:
             docker tag ghcr.io/${OWNER}/mpz-frontend:$TAG mpz_app-frontend:latest
             docker tag ghcr.io/${OWNER}/mpz-backend:$TAG mpz_app-backend:latest
 
-            # 컨테이너 교체 (빌드 없이 pull된 이미지 사용)
-            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --no-build --force-recreate frontend backend nginx redis
+            # ── Rolling 배포 (서비스별 순차 교체) ──
 
-            # worker 최초 생성만
-            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --no-build --no-recreate worker
+            # backend 먼저 교체 + 마이그레이션
+            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --no-build --force-recreate backend
 
-            # backend 준비 대기 후 마이그레이션
+            # backend 준비 대기
+            echo "⏳ backend 준비 대기..."
             until APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml exec -T backend python -c "import django" 2>/dev/null; do
               sleep 2
             done
             APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml exec -T backend python manage.py migrate --noinput
             APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml exec -T backend python manage.py collectstatic --noinput
+            echo "✅ backend 준비 완료"
+
+            # frontend 교체
+            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --no-build --force-recreate frontend
+
+            # nginx reload (설정 변경 반영)
+            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --no-build --force-recreate nginx
+
+            # redis 유지
+            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --no-build --no-recreate redis
+
+            # worker 최초 생성만
+            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --no-build --no-recreate worker
 
             # 오래된 이미지 정리
             docker image prune -f

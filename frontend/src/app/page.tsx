@@ -170,7 +170,7 @@ export default function Home() {
   return (
     <Container>
       <FCMTokenListener />
-      <div className="flex flex-col min-h-screen">
+      <div className="flex flex-col">
         <h1 className="sr-only">마펫쯔 - 유기동물 입양 플랫폼</h1>
         <HomeHeader isLoggedIn={isAuthenticated} isAuthLoading={authLoading} />
 

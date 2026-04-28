@@ -31,6 +31,8 @@ const nextConfig = {
     formats: ["image/avif", "image/webp"],
     // 최적화된 이미지 24시간 캐시 (동물 이미지는 거의 변경 안 됨)
     minimumCacheTTL: 86400,
+    // Supabase에서 이미 경량화된 이미지 → Next.js 서버 변환 스킵
+    unoptimized: true,
   },
 };
 

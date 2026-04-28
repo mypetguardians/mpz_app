@@ -44,6 +44,22 @@
 
 ---
 
+## 🔄 상시 (해당 페이지 작업 시 함께 적용)
+
+### TopBar 콘텐츠 가림 수정
+- TopBar(fixed)가 콘텐츠 상단을 가리는 페이지에 `pt-[54px]` 추가
+- Container가 `overflow-y-auto`라서 TopBar 내부 spacer가 동작하지 않는 구조
+- 해당 페이지 작업 시 확인하고 적용 (한 번에 전체 수정 X, 점진적 적용)
+- [x] event/centers
+- [ ] 나머지 페이지 (작업 시 확인)
+
+### PetCard 분해 (점진적)
+- 내부 분리만, export Props 변경 없음
+- usePetCardData 훅 + variant별 서브 컴포넌트
+- 해당 variant 수정이 필요할 때 함께 분리
+
+---
+
 ## 🟢 기능 작업
 
 ### SMS 인증 (대표님 의존)

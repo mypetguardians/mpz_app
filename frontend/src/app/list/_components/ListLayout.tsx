@@ -63,6 +63,11 @@ export function ListLayout({ children }: ListLayoutProps) {
 
   const activeTab = pathname.includes("/center") ? "center" : "animal";
 
+  // 탭 전환 시 검색 상태 초기화
+  useEffect(() => {
+    setIsSearching(false);
+  }, [activeTab]);
+
   const tabs = [
     { label: "동물 찾기", value: "animal", href: "/list/animal" },
     { label: "보호센터 찾기", value: "center", href: "/list/center" },

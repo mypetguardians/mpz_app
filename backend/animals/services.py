@@ -236,6 +236,9 @@ class PublicDataService:
         skipped_count = 0
         total = len(animals_data)
 
+        # 센터 캐시 초기화 (care_reg_no → Center 인스턴스)
+        self._center_cache: Dict[str, Center] = {}
+
         # 배치 단위로 처리
         for i in range(0, total, batch_size):
             batch = animals_data[i:i + batch_size]
@@ -447,11 +450,15 @@ class PublicDataService:
         return updated
     
     async def _get_or_create_center(self, animal_data: PublicDataAnimalOut) -> Center:
-        """보호소 생성 또는 조회 - Center에 직접 매핑"""
+        """보호소 생성 또는 조회 - Center에 직접 매핑 (캐시 활용)"""
         care_reg_no = animal_data.care_reg_no
         care_name = animal_data.care_nm or '공공데이터 보호소'
-        
+
         if care_reg_no:
+            # 캐시에 있으면 DB 조회 없이 반환
+            if hasattr(self, '_center_cache') and care_reg_no in self._center_cache:
+                return self._center_cache[care_reg_no]
+
             # Center 모델에서 해당 보호소와 연결된 센터 조회
             from asgiref.sync import sync_to_async
             center, created = await sync_to_async(Center.objects.get_or_create)(
@@ -464,7 +471,7 @@ class PublicDataService:
                     'region': self._map_sido_to_region(animal_data.org_nm) if animal_data.org_nm else None
                 }
             )
-            
+
             # 보호소 정보가 업데이트된 경우 센터 정보도 업데이트
             if not created:
                 updated = False
@@ -477,19 +484,23 @@ class PublicDataService:
                 if center.phone_number != (animal_data.care_tel or ''):
                     center.phone_number = animal_data.care_tel or ''
                     updated = True
-                
+
                 # 지역 정보 업데이트
                 new_region = self._map_sido_to_region(animal_data.org_nm) if animal_data.org_nm else None
                 if center.region != new_region:
                     center.region = new_region
                     updated = True
-                
+
                 if updated:
                     await sync_to_async(center.save)()
                     logger.debug(f"센터 정보 업데이트: {center.name} ({center.public_reg_no})")
-            
+
+            # 캐시에 저장
+            if hasattr(self, '_center_cache'):
+                self._center_cache[care_reg_no] = center
+
             return center
-        
+
         # 기본 센터 반환
         from asgiref.sync import sync_to_async
         return await sync_to_async(

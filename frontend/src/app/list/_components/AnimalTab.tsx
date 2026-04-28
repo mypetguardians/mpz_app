@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useCallback, useState, useRef } from "react";
+import React, { useEffect, useMemo, useCallback, useState, useRef } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useVirtualizer } from "@tanstack/react-virtual";
 
@@ -337,7 +337,7 @@ function AnimalTab() {
 export { AnimalTab };
 
 // 좋아요 상태를 확인하는 개별 동물 카드 컴포넌트
-function AnimalCardWithFavorite({
+const AnimalCardWithFavorite = React.memo(function AnimalCardWithFavorite({
   animal,
   isAuthenticated,
   onLikeToggle,
@@ -395,4 +395,10 @@ function AnimalCardWithFavorite({
       </div>
     </div>
   );
-}
+}, (prev, next) => {
+  return (
+    prev.animal.id === next.animal.id &&
+    prev.localFavorite === next.localFavorite &&
+    prev.batchFavorite === next.batchFavorite
+  );
+});

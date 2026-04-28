@@ -50,7 +50,7 @@
 
 ## ✅ 완료
 
-### 2026-04-28 (코드 개선 + 인프라)
+### 2026-04-28 (코드 개선 + 인프라 + 목록 UX)
 - [x] PetCard 540줄 → Compound Components 분해 (Props 변경 없음)
 - [x] React.memo (AnimalCard, CenterCard 커스텀 비교)
 - [x] useScrollVisibility Custom Hook 분리
@@ -75,6 +75,11 @@
 - [x] 보호센터 상세 보호동물 무한스크롤
 - [x] 검토 결과 반영 (메모리 상향, healthcheck, smoke test 강화)
 - [x] dev+prod 배포 (PR #42~#60)
+- [x] 스크롤 위치 복원 버그 수정 (apiParams 초기 마운트 skip)
+- [x] 검색/필터 hide/show 깜빡임 수정 (opacity → max-height)
+- [x] 센터 탭 전환 시 목록 안 보이는 버그 수정
+- [x] 센터 실시간 검색 + CenterCard 간격 수정
+- [x] Container min-h-screen 충돌 수정
 
 ### 2026-04-27~28
 - [x] 홈페이지 SEO h1 + 실시간 검색 + 통합검색

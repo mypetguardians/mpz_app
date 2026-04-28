@@ -17,6 +17,7 @@ interface CenterCardProps {
   onLikeToggle?: () => void;
   centerId?: string;
   imagePriority?: boolean;
+  onCardClick?: () => void;
 }
 
 function CenterCard({
@@ -28,13 +29,16 @@ function CenterCard({
   onLikeToggle,
   centerId,
   imagePriority = false,
+  onCardClick,
 }: CenterCardProps) {
   const router = useRouter();
   const [hasImageError, setHasImageError] = useState(false);
   const hasValidImage = imageUrl && imageUrl.trim() !== "" && !hasImageError;
 
   const handleCardClick = () => {
-    if (centerId) {
+    if (onCardClick) {
+      onCardClick();
+    } else if (centerId) {
       router.push(`/list/center/${centerId}`);
     }
   };
@@ -70,7 +74,7 @@ function CenterCard({
             <UsersThree size={40} className="text-gray-500" weight="light" />
           )}
         </div>
-        <div className="flex flex-col justify-center min-w-0 py-2 space-y-1">
+        <div className="flex flex-col justify-center min-w-0 h-[63px] overflow-hidden">
           <div className="flex items-center space-x-1 min-w-0">
             <span className="font-semibold text-[15px] leading-snug text-bk line-clamp-2 min-w-0">{name}</span>
             {isSubscribed && (

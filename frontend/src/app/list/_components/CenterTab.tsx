@@ -23,6 +23,7 @@ function CenterTab() {
   const router = useRouter();
   const toggleFavorite = useToggleCenterFavorite();
   const listRef = useRef<HTMLDivElement>(null);
+  const scrollRestoredRef = useRef(false);
 
   // URL에서 region 파라미터 읽기
   const regionFromUrl = searchParams.get("region");
@@ -68,13 +69,44 @@ function CenterTab() {
   // 버추얼 스크롤 (스크롤 컨테이너 기반)
   const virtualizer = useVirtualizer({
     count: allCenters.length,
-    estimateSize: () => 79,
+    estimateSize: () => 63,
     gap: 16,
     overscan: 3,
     getScrollElement,
   });
 
   const virtualItems = virtualizer.getVirtualItems();
+
+  // 상세 이동 전 스크롤 위치 저장
+  const saveScrollPosition = useCallback(() => {
+    const el = getScrollElement();
+    if (el) {
+      sessionStorage.setItem("centerListScrollTop", String(el.scrollTop));
+    }
+  }, [getScrollElement]);
+
+  // 뒤로가기 시 스크롤 위치 복원
+  useEffect(() => {
+    if (scrollRestoredRef.current) return;
+    if (allCenters.length === 0) return;
+
+    const saved = sessionStorage.getItem("centerListScrollTop");
+    if (saved) {
+      const scrollTarget = parseInt(saved);
+      const el = getScrollElement();
+      if (el) {
+        el.scrollTo(0, scrollTarget);
+        requestAnimationFrame(() => {
+          el.scrollTo(0, scrollTarget);
+          // 복원 성공 확인 후에만 완료 처리
+          if (el.scrollTop > 0) {
+            scrollRestoredRef.current = true;
+            sessionStorage.removeItem("centerListScrollTop");
+          }
+        });
+      }
+    }
+  }, [allCenters.length, getScrollElement]);
 
   // 마지막 가상 아이템 근처 도달 시 다음 페이지 로드
   useEffect(() => {
@@ -177,7 +209,6 @@ function CenterTab() {
                   top: 0,
                   left: 0,
                   width: "100%",
-                  height: `${virtualRow.size}px`,
                   transform: `translateY(${virtualRow.start}px)`,
                 }}
               >
@@ -188,6 +219,10 @@ function CenterTab() {
                   localFavorite={localFavorites[center.id]}
                   batchFavorite={batchFavorites?.[center.id]}
                   imagePriority={virtualRow.index < 3}
+                  onNavigate={() => {
+                    saveScrollPosition();
+                    router.push(`/list/center/${center.id}`);
+                  }}
                 />
               </div>
             );
@@ -232,6 +267,7 @@ const CenterCardWithFavorite = React.memo(function CenterCardWithFavorite({
   localFavorite,
   batchFavorite,
   imagePriority,
+  onNavigate,
 }: {
   center: Center;
   isAuthenticated: boolean;
@@ -239,6 +275,7 @@ const CenterCardWithFavorite = React.memo(function CenterCardWithFavorite({
   localFavorite?: boolean;
   batchFavorite?: boolean;
   imagePriority?: boolean;
+  onNavigate: () => void;
 }) {
   const isLiked =
     isAuthenticated &&
@@ -256,6 +293,7 @@ const CenterCardWithFavorite = React.memo(function CenterCardWithFavorite({
       onLikeToggle={() => onLikeToggle(center.id)}
       centerId={center.id}
       imagePriority={imagePriority}
+      onCardClick={onNavigate}
     />
   );
 }, (prev, next) => {

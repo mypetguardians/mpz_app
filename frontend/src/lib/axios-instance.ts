@@ -94,13 +94,15 @@ instance.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    // 401 + 아직 재시도 안 한 경우 → refresh token으로 갱신
+    // 401 + 아직 재시도 안 한 경우 + 쿠키에 refresh 있을 때만 갱신 시도
+    const hasRefreshCookie = typeof document !== "undefined" && document.cookie.includes("refresh=");
     if (
       error.response?.status === 401 &&
       originalRequest &&
       !originalRequest._retry &&
       !originalRequest.url?.includes("refresh-token") &&
-      !originalRequest.url?.includes("login")
+      !originalRequest.url?.includes("login") &&
+      hasRefreshCookie
     ) {
       originalRequest._retry = true;
 

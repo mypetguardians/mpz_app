@@ -74,7 +74,7 @@ async def fetch_kakao_profile(access_token: str) -> Dict:
     return profile_request.json()
 
 
-def parse_kakao_profile(profile_data: Dict) -> Dict[str, str]:
+async def parse_kakao_profile(profile_data: Dict) -> Dict[str, str]:
     if not profile_data or "id" not in profile_data:
         raise HttpError(
             503,
@@ -103,15 +103,15 @@ def parse_kakao_profile(profile_data: Dict) -> Dict[str, str]:
             from storage_service.services import StorageClient
             from animals.services import PublicDataService
 
-            with httpx.Client(timeout=10) as sync_client:
-                img_resp = sync_client.get(kakao_user_image)
+            async with httpx.AsyncClient(timeout=10) as async_client:
+                img_resp = await async_client.get(kakao_user_image)
                 if img_resp.status_code == 200 and len(img_resp.content) > 500:
                     optimized, ct = PublicDataService._optimize_image(
                         img_resp.content, max_size=512
                     )
                     storage = StorageClient()
                     key = f"profiles/kakao_{kakao_user_id}.jpg"
-                    storage.upload_file(key=key, data=optimized, content_type=ct)
+                    await sync_to_async(storage.upload_file)(key=key, data=optimized, content_type=ct)
                     final_image = f"{storage.public_base_url}/{key}"
         except Exception as exc:
             logger.warning(f"카카오 프로필 이미지 업로드 실패: {exc}")
@@ -225,7 +225,7 @@ async def kakao_login_callback(request, code: str, state: str, redirect_uri: str
                 )
 
         profile_data = await fetch_kakao_profile(token_json.get("access_token"))
-        profile_info = parse_kakao_profile(profile_data)
+        profile_info = await parse_kakao_profile(profile_data)
     except (httpx.ConnectError, httpx.TimeoutException) as e:
         logger.error("카카오 서버 통신 오류: %s", e)
         raise HttpError(503, "카카오 서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.")
@@ -298,7 +298,7 @@ async def kakao_login_callback(request, code: str, state: str, redirect_uri: str
 )
 async def kakao_native_login(request, data: KakaoNativeLoginIn):
     profile_data = await fetch_kakao_profile(data.access_token)
-    profile_info = parse_kakao_profile(profile_data)
+    profile_info = await parse_kakao_profile(profile_data)
     user, created = await get_or_create_kakao_user(profile_info)
     access, refresh, access_exp, refresh_exp = await issue_tokens_for_user(user)
 

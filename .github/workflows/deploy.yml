@@ -164,20 +164,55 @@ jobs:
             docker tag ghcr.io/${OWNER}/mpz-frontend:$TAG mpz_app-frontend:latest
             docker tag ghcr.io/${OWNER}/mpz-backend:$TAG mpz_app-backend:latest
 
-            # 컨테이너 교체 (빌드 없이 pull된 이미지 사용)
-            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --no-build --force-recreate frontend backend nginx redis
+            # ── Blue-Green 무중단 배포 ──
+
+            # 1. 새 backend 컨테이너를 별도 이름으로 띄움
+            docker run -d --name mpz_backend_new \
+              --network mpz_app_network \
+              --env-file backend/.env.${APP_ENV} \
+              mpz_app-backend:latest \
+              bash -c "python manage.py migrate --noinput && python manage.py collectstatic --noinput && gunicorn cfehome.asgi:application -k uvicorn.workers.UvicornWorker --workers 4 --bind 0.0.0.0:8000"
+
+            # 2. 새 frontend 컨테이너를 별도 이름으로 띄움
+            docker run -d --name mpz_frontend_new \
+              --network mpz_app_network \
+              mpz_app-frontend:latest
+
+            # 3. 새 backend 헬스체크 대기 (최대 60초)
+            echo "⏳ 새 backend 헬스체크 대기..."
+            for i in $(seq 1 30); do
+              if docker exec mpz_frontend_new node -e "process.exit(0)" 2>/dev/null && \
+                 docker exec mpz_backend_new python -c "import django" 2>/dev/null; then
+                echo "✅ 새 컨테이너 준비 완료"
+                break
+              fi
+              sleep 2
+            done
+
+            # 4. Nginx upstream을 새 컨테이너로 전환
+            # 네트워크 alias 교체: 이전 컨테이너에서 alias 제거 → 새 컨테이너에 alias 추가
+            docker network disconnect mpz_app_network mpz_app-backend-1 2>/dev/null || true
+            docker network disconnect mpz_app_network mpz_app-frontend-1 2>/dev/null || true
+            docker network connect --alias backend mpz_app_network mpz_backend_new
+            docker network connect --alias frontend mpz_app_network mpz_frontend_new
+
+            # 5. Nginx reload (다운타임 0초)
+            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml exec -T nginx nginx -s reload
+
+            # 6. 이전 컨테이너 정리
+            docker rm -f mpz_app-backend-1 mpz_app-frontend-1 2>/dev/null || true
+
+            # 7. 새 컨테이너를 compose 관리로 전환
+            docker rename mpz_backend_new mpz_app-backend-1
+            docker rename mpz_frontend_new mpz_app-frontend-1
 
             # worker 최초 생성만
             APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --no-build --no-recreate worker
 
-            # backend 준비 대기 후 마이그레이션
-            until APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml exec -T backend python -c "import django" 2>/dev/null; do
-              sleep 2
-            done
-            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml exec -T backend python manage.py migrate --noinput
-            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml exec -T backend python manage.py collectstatic --noinput
+            # redis, nginx는 유지 (데이터 손실 방지)
+            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --no-build --no-recreate redis nginx
 
             # 오래된 이미지 정리
             docker image prune -f
 
-            echo "✅ Deploy complete: $APP_ENV"
+            echo "✅ Blue-Green Deploy complete: $APP_ENV"

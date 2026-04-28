@@ -13,6 +13,10 @@ services:
     restart: always
     environment:
       - NODE_ENV=production
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     logging:
       driver: "json-file"
       options:
@@ -33,6 +37,16 @@ services:
     volumes:
       - static_files:/backend/local-cdn
     restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
     logging:
       driver: "json-file"
       options:
@@ -51,6 +65,10 @@ services:
     depends_on:
       - redis
     restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     logging:
       driver: "json-file"
       options:
@@ -64,6 +82,15 @@ services:
     volumes:
       - redis_data:/data
     restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 256M
     logging:
       driver: "json-file"
       options:
@@ -85,6 +112,10 @@ services:
       - frontend
       - backend
     restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 128M
     logging:
       driver: "json-file"
       options:

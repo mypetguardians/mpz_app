@@ -42,7 +42,7 @@ export function FavoriteLayout({ children }: FavoriteLayoutProps) {
   ];
 
   return (
-    <Container className="min-h-screen pb-20">
+    <Container>
       <TopBar
         variant="variant4"
         left={<h2>찜</h2>}
@@ -72,7 +72,7 @@ export function FavoriteLayout({ children }: FavoriteLayoutProps) {
       />
 
       {/* 탭 버튼 */}
-      <div className="sticky top-[54px] z-10 bg-white w-full px-3.5">
+      <div className="sticky top-[54px] z-20 bg-white w-full px-3.5">
         <TabButton
           value={activeTab}
           tabs={tabs}

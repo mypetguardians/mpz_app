@@ -24,6 +24,13 @@ export function useScrollVisibility(
   const handleScroll = useCallback(() => {
     const el = scrollContainerRef.current;
     if (!el) return;
+
+    // 콘텐츠가 스크롤 컨테이너보다 짧으면 hide/show 비활성화
+    if (el.scrollHeight <= el.clientHeight + 100) {
+      setVisible(true);
+      return;
+    }
+
     const currentScrollTop = el.scrollTop;
     const delta = currentScrollTop - lastScrollTop.current;
     lastScrollTop.current = currentScrollTop;

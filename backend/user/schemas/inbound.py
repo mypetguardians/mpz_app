@@ -30,7 +30,7 @@ class UserLoginIn(Schema):
 
 
 class RefreshTokenIn(Schema):
-    refresh_token: str = Field(..., description="리프레시 토큰")
+    refresh_token: str = Field("", description="리프레시 토큰 (쿠키 우선, body 폴백)")
 
 
 class UserCreateIn(Schema):

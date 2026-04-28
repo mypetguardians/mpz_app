@@ -205,14 +205,19 @@ async def logout(request):
         200: UserRefreshTokenOut,
     },
 )
-async def refresh_token(request, data: RefreshTokenIn):
+async def refresh_token(request, data: RefreshTokenIn = None):
     try:
+        # 쿠키 또는 body에서 refresh token 읽기
+        token = request.COOKIES.get("refresh") or (data.refresh_token if data else None)
+        if not token:
+            raise HttpError(400, "리프레시 토큰이 필요합니다")
+
         # Refresh Token 유효성 검증
-        await utils.validate_refresh_token(data.refresh_token)
+        await utils.validate_refresh_token(token)
 
         # Refresh Token을 통해 DB에서 JWT Entry를 가져옴
         jwt_entry = await sync_to_async(Jwt.objects.select_related("user").get)(
-            refresh=data.refresh_token
+            refresh=token
         )
 
         user = jwt_entry.user

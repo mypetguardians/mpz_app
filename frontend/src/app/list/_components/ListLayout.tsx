@@ -18,6 +18,7 @@ import { getFilterCounts } from "@/lib/filter-utils";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useGetNotifications } from "@/hooks/query/useGetNotifications";
 import { useNotificationSocket } from "@/hooks/useNotificationSocket";
+import { useScrollVisibility } from "@/hooks/useScrollVisibility";
 import { useAnimalFiltersStore } from "@/stores/animalFilters";
 import { useAnimalFilterOverlayStore } from "@/stores/animalFilterOverlay";
 import { AnimalFilterOverlay } from "@/app/list/animal/filter/AnimalFilterOverlay";
@@ -47,12 +48,8 @@ export function ListLayout({ children }: ListLayoutProps) {
   const { filters, reset: resetAnimalFilters } = useAnimalFiltersStore();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // hide/show on scroll
-  const [searchVisible, setSearchVisible] = useState(true);
   const [controlHeight, setControlHeight] = useState(0);
   const controlRef = useRef<HTMLDivElement>(null);
-  const lastScrollTop = useRef(0);
-  const isAnimating = useRef(false);
 
   // 실제 높이 측정
   useEffect(() => {
@@ -61,56 +58,8 @@ export function ListLayout({ children }: ListLayoutProps) {
     }
   });
 
-  // 애니메이션 끝나면 잠금 해제
-  const handleTransitionEnd = useCallback(() => {
-    isAnimating.current = false;
-  }, []);
-
-  const accumulatedDelta = useRef(0);
-
-  const handleScroll = useCallback(() => {
-    const el = scrollContainerRef.current;
-    if (!el) return;
-    const currentScrollTop = el.scrollTop;
-    const delta = currentScrollTop - lastScrollTop.current;
-    lastScrollTop.current = currentScrollTop;
-
-    // 최상단에서는 잠금 무시하고 무조건 표시
-    if (currentScrollTop <= 10) {
-      accumulatedDelta.current = 0;
-      isAnimating.current = false;
-      setSearchVisible(true);
-      return;
-    }
-
-    if (isAnimating.current) return;
-
-    // 방향 전환 시 누적 리셋
-    if ((accumulatedDelta.current > 0 && delta < 0) || (accumulatedDelta.current < 0 && delta > 0)) {
-      accumulatedDelta.current = 0;
-    }
-    accumulatedDelta.current += delta;
-
-    // 같은 방향으로 40px 이상 누적돼야 반응
-    if (Math.abs(accumulatedDelta.current) < 40) return;
-
-    const nextVisible = accumulatedDelta.current < 0;
-    accumulatedDelta.current = 0;
-
-    // 이미 같은 상태면 무시
-    setSearchVisible((prev) => {
-      if (prev === nextVisible) return prev;
-      isAnimating.current = true;
-      return nextVisible;
-    });
-  }, []);
-
-  useEffect(() => {
-    const el = scrollContainerRef.current;
-    if (!el) return;
-    el.addEventListener("scroll", handleScroll, { passive: true });
-    return () => el.removeEventListener("scroll", handleScroll);
-  }, [handleScroll]);
+  // 스크롤 방향에 따른 검색/필터 영역 숨기기
+  const { visible: searchVisible, handleTransitionEnd } = useScrollVisibility(scrollContainerRef);
 
   const activeTab = pathname.includes("/center") ? "center" : "animal";
 

@@ -7,6 +7,30 @@ import {
   RelatedAnimalsResponse,
 } from "@/types/animal";
 
+/** 필드 순서를 고정하여 동일 파라미터면 동일 키를 보장 */
+function normalizeAnimalParams(params?: GetAnimalsParams) {
+  if (!params) return null;
+  return {
+    status: params.status,
+    center_id: params.center_id,
+    gender: params.gender,
+    weight_min: params.weight_min,
+    weight_max: params.weight_max,
+    age_min: params.age_min,
+    age_max: params.age_max,
+    breed: params.breed,
+    search: params.search,
+    region: params.region,
+    city: params.city,
+    has_trainer_comment: params.has_trainer_comment,
+    sort_by: params.sort_by,
+    sort_order: params.sort_order,
+    page_size: params.page_size,
+    protection_status: params.protection_status,
+    adoption_status: params.adoption_status,
+  };
+}
+
 const getAnimals = async (
   params?: GetAnimalsParams
 ): Promise<ActualGetAnimalsResponse> => {
@@ -28,7 +52,7 @@ const getAnimals = async (
 
 export const useGetAnimals = (params?: GetAnimalsParams) => {
   return useInfiniteQuery({
-    queryKey: ["animals", params ? JSON.stringify(params) : null],
+    queryKey: ["animals", normalizeAnimalParams(params)],
     queryFn: ({ pageParam = 1 }) => {
       return getAnimals({ ...params, page: pageParam });
     },

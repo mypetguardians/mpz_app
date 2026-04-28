@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { CenterCard } from "@/components/ui/CenterCard";
@@ -225,7 +225,7 @@ function CenterTab() {
 }
 
 // 좋아요 상태를 확인하는 개별 센터 카드 컴포넌트
-function CenterCardWithFavorite({
+const CenterCardWithFavorite = React.memo(function CenterCardWithFavorite({
   center,
   isAuthenticated,
   onLikeToggle,
@@ -258,6 +258,12 @@ function CenterCardWithFavorite({
       imagePriority={imagePriority}
     />
   );
-}
+}, (prev, next) => {
+  return (
+    prev.center.id === next.center.id &&
+    prev.localFavorite === next.localFavorite &&
+    prev.batchFavorite === next.batchFavorite
+  );
+});
 
 export { CenterTab };

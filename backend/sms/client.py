@@ -21,7 +21,7 @@ async def send_sms(receiver: str, message: str) -> bool:
                     "sender": settings.ALIGO_SENDER.replace("-", ""),
                     "receiver": receiver.replace("-", ""),
                     "msg": message,
-                    "testmode_yn": "Y" if settings.DEBUG else "N",
+                    "testmode_yn": getattr(settings, "ALIGO_TESTMODE", "N"),
                 },
             )
             result = response.json()

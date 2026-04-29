@@ -12,6 +12,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useUpdateProfile } from "@/hooks/mutation/useUpdateProfile";
 import { useUploadSingleImage } from "@/hooks/mutation/useUploadSingleImage";
+import { usePhoneVerificationFlow } from "@/hooks/usePhoneVerificationFlow";
 import { ImageCard } from "@/components/ui/ImageCard";
 import { Toast } from "@/components/ui/Toast";
 import { pickImages } from "@/lib/image-picker";
@@ -31,36 +32,62 @@ export default function ProfileEditPage() {
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [nickname, setNickname] = useState("");
   const [name, setName] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
+
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
-  // 인증되지 않은 경우 로그인 페이지로 리다이렉트
+  const sms = usePhoneVerificationFlow({
+    onVerified: async () => {
+      setIsPhoneVerified(true);
+      try { await setUserFromToken(); } catch { /* ignore */ }
+    },
+  });
+
+  // 토스트 자동 dismiss (3초)
+  useEffect(() => {
+    if (!showToast) return;
+    const timer = setTimeout(() => setShowToast(false), 3000);
+    return () => clearTimeout(timer);
+  }, [showToast]);
+
+  // SMS 훅의 메시지를 토스트로 전달
+  useEffect(() => {
+    if (sms.error) {
+      setToastMessage(sms.error);
+      setShowToast(true);
+      sms.clearMessages();
+    } else if (sms.successMessage) {
+      setToastMessage(sms.successMessage);
+      setShowToast(true);
+      sms.clearMessages();
+    }
+  }, [sms.error, sms.successMessage]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       router.push("/login");
     }
   }, [isAuthenticated, authLoading, router]);
 
-  // AuthProvider의 사용자 정보로 상태 초기화
   useEffect(() => {
     if (authUser) {
       setNickname(authUser.nickname || "");
       setName(authUser.name || "");
-      setPhoneNumber(authUser.phoneNumber || "");
       setProfileImage(authUser.image || null);
+      setIsPhoneVerified(!!authUser.phoneNumber);
+      if (authUser.phoneNumber) {
+        sms.setRaw(authUser.phoneNumber.replace(/-/g, ""));
+      }
     }
-  }, [authUser]);
+  }, [authUser]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleImageUpload = async (files: File[]) => {
     const file = files[0];
     if (file) {
       const localPreview = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => {
-          const result = reader.result as string;
-          resolve(result);
-        };
+        reader.onload = () => resolve(reader.result as string);
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
@@ -69,16 +96,11 @@ export default function ProfileEditPage() {
       try {
         const base64 = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
-          reader.onload = () => {
-            const result = reader.result as string;
-            const base64Data = result.split(",")[1];
-            resolve(base64Data);
-          };
+          reader.onload = () => resolve((reader.result as string).split(",")[1]);
           reader.onerror = reject;
           reader.readAsDataURL(file);
         });
 
-        // 서버에 이미지 업로드
         const result = await uploadProfileImageMutation.mutateAsync({
           file: base64,
           filename: `profile_${Date.now()}.jpg`,
@@ -86,14 +108,11 @@ export default function ProfileEditPage() {
           folder: "profiles",
         });
 
-        // 업로드 성공 시 서버 URL로 교체
         setProfileImage(result.file_url);
         setToastMessage("이미지가 성공적으로 업로드되었습니다");
         setShowToast(true);
-      } catch (error) {
-        // 업로드 실패 시 미리보기 제거
+      } catch {
         setProfileImage(authUser?.image || null);
-        console.error("이미지 업로드 실패:", error);
         setToastMessage("사진 업로드에 실패했어요. 다시 시도해주세요.");
         setShowToast(true);
       }
@@ -105,34 +124,21 @@ export default function ProfileEditPage() {
       await updateProfileMutation.mutateAsync({
         name: name.trim(),
         nickname: nickname.trim() || "",
-        phone_number: phoneNumber.trim() || "",
         image: profileImage || "",
       });
 
-      // AuthProvider의 사용자 정보도 업데이트
       updateUser({
         name: name.trim(),
         nickname: nickname.trim() || undefined,
-        phoneNumber: phoneNumber.trim() || undefined,
         image: profileImage || undefined,
       });
 
-      // 서버에서 최신 사용자 정보를 다시 가져오기
-      try {
-        await setUserFromToken();
-      } catch (error) {
-        console.error("사용자 정보 새로고침 실패:", error);
-      }
+      try { await setUserFromToken(); } catch { /* ignore */ }
 
       setToastMessage("프로필이 성공적으로 수정되었습니다");
       setShowToast(true);
-
-      // 2초 후 이전 페이지로 이동
-      setTimeout(() => {
-        router.push("/my");
-      }, 2000);
-    } catch (error) {
-      console.error("프로필 수정 실패:", error);
+      setTimeout(() => router.push("/my"), 2000);
+    } catch {
       setToastMessage("프로필 수정에 실패했어요. 다시 시도해주세요.");
       setShowToast(true);
     }
@@ -140,9 +146,7 @@ export default function ProfileEditPage() {
 
   const isFormValid = name.trim().length > 0;
   const hasChanges =
-    name !== (authUser?.name || "") ||
     nickname !== (authUser?.nickname || "") ||
-    phoneNumber !== (authUser?.phoneNumber || "") ||
     profileImage !== (authUser?.image || "");
 
   if (authLoading) {
@@ -150,12 +154,8 @@ export default function ProfileEditPage() {
       <Container className="min-h-screen">
         <TopBar
           left={
-            <div className="flex items-center gap-2">
-              <IconButton
-                icon={ArrowLeft}
-                size="iconM"
-                onClick={() => router.back()}
-              />
+            <div className="flex items-center space-x-2">
+              <IconButton icon={ArrowLeft} size="iconM" onClick={() => router.back()} />
               <h4>프로필 수정</h4>
             </div>
           }
@@ -172,12 +172,8 @@ export default function ProfileEditPage() {
       <Container className="min-h-screen">
         <TopBar
           left={
-            <div className="flex items-center gap-2">
-              <IconButton
-                icon={ArrowLeft}
-                size="iconM"
-                onClick={() => router.back()}
-              />
+            <div className="flex items-center space-x-2">
+              <IconButton icon={ArrowLeft} size="iconM" onClick={() => router.back()} />
               <h4>프로필 수정</h4>
             </div>
           }
@@ -194,12 +190,8 @@ export default function ProfileEditPage() {
       <Container className="min-h-screen">
         <TopBar
           left={
-            <div className="flex items-center gap-2">
-              <IconButton
-                icon={ArrowLeft}
-                size="iconM"
-                onClick={() => router.back()}
-              />
+            <div className="flex items-center space-x-2">
+              <IconButton icon={ArrowLeft} size="iconM" onClick={() => router.back()} />
               <h4>프로필 수정</h4>
             </div>
           }
@@ -221,17 +213,9 @@ export default function ProfileEditPage() {
                     variant={profileImage ? "primary" : "add"}
                     onClick={async () => {
                       try {
-                        const files = await pickImages({
-                          multiple: false,
-                          maxCount: 1,
-                        });
-
-                        if (files.length > 0) {
-                          handleImageUpload(files);
-                        }
-                      } catch (error) {
-                        console.error("이미지 선택 실패:", error);
-                      }
+                        const files = await pickImages({ multiple: false, maxCount: 1 });
+                        if (files.length > 0) handleImageUpload(files);
+                      } catch { /* ignore */ }
                     }}
                     className="w-20 h-20"
                   />
@@ -260,14 +244,113 @@ export default function ProfileEditPage() {
               />
             </div>
 
-            {/* 휴대폰 번호 섹션 */}
+            {/* 휴대폰 번호 섹션 — SMS 인증 필수 */}
             <div className="space-y-3">
-              <CustomInput
-                label="휴대폰 번호"
-                placeholder="휴대폰 번호를 입력해주세요 (예: 01012345678)"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-              />
+              {sms.stage === "idle" && (
+                <div>
+                  <CustomInput
+                    label="휴대폰 번호"
+                    value={isPhoneVerified ? sms.phoneFormatted : ""}
+                    placeholder="인증된 번호가 없습니다"
+                    readOnly
+                    disabled
+                  />
+                  <div className="flex justify-end mt-2">
+                    <button
+                      type="button"
+                      className="text-sm text-brand font-medium"
+                      onClick={sms.startInput}
+                    >
+                      {isPhoneVerified ? "번호 변경" : "인증하기"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {sms.stage === "input" && (
+                <div>
+                  <CustomInput
+                    label="휴대폰 번호"
+                    placeholder="000-0000-0000"
+                    value={sms.phoneFormatted}
+                    onChange={(e) => sms.setRaw(e.target.value)}
+                    inputMode="numeric"
+                    maxLength={13}
+                  />
+                  <div className="flex justify-end mt-2 space-x-3">
+                    <button
+                      type="button"
+                      className="text-sm text-gr"
+                      onClick={() => sms.cancel(authUser?.phoneNumber)}
+                    >
+                      취소
+                    </button>
+                    <button
+                      type="button"
+                      className="text-sm text-brand font-medium"
+                      onClick={sms.sendOtp}
+                      disabled={sms.isSending}
+                    >
+                      {sms.isSending ? "발송 중..." : "인증번호 발송"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {sms.stage === "otp" && (
+                <div>
+                  <CustomInput
+                    label="휴대폰 번호"
+                    value={sms.phoneFormatted}
+                    readOnly
+                    disabled
+                  />
+                  <div className="mt-3">
+                    <CustomInput
+                      label="인증번호"
+                      placeholder={sms.isExpired ? "인증번호가 만료되었습니다" : "인증번호 6자리를 입력해주세요"}
+                      value={sms.isExpired ? "" : sms.otp}
+                      onChange={(e) => sms.setOtp(e.target.value)}
+                      inputMode="numeric"
+                      maxLength={6}
+                      readOnly={sms.isExpired}
+                      disabled={sms.isExpired}
+                    />
+                  </div>
+                  <div className="flex justify-end mt-2 space-x-3">
+                    <button
+                      type="button"
+                      className="text-sm text-gr"
+                      onClick={() => sms.cancel(authUser?.phoneNumber)}
+                    >
+                      취소
+                    </button>
+                    <button
+                      type="button"
+                      className={`text-sm font-medium ${sms.isExpired ? "text-brand" : "text-gr"}`}
+                      onClick={sms.resendOtp}
+                      disabled={sms.isSending}
+                    >
+                      {sms.isSending ? "발송 중..." : "재전송"}
+                    </button>
+                    {!sms.isExpired && (
+                      <button
+                        type="button"
+                        className="text-sm text-brand font-medium"
+                        onClick={sms.verifyOtp}
+                        disabled={sms.otp.trim().length < 4 || sms.isVerifying}
+                      >
+                        {sms.isVerifying ? "확인 중..." : "인증 확인"}
+                      </button>
+                    )}
+                  </div>
+                  {sms.countdown && (
+                    <p className={`mt-1 text-sm text-right ${sms.isExpired ? "text-error" : "text-brand"}`}>
+                      {sms.isExpired ? "만료됨" : sms.countdown}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -279,16 +362,13 @@ export default function ProfileEditPage() {
           <BigButton
             className="w-full"
             onClick={handleSave}
-            disabled={
-              !isFormValid || !hasChanges || updateProfileMutation.isPending
-            }
+            disabled={!isFormValid || !hasChanges || updateProfileMutation.isPending}
           >
             {updateProfileMutation.isPending ? "저장 중..." : "저장하기"}
           </BigButton>
         </div>
       </div>
 
-      {/* 토스트 메시지 */}
       {showToast && (
         <Toast
           onClick={() => setShowToast(false)}

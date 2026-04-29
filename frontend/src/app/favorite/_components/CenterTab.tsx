@@ -14,7 +14,6 @@ function CenterTab() {
   const [page, setPage] = useState(1);
   const [centers, setCenters] = useState<CenterFavorite[]>([]);
   const [hasMore, setHasMore] = useState(false);
-  const [total, setTotal] = useState(0);
   const [localFavorites, setLocalFavorites] = useState<Record<string, boolean>>(
     {}
   );
@@ -32,7 +31,6 @@ function CenterTab() {
     if (!favoritesData) return;
 
     setHasMore(favoritesData.hasNext);
-    setTotal(favoritesData.total);
 
     setCenters((prev) => {
       if (page === 1) {

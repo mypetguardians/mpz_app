@@ -60,9 +60,10 @@
 - [ ] 탈퇴 시 양쪽 동시 처리
 
 ### 서비스 배포
-- [ ] Supabase 테이블 마이그레이션 (ds_ prefix)
-- [ ] Vercel 배포 (doggy.mpz.kr)
-- [ ] 카카오 디벨로퍼 Redirect URI 추가
+- [ ] Supabase 테이블 마이그레이션 (ds_ prefix, 마펫쯔 Supabase 프로젝트에 추가)
+- [ ] Vercel 배포 (school.mpz.kr)
+- [ ] Route 53 CNAME 레코드 추가 (school.mpz.kr → Vercel)
+- [ ] 카카오 디벨로퍼 Redirect URI 추가 (school.mpz.kr)
 
 ### DB 스키마 (23개 테이블 → ds_ prefix로 마이그레이션)
 - 인증: `ds_users` (auth.users FK)

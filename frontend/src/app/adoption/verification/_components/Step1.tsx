@@ -70,20 +70,21 @@ export function Step1({ onNext }: StepProps) {
             <Input
               variant="primary"
               label="인증 번호"
-              placeholder="인증 번호를 입력해주세요."
-              value={sms.otp}
+              placeholder={sms.isExpired ? "인증번호가 만료되었습니다" : "인증 번호를 입력해주세요."}
+              value={sms.isExpired ? "" : sms.otp}
               onChange={(e) => sms.setOtp(e.target.value)}
               inputMode="numeric"
               maxLength={6}
-              time={sms.countdown}
+              readOnly={sms.isExpired}
+              time={sms.isExpired ? "만료됨" : sms.countdown}
               action={
                 <button
                   type="button"
-                  className="text-gr"
+                  className={sms.isExpired ? "text-brand font-medium" : "text-gr"}
                   onClick={sms.resendOtp}
                   disabled={sms.isSending}
                 >
-                  재전송
+                  {sms.isSending ? "발송 중..." : "재전송"}
                 </button>
               }
             />
@@ -98,7 +99,7 @@ export function Step1({ onNext }: StepProps) {
         primaryButtonDisabled={
           sms.stage !== "otp"
             ? !sms.isPhoneValid || sms.isSending
-            : sms.otp.trim().length < 4 || sms.isVerifying
+            : sms.otp.trim().length < 4 || sms.isVerifying || sms.isExpired
         }
       />
 

@@ -80,6 +80,12 @@ Next.js 15 (App Router), React 19, Capacitor 7 (iOS/Android/Web), Tailwind CSS, 
 10. **CSS 애니메이션은 compositor 속성 우선** — opacity/transform 사용. margin/padding 변경은 layout shift 유발
 11. **모바일 뷰포트는 100svh 사용** — `100vh`는 모바일 주소창 show/hide 시 높이가 변해서 상하단 잘림 발생. `100svh`(small viewport height)로 고정
 
+## 공통 UI 컴포넌트
+- **Loading**: Lottie 발자국 애니메이션, `fullScreen`은 `absolute inset-0` 가운데. `size="sm"|"md"|"lg"`
+- **EmptyState**: 빈 데이터 화면. `absolute inset-0` 가운데 + 아이콘 + 제목 + 설명
+- **Toast**: `fixed bottom-[88px]` 기본 내장. 사용처에서 위치 className 불필요
+- **NotificationToast**: 상단 슬라이드 (에러/푸시). 자동 dismiss + 애니메이션
+
 ## 빌드 주의
 - NEXT_PUBLIC_* 변경 시 Dockerfile ARG, deploy.yml build-args, docker-compose env 3곳 동기화 필수
 - ESLint strict — 미사용 import/변수 있으면 빌드 실패

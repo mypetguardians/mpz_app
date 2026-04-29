@@ -84,6 +84,8 @@ make dev            # FE:3001 + BE:8000 동시 실행
 12. **EC2 파일 수정 시 절대 덮어쓰기 금지** — `cat >>`(append)와 `cat >`(overwrite)를 절대 혼동하지 않음. EC2의 .env 등 설정 파일 수정 시 반드시 `cat` 또는 `head`로 기존 내용 먼저 확인하고, append 전후로 `wc -l`로 줄 수 검증. 실수 시 서비스 전체 장애 유발
 13. **사용자에게 확인 요청하지 않음** — PR 머지 여부, 배포 상태 등 직접 확인 가능한 것은 gh CLI나 SSH로 직접 확인. 사용자에게 "해줘", "확인해줘" 질문 금지
 14. **실수 발생 시 즉시 복구 → 원인 기록** — 실수를 변명하지 말고, 복구 먼저 하고 CLAUDE.md에 재발 방지 규칙 추가
+15. **새 파일 추가 시 git add 확인 필수** — 특히 assets, JSON 등 비코드 파일은 자동 추적 안 됨. 커밋 전 `git status`로 Untracked files 반드시 확인
+16. **Dockerfile 패키지 매니저 일관성** — Dockerfile이 `npm ci`면 `package-lock.json` 필수 유지. pnpm으로 패키지 추가/제거 시 `npm install --package-lock-only`로 lock 파일 동기화
 
 ## 워커 헬스체크 루틴
 사용자가 "워커 확인", "워커 체크", "동기화 상태" 등을 요청하면 아래 순서로 확인:

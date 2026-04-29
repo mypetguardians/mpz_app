@@ -247,49 +247,47 @@ export default function ProfileEditPage() {
             {/* 휴대폰 번호 섹션 — SMS 인증 필수 */}
             <div className="space-y-3">
               {sms.stage === "idle" && (
-                <div className="flex items-end justify-between">
-                  <div className="flex-1">
-                    <CustomInput
-                      label="휴대폰 번호"
-                      value={isPhoneVerified ? sms.phoneFormatted : ""}
-                      placeholder="인증된 번호가 없습니다"
-                      readOnly
-                      disabled
-                    />
+                <div>
+                  <CustomInput
+                    label="휴대폰 번호"
+                    value={isPhoneVerified ? sms.phoneFormatted : ""}
+                    placeholder="인증된 번호가 없습니다"
+                    readOnly
+                    disabled
+                  />
+                  <div className="flex justify-end mt-2">
+                    <button
+                      type="button"
+                      className="text-sm text-brand font-medium"
+                      onClick={sms.startInput}
+                    >
+                      {isPhoneVerified ? "번호 변경" : "인증하기"}
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    className="ml-3 mb-1 text-sm text-brand font-medium whitespace-nowrap"
-                    onClick={sms.startInput}
-                  >
-                    {isPhoneVerified ? "번호 변경" : "인증하기"}
-                  </button>
                 </div>
               )}
 
               {sms.stage === "input" && (
-                <div className="flex items-end justify-between">
-                  <div className="flex-1">
-                    <CustomInput
-                      label="휴대폰 번호"
-                      placeholder="000-0000-0000"
-                      value={sms.phoneFormatted}
-                      onChange={(e) => sms.setRaw(e.target.value)}
-                      inputMode="numeric"
-                      maxLength={13}
-                    />
-                  </div>
-                  <div className="flex ml-3 mb-1 space-x-2">
+                <div>
+                  <CustomInput
+                    label="휴대폰 번호"
+                    placeholder="000-0000-0000"
+                    value={sms.phoneFormatted}
+                    onChange={(e) => sms.setRaw(e.target.value)}
+                    inputMode="numeric"
+                    maxLength={13}
+                  />
+                  <div className="flex justify-end mt-2 space-x-3">
                     <button
                       type="button"
-                      className="text-sm text-gr whitespace-nowrap"
+                      className="text-sm text-gr"
                       onClick={() => sms.cancel(authUser?.phoneNumber)}
                     >
                       취소
                     </button>
                     <button
                       type="button"
-                      className="text-sm text-brand font-medium whitespace-nowrap"
+                      className="text-sm text-brand font-medium"
                       onClick={sms.sendOtp}
                       disabled={sms.isSending}
                     >
@@ -307,42 +305,40 @@ export default function ProfileEditPage() {
                     readOnly
                     disabled
                   />
-                  <div className="mt-3 flex items-end justify-between">
-                    <div className="flex-1">
-                      <CustomInput
-                        label="인증번호"
-                        placeholder="인증번호 6자리를 입력해주세요"
-                        value={sms.otp}
-                        onChange={(e) => sms.setOtp(e.target.value)}
-                        inputMode="numeric"
-                        maxLength={6}
-                      />
-                    </div>
-                    <div className="flex ml-3 mb-1 space-x-2">
-                      <button
-                        type="button"
-                        className="text-sm text-gr whitespace-nowrap"
-                        onClick={() => sms.cancel(authUser?.phoneNumber)}
-                      >
-                        취소
-                      </button>
-                      <button
-                        type="button"
-                        className="text-sm text-gr whitespace-nowrap"
-                        onClick={sms.resendOtp}
-                        disabled={sms.isSending}
-                      >
-                        재전송
-                      </button>
-                      <button
-                        type="button"
-                        className="text-sm text-brand font-medium whitespace-nowrap"
-                        onClick={sms.verifyOtp}
-                        disabled={sms.otp.trim().length < 4 || sms.isVerifying}
-                      >
-                        {sms.isVerifying ? "확인 중..." : "인증 확인"}
-                      </button>
-                    </div>
+                  <div className="mt-3">
+                    <CustomInput
+                      label="인증번호"
+                      placeholder="인증번호 6자리를 입력해주세요"
+                      value={sms.otp}
+                      onChange={(e) => sms.setOtp(e.target.value)}
+                      inputMode="numeric"
+                      maxLength={6}
+                    />
+                  </div>
+                  <div className="flex justify-end mt-2 space-x-3">
+                    <button
+                      type="button"
+                      className="text-sm text-gr"
+                      onClick={() => sms.cancel(authUser?.phoneNumber)}
+                    >
+                      취소
+                    </button>
+                    <button
+                      type="button"
+                      className="text-sm text-gr"
+                      onClick={sms.resendOtp}
+                      disabled={sms.isSending}
+                    >
+                      재전송
+                    </button>
+                    <button
+                      type="button"
+                      className="text-sm text-brand font-medium"
+                      onClick={sms.verifyOtp}
+                      disabled={sms.otp.trim().length < 4 || sms.isVerifying}
+                    >
+                      {sms.isVerifying ? "확인 중..." : "인증 확인"}
+                    </button>
                   </div>
                   {sms.countdown && (
                     <p className="mt-1 text-sm text-brand text-right">{sms.countdown}</p>

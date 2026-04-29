@@ -43,6 +43,7 @@ export default function ProfileEditPage() {
       setIsPhoneVerified(true);
       try { await setUserFromToken(); } catch { /* ignore */ }
     },
+    verifiedPhone: authUser?.phoneNumber || undefined,
   });
 
   // 토스트 자동 dismiss (3초)

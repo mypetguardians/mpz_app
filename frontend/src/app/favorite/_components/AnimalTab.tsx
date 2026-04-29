@@ -30,7 +30,6 @@ function AnimalTab() {
     [favoritesData]
   );
   const hasMore = (favoritesData?.hasNext as boolean) || false;
-  const total = (favoritesData?.total as number) || 0;
 
   // 페이지 데이터 누적 관리 (무한스크롤)
   useEffect(() => {

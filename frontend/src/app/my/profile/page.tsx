@@ -12,23 +12,10 @@ import { IconButton } from "@/components/ui/IconButton";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useUpdateProfile } from "@/hooks/mutation/useUpdateProfile";
 import { useUploadSingleImage } from "@/hooks/mutation/useUploadSingleImage";
-import {
-  useSendPhoneVerification,
-  useVerifyPhoneCode,
-} from "@/hooks/mutation/usePhoneVerification";
+import { usePhoneVerificationFlow } from "@/hooks/usePhoneVerificationFlow";
 import { ImageCard } from "@/components/ui/ImageCard";
 import { Toast } from "@/components/ui/Toast";
 import { pickImages } from "@/lib/image-picker";
-
-function formatPhone(input: string): string {
-  const digits = input.replace(/\D/g, "");
-  const a = digits.slice(0, 3);
-  const b = digits.slice(3, 7);
-  const c = digits.slice(7, 11);
-  if (digits.length <= 3) return a;
-  if (digits.length <= 7) return `${a}-${b}`;
-  return `${a}-${b}-${c}`;
-}
 
 export default function ProfileEditPage() {
   const router = useRouter();
@@ -41,26 +28,21 @@ export default function ProfileEditPage() {
   } = useAuth();
   const updateProfileMutation = useUpdateProfile();
   const uploadProfileImageMutation = useUploadSingleImage();
-  const sendVerification = useSendPhoneVerification();
-  const verifyCode = useVerifyPhoneCode();
 
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [nickname, setNickname] = useState("");
   const [name, setName] = useState("");
-
-  // 전화번호 인증 상태
-  const [phoneRaw, setPhoneRaw] = useState("");
-  const phoneFormatted = formatPhone(phoneRaw);
-  const phoneDigits = phoneRaw.replace(/\D/g, "");
-  const isPhoneValid = phoneDigits.length === 11;
-  const [phoneStage, setPhoneStage] = useState<"view" | "input" | "otp">("view");
-  const [otp, setOtp] = useState("");
-  const [expireAt, setExpireAt] = useState<number | null>(null);
-  const [nowTs, setNowTs] = useState<number>(Date.now());
   const [isPhoneVerified, setIsPhoneVerified] = useState(false);
 
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+
+  const sms = usePhoneVerificationFlow({
+    onVerified: async () => {
+      setIsPhoneVerified(true);
+      try { await setUserFromToken(); } catch { /* ignore */ }
+    },
+  });
 
   // 토스트 자동 dismiss (3초)
   useEffect(() => {
@@ -68,6 +50,19 @@ export default function ProfileEditPage() {
     const timer = setTimeout(() => setShowToast(false), 3000);
     return () => clearTimeout(timer);
   }, [showToast]);
+
+  // SMS 훅의 메시지를 토스트로 전달
+  useEffect(() => {
+    if (sms.error) {
+      setToastMessage(sms.error);
+      setShowToast(true);
+      sms.clearMessages();
+    } else if (sms.successMessage) {
+      setToastMessage(sms.successMessage);
+      setShowToast(true);
+      sms.clearMessages();
+    }
+  }, [sms.error, sms.successMessage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -79,23 +74,13 @@ export default function ProfileEditPage() {
     if (authUser) {
       setNickname(authUser.nickname || "");
       setName(authUser.name || "");
-      setPhoneRaw(authUser.phoneNumber?.replace(/-/g, "") || "");
       setProfileImage(authUser.image || null);
       setIsPhoneVerified(!!authUser.phoneNumber);
+      if (authUser.phoneNumber) {
+        sms.setRaw(authUser.phoneNumber.replace(/-/g, ""));
+      }
     }
-  }, [authUser]);
-
-  // 타이머
-  useEffect(() => {
-    if (!expireAt) return;
-    const id = setInterval(() => setNowTs(Date.now()), 300);
-    return () => clearInterval(id);
-  }, [expireAt]);
-
-  const remainMs = expireAt ? Math.max(0, expireAt - nowTs) : 0;
-  const remainMin = Math.floor(remainMs / 60000);
-  const remainSec = Math.floor((remainMs % 60000) / 1000).toString().padStart(2, "0");
-  const countdown = expireAt ? `${remainMin}:${remainSec}` : undefined;
+  }, [authUser]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleImageUpload = async (files: File[]) => {
     const file = files[0];
@@ -131,53 +116,6 @@ export default function ProfileEditPage() {
         setToastMessage("사진 업로드에 실패했어요. 다시 시도해주세요.");
         setShowToast(true);
       }
-    }
-  };
-
-  // 인증번호 발송
-  const handleSendOtp = async () => {
-    if (!isPhoneValid) return;
-    try {
-      await sendVerification.mutateAsync({ phone_number: phoneDigits });
-      setExpireAt(Date.now() + 5 * 60 * 1000);
-      setOtp("");
-      setPhoneStage("otp");
-      setToastMessage("인증번호가 발송되었습니다.");
-      setShowToast(true);
-    } catch (error: unknown) {
-      const message =
-        (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
-        "인증번호 발송에 실패했습니다.";
-      setToastMessage(message);
-      setShowToast(true);
-    }
-  };
-
-  // 인증번호 확인
-  const handleVerifyOtp = async () => {
-    if (otp.trim().length < 4) return;
-    if (remainMs <= 0) {
-      setToastMessage("인증번호가 만료되었습니다. 재전송해주세요.");
-      setShowToast(true);
-      return;
-    }
-    try {
-      await verifyCode.mutateAsync({
-        phone_number: phoneDigits,
-        verification_code: otp.trim(),
-      });
-      setIsPhoneVerified(true);
-      setPhoneStage("view");
-      setExpireAt(null);
-      try { await setUserFromToken(); } catch { /* ignore */ }
-      setToastMessage("전화번호 인증이 완료되었습니다.");
-      setShowToast(true);
-    } catch (error: unknown) {
-      const message =
-        (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
-        "인증번호가 올바르지 않습니다.";
-      setToastMessage(message);
-      setShowToast(true);
     }
   };
 
@@ -308,129 +246,106 @@ export default function ProfileEditPage() {
 
             {/* 휴대폰 번호 섹션 — SMS 인증 필수 */}
             <div className="space-y-3">
-              {phoneStage === "view" && (
-                <div>
-                  <div className="flex items-end justify-between">
-                    <div className="flex-1">
-                      <CustomInput
-                        label="휴대폰 번호"
-                        value={isPhoneVerified ? phoneFormatted : ""}
-                        placeholder="인증된 번호가 없습니다"
-                        readOnly
-                        disabled
-                      />
-                    </div>
+              {sms.stage === "idle" && (
+                <div className="flex items-end justify-between">
+                  <div className="flex-1">
+                    <CustomInput
+                      label="휴대폰 번호"
+                      value={isPhoneVerified ? sms.phoneFormatted : ""}
+                      placeholder="인증된 번호가 없습니다"
+                      readOnly
+                      disabled
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    className="ml-3 mb-1 text-sm text-brand font-medium whitespace-nowrap"
+                    onClick={sms.startInput}
+                  >
+                    {isPhoneVerified ? "번호 변경" : "인증하기"}
+                  </button>
+                </div>
+              )}
+
+              {sms.stage === "input" && (
+                <div className="flex items-end justify-between">
+                  <div className="flex-1">
+                    <CustomInput
+                      label="휴대폰 번호"
+                      placeholder="000-0000-0000"
+                      value={sms.phoneFormatted}
+                      onChange={(e) => sms.setRaw(e.target.value)}
+                      inputMode="numeric"
+                      maxLength={13}
+                    />
+                  </div>
+                  <div className="flex ml-3 mb-1 space-x-2">
                     <button
                       type="button"
-                      className="ml-3 mb-1 text-sm text-brand font-medium whitespace-nowrap"
-                      onClick={() => {
-                        setPhoneRaw("");
-                        setPhoneStage("input");
-                      }}
+                      className="text-sm text-gr whitespace-nowrap"
+                      onClick={() => sms.cancel(authUser?.phoneNumber)}
                     >
-                      {isPhoneVerified ? "번호 변경" : "인증하기"}
+                      취소
+                    </button>
+                    <button
+                      type="button"
+                      className="text-sm text-brand font-medium whitespace-nowrap"
+                      onClick={sms.sendOtp}
+                      disabled={sms.isSending}
+                    >
+                      {sms.isSending ? "발송 중..." : "인증번호 발송"}
                     </button>
                   </div>
                 </div>
               )}
 
-              {phoneStage === "input" && (
+              {sms.stage === "otp" && (
                 <div>
-                  <div className="flex items-end justify-between">
+                  <CustomInput
+                    label="휴대폰 번호"
+                    value={sms.phoneFormatted}
+                    readOnly
+                    disabled
+                  />
+                  <div className="mt-3 flex items-end justify-between">
                     <div className="flex-1">
                       <CustomInput
-                        label="휴대폰 번호"
-                        placeholder="000-0000-0000"
-                        value={phoneFormatted}
-                        onChange={(e) => setPhoneRaw(e.target.value)}
+                        label="인증번호"
+                        placeholder="인증번호 6자리를 입력해주세요"
+                        value={sms.otp}
+                        onChange={(e) => sms.setOtp(e.target.value)}
                         inputMode="numeric"
-                        maxLength={13}
+                        maxLength={6}
                       />
                     </div>
                     <div className="flex ml-3 mb-1 space-x-2">
                       <button
                         type="button"
                         className="text-sm text-gr whitespace-nowrap"
-                        onClick={() => {
-                          setPhoneRaw(authUser?.phoneNumber?.replace(/-/g, "") || "");
-                          setPhoneStage("view");
-                        }}
+                        onClick={() => sms.cancel(authUser?.phoneNumber)}
                       >
                         취소
                       </button>
                       <button
                         type="button"
-                        className="text-sm text-brand font-medium whitespace-nowrap"
-                        onClick={() => {
-                          if (!isPhoneValid) {
-                            setToastMessage("올바른 휴대폰 번호를 입력해주세요.");
-                            setShowToast(true);
-                            return;
-                          }
-                          handleSendOtp();
-                        }}
-                        disabled={sendVerification.isPending}
+                        className="text-sm text-gr whitespace-nowrap"
+                        onClick={sms.resendOtp}
+                        disabled={sms.isSending}
                       >
-                        {sendVerification.isPending ? "발송 중..." : "인증번호 발송"}
+                        재전송
+                      </button>
+                      <button
+                        type="button"
+                        className="text-sm text-brand font-medium whitespace-nowrap"
+                        onClick={sms.verifyOtp}
+                        disabled={sms.otp.trim().length < 4 || sms.isVerifying}
+                      >
+                        {sms.isVerifying ? "확인 중..." : "인증 확인"}
                       </button>
                     </div>
                   </div>
-                </div>
-              )}
-
-              {phoneStage === "otp" && (
-                <div>
-                  <CustomInput
-                    label="휴대폰 번호"
-                    value={phoneFormatted}
-                    readOnly
-                    disabled
-                  />
-                  <div className="mt-3">
-                    <div className="flex items-end justify-between">
-                      <div className="flex-1">
-                        <CustomInput
-                          label="인증번호"
-                          placeholder="인증번호 6자리를 입력해주세요"
-                          value={otp}
-                          onChange={(e) => setOtp(e.target.value)}
-                          inputMode="numeric"
-                          maxLength={6}
-                        />
-                      </div>
-                      <div className="flex ml-3 mb-1 space-x-2">
-                        <button
-                          type="button"
-                          className="text-sm text-gr whitespace-nowrap"
-                          onClick={() => {
-                            setPhoneRaw(authUser?.phoneNumber?.replace(/-/g, "") || "");
-                            setPhoneStage("view");
-                            setExpireAt(null);
-                          }}
-                        >
-                          취소
-                        </button>
-                        <button
-                          type="button"
-                          className="text-sm text-gr whitespace-nowrap"
-                          onClick={handleSendOtp}
-                          disabled={sendVerification.isPending}
-                        >
-                          재전송
-                        </button>
-                        <button
-                          type="button"
-                          className="text-sm text-brand font-medium whitespace-nowrap"
-                          onClick={handleVerifyOtp}
-                          disabled={otp.trim().length < 4 || verifyCode.isPending}
-                        >
-                          {verifyCode.isPending ? "확인 중..." : "인증 확인"}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  {countdown && (
-                    <p className="mt-1 text-sm text-brand text-right">{countdown}</p>
+                  {sms.countdown && (
+                    <p className="mt-1 text-sm text-brand text-right">{sms.countdown}</p>
                   )}
                 </div>
               )}
@@ -439,7 +354,7 @@ export default function ProfileEditPage() {
         </div>
       </Container>
 
-      {/* 저장 버튼 — 전화번호는 인증으로만 변경, 여기선 닉네임/이미지만 저장 */}
+      {/* 저장 버튼 */}
       <div className="fixed left-0 right-0 z-50 px-4 bottom-10">
         <div className="max-w-[380px] mx-auto">
           <BigButton

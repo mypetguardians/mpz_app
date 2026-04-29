@@ -308,11 +308,13 @@ export default function ProfileEditPage() {
                   <div className="mt-3">
                     <CustomInput
                       label="인증번호"
-                      placeholder="인증번호 6자리를 입력해주세요"
-                      value={sms.otp}
+                      placeholder={sms.isExpired ? "인증번호가 만료되었습니다" : "인증번호 6자리를 입력해주세요"}
+                      value={sms.isExpired ? "" : sms.otp}
                       onChange={(e) => sms.setOtp(e.target.value)}
                       inputMode="numeric"
                       maxLength={6}
+                      readOnly={sms.isExpired}
+                      disabled={sms.isExpired}
                     />
                   </div>
                   <div className="flex justify-end mt-2 space-x-3">
@@ -325,23 +327,27 @@ export default function ProfileEditPage() {
                     </button>
                     <button
                       type="button"
-                      className="text-sm text-gr"
+                      className={`text-sm font-medium ${sms.isExpired ? "text-brand" : "text-gr"}`}
                       onClick={sms.resendOtp}
                       disabled={sms.isSending}
                     >
-                      재전송
+                      {sms.isSending ? "발송 중..." : "재전송"}
                     </button>
-                    <button
-                      type="button"
-                      className="text-sm text-brand font-medium"
-                      onClick={sms.verifyOtp}
-                      disabled={sms.otp.trim().length < 4 || sms.isVerifying}
-                    >
-                      {sms.isVerifying ? "확인 중..." : "인증 확인"}
-                    </button>
+                    {!sms.isExpired && (
+                      <button
+                        type="button"
+                        className="text-sm text-brand font-medium"
+                        onClick={sms.verifyOtp}
+                        disabled={sms.otp.trim().length < 4 || sms.isVerifying}
+                      >
+                        {sms.isVerifying ? "확인 중..." : "인증 확인"}
+                      </button>
+                    )}
                   </div>
                   {sms.countdown && (
-                    <p className="mt-1 text-sm text-brand text-right">{sms.countdown}</p>
+                    <p className={`mt-1 text-sm text-right ${sms.isExpired ? "text-error" : "text-brand"}`}>
+                      {sms.isExpired ? "만료됨" : sms.countdown}
+                    </p>
                   )}
                 </div>
               )}

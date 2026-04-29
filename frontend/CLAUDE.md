@@ -78,6 +78,7 @@ Next.js 15 (App Router), React 19, Capacitor 7 (iOS/Android/Web), Tailwind CSS, 
 8. **전문가 의견 vs 센터 등록 구분** — "전문가 관련 주석 처리" 요청 시 상세 페이지만 해당. 센터 입력 폼은 별개
 9. **useEffect 초기 마운트 vs 변경 구분** — sessionStorage 정리 등 부수효과가 초기 마운트에서도 실행되는지 확인. 뒤로가기 복원과 충돌 가능
 10. **CSS 애니메이션은 compositor 속성 우선** — opacity/transform 사용. margin/padding 변경은 layout shift 유발
+11. **모바일 뷰포트는 100svh 사용** — `100vh`는 모바일 주소창 show/hide 시 높이가 변해서 상하단 잘림 발생. `100svh`(small viewport height)로 고정
 
 ## 빌드 주의
 - NEXT_PUBLIC_* 변경 시 Dockerfile ARG, deploy.yml build-args, docker-compose env 3곳 동기화 필수

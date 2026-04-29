@@ -1,14 +1,16 @@
 "use client";
 
 import React from "react";
-import axios from "axios";
 
 import { Input } from "@/components/ui/CustomInput";
 import { FixedBottomBar } from "@/components/ui/FixedBottomBar";
 import { NotificationToast } from "@/components/ui/NotificationToast";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useAdoptionVerificationStore } from "@/lib/stores";
-import { useUpdateProfile } from "@/hooks/mutation/useUpdateProfile";
+import {
+  useSendPhoneVerification,
+  useVerifyPhoneCode,
+} from "@/hooks/mutation/usePhoneVerification";
 
 export interface StepProps {
   onNext: () => void;
@@ -25,43 +27,34 @@ function formatPhone(input: string): string {
 }
 
 export function Step1({ onNext }: StepProps) {
-  // stage: 휴대폰 입력 → OTP 입력
   const [stage, setStage] = React.useState<"phone" | "otp">("phone");
 
-  // phone input
   const [raw, setRaw] = React.useState("");
   const phone = formatPhone(raw);
   const phoneDigits = raw.replace(/\D/g, "");
   const isPhoneValid = phoneDigits.length === 11;
 
-  // otp input
   const [otp, setOtp] = React.useState("");
   const [expireAt, setExpireAt] = React.useState<number | null>(null);
   const [nowTs, setNowTs] = React.useState<number>(Date.now());
 
-  // toast state
   const [showToast, setShowToast] = React.useState(false);
   const [toastMessage, setToastMessage] = React.useState("");
-  const [toastType, setToastType] = React.useState<"success" | "error">(
-    "error"
-  );
+  const [toastType, setToastType] = React.useState<"success" | "error">("error");
 
-  const { user, updateUser, setUserFromToken } = useAuth();
+  const { user, setUserFromToken } = useAuth();
   const {
     data: storeData,
     updateField,
     setStepData,
   } = useAdoptionVerificationStore(user?.id);
-  const updateProfileMutation = useUpdateProfile();
+
+  const sendVerification = useSendPhoneVerification();
+  const verifyCode = useVerifyPhoneCode();
 
   React.useEffect(() => {
     if (storeData?.phone) {
       setRaw(storeData.phone);
-    } else if (typeof window !== "undefined") {
-      const savedPhone = sessionStorage.getItem("verification.phone");
-      if (savedPhone) {
-        setRaw(savedPhone);
-      }
     }
   }, [storeData?.phone]);
 
@@ -84,58 +77,26 @@ export function Step1({ onNext }: StepProps) {
     setShowToast(true);
   };
 
-  const generateOtp = (): string => {
-    // 6자리 랜덤 인증번호 생성
-    return Math.floor(100000 + Math.random() * 900000).toString();
-  };
-
-  const sendSmsOtp = async (phoneNumber: string, otpCode: string) => {
-    const response = await axios.post(
-      "https://blink-production-37f6.up.railway.app/v1/sms/eddb3903-746e-4833-ba19-e8f3aede8680/send",
-      {
-        recipient_phone: phoneNumber,
-        message: `인증번호는 [${otpCode}] 입니다.`,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "X-API-Key": "S1jNIx7UUWKasmzpFGE7F6dET9syiR3R_BLqsyHjMiA",
-        },
-      }
-    );
-    return response.data;
-  };
-
   const requestOtp = async () => {
     if (!isPhoneValid) {
       showErrorToast("올바른 휴대폰 번호를 입력해주세요.");
       return;
     }
     try {
-      const otpCode = generateOtp();
-      sessionStorage.setItem("verification.phone", phoneDigits);
-      sessionStorage.setItem("verification.otp", otpCode);
-      await sendSmsOtp(phoneDigits, otpCode);
-      setExpireAt(Date.now() + 3 * 60 * 1000);
+      await sendVerification.mutateAsync({ phone_number: phoneDigits });
+      setExpireAt(Date.now() + 5 * 60 * 1000);
       setOtp("");
       setStage("otp");
-      setStepData({
-        phone: phone,
-      });
+      setStepData({ phone: phone });
     } catch (error: unknown) {
-      console.error("OTP 발급 실패:", error);
-      let errorMessage = "인증번호 발송에 실패했습니다. 다시 시도해주세요.";
-      if (axios.isAxiosError(error)) {
-        const data = error.response?.data as { message?: string } | undefined;
-        if (typeof data?.message === "string") {
-          errorMessage = data.message;
-        }
-      }
-      showErrorToast(errorMessage);
+      const message =
+        (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+        "인증번호 발송에 실패했습니다. 다시 시도해주세요.";
+      showErrorToast(message);
     }
   };
 
-  const verifyOtp = async () => {
+  const handleVerifyOtp = async () => {
     if (otp.trim().length < 4) {
       showErrorToast("인증번호를 입력해주세요.");
       return;
@@ -145,48 +106,27 @@ export function Step1({ onNext }: StepProps) {
       return;
     }
     try {
-      // 프론트엔드에서 생성한 인증번호와 비교
-      const storedOtp = sessionStorage.getItem("verification.otp");
+      await verifyCode.mutateAsync({
+        phone_number: phoneDigits,
+        verification_code: otp.trim(),
+      });
 
-      if (otp.trim() === storedOtp) {
-        // 인증 성공
-        sessionStorage.removeItem("verification.otp"); // 사용한 인증번호 제거
-        sessionStorage.setItem("verification.phone", phone); // 포맷된 번호 유지
-        updateField("phone", phone);
-        updateField("isPhoneVerified", true);
+      updateField("phone", phone);
+      updateField("isPhoneVerified", true);
 
-        // 서버에 핸드폰 번호 업데이트
-        if (user) {
-          try {
-            await updateProfileMutation.mutateAsync({
-              phone_number: phoneDigits,
-              is_phone_verified: true,
-            });
-
-            // AuthProvider의 사용자 정보도 업데이트
-            updateUser({
-              phoneNumber: phone,
-            });
-
-            // 서버에서 최신 사용자 정보를 다시 가져오기
-            try {
-              await setUserFromToken();
-            } catch (error) {
-              console.error("사용자 정보 새로고침 실패:", error);
-            }
-          } catch (error) {
-            console.error("프로필 업데이트 실패:", error);
-            // 프로필 업데이트 실패해도 인증은 완료된 것으로 처리
-          }
-        }
-
-        onNext();
-      } else {
-        showErrorToast("인증번호가 올바르지 않습니다. 다시 확인해주세요.");
+      // 서버에서 최신 사용자 정보 갱신
+      try {
+        await setUserFromToken();
+      } catch {
+        // 갱신 실패해도 인증은 완료
       }
+
+      onNext();
     } catch (error: unknown) {
-      console.error("OTP 검증 실패:", error);
-      showErrorToast("인증번호 검증에 실패했습니다. 다시 시도해주세요.");
+      const message =
+        (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+        "인증번호가 올바르지 않습니다. 다시 확인해주세요.";
+      showErrorToast(message);
     }
   };
 
@@ -196,24 +136,17 @@ export function Step1({ onNext }: StepProps) {
       return;
     }
     try {
-      const otpCode = generateOtp();
-      sessionStorage.setItem("verification.otp", otpCode);
-      await sendSmsOtp(phoneDigits, otpCode);
-      setExpireAt(Date.now() + 3 * 60 * 1000);
+      await sendVerification.mutateAsync({ phone_number: phoneDigits });
+      setExpireAt(Date.now() + 5 * 60 * 1000);
       setOtp("");
       setToastMessage("인증번호를 재전송했습니다.");
       setToastType("success");
       setShowToast(true);
     } catch (error: unknown) {
-      console.error("OTP 재전송 실패:", error);
-      let errorMessage = "인증번호 재전송에 실패했습니다. 다시 시도해주세요.";
-      if (axios.isAxiosError(error)) {
-        const data = error.response?.data as { message?: string } | undefined;
-        if (typeof data?.message === "string") {
-          errorMessage = data.message;
-        }
-      }
-      showErrorToast(errorMessage);
+      const message =
+        (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+        "인증번호 재전송에 실패했습니다. 다시 시도해주세요.";
+      showErrorToast(message);
     }
   };
 
@@ -249,7 +182,12 @@ export function Step1({ onNext }: StepProps) {
               maxLength={6}
               time={countdown}
               action={
-                <button type="button" className="text-gr" onClick={resendOtp}>
+                <button
+                  type="button"
+                  className="text-gr"
+                  onClick={resendOtp}
+                  disabled={sendVerification.isPending}
+                >
                   재전송
                 </button>
               }
@@ -261,9 +199,11 @@ export function Step1({ onNext }: StepProps) {
       <FixedBottomBar
         variant="variant1"
         primaryButtonText="확인"
-        onPrimaryButtonClick={stage === "phone" ? requestOtp : verifyOtp}
+        onPrimaryButtonClick={stage === "phone" ? requestOtp : handleVerifyOtp}
         primaryButtonDisabled={
-          stage === "phone" ? !isPhoneValid : otp.trim().length < 4
+          stage === "phone"
+            ? !isPhoneValid || sendVerification.isPending
+            : otp.trim().length < 4 || verifyCode.isPending
         }
       />
 

@@ -26,7 +26,7 @@ async def send_sms(receiver: str, message: str) -> bool:
             )
             result = response.json()
 
-            if result.get("result_code") == 1:
+            if int(result.get("result_code", 0)) > 0:
                 logger.info("SMS 발송 성공: receiver=%s", receiver)
                 return True
             else:

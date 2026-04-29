@@ -139,6 +139,7 @@ export function KakaoButton({
         redirectUri
       )}&response_type=code&state=${state}`;
 
+      console.log("🔗 카카오 인증 URL:", kakaoAuthUrl);
       window.location.href = kakaoAuthUrl;
     } catch (error) {
       console.error("카카오 로그인 시작 중 오류:", error);

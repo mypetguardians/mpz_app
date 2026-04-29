@@ -1,5 +1,6 @@
 "use client";
 
+import { Loading } from "@/components/common/Loading";
 import React, { useState } from "react";
 import Image from "next/image";
 import { getProxyImageUrl } from "@/lib/getProxyImageUrl";
@@ -217,7 +218,7 @@ export default function MyPage() {
           <div className="space-y-2">
             {adoptionsLoading ? (
               <div className="p-4 bg-white border border-lg rounded-lg">
-                <div className="text-center text-gr">로딩 중...</div>
+                <Loading size="sm" />
               </div>
             ) : adoptionsError ? (
               <div className="p-4 bg-white border border-lg rounded-lg">

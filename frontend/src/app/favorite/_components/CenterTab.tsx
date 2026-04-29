@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { CenterCard } from "@/components/ui/CenterCard";
+import { Buildings } from "@phosphor-icons/react";
+import { EmptyState } from "@/components/common/EmptyState";
 import { useGetCenterFavorites, useToggleCenterFavorite } from "@/hooks";
 import { CenterCardSkeleton } from "@/components/ui/CenterCardSkeleton";
 import type { CenterFavorite } from "@/types/favorites";
@@ -121,11 +123,7 @@ function CenterTab() {
 
   // 데이터가 없고 로딩 중이 아닌 경우
   if (centers.length === 0 && !isLoading) {
-    return (
-      <div className="text-center py-8">
-        <div className="text-gray-500">찜한 센터가 없습니다</div>
-      </div>
-    );
+    return <EmptyState icon={Buildings} title="찜한 센터가 없습니다" description="관심 있는 센터를 찜해보세요" />;
   }
 
   return (
@@ -176,12 +174,6 @@ function CenterTab() {
         </div>
       )}
 
-      {/* 전체 개수 표시 */}
-      {total > 0 && (
-        <div className="text-center py-2 text-sm text-gray-500">
-          총 {total}개의 찜한 센터
-        </div>
-      )}
     </div>
   );
 }

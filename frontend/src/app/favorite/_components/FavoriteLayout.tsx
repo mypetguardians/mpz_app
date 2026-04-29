@@ -13,6 +13,8 @@ import { NavBar } from "@/components/common/NavBar";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useGetNotifications } from "@/hooks/query/useGetNotifications";
 import { useNotificationSocket } from "@/hooks/useNotificationSocket";
+import { useGetAnimalFavorites, useGetCenterFavorites } from "@/hooks/query/useGetFavorites";
+import { numberWithComma } from "@/lib/format-utils";
 
 interface FavoriteLayoutProps {
   children: React.ReactNode;
@@ -33,12 +35,25 @@ export function FavoriteLayout({ children }: FavoriteLayoutProps) {
     return list.some((n) => n.is_read === false);
   }, [isAuthenticated, isConnected, socketUnreadCount, notificationsData]);
 
-  // 현재 경로에서 활성 탭 결정
+  const { data: animalData } = useGetAnimalFavorites();
+  const { data: centerData } = useGetCenterFavorites();
+
+  const animalCount = animalData?.total ?? 0;
+  const centerCount = centerData?.total ?? 0;
+
   const activeTab = pathname.includes("/center") ? "center" : "animal";
 
   const tabs = [
-    { label: "동물", value: "animal", href: "/favorite/animal" },
-    { label: "보호센터", value: "center", href: "/favorite/center" },
+    {
+      label: `동물 ${animalCount > 0 ? numberWithComma(animalCount) : ""}`,
+      value: "animal",
+      href: "/favorite/animal",
+    },
+    {
+      label: `보호센터 ${centerCount > 0 ? numberWithComma(centerCount) : ""}`,
+      value: "center",
+      href: "/favorite/center",
+    },
   ];
 
   return (
@@ -63,7 +78,7 @@ export function FavoriteLayout({ children }: FavoriteLayoutProps) {
             </Link>
           ) : (
             <Link href="/login">
-              <div className="flex items-center gap-2 cursor-pointer">
+              <div className="flex items-center cursor-pointer">
                 <button>로그인</button>
               </div>
             </Link>

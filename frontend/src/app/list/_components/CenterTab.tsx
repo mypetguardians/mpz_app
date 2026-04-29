@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { Buildings } from "@phosphor-icons/react";
+import { EmptyState } from "@/components/common/EmptyState";
 import { CenterCard } from "@/components/ui/CenterCard";
 import { useGetCenters } from "@/hooks/query/useGetCenters";
 import { useBatchCenterFavorites } from "@/hooks/query/useBatchCenterFavorites";
@@ -180,11 +182,7 @@ function CenterTab() {
 
   // 데이터가 없는 경우
   if (allCenters.length === 0 && !isLoading) {
-    return (
-      <div className="py-8 text-center">
-        <div className="text-gray-500">등록된 센터가 없습니다</div>
-      </div>
-    );
+    return <EmptyState icon={Buildings} title="등록된 센터가 없습니다" />;
   }
 
   return (

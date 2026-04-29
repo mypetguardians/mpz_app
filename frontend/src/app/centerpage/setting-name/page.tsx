@@ -244,9 +244,7 @@ export default function CenterSettingName() {
             </div>
           }
         />
-        <div className="w-full flex items-center justify-center min-h-[400px]">
-          <Loading size="sm" />
-        </div>
+        <Loading fullScreen />
       </Container>
     );
   }

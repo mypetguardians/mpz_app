@@ -163,7 +163,7 @@ export default function MyPage() {
                   </div>
                 ) : (
                   <h4 className="text-black">
-                    <Loading size="sm" message="센터 정보를 불러오는 중..." />
+                    <Loading size="sm" />
                   </h4>
                 )}
                 {isSubscriber && (

@@ -45,9 +45,7 @@ export default function MyAccountPage() {
             </div>
           }
         />
-        <div className="flex items-center justify-center h-64">
-          <Loading size="sm" />
-        </div>
+        <Loading fullScreen />
       </Container>
     );
   }

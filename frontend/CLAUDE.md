@@ -31,12 +31,13 @@ Next.js 15 (App Router), React 19, Capacitor 7 (iOS/Android/Web), Tailwind CSS, 
 - **JSON-LD**: 상세 페이지에 구조화 데이터 포함. schema.org 기준
 - **`<h1>` 1개**: 페이지당 h1 태그 1개만 사용
 - **`<a href>`**: JS 호출 대신 실제 URL href 사용. 검색로봇 링크 추출용
+- **색인 대기**: SEO 코드 작업 후 실제 검색 노출까지 수일~수주 소요
 
 ## 서버/클라이언트 컴포넌트 패턴
 - "use client" page.tsx에는 `export const metadata` 사용 불가
 - 정적 메타데이터 필요 시: 같은 폴더에 서버 컴포넌트 layout.tsx를 만들어 metadata export
 - 동적 메타데이터 필요 시: page.tsx를 서버 컴포넌트로, 클라이언트 로직은 `_components/`로 분리
-- React hooks는 QueryClientProvider 등 해당 Provider 하위에서만 사용 가능. Provider 바깥이면 CustomEvent 등으로 우회
+- Provider 하위에서만 hooks 사용 — Provider 바깥이면 CustomEvent 등으로 우회
 
 ## 인증/상태 렌더링
 - 인증 상태(`isAuthenticated`) 기반 조건부 렌더링 시 반드시 로딩 상태 체크 먼저
@@ -53,7 +54,7 @@ Next.js 15 (App Router), React 19, Capacitor 7 (iOS/Android/Web), Tailwind CSS, 
   - `getScrollElement`: useCallback(() => document.getElementById("list-scroll-container"), [])
   - useEffect + useRef 방식은 Next.js App Router 캐시 복원 시 미실행되므로 금지
   - AnimalTab: 2열 row 단위 가상화 (estimateSize 256, gap 8, overscan 2)
-  - CenterTab: 1열 measureElement (estimateSize 95, gap 16, overscan 3)
+  - CenterTab: 1열 (estimateSize 63, gap 16, overscan 3)
 - **검색/필터 hide/show**: opacity + negative margin transition (sticky, useScrollVisibility 훅)
   - 뒤로가기 시: useLayoutEffect로 초기 visible=false 설정 + initialized 전까지 transition 없음
   - 프로그래밍적 scrollTo의 큰 delta(>300px)는 방향 감지에서 무시
@@ -66,7 +67,20 @@ Next.js 15 (App Router), React 19, Capacitor 7 (iOS/Android/Web), Tailwind CSS, 
 - **찜 상태**: useBatchAnimalFavorites / useBatchCenterFavorites (N콜→1콜)
   - localFavorites로 optimistic update, React.memo 커스텀 비교
 
+## FE 개발 규칙
+1. **공통 컴포넌트 우선 사용** — CustomInput, BigButton, TopBar, Container 등 기존 컴포넌트 우선. 직접 HTML 작성 최소화
+2. **flex gap 사용 금지** — 웹뷰 일정 버전에서 미지원. margin 또는 space-y/space-x 또는 grid gap 사용
+3. **/dev 페이지 prod 접근 금지** — dev/layout.tsx에서 prod 환경 차단
+4. **UI 구성 전 디자인 팔레트 참고** — `/dev/palette` 페이지의 컬러, 타이포그래피, 간격 규격 참고
+5. **Tailwind 예약어 충돌 주의** — 커스텀 색상명이 lg, xl 등과 겹치면 오염. font-size는 `text-[18px]` 고정값 권장
+6. **입양 문의 분기 처리** — 구독 센터: 앱 내 입양 신청, 비구독 센터: 전화 연결 바텀시트
+7. **UX 라이팅 가이드 참고** — `frontend/WRITING_GUIDE.md` 참고. 해요체, 기술용어 미노출
+8. **전문가 의견 vs 센터 등록 구분** — "전문가 관련 주석 처리" 요청 시 상세 페이지만 해당. 센터 입력 폼은 별개
+9. **useEffect 초기 마운트 vs 변경 구분** — sessionStorage 정리 등 부수효과가 초기 마운트에서도 실행되는지 확인. 뒤로가기 복원과 충돌 가능
+10. **CSS 애니메이션은 compositor 속성 우선** — opacity/transform 사용. margin/padding 변경은 layout shift 유발
+
 ## 빌드 주의
 - NEXT_PUBLIC_* 변경 시 Dockerfile ARG, deploy.yml build-args, docker-compose env 3곳 동기화 필수
 - ESLint strict — 미사용 import/변수 있으면 빌드 실패
 - Dockerfile에 CACHE_BUST ARG로 캐시 무효화
+- 코드 수정 시 `npx tsc --noEmit`으로 빌드 통과 검토. EC2에서 빌드 실패하면 서비스 다운 위험

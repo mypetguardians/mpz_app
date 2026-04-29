@@ -174,12 +174,6 @@ function CenterTab() {
         </div>
       )}
 
-      {/* 전체 개수 표시 */}
-      {total > 0 && (
-        <div className="text-center py-2 text-sm text-gray-500">
-          총 {total}개의 찜한 센터
-        </div>
-      )}
     </div>
   );
 }

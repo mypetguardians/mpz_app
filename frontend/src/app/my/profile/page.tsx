@@ -369,10 +369,7 @@ export default function ProfileEditPage() {
       </div>
 
       {showToast && (
-        <Toast
-          onClick={() => setShowToast(false)}
-          className="fixed bottom-3 left-1/2 transform -translate-x-1/2 z-[9999]"
-        >
+        <Toast onClick={() => setShowToast(false)}>
           {toastMessage}
         </Toast>
       )}

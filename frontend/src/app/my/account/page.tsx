@@ -1,5 +1,6 @@
 "use client";
 
+import { Loading } from "@/components/common/Loading";
 import { useState } from "react";
 import { ArrowLeft } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
@@ -45,7 +46,7 @@ export default function MyAccountPage() {
           }
         />
         <div className="flex items-center justify-center h-64">
-          <p className="text-gray-500">로딩 중...</p>
+          <Loading size="sm" />
         </div>
       </Container>
     );

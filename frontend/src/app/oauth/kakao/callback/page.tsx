@@ -1,5 +1,6 @@
 "use client";
 
+import { Loading } from "@/components/common/Loading";
 import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -195,7 +196,7 @@ export default function KakaoCallbackPage() {
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-            <p className="text-lg">로딩 중...</p>
+            <Loading size="lg" />
           </div>
         </div>
       }

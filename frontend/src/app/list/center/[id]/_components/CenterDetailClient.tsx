@@ -1,5 +1,6 @@
 "use client";
 
+import { Loading } from "@/components/common/Loading";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 
@@ -51,7 +52,7 @@ export default function CenterDetailClient({ id }: CenterDetailClientProps) {
   if (centerLoading) {
     return (
       <Container className="min-h-screen">
-        <div className="text-center py-8">로딩 중...</div>
+        <Loading fullScreen size="sm" />
       </Container>
     );
   }

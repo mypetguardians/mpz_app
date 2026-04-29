@@ -1,5 +1,6 @@
 "use client";
 
+import { Loading } from "@/components/common/Loading";
 import { useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "@phosphor-icons/react";
@@ -79,7 +80,7 @@ function FosterPageContent() {
 
       {/* 탭 컨텐츠 */}
       <div className="p-4">
-        <Suspense fallback={<div>로딩 중...</div>}>
+        <Suspense fallback={<Loading fullScreen size="sm" />}>
           <AdoptorListTab />
         </Suspense>
       </div>
@@ -90,7 +91,7 @@ function FosterPageContent() {
 
 export default function FosterPage() {
   return (
-    <Suspense fallback={<div>로딩 중...</div>}>
+    <Suspense fallback={<Loading fullScreen size="sm" />}>
       <FosterPageContent />
     </Suspense>
   );

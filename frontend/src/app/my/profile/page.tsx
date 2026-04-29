@@ -1,5 +1,6 @@
 "use client";
 
+import { Loading } from "@/components/common/Loading";
 import { useState, useEffect } from "react";
 import { ArrowLeft } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
@@ -161,7 +162,7 @@ export default function ProfileEditPage() {
           }
         />
         <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-gray-500">프로필 정보를 불러오는 중...</div>
+          <Loading size="sm" message="프로필 정보를 불러오는 중..." />
         </div>
       </Container>
     );

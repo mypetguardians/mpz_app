@@ -299,6 +299,7 @@ if LANGCHAIN_TRACING_V2:
 ALIGO_API_KEY = config("ALIGO_API_KEY", default="")
 ALIGO_USER_ID = config("ALIGO_USER_ID", default="")
 ALIGO_SENDER = config("ALIGO_SENDER", default="")
+ALIGO_TESTMODE = config("ALIGO_TESTMODE", default="N")
 
 # Firebase Admin SDK 초기화
 try:

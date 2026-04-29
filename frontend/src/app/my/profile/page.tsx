@@ -62,6 +62,13 @@ export default function ProfileEditPage() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
+  // 토스트 자동 dismiss (3초)
+  useEffect(() => {
+    if (!showToast) return;
+    const timer = setTimeout(() => setShowToast(false), 3000);
+    return () => clearTimeout(timer);
+  }, [showToast]);
+
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       router.push("/login");
@@ -303,55 +310,70 @@ export default function ProfileEditPage() {
             <div className="space-y-3">
               {phoneStage === "view" && (
                 <div>
-                  <CustomInput
-                    label="휴대폰 번호"
-                    value={isPhoneVerified ? phoneFormatted : ""}
-                    placeholder="인증된 번호가 없습니다"
-                    readOnly
-                    disabled
-                  />
-                  <button
-                    type="button"
-                    className="mt-2 text-sm text-brand font-medium"
-                    onClick={() => {
-                      setPhoneRaw("");
-                      setPhoneStage("input");
-                    }}
-                  >
-                    {isPhoneVerified ? "번호 변경하기" : "휴대폰 인증하기"}
-                  </button>
+                  <div className="flex items-end justify-between">
+                    <div className="flex-1">
+                      <CustomInput
+                        label="휴대폰 번호"
+                        value={isPhoneVerified ? phoneFormatted : ""}
+                        placeholder="인증된 번호가 없습니다"
+                        readOnly
+                        disabled
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      className="ml-3 mb-1 text-sm text-brand font-medium whitespace-nowrap"
+                      onClick={() => {
+                        setPhoneRaw("");
+                        setPhoneStage("input");
+                      }}
+                    >
+                      {isPhoneVerified ? "번호 변경" : "인증하기"}
+                    </button>
+                  </div>
                 </div>
               )}
 
               {phoneStage === "input" && (
                 <div>
-                  <CustomInput
-                    label="휴대폰 번호"
-                    placeholder="000-0000-0000"
-                    value={phoneFormatted}
-                    onChange={(e) => setPhoneRaw(e.target.value)}
-                    inputMode="numeric"
-                    maxLength={13}
-                  />
-                  <div className="flex mt-2 space-x-2">
-                    <button
-                      type="button"
-                      className="text-sm text-gr"
-                      onClick={() => {
-                        setPhoneRaw(authUser?.phoneNumber?.replace(/-/g, "") || "");
-                        setPhoneStage("view");
-                      }}
-                    >
-                      취소
-                    </button>
-                    <button
-                      type="button"
-                      className="text-sm text-brand font-medium"
-                      onClick={handleSendOtp}
-                      disabled={!isPhoneValid || sendVerification.isPending}
-                    >
-                      {sendVerification.isPending ? "발송 중..." : "인증번호 발송"}
-                    </button>
+                  <div className="flex items-end justify-between">
+                    <div className="flex-1">
+                      <CustomInput
+                        label="휴대폰 번호"
+                        placeholder="000-0000-0000"
+                        value={phoneFormatted}
+                        onChange={(e) => setPhoneRaw(e.target.value)}
+                        inputMode="numeric"
+                        maxLength={13}
+                      />
+                    </div>
+                    <div className="flex ml-3 mb-1 space-x-2">
+                      <button
+                        type="button"
+                        className="text-sm text-gr whitespace-nowrap"
+                        onClick={() => {
+                          setPhoneRaw(authUser?.phoneNumber?.replace(/-/g, "") || "");
+                          setPhoneStage("view");
+                        }}
+                      >
+                        취소
+                      </button>
+                      <button
+                        type="button"
+                        className="text-sm text-brand font-medium whitespace-nowrap"
+                        onClick={() => {
+                          if (!isPhoneValid) {
+                            setToastMessage("올바른 휴대폰 번호를 입력해주세요.");
+                            setShowToast(true);
+                            return;
+                          }
+                          handleSendOtp();
+                        }}
+                        disabled={sendVerification.isPending}
+                      >
+                        {sendVerification.isPending ? "발송 중..." : "인증번호 발송"}
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -365,47 +387,51 @@ export default function ProfileEditPage() {
                     disabled
                   />
                   <div className="mt-3">
-                    <CustomInput
-                      label="인증번호"
-                      placeholder="인증번호 6자리를 입력해주세요"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                      inputMode="numeric"
-                      maxLength={6}
-                    />
+                    <div className="flex items-end justify-between">
+                      <div className="flex-1">
+                        <CustomInput
+                          label="인증번호"
+                          placeholder="인증번호 6자리를 입력해주세요"
+                          value={otp}
+                          onChange={(e) => setOtp(e.target.value)}
+                          inputMode="numeric"
+                          maxLength={6}
+                        />
+                      </div>
+                      <div className="flex ml-3 mb-1 space-x-2">
+                        <button
+                          type="button"
+                          className="text-sm text-gr whitespace-nowrap"
+                          onClick={() => {
+                            setPhoneRaw(authUser?.phoneNumber?.replace(/-/g, "") || "");
+                            setPhoneStage("view");
+                            setExpireAt(null);
+                          }}
+                        >
+                          취소
+                        </button>
+                        <button
+                          type="button"
+                          className="text-sm text-gr whitespace-nowrap"
+                          onClick={handleSendOtp}
+                          disabled={sendVerification.isPending}
+                        >
+                          재전송
+                        </button>
+                        <button
+                          type="button"
+                          className="text-sm text-brand font-medium whitespace-nowrap"
+                          onClick={handleVerifyOtp}
+                          disabled={otp.trim().length < 4 || verifyCode.isPending}
+                        >
+                          {verifyCode.isPending ? "확인 중..." : "인증 확인"}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                   {countdown && (
-                    <p className="mt-1 text-sm text-brand">{countdown}</p>
+                    <p className="mt-1 text-sm text-brand text-right">{countdown}</p>
                   )}
-                  <div className="flex mt-2 space-x-2">
-                    <button
-                      type="button"
-                      className="text-sm text-gr"
-                      onClick={() => {
-                        setPhoneRaw(authUser?.phoneNumber?.replace(/-/g, "") || "");
-                        setPhoneStage("view");
-                        setExpireAt(null);
-                      }}
-                    >
-                      취소
-                    </button>
-                    <button
-                      type="button"
-                      className="text-sm text-gr"
-                      onClick={handleSendOtp}
-                      disabled={sendVerification.isPending}
-                    >
-                      재전송
-                    </button>
-                    <button
-                      type="button"
-                      className="text-sm text-brand font-medium"
-                      onClick={handleVerifyOtp}
-                      disabled={otp.trim().length < 4 || verifyCode.isPending}
-                    >
-                      {verifyCode.isPending ? "확인 중..." : "인증 확인"}
-                    </button>
-                  </div>
                 </div>
               )}
             </div>

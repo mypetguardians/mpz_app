@@ -356,7 +356,11 @@ export function useAnimalSearch({
                       localFavorite={localFavorites[animal.id]}
                       batchFavorite={batchFavorites?.[animal.id]}
                       onLikeToggle={handleLikeToggle}
-                      onNavigate={() => router.push(`/list/animal/${animal.id}`)}
+                      onNavigate={() => {
+                        const el = document.getElementById("list-scroll-container");
+                        if (el) sessionStorage.setItem("animalListScrollTop", String(el.scrollTop));
+                        router.push(`/list/animal/${animal.id}`);
+                      }}
                       variant="primary"
                       className="w-[calc(50%-4px)] cursor-pointer"
                     />

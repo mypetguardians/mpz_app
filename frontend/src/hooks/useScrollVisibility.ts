@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
 
 /**
  * 스크롤 방향에 따라 요소를 숨기거나 보여주는 커스텀 훅.
@@ -10,15 +10,35 @@ export function useScrollVisibility(
   threshold: number = 40
 ): {
   visible: boolean;
+  initialized: boolean;
   handleTransitionEnd: () => void;
 } {
   const [visible, setVisible] = useState(true);
+  const [initialized, setInitialized] = useState(false);
   const lastScrollTop = useRef(0);
   const isAnimating = useRef(false);
   const accumulatedDelta = useRef(0);
 
   const handleTransitionEnd = useCallback(() => {
     isAnimating.current = false;
+  }, []);
+
+  // 페인트 전: 스크롤 복원 예정이거나 이미 스크롤된 상태면 숨김으로 시작
+  useLayoutEffect(() => {
+    const el = scrollContainerRef.current;
+    const hasSavedScroll = typeof window !== "undefined" &&
+      !!(sessionStorage.getItem("animalListScrollTop") || sessionStorage.getItem("centerListScrollTop"));
+    if (hasSavedScroll || (el && el.scrollTop > 10)) {
+      setVisible(false);
+      if (el) lastScrollTop.current = el.scrollTop;
+    }
+  }, [scrollContainerRef]);
+
+  // 페인트 후 transition 활성화 (초기 상태 보정이 transition 없이 적용된 뒤)
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      setInitialized(true);
+    });
   }, []);
 
   const handleScroll = useCallback(() => {
@@ -34,6 +54,12 @@ export function useScrollVisibility(
     const currentScrollTop = el.scrollTop;
     const delta = currentScrollTop - lastScrollTop.current;
     lastScrollTop.current = currentScrollTop;
+
+    // 프로그래밍적 scrollTo에 의한 큰 점프는 무시 (스크롤 복원 등)
+    if (Math.abs(delta) > 300) {
+      accumulatedDelta.current = 0;
+      return;
+    }
 
     // 최상단에서는 잠금 무시하고 무조건 표시
     if (currentScrollTop <= 10) {
@@ -75,5 +101,5 @@ export function useScrollVisibility(
     return () => el.removeEventListener("scroll", handleScroll);
   }, [scrollContainerRef, handleScroll]);
 
-  return { visible, handleTransitionEnd };
+  return { visible, initialized, handleTransitionEnd };
 }

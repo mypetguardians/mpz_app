@@ -1,5 +1,6 @@
 "use client";
 
+import { Loading } from "@/components/common/Loading";
 import { useState, useEffect, useRef, type ChangeEvent } from "react";
 import { ArrowLeft } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
@@ -243,9 +244,7 @@ export default function CenterSettingName() {
             </div>
           }
         />
-        <div className="w-full flex items-center justify-center min-h-[400px]">
-          <div className="text-dg">로딩 중...</div>
-        </div>
+        <Loading fullScreen />
       </Container>
     );
   }

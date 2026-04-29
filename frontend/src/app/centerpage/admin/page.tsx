@@ -1,5 +1,6 @@
 "use client";
 
+import { Loading } from "@/components/common/Loading";
 import { ArrowLeft, Trash } from "@phosphor-icons/react";
 import { TopBar } from "@/components/common/TopBar";
 import { IconButton } from "@/components/ui/IconButton";
@@ -88,7 +89,7 @@ export default function AdminPage() {
           }
         />
         <div className="mx-4 mt-2.5">
-          <div className="text-center py-8">로딩 중...</div>
+          <Loading fullScreen size="sm" />
         </div>
       </Container>
     );

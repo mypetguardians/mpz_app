@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { PetCard } from "@/components/ui";
+import { PawPrint } from "@phosphor-icons/react";
+import { EmptyState } from "@/components/common/EmptyState";
 import { PetCardSkeleton } from "@/components/ui/PetCardSkeleton";
 import { useGetAnimalFavorites } from "@/hooks";
 
@@ -126,11 +128,7 @@ function AnimalTab() {
 
   // 데이터가 없고 로딩 중이 아닌 경우
   if (pets.length === 0 && !isLoading) {
-    return (
-      <div className="py-8 text-center">
-        <div className="text-gray-500">찜한 동물이 없습니다</div>
-      </div>
-    );
+    return <EmptyState icon={PawPrint} title="찜한 동물이 없습니다" description="마음에 드는 아이를 찜해보세요" />;
   }
 
   return (
@@ -211,12 +209,6 @@ function AnimalTab() {
         </div>
       )}
 
-      {/* 전체 개수 표시 */}
-      {total > 0 && (
-        <div className="py-2 text-sm text-center text-gray-500">
-          총 {total}개의 찜한 동물
-        </div>
-      )}
     </div>
   );
 }

@@ -17,7 +17,7 @@ export function Toast({
   disabled = false,
 }: ToastProps) {
   const baseClasses =
-    "bg-white text-brand body rounded-lg w-full flex items-top gap-2 p-3 max-w-[300px] mx-auto border border-brand-light opacity-100";
+    "fixed bottom-[88px] left-1/2 -translate-x-1/2 z-[9999] bg-white text-brand body rounded-lg w-full flex items-top gap-2 p-3 max-w-[300px] border border-brand-light opacity-100";
 
   return (
     <div

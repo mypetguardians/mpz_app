@@ -1,5 +1,6 @@
 "use client";
 
+import { Loading } from "@/components/common/Loading";
 import React, { useState } from "react";
 import Link from "next/link";
 import { SealCheck, User } from "@phosphor-icons/react";
@@ -162,7 +163,7 @@ export default function MyPage() {
                   </div>
                 ) : (
                   <h4 className="text-black">
-                    센터 정보를 불러오는 중입니다...
+                    <Loading size="sm" />
                   </h4>
                 )}
                 {isSubscriber && (

@@ -1,5 +1,6 @@
 "use client";
 
+import { Loading } from "@/components/common/Loading";
 import { useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "@phosphor-icons/react";
@@ -112,7 +113,7 @@ function AdopterPageContent() {
 
       {/* 탭 컨텐츠 */}
       <div className="p-4">
-        <Suspense fallback={<div>로딩 중...</div>}>
+        <Suspense fallback={<Loading fullScreen size="sm" />}>
           <AdoptorListTab />
         </Suspense>
       </div>
@@ -122,7 +123,7 @@ function AdopterPageContent() {
 
 export default function AdopterPage() {
   return (
-    <Suspense fallback={<div>로딩 중...</div>}>
+    <Suspense fallback={<Loading fullScreen size="sm" />}>
       <AdopterPageContent />
     </Suspense>
   );

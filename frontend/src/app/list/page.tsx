@@ -1,5 +1,6 @@
 "use client";
 
+import { Loading } from "@/components/common/Loading";
 import { Suspense } from "react";
 import { AnimalTab } from "./_components";
 
@@ -12,7 +13,7 @@ export default function ListPage() {
         <button>보호소</button>
       </div>
 
-      <Suspense fallback={<div>로딩 중...</div>}>
+      <Suspense fallback={<Loading fullScreen size="sm" />}>
         <AnimalTab />
       </Suspense>
 

@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "@phosphor-icons/react";
+import { ArrowLeft, ClipboardText } from "@phosphor-icons/react";
+import { EmptyState } from "@/components/common/EmptyState";
 
 import { TopBar } from "@/components/common/TopBar";
 import { Container } from "@/components/common/Container";
@@ -250,9 +251,7 @@ export default function AdoptionPage() {
             );
           })
         ) : (
-          <div className="text-center py-8 text-gray-500">
-            입양 신청 내역이 없습니다.
-          </div>
+          <EmptyState icon={ClipboardText} title="입양 신청 내역이 없습니다" />
         )}
       </div>
     </Container>

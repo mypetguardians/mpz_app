@@ -3,7 +3,7 @@
 	"version": "2.0.0",
 	"private": true,
 	"scripts": {
-		"dev": "next dev -p 3001 --turbopack",
+		"dev": "next dev -p 3001",
 		"build": "next build",
 		"start": "next start",
 		"lint": "next lint",
@@ -37,6 +37,7 @@
 		"embla-carousel-react": "^8.6.0",
 		"firebase": "^12.12.1",
 		"js-cookie": "^3.0.5",
+		"lottie-react": "^2.4.1",
 		"next": "15.3.3",
 		"react": "^19.0.0",
 		"react-datepicker": "^8.7.0",

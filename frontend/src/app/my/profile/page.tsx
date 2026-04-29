@@ -1,5 +1,6 @@
 "use client";
 
+import { Loading } from "@/components/common/Loading";
 import { useState, useEffect } from "react";
 import { ArrowLeft } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
@@ -160,9 +161,7 @@ export default function ProfileEditPage() {
             </div>
           }
         />
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-gray-500">프로필 정보를 불러오는 중...</div>
-        </div>
+        <Loading fullScreen />
       </Container>
     );
   }
@@ -370,10 +369,7 @@ export default function ProfileEditPage() {
       </div>
 
       {showToast && (
-        <Toast
-          onClick={() => setShowToast(false)}
-          className="fixed bottom-3 left-1/2 transform -translate-x-1/2 z-[9999]"
-        >
+        <Toast onClick={() => setShowToast(false)}>
           {toastMessage}
         </Toast>
       )}

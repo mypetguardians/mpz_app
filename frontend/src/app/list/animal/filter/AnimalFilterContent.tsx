@@ -1,5 +1,6 @@
 "use client";
 
+import { Loading } from "@/components/common/Loading";
 import { Suspense, useState } from "react";
 import { ArrowLeft, ArrowsClockwise } from "@phosphor-icons/react";
 
@@ -208,7 +209,7 @@ export function AnimalFilterContent() {
 
 export function AnimalFilterContentWithSuspense() {
   return (
-    <Suspense fallback={<div>로딩 중...</div>}>
+    <Suspense fallback={<Loading fullScreen size="sm" />}>
       <AnimalFilterContent />
     </Suspense>
   );

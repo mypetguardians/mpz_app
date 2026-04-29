@@ -1,6 +1,5 @@
 "use client";
 
-import { Loading } from "@/components/common/Loading";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";

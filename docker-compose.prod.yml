@@ -22,7 +22,7 @@ services:
       options:
         awslogs-region: "ap-northeast-2"
         awslogs-group: "/mpz/${APP_ENV:-prod}"
-        awslogs-stream-prefix: "frontend"
+        awslogs-stream: "frontend"
         awslogs-create-group: "true"
 
   backend:
@@ -54,7 +54,7 @@ services:
       options:
         awslogs-region: "ap-northeast-2"
         awslogs-group: "/mpz/${APP_ENV:-prod}"
-        awslogs-stream-prefix: "backend"
+        awslogs-stream: "backend"
         awslogs-create-group: "true"
 
   worker:
@@ -78,7 +78,7 @@ services:
       options:
         awslogs-region: "ap-northeast-2"
         awslogs-group: "/mpz/${APP_ENV:-prod}"
-        awslogs-stream-prefix: "worker"
+        awslogs-stream: "worker"
         awslogs-create-group: "true"
 
   redis:
@@ -102,7 +102,7 @@ services:
       options:
         awslogs-region: "ap-northeast-2"
         awslogs-group: "/mpz/${APP_ENV:-prod}"
-        awslogs-stream-prefix: "redis"
+        awslogs-stream: "redis"
         awslogs-create-group: "true"
 
   nginx:
@@ -129,7 +129,7 @@ services:
       options:
         awslogs-region: "ap-northeast-2"
         awslogs-group: "/mpz/${APP_ENV:-prod}"
-        awslogs-stream-prefix: "nginx"
+        awslogs-stream: "nginx"
         awslogs-create-group: "true"
 
 networks:

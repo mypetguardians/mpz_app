@@ -18,6 +18,7 @@ function formatPhone(input: string): string {
 
 interface UsePhoneVerificationFlowOptions {
   onVerified?: () => void;
+  verifiedPhone?: string;
 }
 
 export function usePhoneVerificationFlow(options?: UsePhoneVerificationFlowOptions) {
@@ -74,6 +75,10 @@ export function usePhoneVerificationFlow(options?: UsePhoneVerificationFlowOptio
     clearMessages();
     if (!isPhoneValid) {
       setError("올바른 휴대폰 번호를 입력해주세요.");
+      return false;
+    }
+    if (options?.verifiedPhone && phoneDigits === options.verifiedPhone.replace(/-/g, "")) {
+      setError("현재 인증된 번호와 동일합니다.");
       return false;
     }
     try {

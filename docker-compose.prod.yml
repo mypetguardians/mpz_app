@@ -18,10 +18,12 @@ services:
         limits:
           memory: 512M
     logging:
-      driver: "json-file"
+      driver: "awslogs"
       options:
-        max-size: "10m"
-        max-file: "3"
+        awslogs-region: "ap-northeast-2"
+        awslogs-group: "/mpz/${APP_ENV:-prod}"
+        awslogs-stream-prefix: "frontend"
+        awslogs-create-group: "true"
 
   backend:
     build:
@@ -48,10 +50,12 @@ services:
         limits:
           memory: 1536M
     logging:
-      driver: "json-file"
+      driver: "awslogs"
       options:
-        max-size: "10m"
-        max-file: "3"
+        awslogs-region: "ap-northeast-2"
+        awslogs-group: "/mpz/${APP_ENV:-prod}"
+        awslogs-stream-prefix: "backend"
+        awslogs-create-group: "true"
 
   worker:
     build:
@@ -70,10 +74,12 @@ services:
         limits:
           memory: 512M
     logging:
-      driver: "json-file"
+      driver: "awslogs"
       options:
-        max-size: "10m"
-        max-file: "3"
+        awslogs-region: "ap-northeast-2"
+        awslogs-group: "/mpz/${APP_ENV:-prod}"
+        awslogs-stream-prefix: "worker"
+        awslogs-create-group: "true"
 
   redis:
     image: redis:7-alpine
@@ -92,10 +98,12 @@ services:
         limits:
           memory: 256M
     logging:
-      driver: "json-file"
+      driver: "awslogs"
       options:
-        max-size: "10m"
-        max-file: "3"
+        awslogs-region: "ap-northeast-2"
+        awslogs-group: "/mpz/${APP_ENV:-prod}"
+        awslogs-stream-prefix: "redis"
+        awslogs-create-group: "true"
 
   nginx:
     image: nginx:latest
@@ -117,10 +125,12 @@ services:
         limits:
           memory: 256M
     logging:
-      driver: "json-file"
+      driver: "awslogs"
       options:
-        max-size: "10m"
-        max-file: "3"
+        awslogs-region: "ap-northeast-2"
+        awslogs-group: "/mpz/${APP_ENV:-prod}"
+        awslogs-stream-prefix: "nginx"
+        awslogs-create-group: "true"
 
 networks:
   network:

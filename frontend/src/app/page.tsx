@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 
 // import NextImage from "next/image";
 import { Container } from "@/components/common/Container";
+import { useHomeLocationStore } from "@/stores/homeLocation";
 import { NavBar } from "@/components/common/NavBar";
 import { HomeHeader } from "@/app/_components/HomeHeader";
 import { PetSection } from "@/app/_components/PetSection";
@@ -33,19 +34,7 @@ export default function Home() {
   const router = useRouter();
   const pathname = usePathname();
   // const kakaoChannelUrl = "http://pf.kakao.com/_mbxbDn/chat";
-  const [selectedLocation, setSelectedLocation] = useState<string>("");
-
-  // 탭 전환 시 선택한 지역 복원 (새로고침 시 초기화)
-  useEffect(() => {
-    const isReload = window.performance?.getEntriesByType?.("navigation")?.[0] &&
-      (window.performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming).type === "reload";
-    if (isReload) {
-      sessionStorage.removeItem("homeSelectedLocation");
-    } else {
-      const saved = sessionStorage.getItem("homeSelectedLocation");
-      if (saved) setSelectedLocation(saved);
-    }
-  }, []);
+  const { selectedLocation, setSelectedLocation } = useHomeLocationStore();
   const [showMatchingNotification, setShowMatchingNotification] =
     useState(false);
   // const [showConsultModal, setShowConsultModal] = useState(false);
@@ -91,13 +80,6 @@ export default function Home() {
 
   const handleLocationSelect = (location: string) => {
     setSelectedLocation(location);
-    if (typeof window !== "undefined") {
-      if (location) {
-        sessionStorage.setItem("homeSelectedLocation", location);
-      } else {
-        sessionStorage.removeItem("homeSelectedLocation");
-      }
-    }
   };
 
   // 매칭 완료 상태 확인 및 알림 표시

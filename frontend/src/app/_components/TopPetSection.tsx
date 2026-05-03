@@ -16,6 +16,7 @@ import {
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Toast } from "@/components/ui/Toast";
+import { useHomeLocationStore } from "@/stores/homeLocation";
 
 interface PetSectionProps {
   title: string;
@@ -63,40 +64,33 @@ export function TopPetSection({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const tagRefsMap = useRef<Map<string, HTMLElement>>(new Map());
 
+  const { userGpsLocation, setUserGpsLocation, selectedLocation: storeLocation } = useHomeLocationStore();
+
   // 클라이언트 마운트 시 위치 처리
   useEffect(() => {
     setIsMounted(true);
-    const isReload = typeof window !== "undefined" &&
-      window.performance?.getEntriesByType?.("navigation")?.[0] &&
-      (window.performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming).type === "reload";
 
-    if (isReload) {
-      // 새로고침: 캐시 클리어 → GPS 재요청
-      sessionStorage.removeItem("homeSelectedLocation");
-      sessionStorage.removeItem("homeUserLocation");
-      requestLocation();
-    } else {
-      // 탭 전환: 사용자 선택이 있으면 GPS 요청 안 함
-      const userSelected = sessionStorage.getItem("homeSelectedLocation");
-      if (userSelected) {
-        hasAutoAppliedLocation.current = true;
-        const savedGps = sessionStorage.getItem("homeUserLocation");
-        if (savedGps) setUserLocation(savedGps);
-        return; // GPS 요청 안 함
-      }
-      const savedGps = sessionStorage.getItem("homeUserLocation");
-      if (savedGps) {
-        setUserLocation(savedGps);
-        hasAutoAppliedLocation.current = true;
-      } else {
-        requestLocation();
-      }
+    // store에 이미 선택된 지역이 있으면 GPS 요청 안 함 (탭 전환 케이스)
+    if (storeLocation) {
+      hasAutoAppliedLocation.current = true;
+      if (userGpsLocation) setUserLocation(userGpsLocation);
+      return;
     }
+
+    // store에 GPS 위치가 있으면 재사용
+    if (userGpsLocation) {
+      setUserLocation(userGpsLocation);
+      hasAutoAppliedLocation.current = true;
+      onLocationSelect?.(userGpsLocation);
+      return;
+    }
+
+    // 아무것도 없으면 GPS 요청
+    requestLocation();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // GPS 결과 → 역지오코딩 → 내 지역 태그 자동 활성화
-  // 사용자가 직접 지역을 선택한 적 있으면 자동 적용 안 함
   useEffect(() => {
     if (!latitude || !longitude || !isValidLocation(latitude, longitude)) return;
     if (hasAutoAppliedLocation.current) return;
@@ -104,13 +98,13 @@ export function TopPetSection({
     const resolveRegion = async () => {
       const region = await getRegionNameByGeocode(latitude, longitude);
       setUserLocation(region);
-      sessionStorage.setItem("homeUserLocation", region);
+      setUserGpsLocation(region);
       hasAutoAppliedLocation.current = true;
       onLocationSelect?.(region);
     };
 
     resolveRegion();
-  }, [latitude, longitude, onLocationSelect]);
+  }, [latitude, longitude, onLocationSelect, setUserGpsLocation]);
 
   // "내 주변" 버튼 클릭 시 GPS 재요청 → 내 지역 태그 활성화
   const handleNearbyClick = () => {

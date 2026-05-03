@@ -86,6 +86,7 @@ INSTALLED_APPS = [
     "feedback",
     "banners",
     "storage_service",
+    "school",
 ]
 
 # Email (Naver SMTP)

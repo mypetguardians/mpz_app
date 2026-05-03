@@ -33,11 +33,16 @@ export default function Home() {
   const router = useRouter();
   const pathname = usePathname();
   // const kakaoChannelUrl = "http://pf.kakao.com/_mbxbDn/chat";
-  const [selectedLocation, setSelectedLocation] = useState<string>("");
-
-  // 초기 진입 시 localStorage 무시 — 항상 "내 주변"으로 시작
-  // (TopPetSection에서 isNearbyActive 기본값 true + GPS 자동 요청)
-  // 메인 배너는 공통 로직 컴포넌트로 대체
+  const [selectedLocation, setSelectedLocation] = useState<string>(() => {
+    if (typeof window === "undefined") return "";
+    const isReload = window.performance?.getEntriesByType?.("navigation")?.[0] &&
+      (window.performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming).type === "reload";
+    if (isReload) {
+      sessionStorage.removeItem("homeSelectedLocation");
+      return "";
+    }
+    return sessionStorage.getItem("homeSelectedLocation") || "";
+  });
   const [showMatchingNotification, setShowMatchingNotification] =
     useState(false);
   // const [showConsultModal, setShowConsultModal] = useState(false);
@@ -85,9 +90,9 @@ export default function Home() {
     setSelectedLocation(location);
     if (typeof window !== "undefined") {
       if (location) {
-        localStorage.setItem("homeLocationFilter", location);
+        sessionStorage.setItem("homeSelectedLocation", location);
       } else {
-        localStorage.removeItem("homeLocationFilter");
+        sessionStorage.removeItem("homeSelectedLocation");
       }
     }
   };

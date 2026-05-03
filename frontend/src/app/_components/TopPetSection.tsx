@@ -63,15 +63,27 @@ export function TopPetSection({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const tagRefsMap = useRef<Map<string, HTMLElement>>(new Map());
 
-  // 클라이언트 마운트 시 GPS 자동 요청 (최초 진입/새로고침 시에만)
+  // 클라이언트 마운트 시 위치 처리
+  // - 새로고침(navigation type = reload): GPS 재요청
+  // - 탭 전환(navigation type = navigate/back_forward): 기존 선택 유지
   useEffect(() => {
     setIsMounted(true);
-    const savedLocation = sessionStorage.getItem("homeUserLocation");
-    if (savedLocation) {
-      setUserLocation(savedLocation);
-      hasAutoAppliedLocation.current = true;
-    } else {
+    const isReload = typeof window !== "undefined" &&
+      window.performance?.getEntriesByType?.("navigation")?.[0] &&
+      (window.performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming).type === "reload";
+
+    if (isReload) {
+      sessionStorage.removeItem("homeSelectedLocation");
+      sessionStorage.removeItem("homeUserLocation");
       requestLocation();
+    } else {
+      const savedGps = sessionStorage.getItem("homeUserLocation");
+      if (savedGps) {
+        setUserLocation(savedGps);
+        hasAutoAppliedLocation.current = true;
+      } else {
+        requestLocation();
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

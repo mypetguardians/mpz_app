@@ -141,6 +141,14 @@ async def get_or_create_kakao_user(profile: Dict[str, str]) -> Tuple[User, bool]
         await set_unusable_password(user)
         created = True
 
+    # 강아지학교 1:1 프로필 자동 생성 (기존 마펫쯔 사용자가 강아지학교에 처음 진입하는 케이스도
+    # 동일하게 보장. RLS의 admin 판정은 user_school_profile.role을 본다).
+    from school.models import UserSchoolProfile  # 순환 import 방지를 위해 함수 내부 import
+    await UserSchoolProfile.objects.aget_or_create(
+        user=user,
+        defaults={'role': 'user'},
+    )
+
     return user, created
 
 

@@ -63,10 +63,16 @@ export function TopPetSection({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const tagRefsMap = useRef<Map<string, HTMLElement>>(new Map());
 
-  // 클라이언트 마운트 시 GPS 자동 요청
+  // 클라이언트 마운트 시 GPS 자동 요청 (최초 진입/새로고침 시에만)
   useEffect(() => {
     setIsMounted(true);
-    requestLocation();
+    const savedLocation = sessionStorage.getItem("homeUserLocation");
+    if (savedLocation) {
+      setUserLocation(savedLocation);
+      hasAutoAppliedLocation.current = true;
+    } else {
+      requestLocation();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -75,9 +81,9 @@ export function TopPetSection({
     if (!latitude || !longitude || !isValidLocation(latitude, longitude)) return;
 
     const resolveRegion = async () => {
-      // BigDataCloud 역지오코딩 우선, 실패 시 Haversine fallback
       const region = await getRegionNameByGeocode(latitude, longitude);
       setUserLocation(region);
+      sessionStorage.setItem("homeUserLocation", region);
 
       if (!hasAutoAppliedLocation.current) {
         hasAutoAppliedLocation.current = true;
@@ -94,6 +100,7 @@ export function TopPetSection({
       onLocationSelect?.(userLocation);
     } else {
       hasAutoAppliedLocation.current = false;
+      sessionStorage.removeItem("homeUserLocation");
       requestLocation();
     }
   };

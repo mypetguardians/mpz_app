@@ -32,7 +32,7 @@ upstream dev → PR → upstream main 머지 → prod 자동 배포
 
 ### 주의
 - fork에 직접 push해도 배포 안 됨 (Actions 비활성)
-- Worker는 배포 시 재시작 안 함 (`--no-recreate`, 동기화 중단 방지). 워커 코드 변경 시 수동 재시작 필요
+- Worker도 배포 시 `--force-recreate`로 재시작 (코드 반영 필수). 동기화 시간(03:00 KST)과 배포 시간 비중첩 전제
 
 ## Docker 컨테이너
 

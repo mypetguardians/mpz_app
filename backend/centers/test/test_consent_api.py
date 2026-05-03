@@ -60,7 +60,7 @@ class TestConsentAPI(TestCase):
             'user_type': user.user_type,
             'exp': timezone.now() + timedelta(days=1)
         }
-        token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+        token = jwt.encode(payload, settings.JWT_SIGNING_KEY, algorithm="HS256")
         return {'Authorization': f'Bearer {token}'}
 
     async def test_get_consents_success(self):

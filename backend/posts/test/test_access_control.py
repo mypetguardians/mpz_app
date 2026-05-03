@@ -73,7 +73,7 @@ class TestPostAccessControl(TestCase):
             'user_type': user.user_type,
             'exp': timezone.now() + timedelta(hours=1)
         }
-        return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+        return jwt.encode(payload, settings.JWT_SIGNING_KEY, algorithm="HS256")
 
     async def test_public_post_access_for_all_users(self):
         """전체 공개 포스트는 모든 사용자가 접근 가능"""

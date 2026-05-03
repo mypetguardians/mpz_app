@@ -44,7 +44,7 @@ class TestPostLikeAPI(TestCase):
             'username': user.username,
             'exp': timezone.now() + timedelta(hours=1)
         }
-        return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+        return jwt.encode(payload, settings.JWT_SIGNING_KEY, algorithm="HS256")
 
     async def test_toggle_post_like(self):
         """포스트 좋아요 토글 테스트"""

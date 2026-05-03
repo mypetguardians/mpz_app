@@ -32,7 +32,7 @@ upstream dev → PR → upstream main 머지 → prod 자동 배포
 
 ### 주의
 - fork에 직접 push해도 배포 안 됨 (Actions 비활성)
-- Worker는 배포 시 재시작 안 함 (`--no-recreate`, 동기화 중단 방지). 워커 코드 변경 시 수동 재시작 필요
+- Worker도 배포 시 `--force-recreate`로 재시작 (코드 반영 필수). 동기화 시간(03:00 KST)과 배포 시간 비중첩 전제
 
 ## Docker 컨테이너
 
@@ -80,7 +80,12 @@ make dev            # FE:3001 + BE:8000 동시 실행
 8. **plan 완료 → 즉시 history로 이동** — claude.plan.md에 완료 항목 남기지 않음. history/에 문제 원인·수정·교훈까지 상세 기록 후 plan에서 제거
 9. **환경변수 변경 시 여러 곳 동기화** — Dockerfile, CI/CD, docker-compose 등 관련된 모든 곳에 반영
 10. **Docker env_file 갱신 시 down+up 필수** — `docker compose restart`로는 env_file 변경 미반영
-11. **마펫쯔 + 강아지학교 멀티 서비스 체계** — 두 서비스가 Supabase DB를 공유하고 JWT를 호환. 신규 기능/인프라 작업 시 양쪽 서비스 영향 범위 반드시 확인. 공통 시스템(TDD, 모니터링, 보안, Rate Limiting)은 두 서비스에 동시 적용
+11. **마펫쯔 + 강아지학교 멀티 서비스 체계** — 두 서비스가 **같은 Supabase 프로젝트(dev: `djnjbimklqvzqgcrkrdf`, prod: `uytovxdqmlmhdzzpmwzk`)** 를 공유하고 마펫쯔 JWT를 단일 인증 체계로 사용. 신규 기능/인프라 작업 시 양쪽 서비스 영향 범위 반드시 확인. 공통 시스템(TDD, 모니터링, 보안, Rate Limiting)은 두 서비스에 동시 적용
+    - **공유 DB 충돌 방지**: 마펫쯔 Django 모델은 `db_table` 명시 의무 (없으면 자동 `<app>_<model>` 패턴이 강아지학교와 충돌 가능). 이미 점유 중인 테이블: `user`, `comments`, `posts`, `favorites`, `system_tags`, `post_likes`, `adoption*`, `centers*` 등
+    - **공유 스키마 변경 PR**: 양쪽 영향 가능한 스키마 변경 시 PR 제목에 `[shared-schema]` 라벨, 양쪽 서비스 담당자 confirm 필수
+    - **JWT signing key 분리**: `settings.JWT_SIGNING_KEY = config("SUPABASE_JWT_SECRET")`. Django `SECRET_KEY`와 다른 변수. JWT 서명용으로만 사용 (세션·CSRF·해시는 SECRET_KEY 그대로)
+    - **JWT는 stateful**: `api/security.py`가 `Jwt` DB 테이블 매칭 검증. 강아지학교는 PostgREST stateless 검증이라 갭 존재 — `ACCESS_TOKEN_EXPIRATION_TIME = 15분`으로 단축해 갭 최소화
+    - **쿠키 도메인**: `SESSION_COOKIE_DOMAIN = '.mpz.kr'` 필수. `None`이면 강아지학교에서 쿠키 못 읽음
 12. **EC2 파일 수정 시 절대 덮어쓰기 금지** — `cat >>`(append)와 `cat >`(overwrite)를 절대 혼동하지 않음. EC2의 .env 등 설정 파일 수정 시 반드시 `cat` 또는 `head`로 기존 내용 먼저 확인하고, append 전후로 `wc -l`로 줄 수 검증. 실수 시 서비스 전체 장애 유발
 13. **사용자에게 확인 요청하지 않음** — PR 머지 여부, 배포 상태 등 직접 확인 가능한 것은 gh CLI나 SSH로 직접 확인. 사용자에게 "해줘", "확인해줘" 질문 금지
 14. **실수 발생 시 즉시 복구 → 원인 기록** — 실수를 변명하지 말고, 복구 먼저 하고 CLAUDE.md에 재발 방지 규칙 추가

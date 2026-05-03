@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 
 // import NextImage from "next/image";
 import { Container } from "@/components/common/Container";
+import { useHomeLocationStore } from "@/stores/homeLocation";
 import { NavBar } from "@/components/common/NavBar";
 import { HomeHeader } from "@/app/_components/HomeHeader";
 import { PetSection } from "@/app/_components/PetSection";
@@ -33,11 +34,7 @@ export default function Home() {
   const router = useRouter();
   const pathname = usePathname();
   // const kakaoChannelUrl = "http://pf.kakao.com/_mbxbDn/chat";
-  const [selectedLocation, setSelectedLocation] = useState<string>("");
-
-  // 초기 진입 시 localStorage 무시 — 항상 "내 주변"으로 시작
-  // (TopPetSection에서 isNearbyActive 기본값 true + GPS 자동 요청)
-  // 메인 배너는 공통 로직 컴포넌트로 대체
+  const { selectedLocation, setSelectedLocation } = useHomeLocationStore();
   const [showMatchingNotification, setShowMatchingNotification] =
     useState(false);
   // const [showConsultModal, setShowConsultModal] = useState(false);
@@ -83,13 +80,6 @@ export default function Home() {
 
   const handleLocationSelect = (location: string) => {
     setSelectedLocation(location);
-    if (typeof window !== "undefined") {
-      if (location) {
-        localStorage.setItem("homeLocationFilter", location);
-      } else {
-        localStorage.removeItem("homeLocationFilter");
-      }
-    }
   };
 
   // 매칭 완료 상태 확인 및 알림 표시

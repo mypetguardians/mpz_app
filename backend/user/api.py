@@ -165,8 +165,13 @@ async def logout(request):
     if token:
         try:
             import jwt as pyjwt
-            decoded = pyjwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-            user_id = decoded.get("user_id")
+            decoded = pyjwt.decode(
+                token,
+                settings.JWT_SIGNING_KEY,
+                algorithms=["HS256"],
+                options={"verify_aud": False},
+            )
+            user_id = decoded.get("sub") or decoded.get("user_id")
             if user_id:
                 await sync_to_async(Jwt.objects.filter(user_id=user_id).delete)()
         except Exception as e:

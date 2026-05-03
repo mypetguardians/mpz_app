@@ -16,7 +16,7 @@ def get_random(length):
 
 def get_access_token(payload):
     exp = timezone.now() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRATION_TIME)
-    
+
     # UUID를 문자열로 변환
     processed_payload = {}
     for key, value in payload.items():
@@ -24,14 +24,23 @@ def get_access_token(payload):
             processed_payload[key] = str(value)
         else:
             processed_payload[key] = value
-    
+
+    # Supabase PostgREST 호환 클레임 — 강아지학교가 같은 access 토큰으로 직접 검증하려면
+    # `sub`(user id), `role`(authenticated), `aud`(authenticated)가 필요하다. 기존 user_id
+    # 클레임은 마펫쯔 자체 검증 로직이 그대로 사용하도록 유지한다.
+    user_id = processed_payload.get("user_id")
+    if user_id and "sub" not in processed_payload:
+        processed_payload["sub"] = str(user_id)
+    processed_payload.setdefault("role", "authenticated")
+    processed_payload.setdefault("aud", "authenticated")
+
     return (
         jwt.encode(
             {
                 "exp": exp,
                 **processed_payload,
             },
-            settings.SECRET_KEY,
+            settings.JWT_SIGNING_KEY,
             algorithm="HS256",
         ),
         exp,
@@ -46,7 +55,7 @@ def get_refresh_token():
                 "exp": exp,
                 "data": get_random(10),
             },
-            settings.SECRET_KEY,
+            settings.JWT_SIGNING_KEY,
             algorithm="HS256",
         ),
         exp,
@@ -55,7 +64,12 @@ def get_refresh_token():
 
 async def validate_refresh_token(token):
     try:
-        decoded = jwt.decode(token, key=settings.SECRET_KEY, algorithms="HS256")
+        decoded = jwt.decode(
+            token,
+            key=settings.JWT_SIGNING_KEY,
+            algorithms="HS256",
+            options={"verify_aud": False},
+        )
         naive_datetime = datetime.fromtimestamp(decoded["exp"])
         exp_datetime = timezone.make_aware(naive_datetime, ZoneInfo("UTC"))
         if exp_datetime < timezone.now():
@@ -72,7 +86,12 @@ async def decodeJWT(bearer):
 
     token = bearer[7:]
     try:
-        decoded = jwt.decode(token, key=settings.SECRET_KEY, algorithms="HS256")
+        decoded = jwt.decode(
+            token,
+            key=settings.JWT_SIGNING_KEY,
+            algorithms="HS256",
+            options={"verify_aud": False},
+        )
         naive_datetime = datetime.fromtimestamp(decoded["exp"])
         exp_datetime = timezone.make_aware(naive_datetime, ZoneInfo("UTC"))
         if exp_datetime < timezone.now():

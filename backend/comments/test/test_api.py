@@ -92,7 +92,7 @@ class TestCommentsAPI(TestCase):
             'exp': timezone.now() + timedelta(hours=1),
             'iat': timezone.now()
         }
-        token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+        token = jwt.encode(payload, settings.JWT_SIGNING_KEY, algorithm="HS256")
         return token
 
     def authenticate(self, user=None):

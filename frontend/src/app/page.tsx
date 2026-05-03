@@ -33,16 +33,19 @@ export default function Home() {
   const router = useRouter();
   const pathname = usePathname();
   // const kakaoChannelUrl = "http://pf.kakao.com/_mbxbDn/chat";
-  const [selectedLocation, setSelectedLocation] = useState<string>(() => {
-    if (typeof window === "undefined") return "";
+  const [selectedLocation, setSelectedLocation] = useState<string>("");
+
+  // 탭 전환 시 선택한 지역 복원 (새로고침 시 초기화)
+  useEffect(() => {
     const isReload = window.performance?.getEntriesByType?.("navigation")?.[0] &&
       (window.performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming).type === "reload";
     if (isReload) {
       sessionStorage.removeItem("homeSelectedLocation");
-      return "";
+    } else {
+      const saved = sessionStorage.getItem("homeSelectedLocation");
+      if (saved) setSelectedLocation(saved);
     }
-    return sessionStorage.getItem("homeSelectedLocation") || "";
-  });
+  }, []);
   const [showMatchingNotification, setShowMatchingNotification] =
     useState(false);
   // const [showConsultModal, setShowConsultModal] = useState(false);

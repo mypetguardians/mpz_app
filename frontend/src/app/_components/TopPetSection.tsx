@@ -64,8 +64,6 @@ export function TopPetSection({
   const tagRefsMap = useRef<Map<string, HTMLElement>>(new Map());
 
   // 클라이언트 마운트 시 위치 처리
-  // - 새로고침(navigation type = reload): GPS 재요청
-  // - 탭 전환(navigation type = navigate/back_forward): 기존 선택 유지
   useEffect(() => {
     setIsMounted(true);
     const isReload = typeof window !== "undefined" &&
@@ -73,10 +71,19 @@ export function TopPetSection({
       (window.performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming).type === "reload";
 
     if (isReload) {
+      // 새로고침: 캐시 클리어 → GPS 재요청
       sessionStorage.removeItem("homeSelectedLocation");
       sessionStorage.removeItem("homeUserLocation");
       requestLocation();
     } else {
+      // 탭 전환: 사용자 선택이 있으면 GPS 요청 안 함
+      const userSelected = sessionStorage.getItem("homeSelectedLocation");
+      if (userSelected) {
+        hasAutoAppliedLocation.current = true;
+        const savedGps = sessionStorage.getItem("homeUserLocation");
+        if (savedGps) setUserLocation(savedGps);
+        return; // GPS 요청 안 함
+      }
       const savedGps = sessionStorage.getItem("homeUserLocation");
       if (savedGps) {
         setUserLocation(savedGps);
@@ -88,19 +95,18 @@ export function TopPetSection({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // GPS 결과 → 역지오코딩 → 내 지역 태그 자동 활성화 (최초 1회)
+  // GPS 결과 → 역지오코딩 → 내 지역 태그 자동 활성화
+  // 사용자가 직접 지역을 선택한 적 있으면 자동 적용 안 함
   useEffect(() => {
     if (!latitude || !longitude || !isValidLocation(latitude, longitude)) return;
+    if (hasAutoAppliedLocation.current) return;
 
     const resolveRegion = async () => {
       const region = await getRegionNameByGeocode(latitude, longitude);
       setUserLocation(region);
       sessionStorage.setItem("homeUserLocation", region);
-
-      if (!hasAutoAppliedLocation.current) {
-        hasAutoAppliedLocation.current = true;
-        onLocationSelect?.(region);
-      }
+      hasAutoAppliedLocation.current = true;
+      onLocationSelect?.(region);
     };
 
     resolveRegion();

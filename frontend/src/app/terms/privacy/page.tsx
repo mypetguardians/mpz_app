@@ -82,37 +82,28 @@ export default function PrivacyPage() {
         </div>
 
         <Section num={1} title="수집하는 개인정보 항목">
-          <div className="overflow-hidden rounded-lg ring-1 ring-gray-100">
-            <table className="w-full text-xs">
-              <thead className="bg-gray-50 text-gray-600">
-                <tr>
-                  <th className="px-3 py-2 text-left font-medium">구분</th>
-                  <th className="px-3 py-2 text-left font-medium">필수/선택</th>
-                  <th className="px-3 py-2 text-left font-medium">항목</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 bg-white">
-                {collectedInfo.map((row, idx) => (
-                  <tr key={idx}>
-                    <td className="px-3 py-2 align-top">{row.category}</td>
-                    <td className="px-3 py-2 align-top">
-                      <span
-                        className={
-                          row.required === "필수"
-                            ? "rounded-full bg-red-50 px-2 py-0.5 text-red-600"
-                            : row.required === "선택"
-                              ? "rounded-full bg-blue-50 px-2 py-0.5 text-blue-600"
-                              : "text-gray-400"
-                        }
-                      >
-                        {row.required}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 align-top">{row.items}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="space-y-2">
+            {collectedInfo.map((row, idx) => {
+              const tagClass =
+                row.required === "필수"
+                  ? "bg-red-50 text-red-600 ring-red-100"
+                  : row.required === "선택"
+                    ? "bg-blue-50 text-blue-600 ring-blue-100"
+                    : "bg-gray-50 text-gray-500 ring-gray-200";
+              return (
+                <div key={idx} className="rounded-lg bg-gray-50 p-3 text-xs">
+                  <div className="mb-1.5 flex items-center justify-between gap-2">
+                    <span className="font-semibold text-black">{row.category}</span>
+                    <span
+                      className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] ring-1 ${tagClass}`}
+                    >
+                      {row.required}
+                    </span>
+                  </div>
+                  <p className="text-gray-600">{row.items}</p>
+                </div>
+              );
+            })}
           </div>
         </Section>
 
@@ -127,29 +118,37 @@ export default function PrivacyPage() {
         </Section>
 
         <Section num={3} title="개인정보 보유 및 이용 기간">
-          <ul className="space-y-2">
-            <li>
-              <span className="rounded bg-brand-light/15 px-1.5 py-0.5 text-xs font-semibold text-brand">
-                즉시 비식별화
-              </span>
-              <span className="ml-2">회원 탈퇴 시 — 이름, 이메일, 전화번호, 사진, 주소, 카카오ID</span>
-            </li>
-            <li>
-              <span className="rounded bg-amber-50 px-1.5 py-0.5 text-xs font-semibold text-amber-700">
-                5년 보관
-              </span>
-              <span className="ml-2">
-                거래 기록 (전자상거래법 제6조) — 주문, 결제, 입양 신청. 보관 기간 만료 후 자동 삭제
-              </span>
-            </li>
-            <li>
-              <span className="rounded bg-amber-50 px-1.5 py-0.5 text-xs font-semibold text-amber-700">
-                3년 보관
-              </span>
-              <span className="ml-2">소비자 불만 / 분쟁 처리 기록 (전자상거래법)</span>
-            </li>
-            <li className="text-gray-500">법령에 의한 보관 의무가 없는 정보는 즉시 파기</li>
-          </ul>
+          <div className="space-y-2">
+            {[
+              {
+                tag: "즉시 비식별화",
+                tagClass: "bg-brand-light/15 text-brand ring-brand-light/30",
+                desc: "회원 탈퇴 시 — 이름, 이메일, 전화번호, 사진, 주소, 카카오ID",
+              },
+              {
+                tag: "5년 보관",
+                tagClass: "bg-amber-50 text-amber-700 ring-amber-100",
+                desc: "거래 기록 (전자상거래법 제6조) — 주문, 결제, 입양 신청. 보관 기간 만료 후 자동 삭제",
+              },
+              {
+                tag: "3년 보관",
+                tagClass: "bg-amber-50 text-amber-700 ring-amber-100",
+                desc: "소비자 불만 / 분쟁 처리 기록 (전자상거래법)",
+              },
+            ].map((row, idx) => (
+              <div key={idx} className="rounded-lg bg-gray-50 p-3 text-xs">
+                <span
+                  className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 ${row.tagClass}`}
+                >
+                  {row.tag}
+                </span>
+                <p className="mt-1.5 text-gray-700">{row.desc}</p>
+              </div>
+            ))}
+            <p className="px-1 text-xs text-gray-500">
+              법령에 의한 보관 의무가 없는 정보는 즉시 파기됩니다.
+            </p>
+          </div>
         </Section>
 
         <Section num={4} title="개인정보 제3자 제공">
@@ -231,9 +230,9 @@ export default function PrivacyPage() {
           </p>
         </Section>
 
-        <div className="mt-6 rounded-xl bg-white p-4 text-center text-xs text-gray-500 ring-1 ring-gray-100">
+        <p className="mt-6 px-1 text-center text-xs text-gray-400">
           ㈜마이펫가디언즈 · 사업자 등록번호 246-81-03596
-        </div>
+        </p>
       </article>
     </Container>
   );

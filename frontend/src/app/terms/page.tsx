@@ -32,7 +32,7 @@ export default function TermsIndexPage() {
   ];
 
   return (
-    <Container className="min-h-screen bg-gray-50">
+    <Container className="min-h-screen flex flex-col bg-gray-50">
       <TopBar
         left={
           <div className="flex items-center gap-2">
@@ -44,7 +44,7 @@ export default function TermsIndexPage() {
         }
       />
 
-      <div className="px-4 py-5 space-y-3">
+      <div className="flex-1 overflow-y-auto px-4 py-5 space-y-3">
         {items.map(({ href, Icon, title, desc }) => (
           <Link
             key={href}

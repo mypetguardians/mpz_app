@@ -44,7 +44,7 @@ function Section({
 
 export default function TermsServicePage() {
   return (
-    <Container className="min-h-screen bg-gray-50">
+    <Container className="min-h-screen flex flex-col bg-gray-50">
       <TopBar
         left={
           <div className="flex items-center gap-2">
@@ -56,7 +56,7 @@ export default function TermsServicePage() {
         }
       />
 
-      <article className="px-4 py-5">
+      <article className="flex-1 overflow-y-auto px-4 py-5">
         <div className="mb-4 rounded-xl bg-brand-light/10 p-4 text-xs text-gray-600">
           <p className="font-medium text-brand">최종 개정일 2026-05-04</p>
           <p>시행일은 정식 시행 시 갱신됩니다.</p>

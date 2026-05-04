@@ -150,7 +150,37 @@ class Command(BaseCommand):
         )
 
     async def _expire_missing_animals(self, api_notice_numbers: set) -> int:
-        """공공데이터 API에서 보호중으로 내려오지 않은 기존 동물을 보호종료 처리"""
+        """공공데이터 API에서 보호중으로 내려오지 않은 기존 동물을 보호종료 처리
+
+        ⚠️ 안전장치 (2026-04-22 prod 3,308건 / 2026-05-03 dev·prod 6,300건+ 잘못 transition 사고 후 추가):
+        - 공공 API가 'state=protect' + bgnde=None 호출 시 전체 보호중 동물을 다 응답한다는 보장이 없음
+          (검증: 단일 날짜 query로는 옛 동물도 '보호중' 응답하는데, 날짜 없이 호출 시 1,780건만 응답).
+        - 따라서 'API 미응답 = 종료'로 단순 transition하면 옛 동물을 잘못 transition할 위험.
+        - 안전장치: API 응답 동물 수가 DB 보호중 수의 50% 미만이면 abort. 정상이면 임계 위반 거의 없음
+          (예: incremental 후 DB 보호중 7,000건 vs API 응답 1,780건 = 25% → abort).
+        - 이 임계는 임시 보호장치. 정식 fix(notice_edt 기준 transition)는 별도 PR로 충분히 검증 후 적용.
+        """
+        api_count = len(api_notice_numbers)
+        db_active_count = await sync_to_async(
+            lambda: Animal.objects.filter(
+                is_public_data=True,
+                protection_status='보호중',
+            ).exclude(
+                public_notice_number__isnull=True,
+            ).exclude(
+                public_notice_number='',
+            ).count()
+        )()
+
+        # API 응답이 DB 보호중의 50% 미만이면 transition abort (사고 재발 방지)
+        SAFETY_RATIO = 0.5
+        if db_active_count > 0 and api_count < db_active_count * SAFETY_RATIO:
+            self.stderr.write(
+                f'[status_sync abort] API 응답({api_count:,}건) < DB 보호중({db_active_count:,}건) × {SAFETY_RATIO:.0%}'
+                f' — 옛 동물 잘못 transition 위험으로 _expire_missing_animals 중단'
+            )
+            return 0
+
         expired = await sync_to_async(
             lambda: Animal.objects.filter(
                 is_public_data=True,

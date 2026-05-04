@@ -25,6 +25,7 @@ import {
 import { useRouter, usePathname } from "next/navigation";
 import { Banner } from "@/components/ui/Banner";
 import { SearchInput } from "@/components/ui/SearchInput";
+import { useAnimalFiltersStore } from "@/stores/animalFilters";
 // import { BottomSheet } from "@/components/ui/BottomSheet";
 import { App } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
@@ -86,9 +87,15 @@ export default function Home() {
   };
 
   // 홈 검색 submit — 입양탭으로 이동하면서 검색 쿼리 전달
+  // - 검색값은 그대로 유지 (sessionStorage에 저장 → AnimalSearchSection이 마운트 시 복원해 input에 표시)
+  // - 필터값은 초기화해 깔끔한 검색 결과를 보여줌
   const handleHomeSearch = () => {
     const q = homeSearchQuery.trim();
     if (!q) return;
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("animalSearchValue", q);
+    }
+    useAnimalFiltersStore.getState().reset();
     router.push(`/list/animal?search=${encodeURIComponent(q)}`);
   };
 

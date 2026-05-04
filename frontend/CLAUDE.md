@@ -30,7 +30,7 @@ Next.js 15 (App Router), React 19, Capacitor 7 (iOS/Android/Web), Tailwind CSS, 
 - **OG 이미지**: 150x150 이상, 5KB 이상, 가로:세로 3:1 이하
 - **JSON-LD**: 상세 페이지에 구조화 데이터 포함. schema.org 기준
 - **`<h1>` 1개**: 페이지당 h1 태그 1개만 사용
-- **`<a href>`**: JS 호출 대신 실제 URL href 사용. 검색로봇 링크 추출용
+- **`<a href>` vs `next/link`**: 외부 링크는 `<a href>` (검색로봇 링크 추출용). 내부 라우팅(`/`, `/list`, `/terms` 등)은 반드시 `next/link`의 `<Link>` — strict ESLint 룰 `@next/next/no-html-link-for-pages` 위반 시 `npm run build` 실패해 자동 배포 깨짐 (PR #100 사고 참조)
 - **색인 대기**: SEO 코드 작업 후 실제 검색 노출까지 수일~수주 소요
 
 ## 서버/클라이언트 컴포넌트 패턴

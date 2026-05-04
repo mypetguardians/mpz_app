@@ -7,7 +7,7 @@ import { Container } from "@/components/common/Container";
 import { useHomeLocationStore } from "@/stores/homeLocation";
 import { NavBar } from "@/components/common/NavBar";
 import { HomeHeader } from "@/app/_components/HomeHeader";
-import { PetSection } from "@/app/_components/PetSection";
+// import { PetSection } from "@/app/_components/PetSection"; // '주목받는 아이들' 섹션 임시 비활성화
 import { TopPetSection } from "@/app/_components/TopPetSection";
 //import { MatchingSection } from "@/app/_components/MatchingSection";
 // import { CommunitySection } from "@/app/_components/CommunitySection";
@@ -24,6 +24,7 @@ import {
 } from "@/lib/storage-utils";
 import { useRouter, usePathname } from "next/navigation";
 import { Banner } from "@/components/ui/Banner";
+import { SearchInput } from "@/components/ui/SearchInput";
 // import { BottomSheet } from "@/components/ui/BottomSheet";
 import { App } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
@@ -37,6 +38,8 @@ export default function Home() {
   const { selectedLocation, setSelectedLocation } = useHomeLocationStore();
   const [showMatchingNotification, setShowMatchingNotification] =
     useState(false);
+  // 홈 검색바 — submit 시 입양탭으로 이동 + 검색 결과 표시 (AnimalTab이 search URL 파라미터 자동 처리)
+  const [homeSearchQuery, setHomeSearchQuery] = useState("");
   // const [showConsultModal, setShowConsultModal] = useState(false);
   //const { aiMatchingResult, setAIMatchingResult } = useMatchingStepStore();
   const { isLoading: bannerLoading } = useGetBanners({ type: "main" });
@@ -55,31 +58,38 @@ export default function Home() {
     adoption_status: "입양가능",
   });
 
-  // PetSection용 쿼리 - megaphone_count 순
-  const {
-    data: petSectionData,
-    isLoading: isPetSectionLoading,
-    error: petSectionError,
-  } = useGetAnimals({
-    page_size: 20,
-    sort_by: "megaphone_count",
-    sort_order: "desc",
-    protection_status: "보호중",
-    adoption_status: "입양가능",
-  });
+  // '주목받는 아이들' 섹션 임시 비활성화에 따라 PetSection 쿼리도 주석처리 (ESLint 미사용 변수 방지)
+  // const {
+  //   data: petSectionData,
+  //   isLoading: isPetSectionLoading,
+  //   error: petSectionError,
+  // } = useGetAnimals({
+  //   page_size: 20,
+  //   sort_by: "megaphone_count",
+  //   sort_order: "desc",
+  //   protection_status: "보호중",
+  //   adoption_status: "입양가능",
+  // });
 
   const topSectionAnimals: RawAnimalResponse[] =
     topSectionData?.pages?.flatMap((page) => {
       return (page as { data?: RawAnimalResponse[] }).data || [];
     }) || [];
 
-  const petSectionAnimals: RawAnimalResponse[] =
-    petSectionData?.pages?.flatMap((page) => {
-      return (page as { data?: RawAnimalResponse[] }).data || [];
-    }) || [];
+  // const petSectionAnimals: RawAnimalResponse[] =
+  //   petSectionData?.pages?.flatMap((page) => {
+  //     return (page as { data?: RawAnimalResponse[] }).data || [];
+  //   }) || [];
 
   const handleLocationSelect = (location: string) => {
     setSelectedLocation(location);
+  };
+
+  // 홈 검색 submit — 입양탭으로 이동하면서 검색 쿼리 전달
+  const handleHomeSearch = () => {
+    const q = homeSearchQuery.trim();
+    if (!q) return;
+    router.push(`/list/animal?search=${encodeURIComponent(q)}`);
   };
 
   // 매칭 완료 상태 확인 및 알림 표시
@@ -192,6 +202,20 @@ export default function Home() {
             <Banner variant="main" />
           )}
         </div>
+
+        {/* 홈 검색 영역 — submit 시 입양탭(/list/animal?search=...)으로 이동하면 AnimalTab이 자동으로 검색 결과 표시 */}
+        <div className="px-4 mt-4">
+          <SearchInput
+            value={homeSearchQuery}
+            onChange={(e) => setHomeSearchQuery(e.target.value)}
+            onSearch={handleHomeSearch}
+            onClear={() => setHomeSearchQuery("")}
+            placeholder="품종, 이름 또는 발견 지역으로 검색해보세요."
+            variant="primary"
+            triggerOnContainerClick={false}
+          />
+        </div>
+
         <div className="mt-5">
           <TopPetSection
             title="내 근처에 있는 아이들"
@@ -237,14 +261,15 @@ export default function Home() {
 
         {/* <CommunitySection /> */}
 
-        <div className="mt-5">
+        {/* '지금 주목받고 있는 아이들' 섹션 임시 비활성화 (사용자 요청) */}
+        {/* <div className="mt-5">
           <PetSection
             title={`지금 주목받고 있는 \n아이들이에요`}
             animals={petSectionAnimals}
             isLoading={isPetSectionLoading}
             error={petSectionError}
           />
-        </div>
+        </div> */}
 
         <div className="mt-5">
           <FooterSection />

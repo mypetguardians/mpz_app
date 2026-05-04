@@ -286,36 +286,29 @@ async def get_animals(
         # 기본 쿼리셋 생성 (lazy evaluation 유지)
         queryset = Animal.objects.select_related('center').prefetch_related('animalimage_set')
         
-        # 필터 조건 적용 - 새로운 보호상태 그룹 매핑
+        # 필터 조건 적용 - 보호상태 그룹/raw 다중값 매핑
+        # 입력: 단일 값 또는 쉼표 구분 다중 값 ("입양가능,반환,방사")
+        # 그룹("입양가능"·"🌈" 등)은 raw status로 expand 후 protection_status__in으로 OR 매칭
         if filters.status:
-            from django.db.models import Q
-            # 필터 그룹별 실제 보호상태 매핑
-            if filters.status == '입양가능':
-                # 입양가능: 보호중, 임시보호, 기증, 공고중(공공데이터)
-                queryset = queryset.filter(
-                    Q(protection_status='보호중') | 
-                    Q(protection_status='임시보호') | 
-                    Q(protection_status='기증')
-                )
-            elif filters.status in ['무지개', '🌈', '무지개다리']:
-                # 무지개다리: 안락사, 자연사, 반환 (centers API와 동일하게)
-                queryset = queryset.filter(
-                    Q(protection_status='안락사') | 
-                    Q(protection_status='자연사') 
-                )
-            elif filters.status == '반환':
-                # 반환
-                queryset = queryset.filter(protection_status='반환')
-            elif filters.status == '방사':
-                # 방사
-                queryset = queryset.filter(protection_status='방사')
-            elif filters.status == '입양완료':
-                # 입양완료: 입양완료
-                queryset = queryset.filter(protection_status='입양완료')
-            else:
-                # 기존 status 필터를 protection_status로 직접 매핑 (호환성)
-                if filters.status in ['보호중', '임시보호', '안락사', '자연사', '반환', '기증', '방사', '입양완료']:
-                    queryset = queryset.filter(protection_status=filters.status)
+            GROUP_TO_RAW = {
+                '입양가능': ['보호중', '임시보호', '기증'],
+                '무지개': ['안락사', '자연사'],
+                '🌈': ['안락사', '자연사'],
+                '무지개다리': ['안락사', '자연사'],
+            }
+            RAW_PASSTHROUGH = {'보호중', '임시보호', '안락사', '자연사', '반환', '기증', '방사', '입양완료'}
+
+            selected_groups = [s.strip() for s in filters.status.split(',') if s.strip()]
+            raw_statuses: set[str] = set()
+            for grp in selected_groups:
+                if grp in GROUP_TO_RAW:
+                    raw_statuses.update(GROUP_TO_RAW[grp])
+                elif grp in RAW_PASSTHROUGH:
+                    raw_statuses.add(grp)
+                # 알 수 없는 값은 무시 (단일 값 잘못 들어와도 결과 0건이 아닌 무필터로 fallback 안 하게 set만 남김)
+
+            if raw_statuses:
+                queryset = queryset.filter(protection_status__in=raw_statuses)
         if filters.center_id:
             queryset = queryset.filter(center_id=filters.center_id)
         if filters.gender:

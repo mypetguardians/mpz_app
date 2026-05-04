@@ -74,18 +74,9 @@ export interface Animal {
 
 // API 요청 파라미터 타입 (백엔드 API 문서에 맞게 수정)
 export interface GetAnimalsParams {
-  status?:
-    | "보호중"
-    | "임시보호"
-    | "안락사"
-    | "자연사"
-    | "반환"
-    | "기증"
-    | "방사"
-    | "입양완료"
-    | "입양가능"
-    | "입양진행중"
-    | "입양불가";
+  // 보호상태 그룹 또는 raw status. 쉼표로 구분해 다중 값 전달 가능 (예: "입양가능,반환,방사").
+  // BE는 그룹(입양가능 → 보호중·임시보호·기증, 🌈 → 안락사·자연사)을 raw status로 expand 후 protection_status__in으로 OR 매칭.
+  status?: string;
   center_id?: string;
   gender?: "male" | "female";
   weight_min?: number;

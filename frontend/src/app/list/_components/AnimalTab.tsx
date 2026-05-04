@@ -95,12 +95,10 @@ function AnimalTab() {
       }
     }
 
-    // 보호상태 필터 - 단순 첫 번째 값 사용
+    // 보호상태 필터 — 사용자가 선택한 모든 그룹을 쉼표로 합쳐 전송.
+    // BE가 쉼표 split 후 그룹("입양가능"/"🌈")은 raw status로 expand하고 protection_status__in으로 OR 매칭.
     if (filters.protectionStatus.length > 0) {
-      const firstStatus = filters.protectionStatus[0];
-      if (firstStatus) {
-        params.status = firstStatus as GetAnimalsParams["status"];
-      }
+      params.status = filters.protectionStatus.join(",");
     }
 
     // 전문가 의견 필터

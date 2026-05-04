@@ -48,7 +48,11 @@ class JWTAuth(HttpBearer):
                 # 로그아웃된 토큰 차단: DB에 토큰이 존재하는지 확인
                 if not await Jwt.objects.filter(user_id=user_id, access=token).aexists():
                     return None
-                return await User.objects.aget(id=user_id)
+                user_obj = await User.objects.aget(id=user_id)
+                # 탈퇴/비활성 사용자 차단 (status='탈퇴유저' 또는 is_active=False)
+                if not user_obj.is_active or user_obj.status == User.UserStatusChoice.withdraw:
+                    return None
+                return user_obj
         except jwt.ExpiredSignatureError:
             return None  # 토큰 만료 에러 처리
         except jwt.DecodeError:

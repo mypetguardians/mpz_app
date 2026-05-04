@@ -164,7 +164,11 @@ class User(AbstractUser, BaseModel):
     
     # 관리자 메모 (입양, 파양 사유 등 관리자용 메모)
     admin_memo = models.TextField(blank=True, null=True, help_text="관리자 메모 (입양, 파양 사유 등)")
-    
+
+    # 회원 탈퇴 처리 (개인정보보호법 + 전자상거래법 5년 보관 의무)
+    deleted_at = models.DateTimeField(blank=True, null=True, help_text="탈퇴 시각 (status=탈퇴유저 시 기록)")
+    data_retention_until = models.DateTimeField(blank=True, null=True, help_text="개인정보 5년 보관 만료 시각 (이후 배치 잡으로 완전 삭제)")
+
     class Meta:
         db_table = 'user'
         verbose_name = '사용자'

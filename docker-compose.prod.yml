@@ -58,6 +58,9 @@ services:
         awslogs-create-group: "true"
 
   worker:
+    # backend와 동일한 이미지를 명시적으로 사용 — deploy.yml의 GHCR pull + retag로 backend 이미지가 갱신되면 worker도 자동 반영
+    # (이전 구조: build만 정의 → up --no-build 시 옛 mpz_app-worker:latest 이미지가 그대로 재사용되어 코드 갱신 누락됨)
+    image: mpz_app-backend:latest
     build:
       context: ./backend
       dockerfile: Dockerfile

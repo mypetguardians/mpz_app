@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { ArrowLeft } from "@phosphor-icons/react/dist/ssr";
 
 import { TopBar } from "@/components/common/TopBar";
@@ -24,9 +25,9 @@ export default function TermsPage() {
       <TopBar
         left={
           <div className="flex items-center gap-2">
-            <a href="/" aria-label="홈으로">
+            <Link href="/" aria-label="홈으로">
               <IconButton icon={ArrowLeft} size="iconM" />
-            </a>
+            </Link>
             <h4 className="font-semibold text-black">이용약관</h4>
           </div>
         }

@@ -4,16 +4,19 @@ import { Loading } from "@/components/common/Loading";
 import { useState } from "react";
 import { ArrowLeft } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 
 import { TopBar } from "@/components/common/TopBar";
 import { Container } from "@/components/common/Container";
 import { IconButton } from "@/components/ui/IconButton";
 import { BottomSheet } from "@/components/ui/BottomSheet";
+import { NotificationToast } from "@/components/ui/NotificationToast";
 import { useDeleteKakaoAccount } from "@/hooks/mutation";
 import { useAuth } from "@/components/providers/AuthProvider";
 
 export default function MyAccountPage() {
   const [isWithdrawalOpen, setIsWithdrawalOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
@@ -25,9 +28,25 @@ export default function MyAccountPage() {
     return null;
   }
 
-  const handleWithdrawal = () => {
-    deleteKakaoAccount.mutate();
-    router.push("/");
+  const handleWithdrawal = async () => {
+    setIsWithdrawalOpen(false);
+    try {
+      await deleteKakaoAccount.mutateAsync();
+      // 성공 시 hook의 onSuccess가 logout 호출 → AuthProvider가 redirect 처리. 안전망으로 명시 push.
+      router.push("/");
+    } catch (error) {
+      // BE 강화(2026-05-04): 진행 중 입양/주문 시 400, 그 외 500
+      let message = "탈퇴 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+      if (axios.isAxiosError(error)) {
+        const detail = (error.response?.data as { detail?: string } | undefined)?.detail;
+        if (error.response?.status === 400 && detail) {
+          message = detail;
+        } else if (detail) {
+          message = detail;
+        }
+      }
+      setToastMessage(message);
+    }
   };
 
   if (isLoading) {
@@ -115,12 +134,21 @@ export default function MyAccountPage() {
         onClose={() => setIsWithdrawalOpen(false)}
         variant="primary"
         title="정말 탈퇴하시겠습니까?"
-        description="계정 탈퇴시 그동안의 데이터는 복구되지 않아요."
+        description="계정 탈퇴시 개인정보는 즉시 비식별화됩니다. 다만 주문/거래 기록은 전자상거래법에 따라 5년간 보관 후 완전 삭제됩니다."
         leftButtonText="아니요"
         rightButtonText="네, 할래요"
         onLeftClick={() => setIsWithdrawalOpen(false)}
         onRightClick={handleWithdrawal}
       />
+
+      {/* 진행 중 입양/주문 시 안내 토스트 */}
+      {toastMessage && (
+        <NotificationToast
+          message={toastMessage}
+          type="error"
+          onClose={() => setToastMessage(null)}
+        />
+      )}
     </Container>
   );
 }

@@ -8,11 +8,20 @@
   # 최근 7일 증분 동기화
   python manage.py sync_public_data --strategy incremental --days 7
 
-  # 상태만 동기화 (이미지 스킵)
+  # 상태만 동기화 (이미지 스킵, 신규 생성 안 함 — update_only=True)
   python manage.py sync_public_data --strategy status_sync
 
   # 전체 동기화 (최근 90일)
   python manage.py sync_public_data --strategy full --days 90
+
+운영 유의사항:
+- **누적 기준점: 2025-10-01** — DB 비우고 재수집 시 반드시 이 날짜부터 시작.
+  history/2026-04-22-24.md에 dev 7,639건 / prod 7,690건으로 처음 누적된 기록.
+- **워커 컨테이너 코드 갱신 검증 필수** — 본 명령어는 worker 컨테이너에서 실행되므로
+  backend 컨테이너 코드만 갱신되면 효과 없음. 배포 후 반드시
+  `docker exec mpz_app-worker-1 grep update_only /backend/animals/services.py` 확인.
+- **status_sync는 update_only=True 모드** — services.py:226 시그니처에 update_only
+  파라미터 누락 시 신규 폭주 사고 재발 가능 (2026-04-26, 2026-05-03 사고 참조).
 """
 import sys
 import asyncio

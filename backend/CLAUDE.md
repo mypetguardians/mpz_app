@@ -28,6 +28,11 @@ Worker 컨테이너에서 management command로 실행 (run_scheduler.py):
 - 보호종료 감지: API에서 안 내려온 기존 "보호중" 동물 → 자동 전환
 - 직접등록 동물(is_public_data=False)은 동기화 영향 받지 않음
 
+### 운영 유의사항
+- **누적 기준점: 2025-10-01** — 공공 API에서 가져온 동물의 admission_date 가장 이른 값. DB 비우고 재수집 시(또는 신규 환경 셋업 시) 반드시 이 날짜부터 (2025-10-01 ~ 현재)로 full sync. history `2026-04-22-24.md`에 dev 7,639건 / prod 7,690건으로 처음 누적된 기록.
+- **워커 코드 갱신 검증 필수** — backend 컨테이너만 갱신되고 worker 컨테이너에 코드가 안 도달하는 사고가 두 번 발생(2026-04-26 prod 3,308건, 2026-05-03 dev 2,599건+prod 3,684건 잘못 신규 생성). 배포 후 반드시 `docker exec mpz_app-worker-1 grep update_only /backend/animals/services.py` 결과가 비어있지 않은지 확인. 비어있으면 worker가 옛 이미지로 동작 중. (현재 docker-compose.prod.yml worker가 `image: mpz_app-backend:latest` 명시로 해결됐지만 회귀 방지 위해 점검 루틴화)
+- **status_sync 폭주 식별 패턴** — SyncLog에서 `strategy=status_sync AND created_count > 50` 이면 워커 패치 누락 의심. update_only 정상 동작 시 created=0이 정상.
+
 ## 이미지 업로드
 `/v1/storage/upload` — base64 → Pillow 리사이징(profiles 512px, 일반 1080px) + EXIF 보정 → Supabase Storage
 

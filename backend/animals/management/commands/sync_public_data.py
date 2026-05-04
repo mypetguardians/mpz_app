@@ -98,8 +98,18 @@ class Command(BaseCommand):
         if skip_images:
             public_data_service._skip_images = True
 
-        # 상태 필터: status_sync는 보호중만 조회, incremental은 날짜 필터가 있으면 보호중만
-        state = 'protect' if (bgnde or strategy == 'status_sync') else None
+        # 상태 필터:
+        # - incremental (날짜 범위 sync): bgnde/endde 사이의 신규 등록을 받기 위해 'protect'
+        # - status_sync (주 2회): state=None — 보호중 + 종료(반환/입양/자연사/안락사/기증) 모두 받음
+        #   → 명시적 'process_state="종료(...)"' 응답된 동물만 _update_animal이 정확히 transition
+        # - full (월 1회): state='protect' 유지 — 90일 신규 등록 + 보호중 update 의도
+        if bgnde:
+            state = 'protect'
+        elif strategy == 'status_sync':
+            # status_sync 정식 fix (notice_state 기반): 전체 상태로 호출해 종료된 동물도 명시 응답 받음
+            state = None
+        else:
+            state = None
 
         animals_data = await public_data_service.fetch_abandoned_animals(
             bgnde=bgnde,
@@ -122,11 +132,12 @@ class Command(BaseCommand):
         update_only = strategy == 'status_sync'
         result = await public_data_service.process_abandoned_animals(animals_data, update_only=update_only)
 
-        # status_sync/full: 공공데이터에 없는 기존 "보호중" 동물 → 보호 종료 처리
+        # 정식 fix (notice_state 기반): _expire_missing_animals 자동 호출 폐기
+        # - 기존: API 응답에 안 들어옴 = 종료로 추정 transition → 옛 동물 잘못 transition (사고 사례 다수)
+        # - 정식: status_sync state=None으로 호출해 'process_state="종료(...)"' 명시 응답을 받아
+        #   process_abandoned_animals 안의 _update_animal이 정확히 transition (이미 구현되어 있음)
+        # - _expire_missing_animals 함수 자체는 유지하되 자동 호출 안 함 (PR #95 안전장치도 dead code 화. 향후 명시 호출용 management command가 필요해지면 그때 부활)
         expired_count = 0
-        if strategy in ('status_sync', 'full'):
-            api_notice_numbers = {a.notice_no for a in animals_data if a.notice_no}
-            expired_count = await self._expire_missing_animals(api_notice_numbers)
 
         duration = (timezone.now() - started_at).total_seconds()
 

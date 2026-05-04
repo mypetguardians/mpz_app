@@ -96,6 +96,11 @@ make dev            # FE:3001 + BE:8000 동시 실행
 사용자가 "워커 확인", "워커 체크", "동기화 상태" 등을 요청하면 아래 순서로 확인:
 1. `docker compose ps worker` — 컨테이너 상태 (Up/Exited)
 2. `docker compose logs worker --tail=5` — 최근 로그 (에러 여부)
-3. SyncLog 최근 5건 조회 — 전략별 마지막 실행 시간 + created/updated/deleted 수치
-4. Animal 테이블 카운트 — 전체/공공/직접등록 수 + 보호중 수
-5. 이상 징후 판단: created가 비정상적으로 많거나(>100), status=failed, 컨테이너 재시작 등
+3. **워커 코드 갱신 검증** — `docker exec mpz_app-worker-1 grep -c update_only /backend/animals/services.py` 결과 ≥ 4. 0이면 옛 이미지로 동작 중 (재배포 트리거 또는 backend 이미지로 즉시 retag 필요)
+4. SyncLog 최근 5건 조회 — 전략별 마지막 실행 시간 + created/updated/deleted 수치
+5. Animal 테이블 카운트 — 전체/공공/직접등록 수 + 보호중 수
+6. **누적 기준점 검증** — `Animal.objects.filter(is_public_data=True).aggregate(Min('admission_date'))` 결과가 2025-10-01인지 확인. 그 이후 날짜면 누적 손실 의심
+7. 이상 징후 판단:
+   - `status_sync` 전략에서 created > 50 → 워커 패치 누락 (즉시 손상 데이터 식별 + 워커 갱신)
+   - `incremental` created > 100 → 비정상 (정상은 0~10건/일)
+   - status=failed, 컨테이너 재시작 등

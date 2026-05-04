@@ -99,15 +99,14 @@ class Command(BaseCommand):
             public_data_service._skip_images = True
 
         # 상태 필터:
-        # - incremental (날짜 범위 sync): bgnde/endde 사이의 신규 등록을 받기 위해 'protect'
+        # - incremental (매일 새 등록): state='protect' — 어제~오늘 보호중 신규 받기 (역할 분담)
         # - status_sync (주 2회): state=None — 보호중 + 종료(반환/입양/자연사/안락사/기증) 모두 받음
-        #   → 명시적 'process_state="종료(...)"' 응답된 동물만 _update_animal이 정확히 transition
-        # - full (월 1회): state='protect' 유지 — 90일 신규 등록 + 보호중 update 의도
-        if bgnde:
-            state = 'protect'
-        elif strategy == 'status_sync':
-            # status_sync 정식 fix (notice_state 기반): 전체 상태로 호출해 종료된 동물도 명시 응답 받음
+        # - full (월 1회): state=None — 90일 범위에서 종료 동물도 함께 받아 정확한 protection_status 분포 형성
+        #   (이전 'protect'로 호출하면 종료된 동물은 응답에 안 들어와 DB에 보호중만 누적되는 버그)
+        if strategy in ('status_sync', 'full'):
             state = None
+        elif bgnde:
+            state = 'protect'
         else:
             state = None
 

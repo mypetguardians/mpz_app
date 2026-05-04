@@ -62,6 +62,11 @@ const instance: AxiosInstance = axios.create({
 
 instance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    // baseURL이 trailing /로 끝나는데 path leading /가 붙으면 //로 중복됨
+    // 절대 URL이 아닌 상대 경로의 leading /를 제거해 정규화
+    if (config.url && !/^https?:\/\//i.test(config.url)) {
+      config.url = config.url.replace(/^\/+/, "");
+    }
     if (IS_DEV && typeof window !== "undefined") {
       const method = (config.method || "GET").toUpperCase();
       const url = `${config.baseURL || ""}${config.url || ""}`;
@@ -127,9 +132,14 @@ instance.interceptors.response.use(
     if (IS_DEV && typeof window !== "undefined") {
       const method = (error.config?.method || "GET").toUpperCase();
       const url = `${error.config?.baseURL || ""}${error.config?.url || ""}`;
+      const status = error.response?.status;
+      // 404는 "리소스 없음"으로 정상 의미 전달인 경우가 많아 info 레벨로 강등
+      const isInfo = status === 404;
+      const label = isInfo ? "[응답 정보]" : "[응답 에러]";
+      const color = isInfo ? "color:#6b7280;font-weight:normal" : "color:#dc2626;font-weight:bold";
       console.log(
-        `%c[응답 에러] ${method} ${url} ${error.response?.status || "NETWORK"}`,
-        "color:#dc2626;font-weight:bold",
+        `%c${label} ${method} ${url} ${status || "NETWORK"}`,
+        color,
         error.response?.data || error.message
       );
     }

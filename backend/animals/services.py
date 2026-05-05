@@ -69,9 +69,12 @@ class PublicDataService:
                 query_string = urlencode(params)
                 full_url = f"{url}?{query_string}"
                 
-                async with httpx.AsyncClient() as client:
+                # is_initial_sync=True (full/status_sync) 분기에 timeout 명시.
+                # httpx 기본 5초로는 paging 도중 ReadTimeout 발생해 sync 전체 실패 사고
+                # (2026-05-05 dev sync v2: page 33-34에서 timeout, 정식 fix 전에 임시 패치로 우회).
+                async with httpx.AsyncClient(timeout=60.0) as client:
                     response = await client.get(full_url)
-                    
+
                     # 500 에러 처리
                     if response.status_code == 500:
                         logger.warning(f"공공데이터 API 500 에러: {response.url}")

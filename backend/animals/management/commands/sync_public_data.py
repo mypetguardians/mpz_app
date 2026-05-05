@@ -8,11 +8,20 @@
   # 최근 7일 증분 동기화
   python manage.py sync_public_data --strategy incremental --days 7
 
-  # 상태만 동기화 (이미지 스킵)
+  # 상태만 동기화 (이미지 스킵, 신규 생성 안 함 — update_only=True)
   python manage.py sync_public_data --strategy status_sync
 
   # 전체 동기화 (최근 90일)
   python manage.py sync_public_data --strategy full --days 90
+
+운영 유의사항:
+- **누적 기준점: 2025-10-01** — DB 비우고 재수집 시 반드시 이 날짜부터 시작.
+  history/2026-04-22-24.md에 dev 7,639건 / prod 7,690건으로 처음 누적된 기록.
+- **워커 컨테이너 코드 갱신 검증 필수** — 본 명령어는 worker 컨테이너에서 실행되므로
+  backend 컨테이너 코드만 갱신되면 효과 없음. 배포 후 반드시
+  `docker exec mpz_app-worker-1 grep update_only /backend/animals/services.py` 확인.
+- **status_sync는 update_only=True 모드** — services.py:226 시그니처에 update_only
+  파라미터 누락 시 신규 폭주 사고 재발 가능 (2026-04-26, 2026-05-03 사고 참조).
 """
 import sys
 import asyncio
@@ -89,8 +98,17 @@ class Command(BaseCommand):
         if skip_images:
             public_data_service._skip_images = True
 
-        # 상태 필터: status_sync는 보호중만 조회, incremental은 날짜 필터가 있으면 보호중만
-        state = 'protect' if (bgnde or strategy == 'status_sync') else None
+        # 상태 필터:
+        # - incremental (매일 새 등록): state='protect' — 어제~오늘 보호중 신규 받기 (역할 분담)
+        # - status_sync (주 2회): state=None — 보호중 + 종료(반환/입양/자연사/안락사/기증) 모두 받음
+        # - full (월 1회): state=None — 90일 범위에서 종료 동물도 함께 받아 정확한 protection_status 분포 형성
+        #   (이전 'protect'로 호출하면 종료된 동물은 응답에 안 들어와 DB에 보호중만 누적되는 버그)
+        if strategy in ('status_sync', 'full'):
+            state = None
+        elif bgnde:
+            state = 'protect'
+        else:
+            state = None
 
         animals_data = await public_data_service.fetch_abandoned_animals(
             bgnde=bgnde,
@@ -113,11 +131,12 @@ class Command(BaseCommand):
         update_only = strategy == 'status_sync'
         result = await public_data_service.process_abandoned_animals(animals_data, update_only=update_only)
 
-        # status_sync/full: 공공데이터에 없는 기존 "보호중" 동물 → 보호 종료 처리
+        # 정식 fix (notice_state 기반): _expire_missing_animals 자동 호출 폐기
+        # - 기존: API 응답에 안 들어옴 = 종료로 추정 transition → 옛 동물 잘못 transition (사고 사례 다수)
+        # - 정식: status_sync state=None으로 호출해 'process_state="종료(...)"' 명시 응답을 받아
+        #   process_abandoned_animals 안의 _update_animal이 정확히 transition (이미 구현되어 있음)
+        # - _expire_missing_animals 함수 자체는 유지하되 자동 호출 안 함 (PR #95 안전장치도 dead code 화. 향후 명시 호출용 management command가 필요해지면 그때 부활)
         expired_count = 0
-        if strategy in ('status_sync', 'full'):
-            api_notice_numbers = {a.notice_no for a in animals_data if a.notice_no}
-            expired_count = await self._expire_missing_animals(api_notice_numbers)
 
         duration = (timezone.now() - started_at).total_seconds()
 
@@ -141,7 +160,37 @@ class Command(BaseCommand):
         )
 
     async def _expire_missing_animals(self, api_notice_numbers: set) -> int:
-        """공공데이터 API에서 보호중으로 내려오지 않은 기존 동물을 보호종료 처리"""
+        """공공데이터 API에서 보호중으로 내려오지 않은 기존 동물을 보호종료 처리
+
+        ⚠️ 안전장치 (2026-04-22 prod 3,308건 / 2026-05-03 dev·prod 6,300건+ 잘못 transition 사고 후 추가):
+        - 공공 API가 'state=protect' + bgnde=None 호출 시 전체 보호중 동물을 다 응답한다는 보장이 없음
+          (검증: 단일 날짜 query로는 옛 동물도 '보호중' 응답하는데, 날짜 없이 호출 시 1,780건만 응답).
+        - 따라서 'API 미응답 = 종료'로 단순 transition하면 옛 동물을 잘못 transition할 위험.
+        - 안전장치: API 응답 동물 수가 DB 보호중 수의 50% 미만이면 abort. 정상이면 임계 위반 거의 없음
+          (예: incremental 후 DB 보호중 7,000건 vs API 응답 1,780건 = 25% → abort).
+        - 이 임계는 임시 보호장치. 정식 fix(notice_edt 기준 transition)는 별도 PR로 충분히 검증 후 적용.
+        """
+        api_count = len(api_notice_numbers)
+        db_active_count = await sync_to_async(
+            lambda: Animal.objects.filter(
+                is_public_data=True,
+                protection_status='보호중',
+            ).exclude(
+                public_notice_number__isnull=True,
+            ).exclude(
+                public_notice_number='',
+            ).count()
+        )()
+
+        # API 응답이 DB 보호중의 50% 미만이면 transition abort (사고 재발 방지)
+        SAFETY_RATIO = 0.5
+        if db_active_count > 0 and api_count < db_active_count * SAFETY_RATIO:
+            self.stderr.write(
+                f'[status_sync abort] API 응답({api_count:,}건) < DB 보호중({db_active_count:,}건) × {SAFETY_RATIO:.0%}'
+                f' — 옛 동물 잘못 transition 위험으로 _expire_missing_animals 중단'
+            )
+            return 0
+
         expired = await sync_to_async(
             lambda: Animal.objects.filter(
                 is_public_data=True,

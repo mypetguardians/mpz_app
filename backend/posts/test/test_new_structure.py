@@ -73,7 +73,7 @@ class TestNewPostStructure(TestCase):
             'user_type': user.user_type,
             'exp': timezone.now() + timedelta(hours=1)
         }
-        return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+        return jwt.encode(payload, settings.JWT_SIGNING_KEY, algorithm="HS256")
 
     async def test_all_public_posts_list_no_auth(self):
         """전체 공개 게시글 목록 조회 - 인증 불필요"""

@@ -12,8 +12,13 @@ User = get_user_model()
 def get_user_from_token(token):
     """JWT 토큰에서 사용자 정보를 가져옵니다."""
     try:
-        decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-        user_id = decoded.get("user_id")
+        decoded = jwt.decode(
+            token,
+            settings.JWT_SIGNING_KEY,
+            algorithms=["HS256"],
+            options={"verify_aud": False},
+        )
+        user_id = decoded.get("sub") or decoded.get("user_id")
         if user_id:
             return User.objects.get(id=user_id)
     except (jwt.DecodeError, jwt.ExpiredSignatureError, User.DoesNotExist):

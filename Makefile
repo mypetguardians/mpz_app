@@ -24,8 +24,10 @@ dev: kill-all
 	@cp $(ROOT_DIR)/backend/.env.dev $(ROOT_DIR)/backend/.env
 	@if [ "$$(uname)" = "Darwin" ]; then \
 		sed -i '' 's|NEXT_PUBLIC_KAKAO_REDIRECT_URI=.*|NEXT_PUBLIC_KAKAO_REDIRECT_URI=http://localhost:$(BE_PORT)/v1/kakao/login/callback|' $(ROOT_DIR)/backend/.env; \
+		sed -i '' 's|^SESSION_COOKIE_DOMAIN=.*|SESSION_COOKIE_DOMAIN=|' $(ROOT_DIR)/backend/.env; \
 	else \
 		sed -i 's|NEXT_PUBLIC_KAKAO_REDIRECT_URI=.*|NEXT_PUBLIC_KAKAO_REDIRECT_URI=http://localhost:$(BE_PORT)/v1/kakao/login/callback|' $(ROOT_DIR)/backend/.env; \
+		sed -i 's|^SESSION_COOKIE_DOMAIN=.*|SESSION_COOKIE_DOMAIN=|' $(ROOT_DIR)/backend/.env; \
 	fi
 	@printf 'NEXT_PUBLIC_API_BASE_URL=http://localhost:$(BE_PORT)/v1/\n' > $(ROOT_DIR)/frontend/.env.development.local
 	@echo "🐍 Django 백엔드 :$(BE_PORT) 시작..."

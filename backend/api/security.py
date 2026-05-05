@@ -31,16 +31,28 @@ class JWTAuth(HttpBearer):
 
     async def authenticate(self, request, token):
         try:
-            decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            # `aud` 클레임은 강아지학교 PostgREST가 자체 검증하므로 마펫쯔 측에선 스킵.
+            decoded = jwt.decode(
+                token,
+                settings.JWT_SIGNING_KEY,
+                algorithms=["HS256"],
+                options={"verify_aud": False},
+            )
             if decoded["exp"] < timezone.now().timestamp():
                 return None  # 토큰이 만료되었습니다.
 
-            user_id = decoded.get("user_id")
+            # `sub`은 강아지학교 PostgREST 호환을 위한 표준 클레임. 기존 토큰 호환을 위해
+            # `user_id`도 fallback으로 받는다.
+            user_id = decoded.get("sub") or decoded.get("user_id")
             if user_id:
                 # 로그아웃된 토큰 차단: DB에 토큰이 존재하는지 확인
                 if not await Jwt.objects.filter(user_id=user_id, access=token).aexists():
                     return None
-                return await User.objects.aget(id=user_id)
+                user_obj = await User.objects.aget(id=user_id)
+                # 탈퇴/비활성 사용자 차단 (status='탈퇴유저' 또는 is_active=False)
+                if not user_obj.is_active or user_obj.status == User.UserStatusChoice.withdraw:
+                    return None
+                return user_obj
         except jwt.ExpiredSignatureError:
             return None  # 토큰 만료 에러 처리
         except jwt.DecodeError:

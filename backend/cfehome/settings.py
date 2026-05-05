@@ -27,6 +27,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config("DJANGO_SECRET_KEY")
 
+# JWT 서명 전용 키 — 마펫쯔↔강아지학교 통합용 Supabase JWT secret.
+# 강아지학교가 PostgREST로 같은 토큰을 stateless 검증하려면 Supabase 프로젝트의
+# JWT secret과 동일해야 한다. 미설정 환경(테스트·로컬·통합 전 운영)에서는 SECRET_KEY로
+# fallback 하여 기존 동작을 유지한다. Django 세션·CSRF·해시 솔트는 SECRET_KEY 그대로 사용.
+JWT_SIGNING_KEY = config("SUPABASE_JWT_SECRET", default="") or SECRET_KEY
+
 # 공공데이터 서비스 키
 PUBLIC_DATA_SERVICE_KEY = config("PUBLIC_DATA_SERVICE_KEY", default="")
 
@@ -80,6 +86,7 @@ INSTALLED_APPS = [
     "feedback",
     "banners",
     "storage_service",
+    "school",
 ]
 
 # Email (Naver SMTP)
@@ -130,7 +137,11 @@ SESSION_COOKIE_SAMESITE = config("SESSION_COOKIE_SAMESITE", default="None")
 CSRF_COOKIE_SAMESITE = "None"
 
 # Cookie settings
-SESSION_COOKIE_DOMAIN = None  # 모든 도메인에서 접근 가능
+# 강아지학교(school.mpz.kr)와 쿠키 공유를 위해 운영에서는 `.mpz.kr`로 설정.
+# 로컬 개발(localhost)은 빈 값(None)이어야 쿠키가 정상 발급됨 — Makefile의 dev 룰이
+# .env에서 SESSION_COOKIE_DOMAIN을 빈 값으로 자동 교체한다.
+_session_cookie_domain = config("SESSION_COOKIE_DOMAIN", default="").strip()
+SESSION_COOKIE_DOMAIN = _session_cookie_domain or None
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_AGE = 1209600  # 14일
 
@@ -260,7 +271,9 @@ NINJA_PAGINATION_CLASS = "api.pagination.CustomPageNumberPagination"
 PAGINATION_PER_PAGE = 10
 
 # login jwt token expiration
-ACCESS_TOKEN_EXPIRATION_TIME = 120  # 2시간 (분 단위)
+# 강아지학교(stateless PostgREST 검증)와의 logout 갭을 최소화하기 위해 ACCESS는 15분으로
+# 단축. 마펫쯔 axios interceptor가 401 시 자동으로 refresh-token으로 재발급한다.
+ACCESS_TOKEN_EXPIRATION_TIME = 15  # 15분 (분 단위)
 REFRESH_TOKEN_EXPIRATION_TIME = 30 * 24 * 60  # 30일 (분 단위)
 
 # Kakao Social Login Settings

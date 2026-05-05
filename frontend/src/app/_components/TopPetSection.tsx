@@ -16,6 +16,7 @@ import {
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Toast } from "@/components/ui/Toast";
+import { useHomeLocationStore } from "@/stores/homeLocation";
 
 interface PetSectionProps {
   title: string;
@@ -63,30 +64,47 @@ export function TopPetSection({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const tagRefsMap = useRef<Map<string, HTMLElement>>(new Map());
 
-  // 클라이언트 마운트 시 GPS 자동 요청
+  const { userGpsLocation, setUserGpsLocation, selectedLocation: storeLocation } = useHomeLocationStore();
+
+  // 클라이언트 마운트 시 위치 처리
   useEffect(() => {
     setIsMounted(true);
+
+    // store에 이미 선택된 지역이 있으면 GPS 요청 안 함 (탭 전환 케이스)
+    if (storeLocation) {
+      hasAutoAppliedLocation.current = true;
+      if (userGpsLocation) setUserLocation(userGpsLocation);
+      return;
+    }
+
+    // store에 GPS 위치가 있으면 재사용
+    if (userGpsLocation) {
+      setUserLocation(userGpsLocation);
+      hasAutoAppliedLocation.current = true;
+      onLocationSelect?.(userGpsLocation);
+      return;
+    }
+
+    // 아무것도 없으면 GPS 요청
     requestLocation();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // GPS 결과 → 역지오코딩 → 내 지역 태그 자동 활성화 (최초 1회)
+  // GPS 결과 → 역지오코딩 → 내 지역 태그 자동 활성화
   useEffect(() => {
     if (!latitude || !longitude || !isValidLocation(latitude, longitude)) return;
+    if (hasAutoAppliedLocation.current) return;
 
     const resolveRegion = async () => {
-      // BigDataCloud 역지오코딩 우선, 실패 시 Haversine fallback
       const region = await getRegionNameByGeocode(latitude, longitude);
       setUserLocation(region);
-
-      if (!hasAutoAppliedLocation.current) {
-        hasAutoAppliedLocation.current = true;
-        onLocationSelect?.(region);
-      }
+      setUserGpsLocation(region);
+      hasAutoAppliedLocation.current = true;
+      onLocationSelect?.(region);
     };
 
     resolveRegion();
-  }, [latitude, longitude, onLocationSelect]);
+  }, [latitude, longitude, onLocationSelect, setUserGpsLocation]);
 
   // "내 주변" 버튼 클릭 시 GPS 재요청 → 내 지역 태그 활성화
   const handleNearbyClick = () => {
@@ -94,6 +112,7 @@ export function TopPetSection({
       onLocationSelect?.(userLocation);
     } else {
       hasAutoAppliedLocation.current = false;
+      sessionStorage.removeItem("homeUserLocation");
       requestLocation();
     }
   };

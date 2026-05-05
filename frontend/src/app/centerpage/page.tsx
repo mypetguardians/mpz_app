@@ -133,7 +133,7 @@ export default function MyPage() {
       <TopBar left={<h2 className="text-bk">센터 관리자</h2>} />
       <div className="w-full flex flex-col gap-2 pb-[72px] min-h-[100px] flex-1">
         <div className="w-full px-4">
-          <div className="w-full flex py-3 items-center justify-between h-20">
+          <div className="w-full flex py-3 items-center justify-between h-20 gap-3">
             <div className="flex items-center min-w-0 flex-1">
               <div className="relative w-14 h-14 rounded-[20px] overflow-hidden flex-shrink-0 mr-3">
                 {myCenter?.imageUrl ? (
@@ -150,6 +150,8 @@ export default function MyPage() {
                   </div>
                 )}
               </div>
+              {/* 닉네임 컨테이너는 자기 콘텐츠 폭만 사용 → 인증마크가 텍스트 바로 옆에 붙음.
+                  수정버튼과는 부모(justify-between + gap-3)로 자동 분리. SealCheck shrink-0으로 닉네임 길어도 축소 X */}
               <div className="flex items-center min-w-0">
                 {authLoading ? (
                   <div className="min-w-0">
@@ -157,7 +159,7 @@ export default function MyPage() {
                   </div>
                 ) : isAuthenticated && myCenter ? (
                   <div className="min-w-0">
-                    <h4 className="text-black line-clamp-3">
+                    <h4 className="text-black line-clamp-3 break-all">
                       {myCenter.name || "보호센터 이름"}
                     </h4>
                   </div>
@@ -169,13 +171,13 @@ export default function MyPage() {
                 {isSubscriber && (
                   <SealCheck
                     size={14}
-                    className="text-brand-light"
+                    className="text-brand-light shrink-0 ml-1"
                     weight="fill"
                   />
                 )}
               </div>
             </div>
-            <Link href="/centerpage/setting-name">
+            <Link href="/centerpage/setting-name" className="shrink-0">
               <MiniButton text="수정" variant="outline" />
             </Link>
           </div>

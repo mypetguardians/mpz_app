@@ -165,8 +165,13 @@ async def logout(request):
     if token:
         try:
             import jwt as pyjwt
-            decoded = pyjwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-            user_id = decoded.get("user_id")
+            decoded = pyjwt.decode(
+                token,
+                settings.JWT_SIGNING_KEY,
+                algorithms=["HS256"],
+                options={"verify_aud": False},
+            )
+            user_id = decoded.get("sub") or decoded.get("user_id")
             if user_id:
                 await sync_to_async(Jwt.objects.filter(user_id=user_id).delete)()
         except Exception as e:
@@ -311,22 +316,133 @@ async def update_me(request, data: UserUpdateIn):
 @router.delete(
     "/deleteaccount",
     summary="[C] 계정 탈퇴",
-    description="현재 로그인한 사용자의 계정을 완전히 삭제합니다.",
+    description="현재 로그인한 사용자의 계정을 비식별화하고 5년 보관 후 완전 삭제 예약 (개인정보보호법 + 전자상거래법 제6조)",
     response={200: SuccessOut},
     auth=jwt_auth,
 )
 async def delete_account(request):
+    """회원 탈퇴 — 비식별화 + 보관 의무 5년 + 카카오 unlink + JWT 무효화
+
+    절차 (claude.plan.md 탈퇴 설계 기준):
+    1) 진행 중 입양/주문 차단 (status='신청'/'미팅'/'계약서작성')
+    2) 카카오 unlink (실패해도 진행)
+    3) 개인정보 비식별화 (이름/이메일/전화번호/사진/주소/생년월일/카카오ID)
+    4) status=탈퇴유저, is_active=False, deleted_at=now, data_retention_until=now+5년
+    5) Jwt 테이블 row 삭제 (모든 활성 토큰 즉시 무효화)
+    6) 응답 + 쿠키 삭제 (호출 측에서 처리)
+
+    주문(orders) 테이블은 5년 보관 의무로 삭제하지 않고 user FK는 그대로. 5년 후 배치 잡이
+    `data_retention_until <= now()` 조건으로 일괄 완전 삭제.
     """
-    계정 완전 삭제 처리
-    - 현재 로그인한 사용자의 DB 레코드를 완전히 삭제
-    - 연결된 JWT 토큰은 CASCADE로 함께 삭제됨
-    """
+    import logging
+    from datetime import timedelta
+
+    logger = logging.getLogger(__name__)
     user = request.auth
+
+    # 1) 진행 중 입양 차단
+    from adoptions.models import Adoption
+    in_progress_adoption = await Adoption.objects.filter(
+        user_id=user.id,
+        status__in=['신청', '미팅', '계약서작성'],
+    ).aexists()
+    if in_progress_adoption:
+        raise HttpError(
+            400,
+            "진행 중인 입양 신청이 있어 탈퇴할 수 없습니다. 입양 완료 또는 취소 후 다시 시도해주세요.",
+        )
+
     try:
-        # 계정 완전 삭제
-        await sync_to_async(User.objects.filter(id=user.id).delete)()
-        return {"detail": "계정이 완전히 삭제되었습니다."}
+        # 2) 카카오 unlink (실패해도 진행)
+        if user.kakao_id:
+            try:
+                await _kakao_unlink(user.kakao_id)
+            except Exception as e:
+                logger.warning(f"카카오 unlink 실패 (탈퇴는 진행): {e}")
+
+        # 3-5) 비식별화 + 상태 전환 + Jwt 삭제 (단일 트랜잭션)
+        @sync_to_async
+        def _withdraw_user_sync(user_id: str):
+            from django.db import transaction
+            from django.utils import timezone
+
+            with transaction.atomic():
+                target = User.objects.select_for_update().get(id=user_id)
+                now = timezone.now()
+
+                target.username = f"withdrawn_{target.id}"  # username unique 제약 회피
+                target.email = None
+                target.name = None
+                target.nickname = "탈퇴회원"
+                target.phone_number = None
+                target.image = None
+                target.birth = None
+                target.address = None
+                target.address_is_public = False
+                target.is_phone_verified = False
+                target.kakao_id = None  # unique 제약 + 재로그인 시 새 계정 생성 유도
+                target.status = User.UserStatusChoice.withdraw
+                target.is_active = False  # Django 기본 인증 차단
+                target.deleted_at = now
+                target.data_retention_until = now + timedelta(days=365 * 5)
+                target.save(update_fields=[
+                    'username', 'email', 'name', 'nickname', 'phone_number',
+                    'image', 'birth', 'address', 'address_is_public',
+                    'is_phone_verified', 'kakao_id', 'status', 'is_active',
+                    'deleted_at', 'data_retention_until',
+                ])
+
+                # 모든 활성 JWT 무효화 (CASCADE로 자동 삭제되지만 명시 처리)
+                Jwt.objects.filter(user_id=user_id).delete()
+
+        await _withdraw_user_sync(user.id)
+        logger.info(f"회원 탈퇴 완료: user_id={user.id}")
+
     except User.DoesNotExist:
         raise HttpError(404, "사용자를 찾을 수 없습니다.")
     except Exception:
+        logger.exception("계정 탈퇴 처리 중 오류")
         raise HttpError(500, "계정 탈퇴 처리 중 오류가 발생했습니다.")
+
+    # 6) 응답 + 쿠키 삭제 (logout과 동일 도메인/secure 정책)
+    response = JsonResponse({"detail": "탈퇴 처리가 완료되었습니다. 5년 후 개인정보가 완전 삭제됩니다."})
+    domain = getattr(settings, 'SESSION_COOKIE_DOMAIN', None)
+    secure = getattr(settings, 'SESSION_COOKIE_SECURE', True)
+    user_agent = request.META.get('HTTP_USER_AGENT', '')
+    is_safari = 'Safari' in user_agent and 'Chrome' not in user_agent
+    samesite = 'Lax' if is_safari else getattr(settings, 'SESSION_COOKIE_SAMESITE', 'None')
+    for cookie_name in ("access", "refresh", "reset"):
+        response.set_cookie(
+            key=cookie_name,
+            value="",
+            max_age=0,
+            domain=domain,
+            path="/",
+            secure=secure,
+            samesite=samesite,
+            httponly=cookie_name != "access",
+        )
+    return response
+
+
+async def _kakao_unlink(kakao_id: str) -> None:
+    """카카오 연동 해제 — Admin Key 또는 access token 필요. 여기서는 Admin Key 사용."""
+    import httpx
+
+    admin_key = getattr(settings, 'KAKAO_ADMIN_KEY', None) or config(
+        "KAKAO_ADMIN_KEY", default=""
+    )
+    if not admin_key:
+        raise RuntimeError("KAKAO_ADMIN_KEY env 미설정")
+
+    async with httpx.AsyncClient(timeout=5.0) as client:
+        res = await client.post(
+            "https://kapi.kakao.com/v1/user/unlink",
+            headers={
+                "Authorization": f"KakaoAK {admin_key}",
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            data={"target_id_type": "user_id", "target_id": str(kakao_id)},
+        )
+        if res.status_code != 200:
+            raise RuntimeError(f"카카오 unlink 응답 비정상: {res.status_code} {res.text}")

@@ -163,6 +163,9 @@ jobs:
             # 이미지 태그를 compose에서 사용할 이름으로 변환
             docker tag ghcr.io/${OWNER}/mpz-frontend:$TAG mpz_app-frontend:latest
             docker tag ghcr.io/${OWNER}/mpz-backend:$TAG mpz_app-backend:latest
+            # worker는 backend와 동일 코드(이미지) 사용 — 옛 mpz_app-worker:latest tag도 함께 갱신해 정합성 확보
+            # (docker-compose.prod.yml의 worker가 image: mpz_app-backend:latest로 변경됐지만, 옛 이미지가 남아있으면 prune 전까지 혼동 가능)
+            docker tag ghcr.io/${OWNER}/mpz-backend:$TAG mpz_app-worker:latest
 
             # ── Rolling 배포 (서비스별 순차 교체) ──
 
@@ -187,8 +190,8 @@ jobs:
             # redis 유지
             APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --no-build --no-recreate redis
 
-            # worker 최초 생성만
-            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --no-build --no-recreate worker
+            # worker도 코드 업데이트 반영 (동기화 시간 03:00 KST과 배포 시간 비중첩)
+            APP_ENV=$APP_ENV docker compose -f docker-compose.prod.yml up -d --no-build --force-recreate worker
 
             # 오래된 이미지 정리
             docker image prune -f

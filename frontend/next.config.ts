@@ -1,6 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "standalone",
+  // 구 URL → 새 URL 영구 리다이렉트 (검색엔진 색인 + 사용자 북마크 호환)
+  async redirects() {
+    return [
+      { source: "/privacy", destination: "/terms/privacy", permanent: true },
+    ];
+  },
   async headers() {
     return [
       {

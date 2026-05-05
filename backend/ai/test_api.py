@@ -44,7 +44,7 @@ class TestAIPersonalityTestAPI(TestCase):
                 'exp': timezone.now() + timedelta(hours=1),
                 'iat': timezone.now()
             }
-            return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+            return jwt.encode(payload, settings.JWT_SIGNING_KEY, algorithm="HS256")
         
         self.generate_jwt_token = generate_jwt_token
     

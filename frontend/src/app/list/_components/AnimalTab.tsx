@@ -43,11 +43,10 @@ function AnimalTab() {
   const searchFromUrl = searchParams.get("search") || "";
 
   // 필터 파라미터를 API 요청에 맞게 변환
+  // 정렬은 BE default(notice_start_date desc) 사용 — 공공/민간 통일된 "사용자 노출 시작 시점" 기준 (PR #108).
   const apiParams = useMemo(() => {
     const params: GetAnimalsParams = {
       page_size: ITEMS_PER_PAGE,
-      sort_by: "created_at",
-      sort_order: "desc",
     };
 
     // 검색 값 우선순위: URL 파라미터 > 스토어 searchValue > 필터 breed

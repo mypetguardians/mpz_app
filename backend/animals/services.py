@@ -399,13 +399,13 @@ class PublicDataService:
             animal.admission_date = animal_data.happen_dt
             updated = True
 
-        # 공고 기간 업데이트
-        if animal.notice_start_date != animal_data.notice_sdt:
-            animal.notice_start_date = animal_data.notice_sdt
-            updated = True
+        # 공고 종료일은 갱신 (마감일은 변경될 수 있음)
         if animal.notice_end_date != animal_data.notice_edt:
             animal.notice_end_date = animal_data.notice_edt
             updated = True
+        # ⚠️ notice_start_date는 의도적으로 update하지 않음.
+        # 입양탭 정렬 기준이라(첫 공고 시점에 머물러야 사용자에게 일관된 노출).
+        # 공공 API에서 noticeSdt가 변경되어도 우리 DB는 첫 받은 시점 보존.
         
         # 3. 기타 정보 업데이트 (변경 가능한 경우)
         if animal.breed != (animal_data.kind_nm or '믹스견'):

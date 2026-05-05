@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils import timezone
 from decimal import Decimal
 from centers.models import Center
 from common.models import BaseModel
@@ -94,7 +95,17 @@ class Animal(BaseModel):
     public_notice_number = models.CharField(max_length=50, blank=True, null=True, unique=True, help_text="공공데이터 공고번호 (unique)")
     comment = models.TextField(blank=True, null=True, help_text="공공데이터 특이사항 코멘트")
     # 공공데이터 공고 기간
-    notice_start_date = models.DateField(blank=True, null=True, help_text="공고 시작일")
+    notice_start_date = models.DateField(
+        blank=True,
+        null=True,
+        db_index=True,
+        help_text=(
+            "공고 시작일 — 사용자에게 동물이 노출되기 시작한 날짜. "
+            "공공 동물: 공공 API의 noticeSdt(공고 시작일). "
+            "민간 동물: 센터가 우리 시스템에 등록한 일자(created_at::date) — pre_save에서 자동 채움. "
+            "한 번 set되면 이후 sync에서도 갱신 안 됨 (입양탭 정렬 위치 보존)."
+        ),
+    )
     notice_end_date = models.DateField(blank=True, null=True, help_text="공고 종료일")
     
     class Meta:
@@ -105,7 +116,14 @@ class Animal(BaseModel):
             models.Index(fields=['public_notice_number']),  # 공고번호 인덱스
             models.Index(fields=['is_public_data']),       # 공공데이터 여부 인덱스
         ]
-    
+
+    def save(self, *args, **kwargs):
+        # 민간 동물 등록 시 notice_start_date 자동 채움 (= 등록 시점 = 곧 사용자에게 공고된 시점)
+        # 공공 동물은 services.py _create_animal에서 notice_sdt로 직접 set하므로 여기 분기 영향 없음.
+        if not self.is_public_data and not self.notice_start_date:
+            self.notice_start_date = timezone.now().date()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         center_name = self.center.name if self.center else "Unknown Center"
         animal_name = self.name if self.name else "Unknown Animal"

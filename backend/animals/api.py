@@ -368,21 +368,25 @@ async def get_animals(
                 # 매칭되는 센터가 없으면 빈 결과 반환
                 queryset = queryset.none()
         
-        # 정렬 기능 추가
-        sort_by = filters.sort_by or "created_at"
+        # 정렬 기능 — default는 notice_start_date 기준 (사용자에게 노출되기 시작한 시점).
+        # 공공 동물: 공고 시작일 / 민간 동물: 등록 시점(model.save에서 자동 채움). 의미 통일.
+        # 동률 시 created_at 보조 정렬로 결정성 확보.
+        sort_by = filters.sort_by or "notice_start_date"
         sort_order = filters.sort_order or "desc"
-        
+
         if sort_by == "admission_date":
             order_field = "admission_date"
         elif sort_by == "megaphone_count":
             order_field = "megaphone_count"
-        else:
+        elif sort_by == "created_at":
             order_field = "created_at"
-        
-        if sort_order == "asc":
-            queryset = queryset.order_by(order_field)
         else:
-            queryset = queryset.order_by(f"-{order_field}")
+            order_field = "notice_start_date"
+
+        if sort_order == "asc":
+            queryset = queryset.order_by(order_field, "created_at")
+        else:
+            queryset = queryset.order_by(f"-{order_field}", "-created_at")
         
         # 페이지네이션 처리 (async)
         @sync_to_async

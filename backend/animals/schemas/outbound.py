@@ -84,9 +84,13 @@ class AnimalListItemOut(Schema):
     center_id: str = Field(..., description="센터 ID")
     animal_images: List[AnimalImageOut] = Field(default_factory=list, description="동물 이미지 목록")
     updated_at: str = Field(..., description="수정일시 (ISO 형식)")
-    
+    created_at: Optional[str] = Field(None, description="생성일시 (ISO 형식)")
+
     # 공공데이터 관련 필드
     is_public_data: bool = Field(False, description="공공데이터 여부")
+    public_notice_number: Optional[str] = Field(None, description="공공데이터 공고번호")
+    notice_sdt: Optional[str] = Field(None, description="공고 시작일 (ISO 형식, 입양탭 정렬 기준)")
+    notice_edt: Optional[str] = Field(None, description="공고 종료일 (ISO 형식)")
 
 
 class AnimalListOut(Schema):

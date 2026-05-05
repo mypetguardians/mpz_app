@@ -106,7 +106,14 @@ class AnimalListQueryIn(Schema):
     region: Optional[str] = Field(None, description="지역 필터")
     city: Optional[str] = Field(None, description="시/군 필터 (예: 서울시, 수원시)")
     has_trainer_comment: Optional[str] = Field(None, description="훈련사 코멘트 존재 여부 (true/false)")
-    sort_by: Optional[str] = Field("created_at", description="정렬 기준 (created_at, admission_date, megaphone_count)")
+    sort_by: Optional[str] = Field(
+        None,
+        description=(
+            "정렬 기준. 미지정 시 BE default(notice_start_date desc) 사용 — "
+            "공공/민간 통일된 '사용자 노출 시작 시점' 기준 (PR #108). "
+            "옵션: notice_start_date / created_at / admission_date / megaphone_count"
+        ),
+    )
     sort_order: Optional[str] = Field("desc", description="정렬 순서 (asc/desc)")
     protection_status: Optional[str] = Field(None, description="보호 상태 필터 (보호중, 임시보호, 안락사, 자연사, 반환, 기증, 방사, 입양완료)")
     adoption_status: Optional[str] = Field(None, description="입양 상태 필터 (입양가능, 입양진행중, 입양완료, 입양불가)")

@@ -475,9 +475,13 @@ async def get_animals(
                     for img in images
                 ],
                 updated_at=animal.updated_at.isoformat(),
-                
+                created_at=animal.created_at.isoformat(),
+
                 # 공공데이터 관련 필드
                 is_public_data=animal.is_public_data,
+                public_notice_number=animal.public_notice_number,
+                notice_sdt=animal.notice_start_date.isoformat() if animal.notice_start_date else None,
+                notice_edt=animal.notice_end_date.isoformat() if animal.notice_end_date else None,
             )
             animals_response.append(animal_data)
         
